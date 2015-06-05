@@ -32,7 +32,7 @@ pip-delete-this-directory.txt
 /docs/_generated
 
 # Version information
-/gwpy/detchar/version.py
+/gwdetchar/version.py
 
 # OS/editor files
 *.swp
