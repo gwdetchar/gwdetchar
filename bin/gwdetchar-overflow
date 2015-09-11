@@ -7,11 +7,18 @@ import argparse
 import numpy
 import os.path
 
-from gwpy.timeseries import TimeSeries
+from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.io.cache import cache_segments
 
 from gwdetchar import (cli, const, overflow)
 from gwdetchar.io import (datafind, ligolw)
+
+
+def table_from_times(times, channel):
+    return ligolw.sngl_burst_from_times(
+        times, snr=10, peak_frequency=100, channel=channel,
+        search=os.path.basename(__file__))
+
 
 parser = argparse.ArgumentParser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
@@ -21,6 +28,8 @@ parser.add_argument('dcuid', type=int, nargs='+',
 cli.add_frametype_option(parser, required=const.IFO is None,
                          default=const.IFO is not None and '%s_R' % const.IFO)
 cli.add_nproc_option(parser)
+parser.add_argument('--deep', action='store_true', default=False,
+                    help='perform deep scan, default: %(default)s')
 
 args = parser.parse_args()
 
@@ -32,22 +41,32 @@ cachesegs = cache_segments(cache)
 # get channel and find overflows
 table = None
 for dcuid in args.dcuid:
-    channel = overflow.ligo_overflow_channel(dcuid, args.ifo)
-    times = numpy.zeros((0,))
+    channel = overflow.ligo_accum_overflow_channel(dcuid, args.ifo)
     for seg in cachesegs:
         seg &= type(seg)(args.gpsstart, args.gpsend)
         c = cache.sieve(segment=seg)
-        data = TimeSeries.read(c, channel, nproc=args.nproc, start=seg[0], end=seg[1])
-        t2 = overflow.find_overflows(data)
-        times.resize((times.size+t2.size,))
-        times[-t2.size:] = t2
+        data = TimeSeries.read(c, channel, nproc=args.nproc,
+                               start=seg[0], end=seg[1])
+        times = overflow.find_overflows(data)
 
-    # write to ligolw
-    if table is None:
-        table = ligolw.sngl_burst_from_times(times, snr=10, peak_frequency=100, channel=channel,
-                                             search=os.path.basename(__file__))
-        extend = table.extend
-    else:
-        extend(ligolw.sngl_burst_from_times(times, snr=10, peak_frequency=100, channel=channel,
-                                            search=os.path.basename(__file__)))
+        if args.deep and times.size > 0:
+            channels = overflow.ligo_model_overflow_channels(
+                dcuid, args.ifo, args.frametype, gpstime=int(times[0]))
+            for t in times:
+                data = TimeSeriesDict.read(c, channels, nproc=args.nproc,
+                                           start=int(t-1), end=int(t+1))
+                for ch in channels:
+                    times = overflow.find_overflows(data[ch])
+                    if table is None:
+                        table = table_from_times(times, ch)
+                        extend = table.extend
+                    else:
+                        extend(table_from_times(times, ch))
+        else:
+            if table is None:
+                table = table_from_times(times, channel)
+                extend = table.extend
+            else:
+                extend(table_from_times(times, channel))
+
 ligolw.table_to_document(table).write()
