@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+
+"""Find overflows associated with a particular front-end model
+"""
+
+import argparse
+import numpy
+import os.path
+
+from gwpy.timeseries import TimeSeries
+from gwpy.io.cache import cache_segments
+
+from gwdetchar import (cli, const, overflow)
+from gwdetchar.io import (datafind, ligolw)
+
+parser = argparse.ArgumentParser(description=__doc__)
+cli.add_gps_start_stop_arguments(parser)
+cli.add_ifo_option(parser)
+parser.add_argument('dcuid', type=int, nargs='+',
+                    help='DCUID for the relevant front-end model')
+cli.add_frametype_option(parser, required=const.IFO is None,
+                         default=const.IFO is not None and '%s_R' % const.IFO)
+cli.add_nproc_option(parser)
+
+args = parser.parse_args()
+
+# get frame cache
+cache = datafind.find_frames(args.ifo[0], args.frametype,
+                             args.gpsstart.seconds, args.gpsend.seconds)
+cachesegs = cache_segments(cache)
+
+# get channel and find overflows
+table = None
+for dcuid in args.dcuid:
+    channel = overflow.ligo_overflow_channel(dcuid, args.ifo)
+    times = numpy.zeros((0,))
+    for seg in cachesegs:
+        seg &= type(seg)(args.gpsstart, args.gpsend)
+        c = cache.sieve(segment=seg)
+        data = TimeSeries.read(c, channel, nproc=args.nproc, start=seg[0], end=seg[1])
+        t2 = overflow.find_overflows(data)
+        times.resize((times.size+t2.size,))
+        times[-t2.size:] = t2
+
+    # write to ligolw
+    if table is None:
+        table = ligolw.sngl_burst_from_times(times, snr=10, peak_frequency=100, channel=channel,
+                                             search=os.path.basename(__file__))
+        extend = table.extend
+    else:
+        extend(ligolw.sngl_burst_from_times(times, snr=10, peak_frequency=100, channel=channel,
+                                            search=os.path.basename(__file__)))
+ligolw.table_to_document(table).write()
