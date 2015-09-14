@@ -76,7 +76,7 @@ def add_nproc_option(
         help='the number of processes to use when reading data',
         **kwargs):
     return parser.add_argument('-j', '--nproc', default=default, help=help,
-                             **kwargs)
+                               **kwargs)
 
 
 def add_option(parser, short, long=None, **kwargs):
