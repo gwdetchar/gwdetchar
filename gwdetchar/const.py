@@ -21,9 +21,23 @@
 
 import os
 
+from gwpy.segments import Segment
+
+from . import version
+
+__author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+__version__ = version.version
+
 IFO = os.getenv('IFO', None)
 ifo = os.getenv('ifo', None)
 SITE = os.getenv('SITE', None)
 site = os.getenv('site', None)
 O1_SEGMENT_SERVER = os.getenv('O1_SEGMENT_SERVER', 'https://segments.ligo.org')
-S6_SEGMENT_SERVER = os.getenv('S6_SEGMENT_SERVER', 'https://segdb.ligo.caltech.edu')
+S6_SEGMENT_SERVER = os.getenv('S6_SEGMENT_SERVER',
+                              'https://segdb.ligo.caltech.edu')
+
+# -- Run epochs ---------------------------------------------------------------
+EPOCH = {
+    'ER7': Segment(1117400416, 1118329216),
+    'ER8': Segment(1123858817, 1126623617),
+}
