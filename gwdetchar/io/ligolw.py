@@ -22,9 +22,9 @@
 from glue.ligolw import (ligolw, table)
 from gwpy.table import lsctables
 
-LIGOTimeGPS = lsctables.LIGOTimeGPS
-
 from .. import version
+
+LIGOTimeGPS = lsctables.LIGOTimeGPS
 
 __version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
