@@ -130,9 +130,9 @@ class GitVersionMixin(object):
     def update_metadata(self):
         """Import package base and update distribution metadata
         """
-        from gwpy import detchar
-        self.distribution.metadata.version = detchar.__version__
-        desc, longdesc = detchar.__doc__.split('\n', 1)
+        import gwdetchar
+        self.distribution.metadata.version = gwdetchar.__version__
+        desc, longdesc = gwdetchar.__doc__.split('\n', 1)
         self.distribution.metadata.description = desc
         self.distribution.metadata.long_description = longdesc.strip('\n')
 
