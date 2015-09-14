@@ -19,6 +19,8 @@
 """Git version generator
 """
 
+from __future__ import print_function
+
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Adam Mercer <adam.mercer@ligo.org>'
 
@@ -59,8 +61,7 @@ git_tag = None\
 git_branch = '{{ status.branch.name }}'
 git_author = "{{ status.author }}"
 git_committer = "{{ status.committer }}"
-git_is_dirty = {{ status.is_dirty() }}
-""")
+git_is_dirty = {{ status.is_dirty() }}""")
 
 
 class GitStatus(object):
@@ -172,5 +173,5 @@ class GitStatus(object):
         if len(version.version) < 3 or not isinstance(version.version[2], int):
             version.version.insert(2, 'None')
         package_metadata.setdefault('year', time.gmtime().tm_year)
-        fobj.write(VERSION_PY_TEMPLATE.render(status=self, version=version,
-                                              package=package_metadata))
+        print(VERSION_PY_TEMPLATE.render(status=self, version=version,
+                                         package=package_metadata), file=fobj)
