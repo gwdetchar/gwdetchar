@@ -1,0 +1,121 @@
+#!/usr/bin/env python
+# coding=utf-8
+# Copyright (C) LIGO Scientific Collaboration (2015-)
+#
+# This file is part of the GW DetChar python package.
+#
+# GW DetChar is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GW DetChar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
+
+"""User-friendly wrapper around the Omega-pipeline scan
+"""
+
+from __future__ import print_function
+
+import argparse
+import os.path
+import sys
+from subprocess import (Popen, PIPE, CalledProcessError)
+
+from glue.lal import Cache
+
+from gwpy.time import to_gps
+
+from gwdetchar import (cli, omega, const)
+from gwdetchar.io.datafind import find_frames
+from gwdetchar.utils import which
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('gpstime', type=str, help='GPS time of scan')
+cli.add_ifo_option(parser)
+parser.add_argument('-o', '--output-directory',
+                    help='output directory for scan, '
+                         'default: ~/public_html/wdq/{IFO}_{gpstime}')
+parser.add_argument(
+    '-f', '--config-file',
+    help='path to configuration file to use, default: '
+         '~detchar/etc/omega/{epoch}/{OBS}-{IFO}_R-selected.txt')
+parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
+                    required=omega.WPIPELINE is None,
+                    help='path to wpipeline binary, default: %(default)s')
+
+args = parser.parse_args()
+
+print("----------------------------------------------\n"
+      "Creating omega scan for %s..." % args.gpstime)
+
+gps = args.gpstime
+gpstime = float(gps)
+ifo = args.ifo
+obs = args.ifo[0]
+
+# set output directory
+outdir = args.output_directory
+if outdir is None:
+    outdir = os.path.expanduser('~/public_html/wdq/%s_%s' % (ifo, gps))
+if not os.path.isdir(outdir):
+    os.makedirs(outdir)
+print("Ouput directory created as %s" % outdir)
+
+# find epoch
+epoch = None
+epochs = sorted(const.EPOCH.items(), key=lambda x: x[1].start)
+for i, (epoch_, segment) in enumerate(epochs):
+    if gpstime in segment:
+        epoch = epoch_
+        break
+    elif (i == 0 and gpstime < segment.start):
+        epoch = epoch_
+        break
+    elif gpstime < segment.start:
+        epoch = epochs[i-1][0]
+        break
+if epoch is None:
+    epoch = 'O1'
+print("Identified epoch as %r" % epoch)
+
+# find and parse configuration file
+if args.config_file is None:
+    args.config_file = os.path.expanduser(
+        '~detchar/etc/omega/{epoch}/{obs}-{ifo}_R-selected.txt'.format(
+        epoch=epoch, obs=obs, ifo=ifo))
+config = omega.OmegaChannelList.read(args.config_file)
+print("Successfully parsed config file %s" % args.config_file)
+
+# find frames
+padding = 1000
+cachestart = int(gpstime) - padding
+cacheend = int(gpstime) + padding
+frametypes = set(c.frametype for c in config)
+cache = Cache()
+cachefile = os.path.join(
+    outdir, '%s-OMEGA_CACHE_FILE-%d-%d.lcf'
+            % (ifo, cachestart, cacheend-cachestart),
+)
+mode = 'w'
+for ft in set(c.frametype for c in config):
+    cmd = ['gw_data_find', '--observatory', obs, '--type', ft,
+           '--gps-start-time', str(cachestart),
+           '--gps-end-time', str(cacheend), '--frame-cache']
+    proc = Popen(cmd, stdout=PIPE)
+    out, err = proc.communicate()
+    if proc.returncode:
+        raise CalledProcessError(proc.returncode, ' '.join(cmd))
+    with open(cachefile, mode) as fp:
+        print(out.rstrip(), file=fp)
+    mode = 'a'
+print("Cachefile generated as %s" % cachefile)
+
+# run scan
+omega.run(gps, args.config_file, cachefile, outdir=outdir,
+          wpipeline=args.wpipeline, verbose=True)
