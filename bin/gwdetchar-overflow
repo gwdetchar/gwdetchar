@@ -24,6 +24,7 @@ import argparse
 import numpy
 import os.path
 
+from gwpy.segments import (DataQualityFlag, Segment, SegmentList)
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.io.cache import cache_segments
 
@@ -50,20 +51,29 @@ cli.add_frametype_option(parser, required=const.IFO is None,
 cli.add_nproc_option(parser)
 parser.add_argument('--deep', action='store_true', default=False,
                     help='perform deep scan, default: %(default)s')
+parser.add_argument('-a', '--state-flag', metavar='FLAG',
+                    help='restrict search to times when FLAG was active')
 
 args = parser.parse_args()
+
+# get segments
+if args.state_flag:
+    segs = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
+                                 args.gpsend.seconds,
+                                 url=const.O1_SEGMENT_SERVER).active
+else:
+    segs = SegmentList([Segment(args.gpsstart, args.gpsend)])
 
 # get frame cache
 cache = datafind.find_frames(args.ifo[0], args.frametype,
                              args.gpsstart.seconds, args.gpsend.seconds)
-cachesegs = cache_segments(cache)
+cachesegs = segs & cache_segments(cache)
 
 # get channel and find overflows
 table = None
 for dcuid in args.dcuid:
     channel = overflow.ligo_accum_overflow_channel(dcuid, args.ifo)
     for seg in cachesegs:
-        seg &= type(seg)(args.gpsstart, args.gpsend)
         c = cache.sieve(segment=seg)
         data = TimeSeries.read(c, channel, nproc=args.nproc,
                                start=seg[0], end=seg[1])
