@@ -20,7 +20,9 @@
 """
 
 from glue.ligolw import (ligolw, table)
+
 from gwpy.table import lsctables
+from gwpy.segments import (Segment, DataQualityFlag, DataQualityDict)
 
 from .. import version
 
@@ -86,6 +88,25 @@ def sngl_burst_from_segments(segs, **params):
             setattr(row, key, val)
         append(row)
     return table
+
+
+def segments_from_sngl_burst(table, padding, known=None):
+    """Create a `DataQualityDict` of segments from the given `SnglBurstTable`
+
+    This method creates a `~gwpy.segments.DataQualityFlag` for each unique
+    channel found in the given table by padding the peak time by the given
+    amount on each side
+    """
+    out = DataQualityDict()
+    for row in table:
+        t = row.get_peak()
+        seg = Segment(t-padding, t+padding)
+        try:
+            out[row.channel].active.append(seg)
+        except KeyError:
+            out[row.channel] = DataQualityFlag(row.channel, known=known,
+                                               active=[seg])
+    return out
 
 
 def table_to_document(table):
