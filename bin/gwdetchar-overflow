@@ -23,6 +23,7 @@
 import argparse
 import numpy
 import os.path
+import sys
 
 from gwpy.segments import (DataQualityFlag, Segment, SegmentList)
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
@@ -53,6 +54,13 @@ parser.add_argument('--deep', action='store_true', default=False,
                     help='perform deep scan, default: %(default)s')
 parser.add_argument('-a', '--state-flag', metavar='FLAG',
                     help='restrict search to times when FLAG was active')
+parser.add_argument('-o', '--output-format', default='sngl_burst',
+                    choices=['sngl_burst', 'segments', 'integer-segments'],
+                    help='output format, default: %(default)s')
+parser.add_argument('-p', '--segment-pad', type=float, default=0.1,
+                    help='minimum padding (one-sided) for output segments '
+                         'when using --output-format '
+                         '[segments|integer-segments]')
 
 args = parser.parse_args()
 
@@ -99,4 +107,11 @@ for dcuid in args.dcuid:
             else:
                 extend(table_from_times(times, channel))
 
-ligolw.table_to_document(table).write()
+if args.output_format == 'sngl_burst':
+    ligolw.table_to_document(table).write()
+else:
+    segs = ligolw.segments_from_sngl_burst(table, args.segment_pad, known=segs)
+    if args.output_format == 'integer-segments':
+        for key in segs:
+            segs[key] = segs[key].round()
+    segs.write(sys.stdout, format='ligolw')
