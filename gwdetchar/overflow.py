@@ -53,7 +53,8 @@ def find_overflows(timeseries, cumulative=True):
         were recorded
     """
     if cumulative:
-        newoverflow = numpy.diff((numpy.diff(timeseries.value) != 0).astype(int)) > 0
+        newoverflow = numpy.diff(
+            (numpy.diff(timeseries.value) != 0).astype(int)) > 0
         return timeseries.times.value[2:][newoverflow]
     else:
         newoverflow = numpy.diff(timeseries.value) == 1
@@ -77,7 +78,8 @@ def ligo_accum_overflow_channel(dcuid, ifo=None):
     """
     ifo = ifo or const.IFO
     if ifo is None:
-        raise ValueError("Cannot format channel without an IFO, please specify")
+        raise ValueError("Cannot format channel without an IFO, "
+                         "please specify")
     return '%s:FEC-%d_ACCUM_OVERFLOW' % (ifo, dcuid)
 
 
@@ -88,7 +90,8 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
     # FIXME: write a docstring
     ifo = ifo or const.IFO
     if ifo is None:
-        raise ValueError("Cannot format channel without an IFO, please specify")
+        raise ValueError("Cannot format channel without an IFO, "
+                         "please specify")
     if frametype is None:
         frametype = '%s_R' % ifo
     if gpstime is None:
@@ -96,7 +99,9 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
     framefile = find_frames(ifo[0], frametype, gpstime, gpstime)[0].path
     allchannels = get_channels(framefile)
     if accum:
-        regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_ACC_\d+_\d+\Z' % (ifo, dcuid))
+        regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_ACC_\d+_\d+\Z'
+                           % (ifo, dcuid))
     else:
-        regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_\d+_\d+\Z' % (ifo, dcuid))
+        regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_\d+_\d+\Z'
+                           % (ifo, dcuid))
     return filter(regex.match, allchannels)
