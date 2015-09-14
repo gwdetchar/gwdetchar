@@ -74,7 +74,7 @@ for dcuid in args.dcuid:
                 dcuid, args.ifo, args.frametype, gpstime=int(times[0]))
             for t in times:
                 data = TimeSeriesDict.read(c, channels, nproc=args.nproc,
-                                           start=int(t-1), end=int(t+1))
+                                           start=int(t-2), end=int(t+2))
                 for ch in channels:
                     times = overflow.find_overflows(data[ch])
                     if table is None:
