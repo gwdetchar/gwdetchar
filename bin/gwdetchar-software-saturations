@@ -292,9 +292,9 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
     # group channels in sets for batch processing
     #     min of <number of channels>, user group size (sensible number), and
     #     512 Mb of RAM for single-precision EPICS
+    dur = max([float(abs(s)) for s in segs])
     ngroup = int(
-        min(nchans, args.group_size,
-            .5 * 1024**3 / 4. / 16. / float(args.gpsend - args.gpsstart)))
+        min(nchans, args.group_size, .5 * 1024**3 / 4. / 16. / dur))
     print('Processing %s channels in groups of %d:' % (suffix, ngroup))
     sys.stdout.flush()
     sets = grouper(clist, ngroup)
