@@ -362,9 +362,9 @@ if args.html:
         page.init(title='%s software saturations' % ifo,
                   css="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/"
                       "bootstrap.min.css",
-                  src=["https://code.jquery.com/jquery-1.11.2.min.js",
-                       "//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/"
-                       "bootstrap.min.js"])
+                  script=["https://code.jquery.com/jquery-1.11.2.min.js",
+                          "//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/"
+                          "bootstrap.min.js"])
     page.div(class_='container')
     page.div(class_='page-header')
     page.h1('%s software saturations: %d-%d'
