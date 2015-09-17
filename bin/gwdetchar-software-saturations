@@ -68,7 +68,7 @@ def grouper(iterable, n, fillvalue=None):
 
 
 def write_flag_html(flag, id=0, parent='accordion', context='warning',
-                    title=None):
+                    title=None, plotdir=None):
     page = markup.page()
     page.div(class_='panel panel-%s' % context)
     page.div(class_='panel-heading')
@@ -84,9 +84,31 @@ def write_flag_html(flag, id=0, parent='accordion', context='warning',
                       coltype=type(flag.active[0][0]))
     page.pre(segs.getvalue())
     page.div.close()
+    if plotdir is not None:
+        flagr = flag.name.replace('-', '_').replace(':', '-', 1)
+        png = os.path.join(
+            plotdir, '%s-%d-%d.png' % (flagr, span[0], abs(span)))
+        plot = plot_saturations(flag, span)
+        plot.save(png)
+        page.a(href=png, target='_blank')
+        page.img(style="width: 100%;", src=png)
+        page.a.close()
     page.div.close()
     page.div.close()
     return page
+
+
+def plot_saturations(flag, span, facecolor='red', edgecolor='darkred',
+                     known={'alpha': 0.1, 'facecolor': 'lightgray'}):
+    """Plot the saturation segments contained within this flag
+    """
+    plot = flag.plot(figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
+                     known=known, label=' ')
+    plot.subplots_adjust(bottom=0.4, top=0.8)
+    plot.set_title('%s software saturations' % flag.name.replace('_', r'\_'))
+    plot.set_xlim(*span)
+    plot.set_epoch(span[0])
+    return plot
 
 
 def get_adc_channels(framefile):
@@ -223,6 +245,7 @@ def is_saturated(channel, cache, start=None, end=None,
             out.append(find_saturations(data['%s_OUTPUT' % c],
                                         data['%s_LIMIT' % c], precision=.99,
                                         segments=True))
+            out[-1].name = out[-1].name[:-7]
         else:
             out.append(find_saturations(data['%s_OUTPUT' % c],
                                         data['%s_LIMIT' % c],
@@ -263,6 +286,8 @@ parser.add_argument('-p', '--pad-state-end', metavar='PAD', default=0,
                     type=float, help='pad state segments inwards from the end '
                                      'by PAD segments, default: %(default)s')
 parser.add_argument('-m', '--html', help='path to write html output')
+parser.add_argument('-v', '--plot', action='store_true', default=False,
+                    help='make plots of all saturations, defaul: %(default)s')
 
 args = parser.parse_args()
 
@@ -271,6 +296,7 @@ site = ifo[0]
 frametype = args.frametype or '%s_R' % ifo
 
 # get segments
+span = Segment(args.gpsstart, args.gpsend)
 if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
                                   args.gpsend.seconds,
@@ -386,6 +412,8 @@ saturations.write(outfile)
 print("Saturation segments written to \n%s" % outfile)
 
 if args.html:
+    if args.plot:
+        args.plot = os.path.dirname(args.html)
     xmlfile = os.path.relpath(outfile, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
         page = htmlio.new_bootstrap_page()
