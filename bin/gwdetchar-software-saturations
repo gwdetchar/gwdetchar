@@ -235,6 +235,9 @@ parser.add_argument('-g', '--group-size', default=256, type=int,
                          "default: %(default)s")
 parser.add_argument('-a', '--state-flag', metavar='FLAG',
                     help='restrict search to times when FLAG was active')
+parser.add_argument('-p', '--pad-state-end', metavar='PAD', default=0,
+                    type=float, help='pad state segments inwards from the end '
+                                     'by PAD segments, default: %(default)s')
 parser.add_argument('-m', '--html', help='path to write html output')
 
 args = parser.parse_args()
@@ -248,7 +251,9 @@ if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
                                   args.gpsend.seconds,
                                   url=const.O1_SEGMENT_SERVER)
-    segs = state.active
+    for i, seg in enumerate(state.active):
+        state.active[i] = type(seg)(seg[0], seg[1]-args.pad_state_end)
+    segs = state.active.coalesce()
     print("Recovered %d seconds of time for %s"
           % (abs(segs), args.state_flag))
 else:
