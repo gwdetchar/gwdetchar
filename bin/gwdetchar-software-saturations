@@ -275,7 +275,7 @@ parser.add_argument('-c', '--channels',
                     help="file containing columnar list of channels to "
                          "process, default is to find all relevant channels "
                          "from frames")
-parser.add_argument('-s', '--skip', action='append', default=[],
+parser.add_argument('-s', '--skip', nargs='*', default=[],
                     help='skip channels matching this string')
 parser.add_argument('-g', '--group-size', default=256, type=int,
                     help="number of channels to process in a single batch, "
