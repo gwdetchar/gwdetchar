@@ -400,7 +400,7 @@ if args.html:
     page.h1('%s software saturations: %d-%d'
             % (ifo, args.gpsstart.seconds, args.gpsend.seconds))
     page.p("This analysis searched %d channels for times during which their "
-           "OUTPUT value matched the 'LIMIT' value set in software. Only "
+           "OUTPUT value matched the LIMIT value set in software. Only "
            "those signals achieving saturation are printed in the Segments "
            "section below, while all channels for which the LIMIT was active "
            "are included in the Results summary and the XML record."
