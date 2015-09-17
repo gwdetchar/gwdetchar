@@ -61,7 +61,9 @@ parser.add_argument('-p', '--segment-pad', type=float, default=0.1,
                     help='minimum padding (one-sided) for output segments '
                          'when using --output-format '
                          '[segments|integer-segments]')
-
+parser.add_argument('-s', '--segment-end-pad', type=float, default=1.0,
+                    help='amount of time to remove from the end of each '
+                         'analysis segment')
 args = parser.parse_args()
 
 # get segments
@@ -84,7 +86,7 @@ for dcuid in args.dcuid:
     for seg in cachesegs:
         c = cache.sieve(segment=seg)
         data = TimeSeries.read(c, channel, nproc=args.nproc,
-                               start=seg[0], end=seg[1])
+                               start=seg[0], end=seg[1]-args.segment_end_pad)
         times = overflow.find_overflows(data)
 
         if args.deep and times.size > 0:
