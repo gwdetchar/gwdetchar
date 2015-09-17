@@ -41,6 +41,7 @@ from gwpy.time import to_gps
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict, StateTimeSeries)
 
 from gwdetchar import (version, cli, const)
+from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import find_frames
 from gwdetchar.saturation import find_saturations
 
@@ -386,14 +387,10 @@ print("Saturation segments written to \n%s" % outfile)
 
 if args.html:
     xmlfile = os.path.relpath(outfile, os.path.dirname(args.html))
-    page = markup.page()
     if os.path.basename(args.html) == 'index.html':
-        page.init(title='%s software saturations' % ifo,
-                  css="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/"
-                      "bootstrap.min.css",
-                  script=["https://code.jquery.com/jquery-1.11.2.min.js",
-                          "//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/"
-                          "bootstrap.min.js"])
+        page = htmlio.new_bootstrap_page()
+    else:
+        page = markup.page()
     page.div(class_='container')
     # -- header
     page.div(class_='page-header')
@@ -422,14 +419,19 @@ if args.html:
                                      context='success')))
         page.div.close()
     # print saturation segments
-    page.p('The following channels indicated a software saturation:')
-    page.div(class_='panel-group', id_='accordion2')
-    for i, (c, flag) in enumerate(saturations.iteritems()):
-        if abs(flag.active) > 0:
-            title = '%s [%d]' % (flag.name, len(flag.active))
-            page.add(str(write_flag_html(flag, i, parent='accordion2',
-                                         title=title)))
-    page.div.close()
+    if len(bad):
+        page.p('The following channels indicated a software saturation:')
+        page.div(class_='panel-group', id_='accordion2')
+        for i, (c, flag) in enumerate(saturations.iteritems()):
+            if abs(flag.active) > 0:
+                title = '%s [%d]' % (flag.name, len(flag.active))
+                page.add(str(write_flag_html(flag, i, parent='accordion2',
+                                             title=title, plotdir=args.plot)))
+        page.div.close()
+    else:
+        page.div(class_='alert alert-info')
+        page.p('No software saturations were found')
+        page.div.close()
     # -- results table
     page.h2('Results summary')
     page.table(class_='table table-striped table-hover')
