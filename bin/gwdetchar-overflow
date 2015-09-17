@@ -85,6 +85,8 @@ for dcuid in args.dcuid:
     channel = overflow.ligo_accum_overflow_channel(dcuid, args.ifo)
     for seg in cachesegs:
         c = cache.sieve(segment=seg)
+        if (seg[1]-args.segment_end_pad) < seg[0]:
+            continue
         data = TimeSeries.read(c, channel, nproc=args.nproc,
                                start=seg[0], end=seg[1]-args.segment_end_pad)
         times = overflow.find_overflows(data)
