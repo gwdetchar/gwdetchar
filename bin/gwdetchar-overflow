@@ -84,7 +84,10 @@ cache = datafind.find_frames(args.ifo[0], args.frametype,
 cachesegs = segs & cache_segments(cache)
 
 # get channel and find overflows
-table = None
+table = ligolw.new_table(
+    'sngl_burst',
+    columns=['peak_time', 'peak_time_ns', 'event_id', 'channel', 'snr'])
+extend = table.extend
 for dcuid in args.dcuid:
     channel = overflow.ligo_accum_overflow_channel(dcuid, args.ifo)
     for seg in cachesegs:
@@ -103,17 +106,9 @@ for dcuid in args.dcuid:
                                            start=int(t-2), end=int(t+2))
                 for ch in channels:
                     times = overflow.find_overflows(data[ch])
-                    if table is None:
-                        table = table_from_times(times, ch)
-                        extend = table.extend
-                    else:
-                        extend(table_from_times(times, ch))
+                    extend(table_from_times(times, ch))
         else:
-            if table is None:
-                table = table_from_times(times, channel)
-                extend = table.extend
-            else:
-                extend(table_from_times(times, channel))
+            extend(table_from_times(times, channel))
 
 if args.output_file:
     file = open(args.output_file, 'w')
