@@ -19,9 +19,37 @@
 """Utility methods
 """
 
+import re
+
 from gwpy.io.kerberos import which
 
 from . import version
 
 __version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+
+
+def natural_sort(l, key=None):
+    """Sort a list the way that humans expect.
+
+    This differs from the built-in `sorted` method by building a custom
+    key to sort numeric parts by value, not by character content, so that
+    '2' gets sorted before '10', for example.
+
+    Parameters
+    ----------
+    l : `iterable`
+        iterable to sort
+    key : `callable`
+        sorting key
+
+    Returns
+    -------
+    sorted : `list`
+        a sorted version of the input list
+    """
+    k = key and map(key, l) or l
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in
+                                re.split('([0-9]+)', k[l.index(key)])]
+    return sorted(l, key=alphanum_key)
