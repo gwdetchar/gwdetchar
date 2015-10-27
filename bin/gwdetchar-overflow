@@ -20,6 +20,8 @@
 """Find overflows associated with a particular front-end model
 """
 
+from __future__ import print_function
+
 import argparse
 import numpy
 import os.path
@@ -27,16 +29,31 @@ import sys
 
 from glue.ligolw.utils import write_fileobj
 
-from gwpy.segments import (DataQualityFlag, Segment, SegmentList)
+from gwpy.segments import (DataQualityFlag, DataQualityDict,
+                           Segment, SegmentList)
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.io.cache import cache_segments
 
 from gwdetchar import (cli, const, overflow, version)
-from gwdetchar.io import (datafind, ligolw)
+from gwdetchar.io import (datafind, ligolw, html as htmlio)
 
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __version__ = version.version
+
+
+def plot_overflows(flag, span, facecolor='red', edgecolor='darkred',
+                   known={'alpha': 0.1, 'facecolor': 'lightgray'}):
+    """Plot the overflow segments contained within this flag
+    """
+    plot = flag.plot(figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
+                     known=known, label=' ')
+    plot.subplots_adjust(bottom=0.4, top=0.8)
+    plot.set_title('%s segments' % flag.name.replace('_', r'\_'))
+    plot.set_xlim(*span)
+    plot.set_epoch(span[0])
+    return plot
+
 
 def table_from_times(times, channel):
     return ligolw.sngl_burst_from_times(
@@ -68,48 +85,101 @@ parser.add_argument('-p', '--segment-pad', type=float, default=0.1,
 parser.add_argument('-s', '--segment-end-pad', type=float, default=1.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
+parser.add_argument('-m', '--html', help='path to write html output')
+parser.add_argument('-v', '--plot', action='store_true', default=None,
+                    help='make plots of all overflows, defaul: %(default)s')
+
 args = parser.parse_args()
+
+span = Segment(args.gpsstart, args.gpsend)
 
 # get segments
 if args.state_flag:
-    segs = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
+    state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
                                  args.gpsend.seconds,
-                                 url=const.O1_SEGMENT_SERVER).active
+                                 url=const.O1_SEGMENT_SERVER)
+    statea = state.active
 else:
-    segs = SegmentList([Segment(args.gpsstart, args.gpsend)])
+    statea = SegmentList([span])
 
 # get frame cache
 cache = datafind.find_frames(args.ifo[0], args.frametype,
                              args.gpsstart.seconds, args.gpsend.seconds)
-cachesegs = segs & cache_segments(cache)
+cachesegs = statea & cache_segments(cache)
+
+# set up container
+if args.output_format.endswith('segments'):
+    use_segments = True
+    overflows = DataQualityDict()
+    def find_overflows(timeseries, channel):
+        segs = overflow.find_overflow_segments(timeseries)
+        segs.known = [timeseries.span]
+        try:
+            overflows[channel] += segs
+        except KeyError:
+            overflows[channel] = segs
+else:
+    use_segments = False
+    overflows = ligolw.new_table(
+        'sngl_burst',
+        columns=['peak_time', 'peak_time_ns', 'event_id', 'channel', 'snr'])
+    def find_overflows(timeseries, channel):
+        times = overflow.find_overflows(timeseries)
+        overflows.extend(table_from_times(times, channel))
 
 # get channel and find overflows
-table = ligolw.new_table(
-    'sngl_burst',
-    columns=['peak_time', 'peak_time_ns', 'event_id', 'channel', 'snr'])
-extend = table.extend
 for dcuid in args.dcuid:
     channel = overflow.ligo_accum_overflow_channel(dcuid, args.ifo)
+    if args.deep:
+        channels = overflow.ligo_model_overflow_channels(
+            dcuid, args.ifo, args.frametype, gpstime=span[0])
     for seg in cachesegs:
         c = cache.sieve(segment=seg)
         if (seg[1]-args.segment_end_pad) < seg[0]:
             continue
         data = TimeSeries.read(c, channel, nproc=args.nproc,
                                start=seg[0], end=seg[1]-args.segment_end_pad)
-        times = overflow.find_overflows(data)
-
-        if args.deep and times.size > 0:
-            channels = overflow.ligo_model_overflow_channels(
-                dcuid, args.ifo, args.frametype, gpstime=int(times[0]))
-            for t in times:
-                data = TimeSeriesDict.read(c, channels, nproc=args.nproc,
-                                           start=int(t-2), end=int(t+2))
-                for ch in channels:
-                    times = overflow.find_overflows(data[ch])
-                    extend(table_from_times(times, ch))
+        if use_segments:
+            new = overflow.find_overflow_segments(data)
+            osegs = type(new.active)([type(s)(s[0]-2, s[0]+2) & seg for
+                                      s in new.active])
+            go_deep = len(new.active) > 0
         else:
-            extend(table_from_times(times, channel))
+            new = overflow.find_overflows(data)
+            osegs = SegmentList([Segment(t-2, t+2) & seg for t in times])
+            go_deep = new.size != 0
+        if args.deep:
+            if go_deep:
+                for s, e in osegs:
+                    data = TimeSeriesDict.read(c, channels, nproc=args.nproc,
+                                               start=s, end=e)
+                    for ch in channels:
+                        find_overflows(data[ch], ch)
+            else:
+                for ch in channels:
+                    try:
+                        overflows[ch] += DataQualityFlag(ch, known=[seg])
+                    except KeyError:
+                        overflows[ch] = DataQualityFlag(ch, known=[seg])
+        elif not args.deep and use_segments:
+            try:
+                overflows[channel] += new
+            except KeyError:
+                overflows[channel] = new
+        elif not args.deep:
+            overflows.extend(table_from_times(new, channel))
 
+# get segments
+if use_segments:
+    segs = overflows
+else:
+    segs = ligolw.segments_from_sngl_burst(
+        table, args.segment_pad, known=statea)
+    if args.output_format == 'integer-segments':
+        for key in segs:
+            segs[key] = segs[key].round()
+
+# write results to file
 if args.output_file:
     file = open(args.output_file, 'w')
     gz = args.output_file.endswith('.gz')
@@ -119,10 +189,116 @@ else:
 if args.output_format == 'sngl_burst':
     write_fileobj(ligolw.table_to_document(table), file, gz=gz)
 else:
-    segs = ligolw.segments_from_sngl_burst(table, args.segment_pad, known=segs)
-    if args.output_format == 'integer-segments':
-        for key in segs:
-            segs[key] = segs[key].round()
     segs.write(file, format='ligolw', gz=gz)
 if args.output_file:
     file.close()
+
+# write HTML
+if args.html:
+    if args.plot:
+        args.plot = os.path.dirname(args.html)
+    if args.output_file:
+        args.output_file = os.path.relpath(
+            args.output_file, os.path.dirname(args.html))
+    if os.path.basename(args.html) == 'index.html':
+        page = htmlio.new_bootstrap_page(
+            title='%s Overflows: %d-%d' % (
+                args.ifo, args.gpsstart.seconds, args.gpsend.seconds))
+    else:
+        page = htmlio.markup.page()
+    page.div(class_='container')
+
+    # -- header
+    page.div(class_='page-header')
+    page.h1('%s ADC/DAC Overflows: %d-%d'
+            % (args.ifo, args.gpsstart.seconds, args.gpsend.seconds))
+    page.p("This analysis searched for digital-to-analogue (DAC) or "
+           "analogue-to-digital (ADC) conversion overflows in the LIGO "
+           "real-time controls system.")
+    if args.deep:
+        page.p("A hierarchichal search was performed, with a single "
+               "cumulative overflow counter checked per front-end controller "
+               "(FEC); for those models that indicate an overflow, the "
+               "card/slot-specific channels were then checked.")
+    if args.ifo == 'H1':
+        fecurl = 'https://lhocds.ligo-wa.caltech.edu/exports/detchar/fec/'
+    elif args.ifo == 'L1':
+        fecurl = 'https://llocds.ligo-la.caltech.edu/data/detchar/fec/'
+    else:
+        fecurl = None
+    if fecurl:
+        page.p("A mapping between front-end model name and FEC number can be "
+               "found %s." % htmlio.markup.oneliner.a(
+                   'here', href=fecurl, target='_blank'))
+
+    page.div.close()
+
+    # -- segments
+    page.h2('Segments')
+    # link XML file
+    if args.output_file:
+        page.p()
+        page.add('The full output segments are recorded in here:')
+        page.a(os.path.basename(args.output_file), href=args.output_file,
+               target='_blank')
+        page.p.close()
+    # print state segments
+    if args.state_flag:
+        page.p('This analysis was executed over the following segments:')
+        page.div(class_='panel-group', id_='accordion1')
+        page.add(str(htmlio.write_flag_html(
+            state, span, 'state', parent='accordion1', context='success')))
+        page.div.close()
+    # print overflow segments
+    if len(segs):
+        page.p('The following channels indicated an overflow:')
+        page.div(class_='panel-group', id_='accordion2')
+        for i, (c, flag) in enumerate(segs.iteritems()):
+            if abs(flag.active) > 0:
+                title = '%s [%d]' % (flag.name, len(flag.active))
+                page.add(str(htmlio.write_flag_html(
+                    flag, span, i, parent='accordion2', title=title,
+                    plotdir=args.plot, plot_func=plot_overflows)))
+        page.div.close()
+    else:
+        page.div(class_='alert alert-info')
+        page.p('No overflows were found')
+        page.div.close()
+
+    # -- results table
+    page.h2('Results summary')
+    page.table(class_='table table-striped table-hover')
+    # write table header
+    page.thead()
+    page.tr()
+    for header in ['Channel', 'Num. overflows']:
+        page.th(header)
+    page.thead.close()
+    # write body
+    page.tbody()
+    for c, seglist in segs.iteritems():
+        passed = abs(seglist.active) == 0
+        page.tr(class_=passed and 'default' or 'warning')
+        page.td(c)
+        page.td(len(seglist.active))
+        page.tr.close()
+    page.tbody.close()
+    page.table.close()
+
+    # -- paramters
+    page.h2('Parameters')
+    page.p('This analysis used the following parameters:')
+    def write_param(param, value):
+        page.p()
+        page.strong('%s: ' % param)
+        page.add(str(value))
+        page.p.close()
+    write_param('Start time', args.gpsstart)
+    write_param('End time', args.gpsend)
+    write_param('State flag', args.state_flag)
+    write_param('DCUIDs', ' '.join(map(str, args.dcuid)))
+
+    # -- close and write
+    page.div.close()
+    with open(args.html, 'w') as fp:
+        print(str(page), file=fp)
