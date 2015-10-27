@@ -26,6 +26,7 @@ import numpy
 from lalframe.utils import get_channels
 
 from gwpy.time import tconvert
+from gwpy.timeseries import StateTimeSeries
 
 from . import (const, version)
 from .io.datafind import find_frames
@@ -60,6 +61,30 @@ def find_overflows(timeseries, cumulative=True):
     else:
         newoverflow = numpy.diff(timeseries.value) == 1
         return timeseries.times.value[1:][newoverflow]
+
+
+def find_overflow_segments(timeseries, cumulative=True, round=False):
+    """Find the segments during which the given counter indicated an overflow
+
+    Parameters
+    ----------
+    timeseries : `~gwpy.timeseries.TimeSeries`
+        the input data from the cumulative overflow counter
+    cumulative : `bool`, default: `True`
+        whether the timeseries contains a cumulative overflow counter
+        or an overflow state [0/1]
+
+    Returns
+    -------
+    overflows : `~gwpy.segments.SegmentList`
+        a list of overflow segments
+    """
+    if cumulative:
+        overflowing = (numpy.diff(timeseries) > 0)
+    else:
+        overflowing = timeseries.astype(bool)
+    return overflowing.view(StateTimeSeries).to_dqflag(
+        name=timeseries.name, round=round)
 
 
 def ligo_accum_overflow_channel(dcuid, ifo=None):
