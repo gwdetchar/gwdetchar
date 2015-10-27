@@ -80,9 +80,13 @@ def write_flag_html(flag, id=0, parent='accordion', context='warning',
     page.div(id_='flag%s' % id, class_='panel-collapse collapse')
     page.div(class_='panel-body')
     segs = StringIO()
-    flag.active.write(segs, format='segwizard',
-                      coltype=type(flag.active[0][0]))
-    page.pre(segs.getvalue())
+    try:
+        flag.active.write(segs, format='segwizard',
+                          coltype=type(flag.active[0][0]))
+    except IndexError:
+        page.p("No segments were found.")
+    else:
+        page.pre(segs.getvalue())
     page.div.close()
     if plotdir is not None:
         flagr = flag.name.replace('-', '_').replace(':', '-', 1)
@@ -347,9 +351,13 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
     # group channels in sets for batch processing
     #     min of <number of channels>, user group size (sensible number), and
     #     512 Mb of RAM for single-precision EPICS
-    dur = max([float(abs(s)) for s in segs])
-    ngroup = int(
-        min(nchans, args.group_size, .5 * 1024**3 / 4. / 16. / dur))
+    try:
+        dur = max([float(abs(s)) for s in segs])
+    except ValueError:
+        ngroup = args.group_size
+    else:
+        ngroup = int(
+            min(nchans, args.group_size, .5 * 1024**3 / 4. / 16. / dur))
     print('Processing %s channels in groups of %d:' % (suffix, ngroup))
     sys.stdout.flush()
     sets = grouper(clist, ngroup)
