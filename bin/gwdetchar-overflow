@@ -74,7 +74,8 @@ parser.add_argument('--deep', action='store_true', default=False,
 parser.add_argument('-a', '--state-flag', metavar='FLAG',
                     help='restrict search to times when FLAG was active')
 parser.add_argument('-o', '--output-file',
-                    help='path to output xml file, default: stdout')
+                    help='path to output xml file, default name will be '
+                         'automatically generated based on IFO and GPS times')
 parser.add_argument('-O', '--output-format', default='sngl_burst',
                     choices=['sngl_burst', 'segments', 'integer-segments'],
                     help='output format, default: %(default)s')
@@ -101,6 +102,12 @@ if args.state_flag:
     statea = state.active
 else:
     statea = SegmentList([span])
+
+if not args.output_file:
+    duration = abs(span)
+    args.output_file = (
+        '%s-OVERFLOWS-%d-%d.xml.gz'
+        % (args.ifo, args.gpsstart.seconds, duration))
 
 # get frame cache
 cache = datafind.find_frames(args.ifo[0], args.frametype,
@@ -150,7 +157,7 @@ for dcuid in args.dcuid:
             go_deep = new.size != 0
         if args.deep:
             if go_deep:
-                for s, e in osegs:
+                for s, e in osegs.coalesce():
                     data = TimeSeriesDict.read(c, channels, nproc=args.nproc,
                                                start=s, end=e)
                     for ch in channels:
@@ -180,18 +187,12 @@ else:
             segs[key] = segs[key].round()
 
 # write results to file
-if args.output_file:
-    file = open(args.output_file, 'w')
-    gz = args.output_file.endswith('.gz')
-else:
-    file = sys.stdout
-    gz = False
+file = open(args.output_file, 'w')
+gz = args.output_file.endswith('.gz')
 if args.output_format == 'sngl_burst':
     write_fileobj(ligolw.table_to_document(table), file, gz=gz)
 else:
     segs.write(file, format='ligolw', gz=gz)
-if args.output_file:
-    file.close()
 
 # write HTML
 if args.html:
