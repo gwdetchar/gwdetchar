@@ -29,6 +29,7 @@ from gwpy.time import tconvert
 
 from . import (const, version)
 from .io.datafind import find_frames
+from .utils import natural_sort
 
 
 __version__ = version.version
@@ -104,4 +105,4 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
     else:
         regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_\d+_\d+\Z'
                            % (ifo, dcuid))
-    return filter(regex.match, allchannels)
+    return natural_sort(filter(regex.match, allchannels))
