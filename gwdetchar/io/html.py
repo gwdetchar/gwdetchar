@@ -19,6 +19,9 @@
 """Utilties for HTML output
 """
 
+import os
+from StringIO import StringIO
+
 from glue import markup
 
 from .. import version
@@ -51,4 +54,39 @@ def new_bootstrap_page(*args, **kwargs):
     kwargs['script'] = script
     page = markup.page()
     page.init(*args, **kwargs)
+    return page
+
+
+def write_flag_html(flag, span, id=0, parent='accordion', context='warning',
+                    title=None, plotdir=None, plot_func=None):
+    page = markup.page()
+    page.div(class_='panel panel-%s' % context)
+    page.div(class_='panel-heading')
+    if title is None:
+        title = flag.name
+    page.a(title, class_="panel-title", href='#flag%s' % id,
+           **{'data-toggle': 'collapse', 'data-parent': '#%s' % parent})
+    page.div.close()
+    page.div(id_='flag%s' % id, class_='panel-collapse collapse')
+    page.div(class_='panel-body')
+    segs = StringIO()
+    try:
+        flag.active.write(segs, format='segwizard',
+                          coltype=type(flag.active[0][0]))
+    except IndexError:
+        page.p("No segments were found.")
+    else:
+        page.pre(segs.getvalue())
+    page.div.close()
+    if plotdir is not None and plot_func is not None:
+        flagr = flag.name.replace('-', '_').replace(':', '-', 1)
+        png = os.path.join(
+            plotdir, '%s-%d-%d.png' % (flagr, span[0], abs(span)))
+        plot = plot_func(flag, span)
+        plot.save(png)
+        page.a(href=png, target='_blank')
+        page.img(style="width: 100%;", src=png)
+        page.a.close()
+    page.div.close()
+    page.div.close()
     return page
