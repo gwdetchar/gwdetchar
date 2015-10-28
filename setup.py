@@ -308,7 +308,7 @@ setup(name=DISTNAME,
       requires=[
           'glue',
           'gwpy',
-          'bs4',
+          'beautifulsoup4',
       ],
       install_requires=[
           'gwpy',
