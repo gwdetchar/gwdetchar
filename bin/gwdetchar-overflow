@@ -65,7 +65,9 @@ def table_from_times(times, channel):
 def get_real_channel(adcchannel):
     main = str(adcchannel).split('-', 1)[1]
     ifo = str(adcchannel).split(':')[0]
-    dcuid, _, _, _, card, slot = main.split('_')
+    dcuid, type_, _, _, card, slot = main.split('_')
+    if type_ != 'ADC':
+        raise ValueError("No 'real' channel map for non-ADC channels")
     modelname = cds.model_name_from_dcuid(ifo, int(dcuid))
     return cds.get_adc_channel(ifo, modelname, int(card), int(slot))
 
@@ -306,7 +308,7 @@ if args.html:
     # write table header
     page.thead()
     page.tr()
-    for header in ['Channel', 'Num. overflows']:
+    for header in ['Channel', 'Connected signal', 'Num. overflows']:
         page.th(header)
     page.thead.close()
     # write body
@@ -321,6 +323,10 @@ if args.html:
             context = 'danger'
         page.tr(class_=context)
         page.td(c)
+        try:
+            page.td(get_real_channel(str(c)))
+        except Exception:
+            page.td()
         page.td(len(seglist.active))
         page.tr.close()
     page.tbody.close()
