@@ -247,17 +247,6 @@ if args.html:
                "cumulative overflow counter checked per front-end controller "
                "(FEC); for those models that indicate an overflow, the "
                "card/slot-specific channels were then checked.")
-    if args.ifo == 'H1':
-        fecurl = 'https://lhocds.ligo-wa.caltech.edu/exports/detchar/fec/'
-    elif args.ifo == 'L1':
-        fecurl = 'https://llocds.ligo-la.caltech.edu/data/detchar/fec/'
-    else:
-        fecurl = None
-    if fecurl:
-        page.p("A mapping between front-end model name and FEC number can be "
-               "found %s." % htmlio.markup.oneliner.a(
-                   'here', href=fecurl, target='_blank'))
-
     page.div.close()
 
     # -- segments
