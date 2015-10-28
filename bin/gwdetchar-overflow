@@ -120,9 +120,10 @@ cachesegs = statea & cache_segments(cache)
 if args.output_format.endswith('segments'):
     use_segments = True
     overflows = DataQualityDict()
-    def find_overflows(timeseries, channel):
+    def find_overflows(timeseries, channel, segment):
         segs = overflow.find_overflow_segments(timeseries)
-        segs.known = [timeseries.span]
+        segs.known &= SegmentList([segment])
+        segs.coalesce()
         try:
             overflows[channel] += segs
         except KeyError:
@@ -132,8 +133,10 @@ else:
     overflows = ligolw.new_table(
         'sngl_burst',
         columns=['peak_time', 'peak_time_ns', 'event_id', 'channel', 'snr'])
-    def find_overflows(timeseries, channel):
+    def find_overflows(timeseries, channel, segment):
         times = overflow.find_overflows(timeseries)
+        times = times[(times >= float(segment[0])) &
+                      (times < float(segment[1]))]
         overflows.extend(table_from_times(times, channel))
 
 # get channel and find overflows
@@ -154,12 +157,12 @@ for dcuid in args.dcuid:
                                start=seg[0], end=seg[1]-args.segment_end_pad)
         if use_segments:
             new = overflow.find_overflow_segments(data)
-            osegs = type(new.active)([type(s)(s[0]-2, s[0]+2) & seg for
+            osegs = type(new.active)([type(s)(s[0]-2, s[0]+2) for
                                       s in new.active])
             go_deep = len(new.active) > 0
         else:
             new = overflow.find_overflows(data)
-            osegs = SegmentList([Segment(t-2, t+2) & seg for t in times])
+            osegs = SegmentList([Segment(t-2, t+2) for t in new])
             go_deep = new.size != 0
         gprint("%d overflows found" % len(osegs))
         if args.deep:
@@ -169,7 +172,7 @@ for dcuid in args.dcuid:
                     data = TimeSeriesDict.read(c, channels, nproc=args.nproc,
                                                start=s, end=e)
                     for ch in channels:
-                        find_overflows(data[ch], ch)
+                        find_overflows(data[ch], ch, seg)
                 gprint("Done")
             else:
                 for ch in channels:
