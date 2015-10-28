@@ -308,6 +308,7 @@ setup(name=DISTNAME,
       requires=[
           'glue',
           'gwpy',
+          'bs4',
       ],
       install_requires=[
           'gwpy',
