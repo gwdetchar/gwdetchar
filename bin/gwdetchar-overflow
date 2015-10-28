@@ -35,7 +35,7 @@ from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.io.cache import cache_segments
 from gwpy.utils import gprint
 
-from gwdetchar import (cli, const, overflow, version)
+from gwdetchar import (cds, cli, const, overflow, version)
 from gwdetchar.io import (datafind, ligolw, html as htmlio)
 
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
@@ -60,6 +60,14 @@ def table_from_times(times, channel):
     return ligolw.sngl_burst_from_times(
         times, snr=10, peak_frequency=100, channel=channel,
         search=os.path.basename(__file__))
+
+
+def get_real_channel(adcchannel):
+    main = str(adcchannel).split('-', 1)[1]
+    ifo = str(adcchannel).split(':')[0]
+    dcuid, _, _, _, card, slot = main.split('_')
+    modelname = cds.model_name_from_dcuid(ifo, int(dcuid))
+    return cds.get_adc_channel(ifo, modelname, int(card), int(slot))
 
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -268,14 +276,24 @@ if args.html:
         page.div.close()
     # print overflow segments
     if sum(abs(s.active) for s in segs.values()):
-        page.p('The following channels indicated an overflow:')
+        page.p('The following channels indicated an overflow (constant overflow is yellow, otherwise red):')
         page.div(class_='panel-group', id_='accordion2')
         for i, (c, flag) in enumerate(segs.iteritems()):
-            if abs(flag.active) > 0:
+            if abs(flag.active) == 0:
+                continue
+            if abs(flag.active) == abs(cachesegs):
+                context = 'warning'
+            else:
+                context = 'danger'
+            try:
+                channel = get_real_channel(flag.name)
+            except Exception:
                 title = '%s [%d]' % (flag.name, len(flag.active))
-                page.add(str(htmlio.write_flag_html(
-                    flag, span, i, parent='accordion2', title=title,
-                    plotdir=args.plot, plot_func=plot_overflows)))
+            else:
+                title = '%s (%s) [%d]' % (flag.name, channel, len(flag.active))
+            page.add(str(htmlio.write_flag_html(
+                flag, span, i, parent='accordion2', title=title,
+                context=context, plotdir=args.plot, plot_func=plot_overflows)))
         page.div.close()
     else:
         page.div(class_='alert alert-info')
@@ -294,8 +312,14 @@ if args.html:
     # write body
     page.tbody()
     for c, seglist in segs.iteritems():
-        passed = abs(seglist.active) == 0
-        page.tr(class_=passed and 'default' or 'warning')
+        t = abs(seglist.active)
+        if t == 0:
+            context = 'default'
+        elif t == abs(cachesegs):
+            context = 'warning'
+        else:
+            context = 'danger'
+        page.tr(class_=context)
         page.td(c)
         page.td(len(seglist.active))
         page.tr.close()
