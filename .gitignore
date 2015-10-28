@@ -30,6 +30,7 @@ pip-delete-this-directory.txt
 # Sphinx documentation
 /docs/_build
 /docs/_generated
+/docs/api
 
 # Version information
 /gwdetchar/version.py
@@ -41,3 +42,6 @@ pip-delete-this-directory.txt
 
 # Patches
 /[0-9][0-9][0-9][0-9]-*.patch
+
+# test output
+/.coverage
