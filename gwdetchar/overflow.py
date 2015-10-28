@@ -32,7 +32,6 @@ from . import (const, version)
 from .io.datafind import find_frames
 from .utils import natural_sort
 
-
 __version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
@@ -80,7 +79,9 @@ def find_overflow_segments(timeseries, cumulative=True, round=False):
         a list of overflow segments
     """
     if cumulative:
-        overflowing = (numpy.diff(timeseries) > 0)
+        overflowing = (numpy.diff(timeseries) != 0)
+        # rejig times after diff
+        overflowing.x0 = timeseries.x0 + timeseries.dx
     else:
         overflowing = timeseries.astype(bool)
     return overflowing.view(StateTimeSeries).to_dqflag(
