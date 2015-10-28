@@ -6,7 +6,7 @@
 Welcome to GWDetChar's documentation!
 =====================================
 
-GWDetChar is a python package providing tools and utilities for Detector Characterisation in python, built on top of the [GWpy](//gwpy.github.io) package.
+GWDetChar is a python package providing tools and utilities for Detector Characterisation in python, built on top of the `GWpy <//gwpy.github.io>`_ package.
 
 Contents:
 

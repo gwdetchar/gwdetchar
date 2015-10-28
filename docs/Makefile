@@ -179,4 +179,4 @@ pseudoxml:
 
 apidoc:
 	@mkdir -p api
-	sphinx-apidoc -o api ../gwdetchar -e
+	sphinx-apidoc ../gwdetchar --output-dir ./api --separate --no-toc
