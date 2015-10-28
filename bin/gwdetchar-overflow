@@ -262,7 +262,7 @@ if args.html:
             state, span, 'state', parent='accordion1', context='success')))
         page.div.close()
     # print overflow segments
-    if len(segs):
+    if sum(abs(s.active) for s in segs.values()):
         page.p('The following channels indicated an overflow:')
         page.div(class_='panel-group', id_='accordion2')
         for i, (c, flag) in enumerate(segs.iteritems()):
