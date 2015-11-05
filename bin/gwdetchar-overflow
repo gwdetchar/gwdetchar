@@ -207,9 +207,9 @@ if use_segments:
 else:
     segs = ligolw.segments_from_sngl_burst(
         overflows, args.segment_pad, known=statea)
-    if args.output_format == 'integer-segments':
-        for key in segs:
-            segs[key] = segs[key].round()
+if args.output_format == 'integer-segments':
+    for key in segs:
+        segs[key] = segs[key].round()
 
 # write results to file
 file = open(args.output_file, 'w')
