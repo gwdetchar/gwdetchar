@@ -106,7 +106,9 @@ mode = 'w'
 for ft in set(c.frametype for c in config):
     cmd = ['gw_data_find', '--observatory', obs, '--type', ft,
            '--gps-start-time', str(cachestart),
-           '--gps-end-time', str(cacheend), '--frame-cache']
+           '--gps-end-time', str(cacheend),
+           '--frame-cache',
+           '--url-type', 'file']
     proc = Popen(cmd, stdout=PIPE)
     out, err = proc.communicate()
     if proc.returncode:
