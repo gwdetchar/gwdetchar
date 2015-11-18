@@ -137,6 +137,8 @@ for seg in statea:
 if args.plot_main_tiles:
     for t in trigs:
         t.flow, t.fhigh = t.get_band()
+highsnrtrigs = trigs.copy()
+highsnrtrigs.extend(filter(lambda t: t.snr >= 8., trigs))
 if args.verbose:
     gprint("%d read" % len(trigs))
 
@@ -253,13 +255,13 @@ for i, channel in enumerate(sorted(allchannels)):
     except ZeroDivisionError:
         deadtimepc = 0.
     gprint("Deadtime: %.2f%% (%.2f/%ds)" % (deadtimepc, deadtime, livetime))
-    efficiency = len(trigs.vetoed(scatter_segments[channel].active))
+    efficiency = len(highsnrtrigs.vetoed(scatter_segments[channel].active))
     try:
-        efficiencypc = efficiency / len(trigs) * 100
+        efficiencypc = efficiency / len(highsnrtrigs) * 100
     except ZeroDivisionError:
         efficiencypc = 0.
-    gprint("Efficiency: %.2f%% (%d/%d)"
-           % (efficiencypc, efficiency, len(trigs)))
+    gprint("Efficiency (SNR>=8): %.2f%% (%d/%d)"
+           % (efficiencypc, efficiency, len(highsnrtrigs)))
     try:
         effdt = efficiencypc/deadtimepc
     except ZeroDivisionError:
@@ -372,9 +374,10 @@ for i, channel in enumerate(sorted(allchannels)):
         page.td('%.2f%%' % deadtimepc)
         page.tr.close()
         page.tr()
-        page.th('Efficiency<br><small>(events below %.2f Hz)</small>'
+        page.th('Efficiency<br><small>(SNR&ge;8 and '
+                'f<sub>peak</sub>&lt;%.2f Hz)</small>'
                 % (2 * args.frequency_threshold))
-        page.td('%d/%d events' % (efficiency, len(trigs)))
+        page.td('%d/%d events' % (efficiency, len(highsnrtrigs)))
         page.td('%.2f%%' % efficiencypc)
         page.tr.close()
         page.tr()
