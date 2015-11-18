@@ -178,20 +178,24 @@ page.div(class_='panel-group', id_='accordion1')
 allchannels = ['%s:%s' % (args.ifo, c) for optic in args.optic for
                c in scattering.OPTIC_MOTION_CHANNELS[optic]]
 
-gprint("Reading all data... 0/%d segments read" % len(statea), end='\r')
+if args.verbose:
+    gprint("Reading all data... 0/%d segments read" % len(statea), end='\r')
 alldata = []
 for i, seg in enumerate(statea):
     alldata.append(
         TimeSeriesDict.get(allchannels, seg[0], seg[1], nproc=args.nproc,
                            resample=128, frametype=args.frametype))
-    gprint("Reading all data... %d/%d segments read"
+    if args.verbose:
+        gprint("Reading all data... %d/%d segments read"
            % (i+1, len(statea)), end='\r')
-gprint("Reading all data... {0}/{0} segments read".format(len(statea)))
+if args.verbose:
+    gprint("Reading all data... {0}/{0} segments read".format(len(statea)))
 
 scatter_segments = DataQualityDict()
 
 for i, channel in enumerate(sorted(allchannels)):
-    gprint("-- Processing %s --------------------" % channel)
+    if args.verbose:
+        gprint("-- Processing %s --------------------" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
     # set up plot(s)
     plot = figure(figsize=[12, 12])
@@ -210,7 +214,8 @@ for i, channel in enumerate(sorted(allchannels)):
     fringecolors = [None] * len(scattering.FREQUENCY_MULTIPLIERS)
     # loop over state segments and find scattering fringes
     for j, seg in enumerate(statea):
-        gprint("Processing segment [%d .. %d)..." % seg)
+        if args.verbose:
+            gprint("Processing segment [%d .. %d)..." % seg)
         ts = alldata[j][channel]
         # get raw data and plot
         line = axes['position'].plot(ts, color=linecolor)[0]
@@ -245,7 +250,8 @@ for i, channel in enumerate(sorted(allchannels)):
             scatter_segments[channel] = scatter
         if args.verbose:
             gprint("    Found %d scattering segments" % (len(scatter.active)))
-    gprint("Completed channel, found %d segments in total."
+    if args.verbose:
+        gprint("Completed channel, found %d segments in total."
            % len(scatter_segments[channel].active))
 
     # calculate efficiency and deadtime of veto
@@ -254,22 +260,26 @@ for i, channel in enumerate(sorted(allchannels)):
         deadtimepc = deadtime / livetime * 100
     except ZeroDivisionError:
         deadtimepc = 0.
-    gprint("Deadtime: %.2f%% (%.2f/%ds)" % (deadtimepc, deadtime, livetime))
+    if args.verbose:
+        gprint("Deadtime: %.2f%% (%.2f/%ds)" % (deadtimepc, deadtime, livetime))
     efficiency = len(highsnrtrigs.vetoed(scatter_segments[channel].active))
     try:
         efficiencypc = efficiency / len(highsnrtrigs) * 100
     except ZeroDivisionError:
         efficiencypc = 0.
-    gprint("Efficiency (SNR>=8): %.2f%% (%d/%d)"
+    if args.verbose:
+        gprint("Efficiency (SNR>=8): %.2f%% (%d/%d)"
            % (efficiencypc, efficiency, len(highsnrtrigs)))
     try:
         effdt = efficiencypc/deadtimepc
     except ZeroDivisionError:
         effdt = 0
-    gprint("Efficiency/Deadtime: %.2f" % effdt)
+    if args.verbose:
+        gprint("Efficiency/Deadtime: %.2f" % effdt)
 
     # finalize plot
-    gprint("Plotting...", end=' ')
+    if args.verbose:
+        gprint("Plotting...", end=' ')
     axes['position'].set_title("Scattering evidence in %s"
                                % channel.replace('_', r'\_'))
     axes['position'].set_xlabel('')
@@ -323,7 +333,8 @@ for i, channel in enumerate(sorted(allchannels)):
     png = '%s_SCATTERING_%s_HZ-%s.png' % (chanstr, tstr, gpsstr)
     plot.save(png)
     plot.close()
-    gprint("%s written." % png)
+    if args.verbose:
+        gprint("%s written." % png)
 
     # make histogram
     histogram = HistogramPlot(figsize=[12, 6])
@@ -343,7 +354,8 @@ for i, channel in enumerate(sorted(allchannels)):
     hpng = '%s_SCATTERING_HISTOGRAM-%s.png' % (chanstr, gpsstr)
     histogram.save(hpng)
     histogram.close()
-    gprint("%s written." % hpng)
+    if args.verbose:
+        gprint("%s written." % hpng)
 
     # write HTML
     if deadtime != 0 and effdt > 2:
@@ -407,10 +419,12 @@ for i, channel in enumerate(sorted(allchannels)):
 
 # write segments
 scatter_segments.write(segxml)
-gprint("%s written" % segxml)
+if args.verbose:
+    gprint("%s written" % segxml)
 
 # write HTML
 page.div.close()
 with open('index.html', 'w') as fp:
     fp.write(str(page))
-gprint("-- index.html written, all done --")
+if args.verbose:
+    gprint("-- index.html written, all done --")
