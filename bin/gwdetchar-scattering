@@ -1,0 +1,416 @@
+#!/usr/bin/env python
+# coding=utf-8
+# Copyright (C) LIGO Scientific Collaboration (2015-)
+#
+# This file is part of the GW DetChar python package.
+#
+# GW DetChar is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GW DetChar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Search for evidence of beam scattering based on optic velocity
+"""
+
+from __future__ import division
+
+import os.path
+import argparse
+import re
+from StringIO import StringIO
+
+import numpy
+
+from gwpy.plotter import (figure, HistogramPlot)
+from gwpy.utils.compat import OrderedDict
+from gwpy.utils import gprint
+from gwpy.table.lsctables import New as new_table, SnglBurstTable
+from gwpy.timeseries import TimeSeriesDict
+from gwpy.segments import (DataQualityFlag, DataQualityDict,
+                           Segment, SegmentList)
+
+from gwsumm.plot import rcParams
+
+from gwdetchar import (cli, const, scattering, version)
+from gwdetchar.io import html as htmlio
+
+__author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+__version__ = version.version
+
+# -- parse command line -------------------------------------------------------
+
+parser = argparse.ArgumentParser(description=__doc__)
+cli.add_gps_start_stop_arguments(parser)
+cli.add_ifo_option(parser)
+parser.add_argument('-a', '--state-flag', metavar='FLAG',
+                    help='restrict search to times when FLAG was active')
+parser.add_argument('-t', '--frequency-threshold', type=float, default=40.,
+                    help='critical fringe frequency threshold (in Hertz), '
+                         'default: 10')
+parser.add_argument('-x', '--multiplier-for-threshold', type=int,
+                    default=4, choices=scattering.FREQUENCY_MULTIPLIERS,
+                    help='fringe frequency multiplier to use when applying '
+                         '--frequency-threshold, default: %(default)s')
+parser.add_argument('-m', '--optic', action='append',
+                    help='optic to search for scattering signal, can be given '
+                         'multiple times, default: %s'
+                         % scattering.OPTIC_MOTION_CHANNELS.keys())
+parser.add_argument('-S', '--segment-padding', type=float, default=.05,
+                    help='time with which to pad scattering segments on '
+                         'either side, default: %(default)s')
+parser.add_argument('-c', '--main-channel',
+                    default='%s:GDS-CALIB_STRAIN' % const.IFO,
+                    help='name of main (h(t)) channel, default: %(default)s')
+cli.add_frametype_option(parser, default='%s_R' % const.IFO)
+parser.add_argument('-o', '--output-dir', type=os.path.abspath,
+                    default=os.curdir,
+                    help='output directory for analysis, default: %(default)s')
+parser.add_argument('-C', '--plot-main-tiles', action='store_true',
+                    default=False,
+                    help='plot tiles for the main channel instead of a '
+                         'cluster peak scatter, default: %(default)s')
+parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                    help='print verbose output, default: %(default)s')
+cli.add_nproc_option(parser)
+
+args = parser.parse_args()
+
+if args.frequency_threshold.is_integer():
+    args.frequency_threshold = int(args.frequency_threshold)
+
+tstr = str(args.frequency_threshold).replace('.', '_')
+gpsstr = '%s-%s' % (args.gpsstart.seconds, (args.gpsend-args.gpsstart).seconds)
+
+if args.optic is None:
+    args.optic = scattering.OPTIC_MOTION_CHANNELS.keys()
+
+if not os.path.isdir(args.output_dir):
+    os.makedirs(args.output_dir)
+os.chdir(args.output_dir)
+
+segxml = '%s-SCATTERING_SEGMENTS_%s_HZ-%s.xml.gz' % (args.ifo, tstr, gpsstr)
+
+# -- get state segments -------------------------------------------------------
+
+span = Segment(args.gpsstart, args.gpsend)
+
+# get segments
+if args.state_flag:
+    state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
+                                  args.gpsend.seconds,
+                                  url=const.O1_SEGMENT_SERVER)
+    statea = state.active
+    livetime = float(abs(statea))
+    if args.verbose:
+        gprint("Downloaded %d segments for %s [%.2fs livetime]"
+               % (len(statea), args.state_flag, livetime))
+else:
+    statea = SegmentList([span])
+
+# -- load h(t) ----------------------------------------------------------------
+
+if args.verbose:
+    gprint("Loading Omicron triggers for %s..." % args.main_channel, end=' ')
+if args.plot_main_tiles:
+    trigs = new_table(SnglBurstTable,
+                      columns=['start_time', 'start_time_ns',
+                               'stop_time', 'stop_time_ns', 'duration',
+                               'peak_time', 'peak_time_ns', 'central_freq',
+                               'peak_frequency', 'flow', 'bandwidth', 'snr'])
+else:
+    trigs = new_table(SnglBurstTable,
+                      columns=['peak_time', 'peak_time_ns',
+                               'peak_frequency', 'snr'])
+for seg in statea:
+    trigs.extend(SnglBurstTable.fetch(
+        args.main_channel, 'omicron', seg[0], seg[1],
+        columns=trigs.columnnames,
+        filt=lambda t: t.peak_frequency < args.frequency_threshold * 2))
+if args.plot_main_tiles:
+    for t in trigs:
+        t.flow, t.fhigh = t.get_band()
+highsnrtrigs = trigs.copy()
+highsnrtrigs.extend(filter(lambda t: t.snr >= 8., trigs))
+if args.verbose:
+    gprint("%d read" % len(trigs))
+
+# -- prepare HTML -------------------------------------------------------------
+
+page = htmlio.new_bootstrap_page(title='%s scattering' % args.ifo)
+page.div(class_='container')
+page.div(class_='page-header')
+page.h1('%s scattering: %d-%d'
+        % (args.ifo, args.gpsstart.seconds, args.gpsend.seconds))
+page.p("This analysis searched for evidence of beam scattering based on the "
+       "velocity of optic motion. The fringe frequency is predicted using "
+       "equation (3) of <a href=\"http://iopscience.iop.org/article/10.1088/"
+       "0264-9381/27/19/194011\" target=\"_blank\">Accadia et al. (2010)</a>.")
+page.div.close()
+
+# link XML file
+page.p()
+page.add('The full output segments are recorded in '
+         'LIGO_LW-format XML here:')
+page.a(os.path.basename(segxml), href=segxml, target='_blank')
+page.p.close()
+# print state segments
+if args.state_flag:
+    page.p('This analysis was executed over the following segments:')
+    page.div(class_='panel-group', id_='accordion1')
+    page.add(str(htmlio.write_flag_html(state, 'state', parent='accordion1',
+                                        context='success', id='state')))
+    page.div.close()
+
+page.p("The following channels were searched for evidence of scattering "
+       "(yellow = weak evidence, red = strong evidence):")
+page.div(class_='panel-group', id_='accordion1')
+
+# -- find scattering evidence -------------------------------------------------
+
+allchannels = ['%s:%s' % (args.ifo, c) for optic in args.optic for
+               c in scattering.OPTIC_MOTION_CHANNELS[optic]]
+
+gprint("Reading all data... 0/%d segments read" % len(statea), end='\r')
+alldata = []
+for i, seg in enumerate(statea):
+    alldata.append(
+        TimeSeriesDict.get(allchannels, seg[0], seg[1], nproc=args.nproc,
+                           resample=128, frametype=args.frametype))
+    gprint("Reading all data... %d/%d segments read"
+           % (i+1, len(statea)), end='\r')
+gprint("Reading all data... {0}/{0} segments read".format(len(statea)))
+
+scatter_segments = DataQualityDict()
+
+for i, channel in enumerate(sorted(allchannels)):
+    gprint("-- Processing %s --------------------" % channel)
+    chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
+    # set up plot(s)
+    plot = figure(figsize=[12, 12])
+    axes = {}
+    axes['position'] = plot.add_subplot(411, projection='timeseries')
+    axes['fringef'] = plot.add_subplot(412, projection='timeseries',
+                                       sharex=axes['position'])
+    axes['triggers'] = plot.add_subplot(413, projection='triggers',
+                                        sharex=axes['position'])
+    axes['segments'] = plot.add_subplot(414, projection='segments',
+                                        sharex=axes['position'])
+    plot.subplots_adjust(bottom=.07, top=.95)
+    histdata = dict((i, numpy.ndarray((0,))) for
+                    i in scattering.FREQUENCY_MULTIPLIERS)
+    linecolor = None
+    fringecolors = [None] * len(scattering.FREQUENCY_MULTIPLIERS)
+    # loop over state segments and find scattering fringes
+    for j, seg in enumerate(statea):
+        gprint("Processing segment [%d .. %d)..." % seg)
+        ts = alldata[j][channel]
+        # get raw data and plot
+        line = axes['position'].plot(ts, color=linecolor)[0]
+        linecolor = line.get_color()
+        # get fringe frequency and plot
+        fringef = scattering.get_fringe_frequency(ts, multiplier=1)
+        for k, m in list(enumerate(scattering.FREQUENCY_MULTIPLIERS))[::-1]:
+            fm = fringef * m
+            line = axes['fringef'].plot(
+                fm, color=fringecolors[k],
+                label=j==0 and r'$f\times%d$' % m or None)[0]
+            fringecolors[k] = line.get_color()
+            histdata[m].resize((histdata[m].size + fm.size,))
+            histdata[m][-fm.size:] = fm.value
+        # get segments and plot
+        name = '%s:DCH-%s_SCATTERING_GE_%s_HZ:1' % (args.ifo, optic, tstr)
+        if ((fringef * args.multiplier_for_threshold).value.max() <
+                args.frequency_threshold):
+            scatter = DataQualityFlag(name, known=[ts.span])
+        else:
+            scatter = (
+                fringef * args.multiplier_for_threshold >=
+                args.frequency_threshold * fringef.unit).to_dqflag(name=name)
+            scatter.active = scatter.active.protract(args.segment_padding)
+            scatter.coalesce()
+        axes['segments'].plot(scatter, facecolor='red', edgecolor='darkred',
+                              known={'alpha': 0.1, 'facecolor': 'lightgray'},
+                              y=0, label=' ')
+        try:
+            scatter_segments[channel] += scatter
+        except KeyError:
+            scatter_segments[channel] = scatter
+        if args.verbose:
+            gprint("    Found %d scattering segments" % (len(scatter.active)))
+    gprint("Completed channel, found %d segments in total."
+           % len(scatter_segments[channel].active))
+
+    # calculate efficiency and deadtime of veto
+    deadtime = abs(scatter_segments[channel].active)
+    try:
+        deadtimepc = deadtime / livetime * 100
+    except ZeroDivisionError:
+        deadtimepc = 0.
+    gprint("Deadtime: %.2f%% (%.2f/%ds)" % (deadtimepc, deadtime, livetime))
+    efficiency = len(highsnrtrigs.vetoed(scatter_segments[channel].active))
+    try:
+        efficiencypc = efficiency / len(highsnrtrigs) * 100
+    except ZeroDivisionError:
+        efficiencypc = 0.
+    gprint("Efficiency (SNR>=8): %.2f%% (%d/%d)"
+           % (efficiencypc, efficiency, len(highsnrtrigs)))
+    try:
+        effdt = efficiencypc/deadtimepc
+    except ZeroDivisionError:
+        effdt = 0
+    gprint("Efficiency/Deadtime: %.2f" % effdt)
+
+    # finalize plot
+    gprint("Plotting...", end=' ')
+    axes['position'].set_title("Scattering evidence in %s"
+                               % channel.replace('_', r'\_'))
+    axes['position'].set_xlabel('')
+    axes['position'].set_ylabel(r'Position [\textmu m]')
+    axes['position'].text(
+        0.01, 0.95, 'Optic position',
+        transform=axes['position'].transAxes, va='top', ha='left',
+        bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
+    axes['fringef'].plot(
+        span, [args.frequency_threshold, args.frequency_threshold], 'k--')
+    axes['fringef'].set_xlabel('')
+    axes['fringef'].set_ylabel(r'Frequency [Hz]')
+    axes['fringef'].yaxis.tick_right()
+    axes['fringef'].yaxis.set_label_position("right")
+    axes['fringef'].set_ylim(0, 2 * args.frequency_threshold)
+    axes['fringef'].text(
+        0.01, 0.95, 'Calculated fringe frequency',
+        transform=axes['fringef'].transAxes, va='top', ha='left',
+        bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
+    handles, labels = axes['fringef'].get_legend_handles_labels()
+    axes['fringef'].legend(handles[::-1], labels[::-1], loc='upper right',
+                           borderaxespad=0, bbox_to_anchor=(-0.01, 1.),
+                           handlelength=1)
+    if args.plot_main_tiles:
+        axes['triggers'].plot_tiles(trigs, 'start', 'flow', 'duration',
+                                    'bandwidth', 'snr', edgecolor='face',
+                                    linewidth=.1, anchor='ll')
+    else:
+        axes['triggers'].plot(trigs, 'time', 'peak_frequency', color='snr',
+                              edgecolor='none')
+    axes['triggers'].text(
+        0.01, 0.95,
+        '%s event triggers (Omicron)' % args.main_channel.replace('_', r'\_'),
+        transform=axes['triggers'].transAxes, va='top', ha='left',
+        bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
+    axes['triggers'].set_ylabel('Frequency [Hz]')
+    axes['triggers'].set_ylim(0, 2 * args.frequency_threshold)
+    plot.add_colorbar(ax=axes['triggers'], cmap='YlOrRd', clim=[3, 100],
+                      log=True, label='Signal-to-noise ratio')
+    axes['segments'].set_ylim(-.55, .55)
+    axes['segments'].text(
+        0.01, 0.95,
+        r'Time segments with $f\times4 > %.2f$\,Hz' % args.frequency_threshold,
+        transform=axes['segments'].transAxes, va='top', ha='left',
+        bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
+    for ax in axes.values():
+        ax.set_epoch(args.gpsstart.seconds)
+        ax.set_xlim(*span)
+        if ax is not axes['triggers']:
+            plot.add_colorbar(ax=ax, visible=False)
+    png = '%s_SCATTERING_%s_HZ-%s.png' % (chanstr, tstr, gpsstr)
+    plot.save(png)
+    plot.close()
+    gprint("%s written." % png)
+
+    # make histogram
+    histogram = HistogramPlot(figsize=[12, 6])
+    ax = histogram.gca()
+    hrange = (0, 2 * args.frequency_threshold)
+    for m, color in zip(histdata, fringecolors)[::-1]:
+        ax.hist(histdata[m], facecolor=color, alpha=.6, range=hrange, bins=50,
+                histtype='stepfilled', label=r'$f\times%d$' % m, cumulative=-1,
+                weights=ts.dx.value, log=True)
+    ax.set_ylim(.01, float(livetime))
+    ax.set_ylabel('Time with fringe above frequency [s]')
+    ax.set_xlim(*hrange)
+    ax.set_xlabel('Frequency [Hz]')
+    ax.set_title(axes['position'].get_title())
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], loc='upper right')
+    hpng = '%s_SCATTERING_HISTOGRAM-%s.png' % (chanstr, gpsstr)
+    histogram.save(hpng)
+    histogram.close()
+    gprint("%s written." % hpng)
+
+    # write HTML
+    if deadtime != 0 and effdt > 2:
+        context = 'danger'
+    elif ((deadtime != 0 and effdt < 2) or
+          (histdata[args.multiplier_for_threshold].max() >=
+             args.frequency_threshold/2.)):
+        context = 'warning'
+    else:
+        context = 'default'
+    page.div(class_='panel panel-%s' % context)
+    page.div(class_='panel-heading')
+    page.a(channel, class_="panel-title", href='#flag%s' % i,
+           **{'data-toggle': 'collapse', 'data-parent': '#accordion'})
+    page.div.close()
+    page.div(id_='flag%s' % i, class_='panel-collapse collapse')
+    page.div(class_='panel-body')
+    segs = StringIO()
+    if deadtime:
+        page.p("%d segments were found predicting a scattering fringe above "
+               "%.2f Hz." % (len(scatter_segments[channel].active),
+                            args.frequency_threshold))
+        page.table(class_='table table-condensed table-hover')
+        page.tbody()
+        page.tr()
+        page.th('Deadtime')
+        page.td('%.2f/%d seconds' % (deadtime, livetime))
+        page.td('%.2f%%' % deadtimepc)
+        page.tr.close()
+        page.tr()
+        page.th('Efficiency<br><small>(SNR&ge;8 and '
+                'f<sub>peak</sub>&lt;%.2f Hz)</small>'
+                % (2 * args.frequency_threshold))
+        page.td('%d/%d events' % (efficiency, len(highsnrtrigs)))
+        page.td('%.2f%%' % efficiencypc)
+        page.tr.close()
+        page.tr()
+        page.th('Efficiency/Deadtime')
+        page.td()
+        page.td('%.2f' % effdt)
+        page.tr.close()
+        page.tbody.close()
+        page.table.close()
+        scatter_segments[channel].active.write(segs, format='segwizard',
+                                               coltype=float)
+        page.pre(segs.getvalue())
+    else:
+        page.p("No segments were found with scattering above %.2f Hz."
+               % args.frequency_threshold)
+    page.div.close()
+    page.a(href=png, target='_blank')
+    page.img(style="width: 100%;", src=png)
+    page.a.close()
+    page.a(href=hpng, target='_blank')
+    page.img(style="width: 100%;", src=hpng)
+    page.a.close()
+    page.div.close()
+    page.div.close()
+
+# -- finalize -----------------------------------------------------------------
+
+# write segments
+scatter_segments.write(segxml)
+gprint("%s written" % segxml)
+
+# write HTML
+page.div.close()
+with open('index.html', 'w') as fp:
+    fp.write(str(page))
+gprint("-- index.html written, all done --")
