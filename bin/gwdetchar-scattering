@@ -152,7 +152,7 @@ page.h1('%s scattering: %d-%d'
 page.p("This analysis searched for evidence of beam scattering based on the "
        "velocity of optic motion. The fringe frequency is predicted using "
        "equation (3) of <a href=\"http://iopscience.iop.org/article/10.1088/"
-       "0264-9381/27/19/194011\">Accadia et al. (2010)</a>.")
+       "0264-9381/27/19/194011\" target=\"_blank\">Accadia et al. (2010)</a>.")
 page.div.close()
 
 # link XML file
@@ -169,7 +169,7 @@ if args.state_flag:
                                         context='success', id='state')))
     page.div.close()
 
-page.p("The following channels were search for evidence of scattering "
+page.p("The following channels were searched for evidence of scattering "
        "(yellow = weak evidence, red = strong evidence):")
 page.div(class_='panel-group', id_='accordion1')
 
@@ -191,7 +191,7 @@ gprint("Reading all data... {0}/{0} segments read".format(len(statea)))
 scatter_segments = DataQualityDict()
 
 for i, channel in enumerate(sorted(allchannels)):
-    gprint("-- Processing %s --" % channel)
+    gprint("-- Processing %s --------------------" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
     # set up plot(s)
     plot = figure(figsize=[12, 12])
@@ -343,7 +343,7 @@ for i, channel in enumerate(sorted(allchannels)):
     hpng = '%s_SCATTERING_HISTOGRAM-%s.png' % (chanstr, gpsstr)
     histogram.save(hpng)
     histogram.close()
-    gprint("%s written also." % hpng)
+    gprint("%s written." % hpng)
 
     # write HTML
     if deadtime != 0 and effdt > 2:
