@@ -63,9 +63,12 @@ parser.add_argument('-m', '--optic', action='append',
                     help='optic to search for scattering signal, can be given '
                          'multiple times, default: %s'
                          % scattering.OPTIC_MOTION_CHANNELS.keys())
-parser.add_argument('-S', '--segment-padding', type=float, default=.05,
+parser.add_argument('-p', '--segment-padding', type=float, default=.05,
                     help='time with which to pad scattering segments on '
                          'either side, default: %(default)s')
+parser.add_argument('-s', '--segment-end-pad', type=float, default=1.0,
+                    help='amount of time to remove from the end of each '
+                         'analysis segment')
 parser.add_argument('-c', '--main-channel',
                     default='%s:GDS-CALIB_STRAIN' % const.IFO,
                     help='name of main (h(t)) channel, default: %(default)s')
@@ -107,6 +110,9 @@ if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
                                   args.gpsend.seconds,
                                   url=const.O1_SEGMENT_SERVER)
+    for i, seg in enumerate(state.active):
+        state.active[i] = type(seg)(seg[0], seg[1]-args.segment_end_pad)
+    state.coalesce()
     statea = state.active
     livetime = float(abs(statea))
     if args.verbose:
