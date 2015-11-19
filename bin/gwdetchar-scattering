@@ -339,9 +339,13 @@ for i, channel in enumerate(sorted(allchannels)):
     ax = histogram.gca()
     hrange = (0, 2 * args.frequency_threshold)
     for m, color in zip(histdata, fringecolors)[::-1]:
-        ax.hist(histdata[m], facecolor=color, alpha=.6, range=hrange, bins=50,
-                histtype='stepfilled', label=r'$f\times%d$' % m, cumulative=-1,
-                weights=ts.dx.value, log=True)
+        if histdata[m].size:
+            ax.hist(histdata[m], facecolor=color, alpha=.6, range=hrange,
+                    bins=50, histtype='stepfilled', label=r'$f\times%d$' % m,
+                    cumulative=-1, weights=ts.dx.value, log=True)
+        else:
+            ax.plot(histdata[m], color=color, label=r'$f\times%d$' % m)
+            ax.set_yscale('log')
     ax.set_ylim(.01, float(livetime))
     ax.set_ylabel('Time with fringe above frequency [s]')
     ax.set_xlim(*hrange)
@@ -359,7 +363,8 @@ for i, channel in enumerate(sorted(allchannels)):
     if deadtime != 0 and effdt > 2:
         context = 'danger'
     elif ((deadtime != 0 and effdt < 2) or
-          (histdata[args.multiplier_for_threshold].max() >=
+          (histdata[args.multiplier_for_threshold].size and
+           histdata[args.multiplier_for_threshold].max() >=
              args.frequency_threshold/2.)):
         context = 'warning'
     else:
