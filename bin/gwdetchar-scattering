@@ -197,6 +197,8 @@ for i, channel in enumerate(sorted(allchannels)):
     if args.verbose:
         gprint("-- Processing %s --------------------" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
+    flag = '%s:DCH-%s_SCATTERING_GE_%s_HZ:1' % (args.ifo, optic, tstr)
+    scatter_segments[channel] = DataQualityFlag(flag)
     # set up plot(s)
     plot = figure(figsize=[12, 12])
     axes = {}
@@ -231,23 +233,19 @@ for i, channel in enumerate(sorted(allchannels)):
             histdata[m].resize((histdata[m].size + fm.size,))
             histdata[m][-fm.size:] = fm.value
         # get segments and plot
-        name = '%s:DCH-%s_SCATTERING_GE_%s_HZ:1' % (args.ifo, optic, tstr)
         if ((fringef * args.multiplier_for_threshold).value.max() <
                 args.frequency_threshold):
-            scatter = DataQualityFlag(name, known=[ts.span])
+            scatter = DataQualityFlag(flag, known=[ts.span])
         else:
             scatter = (
                 fringef * args.multiplier_for_threshold >=
-                args.frequency_threshold * fringef.unit).to_dqflag(name=name)
+                args.frequency_threshold * fringef.unit).to_dqflag(name=flag)
             scatter.active = scatter.active.protract(args.segment_padding)
             scatter.coalesce()
         axes['segments'].plot(scatter, facecolor='red', edgecolor='darkred',
                               known={'alpha': 0.1, 'facecolor': 'lightgray'},
                               y=0, label=' ')
-        try:
-            scatter_segments[channel] += scatter
-        except KeyError:
-            scatter_segments[channel] = scatter
+        scatter_segments[channel] += scatter
         if args.verbose:
             gprint("    Found %d scattering segments" % (len(scatter.active)))
     if args.verbose:
