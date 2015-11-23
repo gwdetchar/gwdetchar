@@ -322,7 +322,7 @@ for i, channel in enumerate(sorted(allchannels)):
         bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
     axes['triggers'].set_ylabel('Frequency [Hz]')
     axes['triggers'].set_ylim(0, 2 * args.frequency_threshold)
-    plot.add_colorbar(ax=axes['triggers'], cmap='YlOrRd', clim=[3, 100],
+    plot.add_colorbar(ax=axes['triggers'], cmap='YlGnBu', clim=[3, 100],
                       log=True, label='Signal-to-noise ratio')
     axes['segments'].set_ylim(-.55, .55)
     axes['segments'].text(
