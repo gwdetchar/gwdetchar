@@ -25,6 +25,7 @@ from __future__ import division
 import os.path
 import argparse
 import re
+import warnings
 from StringIO import StringIO
 
 import numpy
@@ -335,7 +336,13 @@ for i, channel in enumerate(sorted(allchannels)):
         if ax is not axes['triggers']:
             plot.add_colorbar(ax=ax, visible=False)
     png = '%s_SCATTERING_%s_HZ-%s.png' % (chanstr, tstr, gpsstr)
-    plot.save(png)
+    try:
+        plot.save(png)
+    except OverflowError as e:
+        warnings.warn(str(e))
+        plot.axes[1].set_ylim(0, args.frequency_threshold * 4)
+        plot.refresh()
+        plot.save(png)
     plot.close()
     if args.verbose:
         gprint("%s written." % png)
