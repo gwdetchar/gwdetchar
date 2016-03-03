@@ -3,7 +3,9 @@ language: python
 addons:
   apt:
     packages:
-      - python-m2crypto
+      - libblas-dev  # scipy
+      - liblapack-dev  # scipy
+      - python-m2crypto  # glue
 
 #matrix:
 #  include:
