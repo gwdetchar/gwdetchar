@@ -30,6 +30,12 @@ __version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
+def create_parser(**kwargs):
+    """Create a new `argparse.ArgumentParser`
+    """
+    return argparse.ArgumentParser(**kwargs)
+
+
 def add_ifo_option(parser, ifo=const.IFO, required=None):
     """Add a `-i/--ifo` option to the given parser
     """
