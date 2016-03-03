@@ -1,0 +1,311 @@
+#!/usr/bin/env python
+
+from __future__ import (division, print_function)
+
+import os
+import re
+import multiprocessing
+import sys
+
+import numpy
+
+from matplotlib import use
+use('agg')
+
+from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
+from gwpy.time import from_gps
+from gwpy.plotter import TimeSeriesPlot
+from gwpy.detector import ChannelList
+from gwpy.io import nds as ndsio
+
+from gwdetchar import cli
+from gwdetchar.io import html
+
+parser = cli.create_parser(
+    description=__doc__,
+    formatter_class=cli.argparse.ArgumentDefaultsHelpFormatter)
+cli.add_gps_start_stop_arguments(parser)
+cli.add_ifo_option(parser)
+cli.add_nproc_option(parser, default=1)
+parser.add_argument('-J', '--nproc-plot', type=int, default=None,
+                    help='number of processes to use for plotting')
+parser.add_argument('-o', '--output-dir', default=os.curdir,
+                    help='output directory for plots')
+parser.add_argument('-f', '--channel-file', type=os.path.abspath,
+                    help='path for channel file')
+parser.add_argument('-T', '--trend-type', default='minute',
+                    choices=['second', 'minute'],
+                    help='type of trend for correlation')
+parser.add_argument('-p', '--primary-channel',
+                    default='{ifo}:GDS-CALIB_STRAIN',
+                    help='name of primary channel to use')
+parser.add_argument('-P', '--primary-frametype',
+                    help='frametype for --primary-channel')
+parser.add_argument('-r', '--range-channel',
+                    default='{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean',
+                    help='name of range channel to use')
+parser.add_argument('-R', '--range-frametype',
+                    help='frametype for --range-channel')
+
+psig = parser.add_argument_group('Signal processing options')
+psig.add_argument('-b', '--band-pass', type=float, nargs=2, default=None,
+                  metavar="FLOW FHIGH",
+                  help='lower and upper frequencies for bandpass on h(t)')
+psig.add_argument('-x', '--filter-padding', type=float, default=3.,
+                  help='amount of time (seconds) to pad data for filtering')
+
+args = parser.parse_args()
+
+start = args.gpsstart.seconds
+end = args.gpsend.seconds
+pad = args.filter_padding
+try:
+    flower, fupper = args.band_pass
+except TypeError:
+    flower, fupper = None
+
+if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
+    args.primary_frametype = '%s_HOFT_C00' % args.ifo
+primary = args.primary_channel.format(ifo=args.ifo)
+rangechannel = args.range_channel.format(ifo=args.ifo)
+
+if not os.path.isdir(args.output_dir):
+    os.makedirs(args.output_dir)
+os.chdir(args.output_dir)
+nprocplot = args.nproc_plot or args.nproc
+
+# load data
+print("-- Loading range data")
+rangets = TimeSeries.get(rangechannel, start, end,
+                         frametype=args.range_frametype, verbose=True,
+                         nproc=args.nproc)
+
+if args.trend_type == 'minute':
+    dstart, dend = rangets.span
+else:
+    dstart = start
+    dend = end
+
+print("-- Loading h(t) data")
+darmts = TimeSeries.get(primary, dstart-pad, dend+pad, verbose=True,
+                        frametype=args.primary_frametype,
+                        nproc=args.nproc)
+
+# get darm BLRMS
+print("-- Filtering h(t) data")
+if args.trend_type == 'minute':
+    stride = 60
+else:
+    stride = 1
+if flower:
+    darmblrms = (
+        darmts.highpass(flower/2.).notch(60).bandpass(flower, fupper).crop(
+            dstart, dend).rms(stride))
+    darmblrms.name = '%s %s-%s Hz BLRMS' % (primary, flower, fupper)
+else:
+    darmblrms = darmts.notch(60).crop(dstart, dend).rms(stride)
+    darmblrms.name = '%s RMS' % primary
+
+# create scaled versions of data to compare to each other
+print("-- Creating scaled data")
+rangescaled = rangets.detrend()
+rangemax = rangescaled.value.max()
+darmscaled = darmblrms.detrend()
+darmscaled *= (-rangemax / darmscaled.value.max())
+
+# get aux data
+print("-- Loading auxiliary channel data")
+host, port = ndsio.host_resolution_order(args.ifo)[0]
+if args.channel_file is None:
+    channels = ChannelList.query_nds2('*.mean', host=host, port=port,
+                                      type='m-trend')
+else:
+    with open(args.channel_file, 'r') as f:
+        channels = f.read().rstrip('\n').split('\n')
+nchan = len(channels)
+print("Identified %d channels" % nchan)
+if args.trend_type == 'minute':
+    frametype = '%s_M' % args.ifo
+else:
+    frametype = '%s_T' % args.ifo
+auxdata = TimeSeriesDict.get(map(str, channels), dstart, dend, verbose=True,
+                             frametype=frametype, nproc=args.nproc,
+                             observatory=args.ifo[0], pad=0)
+
+gpsstub = '%d-%d' % (start, end-start)
+re_delim = re.compile('[:_-]')
+form = '%%.%dd' % len(str(nchan))
+
+print("-- Processing channels")
+counter = multiprocessing.Value('i', 0)
+
+p1 = (.1, .1, .9, .95)
+p2 = (.1, .15, .9, .9)
+
+def process_channel(input_):
+    chan, ts = input_
+    flat = ts.value.min() == ts.value.max()
+    if flat:
+        corr1 = None
+        corr2 = None
+        plot1 = None
+        plot2 = None
+    else:
+        corr1 = numpy.corrcoef(ts.value, darmblrms.value)[0, 1]
+        if args.trend_type == 'minute':
+            corr2 = numpy.corrcoef(ts.value, rangets.value)[0, 1] ** 2.
+        else:
+            corr2 = 0.0
+        plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
+                              figsize=(12, 12))
+        plot.subplots_adjust(*p1)
+        plot.axes[0].set_ylabel('$h(t)$ BLRMS [strain]')
+        plot.axes[1].set_ylabel('Channel units')
+        plot.axes[2].set_ylabel('Sensitive range [Mpc]')
+        for ax in plot.axes:
+            ax.legend(loc='best')
+            ax.set_xlim(start, end)
+            ax.set_epoch(start)
+        channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
+        plot1 = '%s_TRENDS-%s.png' % (channelstub, gpsstub)
+        try:
+            plot.save(plot1)
+        except (IOError, IndexError):
+            plot.save(plot1)
+        plot.close()
+
+        # plot auto-scaled verions
+        tsscaled = ts.detrend()
+        tsscaled *= rangemax / tsscaled.value.max()
+        if corr1 > 0:
+            tsscaled *= -1
+        plot = TimeSeriesPlot(darmscaled, rangescaled, tsscaled,
+                              figsize=[12, 6])
+        plot.subplots_adjust(*p2)
+        ax = plot.gca()
+        ax.set_xlim(start, end)
+        ax.set_epoch(start)
+        ax.set_ylabel('Scaled amplitude [arbitrary units')
+        ax.legend(loc='best')
+        plot2 = '%s_COMPARISON-%s.png' % (channelstub, gpsstub)
+        try:
+            plot.save(plot2)
+        except (IOError, IndexError):
+            plot.save(plot2)
+        plot.close()
+        corr1 **= 2.
+
+    # increment counter and print status
+    with counter.get_lock():
+        counter.value += 1
+        pc = 100 * counter.value / nchan
+        print("Completed [%d/%d] %3d%% %-50s"
+              % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
+        sys.stdout.flush()
+    return chan, corr1, corr2, plot1, plot2
+
+pool = multiprocessing.Pool(nprocplot)
+results = pool.map(process_channel, auxdata.iteritems())
+results.sort(key=lambda x: (x[1] is not None and x[1] + x[2] or 0, x[0]),
+             reverse=True)
+rhos = numpy.asarray([x[1] for x in results if x is not None])
+
+print("")
+
+with open('results.txt', 'w') as f:
+    for ch, corr1, corr2, _, _ in results:
+        print('%s %s %s' % (ch, corr1, corr2), file=f)
+
+# -- write html
+title = '%s slow correlations: %d-%d' % (args.ifo, start, end)
+page = html.new_bootstrap_page(title=title)
+page.div(class_='container')
+
+# header
+if flower:
+    pstr = '<code>%s</code> (band-limited %s-%s Hz)' % (primary, flower, fupper)
+else:
+    pstr = primary
+if args.trend_type == 'minute':
+    pstr += ' and <code>%s</code>' % rangechannel
+page.div(class_='page-header')
+page.h1(title)
+page.p("This analysis searched %d channels for linear correlations with %s"
+       % (nchan, pstr))
+page.div.close()
+
+# results
+page.h2('Results')
+rsq = "<i>r<sup>2</sup></i>"
+wikilink = html.markup.oneliner.a(
+    "Pearson's correlation coefficient",
+    href="https://en.wikipedia.org/wiki/"
+         "Pearson_product-moment_correlation_coefficient",
+    rel="external")
+numpylink = html.markup.oneliner.a(
+    "<code>numpy.corrcoef</code>",
+    href="http://docs.scipy.org/doc/numpy-1.10.1/reference/generated/"
+         "numpy.corrcoef.html",
+    rel="external")
+page.p("In the results below, %s is calculated as the square of %s using %s."
+       % (rsq, wikilink, numpylink))
+if args.trend_type == 'minute':
+    page.p("%s is reported for both <code>%s</code> and <code>%s</code>."
+           % (rsq, primary, rangechannel))
+page.div(class_='panel-group', id_='results')
+for i, (ch, corr1, corr2, plot1, plot2) in enumerate(results):
+    if corr1 is None:
+        h = '%s [flat]' % ch
+    elif args.trend_type == 'minute':
+        h = '%s [%s = %.2f, %.2f]' % (ch, rsq, corr1, corr2)
+    else:
+        h = '%s [%s = %.2f]' % (ch, rsq, corr1)
+    if corr1 is None or corr1 == 0:
+        context = ''
+    elif corr1 + corr2 >= .8:
+        context = 'panel-danger'
+    elif corr1 + corr2 >= .6:
+        context = 'panel-warning'
+    else:
+        context = 'panel-info'
+    page.div(class_='panel %s' % context)
+    # heading
+    page.div(class_='panel-heading')
+    page.a(h, class_='panel-title', href='#channel%d' % i,
+           **{'data-toggle': 'collapse', 'data-parent': '#results'})
+    page.div.close()
+    # body
+    page.div(id_='channel%d' % i, class_='panel-collapse collapse')
+    page.div(class_='panel-body')
+    if corr1 is None:
+        page.p("This vector is flat")
+    else:
+        for p in (plot1, plot2):
+            page.a(href=p, target='_blank')
+            page.img(class_='img-responsive', src=p)
+            page.a.close()
+    page.div.close()  # panel-body
+    page.div.close()  # panel-collapse
+    page.div.close()  # panel
+page.div.close()  # panel-group
+
+# params
+def write_param(param, value):
+    page.p()
+    page.strong('%s: ' % param)
+    page.add(str(value))
+    page.p.close()
+
+page.h2('Parameters')
+page.p('This analysis used the following parameters:')
+write_param('Start time', '%s (%d)' % (from_gps(start), start))
+write_param('End time', '%s (%d)' % (from_gps(end), end))
+write_param('Primary channel',
+            '%s (%s)' % (primary, args.primary_frametype.format(ifo=args.ifo)))
+write_param('Range channel',
+            '%s (%s)' % (rangechannel, args.range_frametype or '-'))
+write_param('Band-pass', '%s-%s' % (flower, fupper))
+
+page.div.close()  # container
+with open('index.html', 'w') as f:
+    print(str(page), file=f)
