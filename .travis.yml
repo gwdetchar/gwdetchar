@@ -3,6 +3,7 @@ language: python
 addons:
   apt:
     packages:
+      - gfortran  # scipy
       - libblas-dev  # scipy
       - liblapack-dev  # scipy
       - python-m2crypto  # glue
