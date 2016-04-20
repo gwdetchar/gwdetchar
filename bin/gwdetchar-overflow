@@ -27,6 +27,9 @@ import numpy
 import os.path
 import sys
 
+from matplotlib import use
+use('agg')
+
 from glue.ligolw.utils import write_fileobj
 
 from gwpy.segments import (DataQualityFlag, DataQualityDict,

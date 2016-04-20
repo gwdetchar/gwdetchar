@@ -31,6 +31,9 @@ import sys
 from multiprocessing import cpu_count
 from StringIO import StringIO
 
+from matplotlib import use
+use('agg')
+
 import lalframe
 
 from glue import markup

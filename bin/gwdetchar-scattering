@@ -30,6 +30,9 @@ from StringIO import StringIO
 
 import numpy
 
+from matplotlib import use
+use('agg')
+
 from gwpy.plotter import (figure, HistogramPlot)
 from gwpy.utils.compat import OrderedDict
 from gwpy.utils import gprint
