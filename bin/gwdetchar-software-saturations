@@ -329,7 +329,7 @@ if not os.getenv('LIGO_DATAFIND_SERVER'):
 else:
     print("Finding channels in frames...")
     if len(cache) == 0:
-        raise RuntimeError("No frames recovered for %s in interval [%s, %s)"
+        raise RuntimeError("No frames recovered for %s in interval [%s, %s)" %
                            (frametype, args.gpsstart.seconds,
                             args.gpsend.seconds))
     allchannels = get_adc_channels(cache[0].path)
