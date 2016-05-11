@@ -27,3 +27,7 @@ from . import version
 
 __version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

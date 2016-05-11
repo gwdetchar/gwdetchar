@@ -1,0 +1,3 @@
+include README.me LICENSE MANIFEST.in
+include versioneer.py
+include gwdetchar/_version.py
