@@ -23,8 +23,6 @@ import re
 
 import numpy
 
-from lalframe.utils import get_channels
-
 from gwpy.time import tconvert
 from gwpy.timeseries import StateTimeSeries
 
@@ -114,6 +112,8 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
     """
     """
     # FIXME: write a docstring
+    from lalframe.utils import get_channels
+
     ifo = ifo or const.IFO
     if ifo is None:
         raise ValueError("Cannot format channel without an IFO, "
