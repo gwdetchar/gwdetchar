@@ -22,6 +22,8 @@ var/
 *.egg
 MANIFEST
 Portfile
+/.eggs/
+/.cache/
 
 # Installer logs
 pip-log.txt

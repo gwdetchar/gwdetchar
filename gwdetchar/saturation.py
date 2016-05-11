@@ -25,13 +25,8 @@ import numpy
 
 from astropy.units import Quantity
 
-from lalframe.utils import get_channels
-
 from gwpy.timeseries import StateTimeSeries
 
-from . import version
-
-__version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 re_limit = re.compile('_LIMIT\Z')

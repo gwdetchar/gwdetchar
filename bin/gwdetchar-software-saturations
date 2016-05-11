@@ -34,8 +34,6 @@ from StringIO import StringIO
 from matplotlib import use
 use('agg')
 
-import lalframe
-
 from glue import markup
 
 from gwpy.segments import (Segment, SegmentList,
@@ -43,14 +41,13 @@ from gwpy.segments import (Segment, SegmentList,
 from gwpy.time import to_gps
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict, StateTimeSeries)
 
-from gwdetchar import (version, cli, const)
+from gwdetchar import (__version__, cli, const)
 from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import find_frames
 from gwdetchar.saturation import find_saturations
 
 __author__ = 'Dan Hoak <daniel.hoak@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
-__version__ = version.version
 
 DEFAULT_NPROC = min(8, cpu_count())
 
@@ -131,6 +128,7 @@ def get_adc_channels(framefile):
             raise subprocess.CalledProcessError("FrChannels %s" % framefile)
     # otherwise manually open the frame and read the ADCs
     except (OSError, subprocess.CalledProcessError):
+        import lalframe
         frfile = lalframe.FrameUFrFileOpen(framefile, "r")
         frtoc = lalframe.FrameUFrTOCRead(frfile)
         nadc = lalframe.FrameUFrTOCQueryAdcN(frtoc)

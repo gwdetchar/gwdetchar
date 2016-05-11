@@ -23,9 +23,6 @@ import re
 
 from gwpy.io.kerberos import which
 
-from . import version
-
-__version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
