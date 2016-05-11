@@ -25,8 +25,6 @@ import numpy
 
 from astropy.units import Quantity
 
-from lalframe.utils import get_channels
-
 from gwpy.timeseries import StateTimeSeries
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
