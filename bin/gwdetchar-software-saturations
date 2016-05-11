@@ -34,8 +34,6 @@ from StringIO import StringIO
 from matplotlib import use
 use('agg')
 
-import lalframe
-
 from glue import markup
 
 from gwpy.segments import (Segment, SegmentList,
@@ -130,6 +128,7 @@ def get_adc_channels(framefile):
             raise subprocess.CalledProcessError("FrChannels %s" % framefile)
     # otherwise manually open the frame and read the ADCs
     except (OSError, subprocess.CalledProcessError):
+        import lalframe
         frfile = lalframe.FrameUFrFileOpen(framefile, "r")
         frtoc = lalframe.FrameUFrTOCRead(frfile)
         nadc = lalframe.FrameUFrTOCQueryAdcN(frtoc)
