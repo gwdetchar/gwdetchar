@@ -23,10 +23,7 @@ import os
 
 from gwpy.segments import Segment
 
-from . import version
-
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
-__version__ = version.version
 
 IFO = os.getenv('IFO', None)
 ifo = os.getenv('ifo', None)

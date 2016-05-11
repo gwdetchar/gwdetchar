@@ -38,12 +38,11 @@ from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.io.cache import cache_segments
 from gwpy.utils import gprint
 
-from gwdetchar import (cds, cli, const, overflow, version)
+from gwdetchar import (cds, cli, const, overflow, __version__)
 from gwdetchar.io import (datafind, ligolw, html as htmlio)
 
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
-__version__ = version.version
 
 
 def plot_overflows(flag, span, facecolor='red', edgecolor='darkred',

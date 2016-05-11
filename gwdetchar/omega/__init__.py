@@ -21,8 +21,6 @@
 See Chatterji 20015 [thesis] for details on the Q-pipeline.
 """
 
-from .. import version
 from .scan import *
 
-__version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'

@@ -28,11 +28,10 @@ from lalframe.utils import get_channels
 from gwpy.time import tconvert
 from gwpy.timeseries import StateTimeSeries
 
-from . import (const, version)
+from . import const
 from .io.datafind import find_frames
 from .utils import natural_sort
 
-__version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 

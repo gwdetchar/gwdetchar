@@ -24,9 +24,6 @@ from StringIO import StringIO
 
 from glue import markup
 
-from .. import version
-
-__version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 JQUERY_JS = "//code.jquery.com/jquery-1.11.2.min.js"

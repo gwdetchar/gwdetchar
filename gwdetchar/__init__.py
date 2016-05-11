@@ -23,11 +23,9 @@ This package extends the GWpy package for gravitational-wave
 data processing (https://gwpy.github.io).
 """
 
-from . import version
+from ._version import get_versions
 
-__version__ = version.version
+__version__ = get_versions()['version']
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
-from ._version import get_versions
-__version__ = get_versions()['version']
 del get_versions

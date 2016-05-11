@@ -43,11 +43,10 @@ from gwpy.segments import (DataQualityFlag, DataQualityDict,
 
 from gwsumm.plot import rcParams
 
-from gwdetchar import (cli, const, scattering, version)
+from gwdetchar import (cli, const, scattering, __version__)
 from gwdetchar.io import html as htmlio
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
-__version__ = version.version
 
 # -- parse command line -------------------------------------------------------
 

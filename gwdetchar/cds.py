@@ -25,8 +25,6 @@ try:
 except ImportError:
     import urllib2 as request
 
-from . import version
-
 RTDCUID_URL = (
     'https://daqsvn.ligo-la.caltech.edu/websvn/filedetails.php?'
     'repname=daq_maps&path=%2F{ifo}%2Frtdcuid'
@@ -40,7 +38,6 @@ ADCLIST_URL = (
 DCUID_MAP = {}
 ADC_MAP = {}
 
-__version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 

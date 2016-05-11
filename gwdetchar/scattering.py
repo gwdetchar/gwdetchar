@@ -21,9 +21,8 @@
 
 import numpy
 
-from . import (const, version)
+from . import const
 
-__version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 OPTIC_MOTION_CHANNELS = {

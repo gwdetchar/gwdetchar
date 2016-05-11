@@ -25,9 +25,6 @@ import subprocess
 
 from gwpy.detector import (Channel, ChannelList)
 
-from .. import version
-
-__version__ = version.version
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 OMEGA_LOCATION = os.getenv('OMEGA_LOCATION', None)
