@@ -24,7 +24,7 @@ matrix:
 before_install:
   - pip install -q --upgrade pip
   - pip install ${PRE} -r requirements.txt
-  - pip install coveralls unittest pytest
+  - pip install coveralls unittest2 pytest
 
 install:
   - pip install .
