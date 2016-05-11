@@ -6,28 +6,28 @@ addons:
       - gfortran  # scipy
       - libblas-dev  # scipy
       - liblapack-dev  # scipy
-      - python-m2crypto  # glue
+      - swig  # m2crypto
 
-#matrix:
-#  include:
-#    - python: 2.6
-#    - python: 2.7
-#    - python: 2.7
-#      env: PRE="--pre" GWPY="git+https://github.com/gwpy/gwpy.git"
-#  allow_failures:
-#    - python: 2.7
-#      env: PRE="--pre" GWPY="git+https://github.com/gwpy/gwpy.git"
+matrix:
+  include:
+    - python: 2.6
+    - python: 2.7
+      env: PRE=""
+    - python: 2.7
+      env: PRE="--pre"
+    - python: 3.5
+  allow_failures:
+    - python: 2.7
+      env: PRE="--pre"
+    - python: 3.5
 
 before_install:
   - pip install -q --upgrade pip
+  - pip install ${PRE} -r requirements.txt
 
 install:
-  - pip install -r requirements.txt
-
-script:
   - pip install .
 
 cache:
   apt: true
-  directories:
-    - $HOME/.cache/pip
+  pip: true
