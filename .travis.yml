@@ -35,6 +35,9 @@ script:
   - .travis/test-exe.sh gwdetchar-scattering --help
   - .travis/test-exe.sh gwdetchar-overflow --help
 
+after_success:
+  - coveralls
+
 cache:
   apt: true
   pip: true
