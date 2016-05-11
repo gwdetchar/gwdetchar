@@ -28,6 +28,12 @@ before_install:
 install:
   - pip install .
 
+script:
+  - coverage run --source=gwdetchar --omit="gwdetchar/_version.py" ./setup.py test
+  - .travis/test-exe.sh gwdetchar-software-saturations --help
+  - .travis/test-exe.sh gwdetchar-scattering --help
+  - .travis/test-exe.sh gwdetchar-overflow --help
+
 cache:
   apt: true
   pip: true

@@ -48,7 +48,9 @@ cmdclass.update(versioneer.get_cmdclass())
 
 # -- dependencies -------------------------------------------------------------
 
-setup_requires = []
+setup_requires = [
+    'pytest-runner',
+]
 install_requires = [
     'numpy>=1.5',
     'matplotlib>=1.3.0',
@@ -64,7 +66,9 @@ requires = [
     'dqsegdb',
     'gwpy',
 ]
-tests_require = []
+tests_require = [
+    'pytest',
+]
 extras_require = {}
 
 # -- run setup ----------------------------------------------------------------
@@ -92,9 +96,9 @@ setup(name=DISTNAME,
       dependency_links=[
           'http://software.ligo.org/lscsoft/source/glue-1.49.1.tar.gz'
               '#egg=glue-1.49.1',
-          'http://software.ligo.org/lscsoft/source/dqsegdb-1.2.2.tar.gz',
+          'http://software.ligo.org/lscsoft/source/dqsegdb-1.2.2.tar.gz'
               '#egg=dqsegdb-1.2.2',
-          'https://github.com/ligovirgo/trigfind/archive/v0.3.tar.gz',
+          'https://github.com/ligovirgo/trigfind/archive/v0.3.tar.gz'
               '#egg=trigfind-0.3',
       ],
       use_2to3=True,
