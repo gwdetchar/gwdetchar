@@ -33,7 +33,7 @@ import numpy
 from matplotlib import use
 use('agg')
 
-from gwpy.plotter import (figure, HistogramPlot)
+from gwpy.plotter import (figure, rcParams, HistogramPlot)
 from gwpy.utils.compat import OrderedDict
 from gwpy.utils import gprint
 from gwpy.table.lsctables import New as new_table, SnglBurstTable
@@ -41,12 +41,22 @@ from gwpy.timeseries import TimeSeriesDict
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
 
-from gwsumm.plot import rcParams
-
 from gwdetchar import (cli, const, scattering, __version__)
 from gwdetchar.io import html as htmlio
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+
+# update rcParams
+rcParams.update({
+    'axes.labelsize': 20,
+    'figure.subplot.bottom': 0.17,
+    'figure.subplot.left': 0.1,
+    'figure.subplot.right': 0.9,
+    'figure.subplot.top': 0.90,
+    'grid.color': 'gray',
+    'image.cmap': 'viridis',
+    'svg.fonttype': 'none',
+})
 
 # -- parse command line -------------------------------------------------------
 
