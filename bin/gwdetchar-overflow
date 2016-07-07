@@ -157,8 +157,12 @@ for dcuid in args.dcuid:
     channel = overflow.ligo_accum_overflow_channel(dcuid, args.ifo)
     if args.deep:
         gprint("    Getting list of overflow channels...", end=' ')
-        channels = overflow.ligo_model_overflow_channels(
-            dcuid, args.ifo, args.frametype, gpstime=span[0])
+        try:
+            channels = overflow.ligo_model_overflow_channels(
+                dcuid, args.ifo, args.frametype, gpstime=span[0])
+        except IndexError:  # no frame found for GPS start, try GPS end
+            channels = overflow.ligo_model_overflow_channels(
+                dcuid, args.ifo, args.frametype, gpstime=span[-1])
         gprint("    %d channels found" % len(channel))
     for seg in cachesegs:
         c = cache.sieve(segment=seg)
