@@ -106,6 +106,9 @@ else:
     darmblrms = darmts.notch(60).crop(dstart, dend).rms(stride)
     darmblrms.name = '%s RMS' % primary
 
+# calculate the r^2 value between the DARM BLRMS and the Range timeseries
+corr0 = numpy.corrcoef(rangets.value, darmblrms.value)[0, 1]**2
+
 # create scaled versions of data to compare to each other
 print("-- Creating scaled data")
 rangescaled = rangets.detrend()
@@ -250,8 +253,8 @@ numpylink = html.markup.oneliner.a(
 page.p("In the results below, %s is calculated as the square of %s using %s."
        % (rsq, wikilink, numpylink))
 if args.trend_type == 'minute':
-    page.p("%s is reported for both <code>%s</code> and <code>%s</code>."
-           % (rsq, primary, rangechannel))
+    page.p("%s is reported for both <code>%s</code> and <code>%s</code> The %    s between these two channels is %.2f."
+            % (rsq, primary, rangechannel, rsq, corr0))
 page.div(class_='panel-group', id_='results')
 for i, (ch, corr1, corr2, plot1, plot2) in enumerate(results):
     if corr1 is None:
