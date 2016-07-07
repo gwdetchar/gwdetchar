@@ -125,9 +125,9 @@ else:
 nchan = len(channels)
 print("Identified %d channels" % nchan)
 if args.trend_type == 'minute':
-    frametype = '%s_M' % args.ifo
+    frametype = '%s_M' % args.ifo # for minute trends
 else:
-    frametype = '%s_T' % args.ifo
+    frametype = '%s_T' % args.ifo # for second trends
 auxdata = TimeSeriesDict.get(map(str, channels), dstart, dend, verbose=True,
                              frametype=frametype, nproc=args.nproc,
                              observatory=args.ifo[0], pad=0)
