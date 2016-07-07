@@ -17,12 +17,15 @@ matrix:
       env: PRE="--pre"
     - python: 3.5
   allow_failures:
+    - python: 2.6
     - python: 2.7
       env: PRE="--pre"
     - python: 3.5
 
 before_install:
   - pip install -q --upgrade pip
+  # need to install astropy 1.1 specifically for py26
+  - if [[ ${TRAVIS_PYTHON_VERSION} == '2.6' ]]; then pip install "astropy==1.1"; fi
   - pip install ${PRE} -r requirements.txt
   - pip install coveralls unittest2 pytest
 
