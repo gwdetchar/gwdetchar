@@ -153,8 +153,8 @@ for seg in statea:
     cache = trigfind.find_trigger_urls(args.main_channel, 'omicron',
                                        seg[0], seg[1])
     if len(cache) == 0:
-        warning.warn("No Omicron triggers found for %s in segment [%d .. %d)"
-                     % (args.main_channel, seg[0], seg[1]))
+        warnings.warn("No Omicron triggers found for %s in segment [%d .. %d)"
+                      % (args.main_channel, seg[0], seg[1]))
         continue
     trigs.extend(SnglBurstTable.read(
         cache, columns=trigs.columnnames,
