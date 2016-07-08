@@ -253,8 +253,9 @@ numpylink = html.markup.oneliner.a(
 page.p("In the results below, %s is calculated as the square of %s using %s."
        % (rsq, wikilink, numpylink))
 if args.trend_type == 'minute':
-    page.p("%s is reported for both <code>%s</code> and <code>%s</code>. The %s between these two channels is %.2f."
-            % (rsq, primary, rangechannel, rsq, corr0))
+    page.p("%s is reported for both <code>%s</code> and <code>%s</code>. The",
+    "%s between these two channels is %.2f." % (rsq, primary, rangechannel, rsq, corr0))
+    
 page.div(class_='panel-group', id_='results')
 for i, (ch, corr1, corr2, plot1, plot2) in enumerate(results):
     if corr1 is None:
