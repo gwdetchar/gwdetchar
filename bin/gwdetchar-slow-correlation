@@ -8,6 +8,7 @@ import multiprocessing
 import sys
 
 import numpy
+from scipy.stats import spearmanr
 
 from matplotlib import use
 use('agg')
@@ -108,6 +109,8 @@ else:
 
 # calculate the r^2 value between the DARM BLRMS and the Range timeseries
 corr0 = numpy.corrcoef(rangets.value, darmblrms.value)[0, 1]**2
+# calculate the ρ^2 value between the DARM BLRMS and the Range timeseries
+corr3 = spearmanr(rangets.value, darmblrms.value)[0]**2
 
 # create scaled versions of data to compare to each other
 print("-- Creating scaled data")
@@ -151,14 +154,19 @@ def process_channel(input_):
     if flat:
         corr1 = None
         corr2 = None
+        corr1s = None
+        corr2s = None
         plot1 = None
         plot2 = None
     else:
         corr1 = numpy.corrcoef(ts.value, darmblrms.value)[0, 1]
+        corr1s = spearmanr(ts.value, darmblrms.value)[0]**2
         if args.trend_type == 'minute':
-            corr2 = numpy.corrcoef(ts.value, rangets.value)[0, 1] ** 2.
+            corr2 = numpy.corrcoef(ts.value, rangets.value)[0, 1] ** 2
+            corr2s = spearmanr(ts.value, rangets.value)[0]**2
         else:
             corr2 = 0.0
+            corr2s = 0.0
         plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
                               figsize=(12, 12))
         plot.subplots_adjust(*p1)
@@ -205,7 +213,7 @@ def process_channel(input_):
         print("Completed [%d/%d] %3d%% %-50s"
               % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
         sys.stdout.flush()
-    return chan, corr1, corr2, plot1, plot2
+    return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
 
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, auxdata.iteritems())
@@ -216,8 +224,8 @@ rhos = numpy.asarray([x[1] for x in results if x is not None])
 print("")
 
 with open('results.txt', 'w') as f:
-    for ch, corr1, corr2, _, _ in results:
-        print('%s %s %s' % (ch, corr1, corr2), file=f)
+    for ch, corr1, corr2, _, _, corr1s, corr2s in results:
+        print('%s %s %s %s %s' % (ch, corr1, corr2, corr1s, corr2s), file=f)
 
 # -- write html
 title = '%s slow correlations: %d-%d' % (args.ifo, start, end)
@@ -239,8 +247,13 @@ page.div.close()
 
 # results
 page.h2('Results')
+rsq_blrms = "<i>r<sub>blrms</sub> <sup>2</sup></i>"
+rsq_range = "<i>r<sub>range</sub> <sup>2</sup></i>"
 rsq = "<i>r<sup>2</sup></i>"
-wikilink = html.markup.oneliner.a(
+rho_blrms = "<i>&rho;<sub>blrms</sub> <sup>2</sup></i>"
+rho_range = "<i>&rho;<sub>range</sub> <sup>2</sup></i>"
+rho = "<i>&rho;<sup>2</sup></i>"
+Pearson_wikilink = html.markup.oneliner.a(
     "Pearson's correlation coefficient",
     href="https://en.wikipedia.org/wiki/"
          "Pearson_product-moment_correlation_coefficient",
@@ -250,20 +263,34 @@ numpylink = html.markup.oneliner.a(
     href="http://docs.scipy.org/doc/numpy-1.10.1/reference/generated/"
          "numpy.corrcoef.html",
     rel="external")
-page.p("In the results below, %s is calculated as the square of %s using %s."
-       % (rsq, wikilink, numpylink))
+Spearman_wikilink = html.markup.oneliner.a(
+    "Spearman's correlation coefficient",
+    href="https://en.wikipedia.org/wiki/"
+         "Spearman%27s_rank_correlation_coefficient",
+    rel="external")
+scipylink = html.markup.oneliner.a(
+    "<code>scipy.stats.spearmanr</code>",
+    href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/"
+         "scipy.stats.spearmanr.html",
+    rel="external")
+page.p("In the results below, all %s values are calculated as the square of %s using %s"
+"and all %s values are calculated as the square of %s using %s."
+       % (rsq, Pearson_wikilink, numpylink, rho, Spearman_wikilink, scipylink))
 if args.trend_type == 'minute':
-    page.p("%s is reported for both <code>%s</code> and <code>%s</code>. The "
-    "%s between these two channels is %.2f." % (rsq, primary, rangechannel, rsq, corr0))
+    page.p("%s and %s are reported for <code>%s</code>. %s and %s are reported for"
+    "<code>%s</code>. The %s between these two channels is %.2f."
+    "The %s between these two channels is %.2f."
+        % (rsq_blrms, rho_blrms, primary, rsq_range, rho_range, rangechannel, rsq, corr0, rho, corr3))
     
 page.div(class_='panel-group', id_='results')
-for i, (ch, corr1, corr2, plot1, plot2) in enumerate(results):
+for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     if corr1 is None:
         h = '%s [flat]' % ch
     elif args.trend_type == 'minute':
-        h = '%s [%s = %.2f, %.2f]' % (ch, rsq, corr1, corr2)
+        h = '%s [%s = %.2f, %s = %.2f] [%s = %.2f, %s = %.2f]' % (ch, rsq_blrms, corr1,
+        rsq_range, corr2, rho_blrms, corr1s, rho_range, corr2s)
     else:
-        h = '%s [%s = %.2f]' % (ch, rsq, corr1)
+        h = '%s [%s = %.2f]' % (ch, rsq_blrms, corr1)
     if corr1 is None or corr1 == 0:
         context = ''
     elif corr1 + corr2 >= .8:
