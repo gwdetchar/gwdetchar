@@ -30,6 +30,21 @@ __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 OMEGA_LOCATION = os.getenv('OMEGA_LOCATION', None)
 WPIPELINE = OMEGA_LOCATION and os.path.join(OMEGA_LOCATION, 'bin', 'wpipeline')
 
+# -- utilities ----------------------------------------------------------------
+
+def get_omega_version(executable='/home/omega/opt/omega/bin/wpipeline'):
+    """Determine the omega version from the executable
+
+    >>> get_omega_version()
+    'r3449'
+    """
+    cmd = [executable, 'version']
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    if p.returncode:
+        raise subprocess.CalledProcessError(p.returncode, ' '.join(cmd))
+    return out.split('\n')[0].split(' ')[-1]
+
 
 # -- scan configuration parsing -----------------------------------------------
 
