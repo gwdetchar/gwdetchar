@@ -143,7 +143,7 @@ def omega_param(val):
 # -- scan processing ----------------------------------------------------------
 
 def run(gpstime, config, cachefile, outdir='.', report=True,
-        wpipeline=WPIPELINE, verbose=False):
+        wpipeline=WPIPELINE, colormap='parula', verbose=False):
     """Run a wpipeline scan at the given GPS time
 
     Parameters
@@ -171,10 +171,20 @@ def run(gpstime, config, cachefile, outdir='.', report=True,
     if wpipeline is None:
         raise RuntimeError("Unable to determine wpipeline path automatically, "
                            "please give explicitly")
-    cmd = [wpipeline, 'scan', '--configuration', config,
-           '--framecache', cachefile, '--outdir', outdir, str(gpstime)]
+    # create command
+    cmd = [wpipeline, 'scan', str(gpstime), '--configuration', config,
+           '--framecache', cachefile, '--outdir', outdir]
     if report:
         cmd.append('--report')
+    # if omega is new enough, add the --colormap option
+    try:
+        version = get_omega_version(wpipeline)
+    except subprocess.CalledProcessError:
+        pass
+    else:
+        if version >= 'r3449':
+            cmd.extend(('--colormap', colormap))
+    # RUN
     if verbose:
         print("Running omega scan as\n\n%s\n" % ' '.join(cmd))
     proc = subprocess.Popen(cmd, stdout=verbose and subprocess.PIPE or None)

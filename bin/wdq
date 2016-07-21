@@ -49,6 +49,11 @@ parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
                     required=omega.WPIPELINE is None,
                     help='path to wpipeline binary, default: %(default)s')
 
+oargs = parser.add_argument_group('Omega options')
+oargs.add_argument('-c', '--colormap', default='parula',
+                  help='name of colormap to use (only supported for '
+                       'omega > r3449)')
+
 args = parser.parse_args()
 
 print("----------------------------------------------\n"
@@ -120,4 +125,4 @@ print("Cachefile generated as %s" % cachefile)
 
 # run scan
 omega.run(gps, args.config_file, cachefile, outdir=outdir,
-          wpipeline=args.wpipeline, verbose=True)
+          wpipeline=args.wpipeline, colormap=args.colormap, verbose=True)
