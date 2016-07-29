@@ -132,9 +132,12 @@ corr3 = spearmanr(rangets.value, darmblrms.value)[0]**2
 # create scaled versions of data to compare to each other
 print("-- Creating scaled data")
 rangescaled = rangets.detrend()
-rangemax = rangescaled.value.max()
+rangerms = numpy.sqrt(sum(rangescaled**2.0)/len(rangescaled))
 darmscaled = darmblrms.detrend()
-darmscaled *= (-rangemax / darmscaled.value.max())
+darmrms = numpy.sqrt(sum(darmscaled**2.0)/len(darmscaled))
+
+#create scaled darm using the rms(range) and the rms(darm)
+darmscaled *= (-rangerms / darmrms)
 
 # get aux data
 print("-- Loading auxiliary channel data")
@@ -204,7 +207,8 @@ def process_channel(input_):
 
         # plot auto-scaled verions
         tsscaled = ts.detrend()
-        tsscaled *= rangemax / tsscaled.value.max()
+        tsrms = numpy.sqrt(sum(tsscaled**2.0)/len(tsscaled))
+        tsscaled *= (rangerms / tsrms)
         if corr1 > 0:
             tsscaled *= -1
         plot = TimeSeriesPlot(darmscaled, rangescaled, tsscaled,
