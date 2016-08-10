@@ -8,17 +8,17 @@ Welcome to GWDetChar's documentation!
 
 GWDetChar is a python package providing tools and utilities for Detector Characterisation in python, built on top of the `GWpy <//gwpy.github.io>`_ package.
 
-Contents:
+Package documentation:
+----------------------
 
 .. toctree::
    :maxdepth: 2
-   :glob:
 
-   api/*
-
+   omega/index
+   api/index
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
