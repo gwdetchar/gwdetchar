@@ -65,6 +65,11 @@ class OmegaChannel(Channel):
 
 
 class OmegaChannelList(ChannelList):
+    """List of channels configured for processing in an Omega-pipeline scan
+
+    The main access point for this class is the `OmegaChannelList.read`
+    method, which will parse a scan configuration file.
+    """
     @classmethod
     def read(cls, filename):
         """Parse an Omega-scan configuration file into a `ChannelList`
