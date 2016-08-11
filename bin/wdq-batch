@@ -1,0 +1,160 @@
+#!/usr/bin/env python
+# coding=utf-8
+# Copyright (C) LIGO Scientific Collaboration (2015-)
+#
+# This file is part of the GW DetChar python package.
+#
+# GW DetChar is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GW DetChar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Batch-generate a series of Omega-pipeline scans.
+
+GPS times can be given individually on the command-line, one after the other,
+or can be bundled into one file formatted where the first column contains
+the GPS times (other columns are ignored).
+
+The output of this script is a condor workflow in the form of a DAG file,
+with associated condor submit (`.sub`) file and equivalent shell script (`.sh`)
+in the output directory.
+Submitting the workflow to Condor will result in the scans being processed
+in parallel, or you can just run the `.sh` script to process in serial.
+"""
+
+import argparse
+import os
+from getpass import getuser
+
+from glue import pipeline
+
+from gwdetchar import omega
+
+# attempt to get WDQ path
+WDQ = os.path.join(os.path.dirname(__file__), 'wdq')
+if not os.path.isfile(WDQ):
+    WDQ = None
+
+
+# -- parse command line -------------------------------------------------------
+
+parser = argparse.ArgumentParser(
+    description=__doc__,
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+)
+
+parser.add_argument('gps-time', nargs='+',
+                    help='GPS time(s) to scan, or path to a file '
+                         'containing a single column of such times')
+parser.add_argument('-o', '--output-dir', default=os.getcwd(),
+                    help='output directory for all scans')
+
+parser.add_argument(
+    '-f', '--config-file',
+    help='path to configuration file to use, default: '
+         '~detchar/etc/omega/{epoch}/{OBS}-{IFO}_R-selected.txt')
+parser.add_argument('-q', '--wdq', default=WDQ, required=WDQ is None,
+                    help='path to wdq executable')
+parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
+                    required=omega.WPIPELINE is None,
+                    help='path to wpipeline binary')
+
+oargs = parser.add_argument_group('Omega options')
+oargs.add_argument('-c', '--colormap', default='parula',
+                   help='name of colormap to use (only supported for '
+                        'omega > r3449)')
+
+cargs = parser.add_argument_group('Condor options')
+cargs.add_argument('-u', '--universe', default='vanilla', type=str,
+                   help='universe for condor processing')
+cargs.add_argument('--condor-accounting-group',
+                   default='ligo.dev.o1.detchar.user_req.omegascan',
+                   help='accounting_group for condor submission on the LIGO '
+                        'Data Grid')
+cargs.add_argument('--condor-accounting-group-user', default=getuser(),
+                   help='accounting_group_user for condor submission on the '
+                        'LIGO Data Grid')
+
+args = parser.parse_args()
+
+outdir = os.path.abspath(os.path.expanduser(args.output_dir))
+
+# parse times
+times = getattr(args, 'gps-time')
+
+if len(times) == 1:
+    try:  # try converting to GPS
+        times = [float(times[0])]
+    except (TypeError, ValueError):  # otherwise read as file
+        import numpy
+        times = numpy.loadtxt(times[0], dtype=float)
+else:
+    times = map(float, times)
+
+# -- generate workflow --------------------------------------------------------
+
+tag = 'wdq-batch'
+
+# generate directories
+logdir = os.path.join(outdir, 'logs')
+subdir = os.path.join(outdir, 'condor')
+for d in [outdir, logdir, subdir]:
+    if not os.path.isdir(d):
+        os.makedirs(d)
+
+# start workflow
+dag = pipeline.CondorDAG(os.path.join(logdir, '%s.log' % tag))
+dag.set_dag_file(os.path.join(subdir, tag))
+dagfile = dag.get_dag_file()
+
+# configure wdq job
+job = pipeline.CondorDAGJob(args.universe, args.wdq)
+job.set_sub_file('%s.sub' % os.path.splitext(dagfile)[0])
+logstub = os.path.join(logdir, '%s-$(cluster)-$(process)' % tag)
+job.set_log_file('%s.log' % logstub)
+job.set_stdout_file('%s.out' % logstub)
+job.set_stderr_file('%s.err' % logstub)
+job.add_condor_cmd('getenv', 'True')
+job.add_condor_cmd('accounting_group', args.condor_accounting_group)
+job.add_condor_cmd('accounting_group_user', args.condor_accounting_group_user)
+if args.universe != 'local':
+    job.add_condor_cmd('request_memory', 4096)
+
+# add common wdq options
+job.add_opt('wpipeline', args.wpipeline)
+job.add_opt('colormap', args.colormap)
+job.add_opt('condor', '')
+if args.config_file is not None:
+    job.add_opt('config-file', args.config_file)
+
+# make node in workflow for each time
+for t in times:
+    node = pipeline.CondorDAGNode(job)
+    node.set_category('wdq')
+    node.set_retry(1)
+    node.add_var_arg(str(t))
+    node.add_var_opt('output-dir', os.path.join(outdir, str(t)))
+    dag.add_node(node)
+
+# write DAG
+dag.write_sub_files()
+dag.write_dag()
+dag.write_script()
+
+# print instructions for the user
+shfile = '%s.sh' % os.path.splitext(dagfile)[0]
+print("Workflow generated for %d times" % len(times))
+print("Run in the current shell via:\n\n$ %s\n" % shfile)
+if os.path.isfile('%s.rescue001' % dagfile):
+    print("Or, submit to condor via:\n\n$ condor_submit_dag -force %s"
+          % dagfile)
+else:
+    print("Or, submit to condor via:\n\n$ condor_submit_dag %s" % dagfile)

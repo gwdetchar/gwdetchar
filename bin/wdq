@@ -48,6 +48,9 @@ parser.add_argument(
 parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
                     required=omega.WPIPELINE is None,
                     help='path to wpipeline binary, default: %(default)s')
+parser.add_argument('--condor', action='store_true', default=False,
+                    help='indicates this job is running under condor, '
+                         'only use when running as part of a workflow')
 
 oargs = parser.add_argument_group('Omega options')
 oargs.add_argument('-c', '--colormap', default='parula',
@@ -125,4 +128,5 @@ print("Cachefile generated as %s" % cachefile)
 
 # run scan
 omega.run(gps, args.config_file, cachefile, outdir=outdir,
-          wpipeline=args.wpipeline, colormap=args.colormap, verbose=True)
+          wpipeline=args.wpipeline, colormap=args.colormap, verbose=True,
+          remove_lock_on_term=args.condor)

@@ -19,9 +19,13 @@
 """Methods and utilties for performing Omega pipline scans
 """
 
+from __future__ import print_function
+
 import re
 import os
 import subprocess
+import sys
+import signal
 
 from gwpy.detector import (Channel, ChannelList)
 
@@ -61,6 +65,11 @@ class OmegaChannel(Channel):
 
 
 class OmegaChannelList(ChannelList):
+    """List of channels configured for processing in an Omega-pipeline scan
+
+    The main access point for this class is the `OmegaChannelList.read`
+    method, which will parse a scan configuration file.
+    """
     @classmethod
     def read(cls, filename):
         """Parse an Omega-scan configuration file into a `ChannelList`
@@ -143,7 +152,8 @@ def omega_param(val):
 # -- scan processing ----------------------------------------------------------
 
 def run(gpstime, config, cachefile, outdir='.', report=True,
-        wpipeline=WPIPELINE, colormap='parula', verbose=False):
+        wpipeline=WPIPELINE, colormap='parula', verbose=False,
+        remove_lock_on_term=False):
     """Run a wpipeline scan at the given GPS time
 
     Parameters
@@ -184,6 +194,23 @@ def run(gpstime, config, cachefile, outdir='.', report=True,
     else:
         if version >= 'r3449':
             cmd.extend(('--colormap', colormap))
+
+    # set up handling of SIGTERM (from condor eviction)
+    if remove_lock_on_term:
+        if verbose:
+            print("Installing signal handler for condor eviction")
+        lockf = os.path.join(outdir, 'lock.txt')
+        def _term_handler(signal, frame):
+            """Handle SIGTERM from condor gracefully
+            """
+            print("SIGTERM raised: deleting %s" % lockf, file=sys.stderr)
+            try:
+                os.remove(lockf)
+            except IOError:
+                pass
+            sys.exit(0)
+        signal.signal(signal.SIGTERM, _term_handler)
+
     # RUN
     if verbose:
         print("Running omega scan as\n\n%s\n" % ' '.join(cmd))
