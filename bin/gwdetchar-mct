@@ -69,7 +69,8 @@ duration = abs(span)
 outfiles = {}
 for thresh in args.threshold:
     outfiles[str(thresh)] = (args.output_path + '%s-%s-DAC-%d-%d.xml.gz'
-        % (args.channel.replace(':','-'), int(thresh), args.gpsstart.seconds, duration))
+        % (args.channel.replace(':','-'), str(int(thresh)).replace('-','n'), 
+           args.gpsstart.seconds, duration))
 
 # get frame cache
 cache = datafind.find_frames(args.ifo[0], args.frametype,
