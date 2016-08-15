@@ -21,6 +21,7 @@ from gwpy.segments import (DataQualityFlag, DataQualityDict,
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.io.cache import cache_segments
 
+from gwpy.utils import gprint
 from gwdetchar import (const, cli, cds, __version__)
 from gwdetchar.io import (datafind, ligolw, html as htmlio)
 import dac
@@ -55,6 +56,8 @@ args = parser.parse_args()
 
 span = Segment(args.gpsstart, args.gpsend)
 
+gprint('Processing channel %s over span %d - %d' % (args.channel,args.gpsstart,args.gpsend))
+
 if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
                                  args.gpsend.seconds,
@@ -84,17 +87,23 @@ for thresh in args.threshold:
     tables[str(thresh)] = ligolw.new_table('sngl_burst',
         columns=['peak_time', 'peak_time_ns', 'peak_frequency','snr'])
 
-# for each science segment, 
+# for each science segment, read in the data from frames, check for threshold
+# crossings, and if the rate of crossings is less than rate_thresh, write to a
+# sngl_burst table
 for seg in cachesegs:
+    gprint('Processing segment %d - %d' % (seg[0],seg[1]))
     c = cache.sieve(segment=seg)
     data = TimeSeries.read(c, args.channel, nproc=args.nproc,
                                start=seg[0], end=seg[1])
     for thresh in args.threshold:
         times = dac.find_crossings(data,thresh)
-        if len(times):
+        gprint('Found %d crossings for threshold %d' % (len(times),thresh))
+        gprint('Rate of crossings: %d Hz' % (len(times)/abs(seg)))
+        if len(times) and (len(times)/abs(seg) < args.rate_thresh):
             tables[str(thresh)].extend(table_from_times(times))
 
 for thresh in args.threshold:
+    gprint('Writing output XML: %s' % outfiles[str(thresh)])
     file = open(outfiles[str(thresh)],'w')
     gz = True
     write_fileobj(ligolw.table_to_document(tables[str(thresh)]),file,gz=gz)
