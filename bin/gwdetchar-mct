@@ -24,7 +24,7 @@ from gwpy.io.cache import cache_segments
 from gwpy.utils import gprint
 from gwdetchar import (const, cli, cds, __version__)
 from gwdetchar.io import (datafind, ligolw, html as htmlio)
-import dac
+from dac import find_crossings
 
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -96,7 +96,7 @@ for seg in cachesegs:
     data = TimeSeries.read(c, args.channel, nproc=args.nproc,
                                start=seg[0], end=seg[1])
     for thresh in args.threshold:
-        times = dac.find_crossings(data,thresh)
+        times = find_crossings(data,thresh)
         gprint('Found %d crossings for threshold %d' % (len(times),thresh))
         gprint('Rate of crossings: %d Hz' % (len(times)/abs(seg)))
         if len(times) and (len(times)/abs(seg) < args.rate_thresh):
