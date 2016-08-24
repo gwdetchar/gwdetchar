@@ -38,7 +38,7 @@ from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.io.cache import cache_segments
 from gwpy.utils import gprint
 
-from gwdetchar import (cds, cli, const, overflow, __version__)
+from gwdetchar import (cds, cli, const, daq, __version__)
 from gwdetchar.io import (datafind, ligolw, html as htmlio)
 
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
@@ -133,7 +133,7 @@ if args.output_format.endswith('segments'):
     use_segments = True
     overflows = DataQualityDict()
     def find_overflows(timeseries, channel, segment):
-        segs = overflow.find_overflow_segments(timeseries)
+        segs = daq.find_overflow_segments(timeseries)
         segs.known &= SegmentList([segment])
         segs.coalesce()
         try:
@@ -146,22 +146,22 @@ else:
         'sngl_burst',
         columns=['peak_time', 'peak_time_ns', 'event_id', 'channel', 'snr'])
     def find_overflows(timeseries, channel, segment):
-        times = overflow.find_overflows(timeseries)
+        times = daq.find_overflows(timeseries)
         times = times[(times >= float(segment[0])) &
                       (times < float(segment[1]))]
-        overflows.extend(table_from_times(times, channel))
+        daq.extend(table_from_times(times, channel))
 
 # get channel and find overflows
 for dcuid in args.dcuid:
     gprint("Processing DCUID %d" % dcuid)
-    channel = overflow.ligo_accum_overflow_channel(dcuid, args.ifo)
+    channel = daq.ligo_accum_overflow_channel(dcuid, args.ifo)
     if args.deep:
         gprint("    Getting list of overflow channels...", end=' ')
         try:
-            channels = overflow.ligo_model_overflow_channels(
+            channels = daq.ligo_model_overflow_channels(
                 dcuid, args.ifo, args.frametype, gpstime=span[0])
         except IndexError:  # no frame found for GPS start, try GPS end
-            channels = overflow.ligo_model_overflow_channels(
+            channels = daq.ligo_model_overflow_channels(
                 dcuid, args.ifo, args.frametype, gpstime=span[-1])
         gprint("    %d channels found" % len(channel))
     for seg in cachesegs:
@@ -172,12 +172,12 @@ for dcuid in args.dcuid:
         data = TimeSeries.read(c, channel, nproc=args.nproc,
                                start=seg[0], end=seg[1]-args.segment_end_pad)
         if use_segments:
-            new = overflow.find_overflow_segments(data)
+            new = daq.find_overflow_segments(data)
             osegs = type(new.active)([type(s)(s[0]-2, s[0]+2) for
                                       s in new.active])
             go_deep = len(new.active) > 0
         else:
-            new = overflow.find_overflows(data)
+            new = daq.find_overflows(data)
             osegs = SegmentList([Segment(t-2, t+2) for t in new])
             go_deep = new.size != 0
         gprint("%d overflows found" % len(osegs))
@@ -202,7 +202,7 @@ for dcuid in args.dcuid:
             except KeyError:
                 overflows[channel] = new
         elif not args.deep:
-            overflows.extend(table_from_times(new, channel))
+            daq.extend(table_from_times(new, channel))
     gprint("    Complete")
 
 # get segments
