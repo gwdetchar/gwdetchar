@@ -124,10 +124,14 @@ else:
     darmblrms = darmts.notch(60).crop(dstart, dend).rms(stride)
     darmblrms.name = '%s RMS' % primary
 
-# calculate the r^2 value between the DARM BLRMS and the Range timeseries
-corr0 = numpy.corrcoef(rangets.value, darmblrms.value)[0, 1]**2
-# calculate the ρ^2 value between the DARM BLRMS and the Range timeseries
-corr3 = spearmanr(rangets.value, darmblrms.value)[0]**2
+if args.trend_type == 'minute':
+    # calculate the r^2 value between the DARM BLRMS and the Range timeseries
+    corr0 = numpy.corrcoef(rangets.value, darmblrms.value)[0, 1]**2
+    # calculate the ρ^2 value between the DARM BLRMS and the Range timeseries
+    corr3 = spearmanr(rangets.value, darmblrms.value)[0]**2
+else:
+    corr0 = 0
+    corr3 = 0
 
 # create scaled versions of data to compare to each other
 print("-- Creating scaled data")
@@ -137,7 +141,8 @@ darmscaled = darmblrms.detrend()
 darmrms = numpy.sqrt(sum(darmscaled**2.0)/len(darmscaled))
 
 #create scaled darm using the rms(range) and the rms(darm)
-darmscaled *= (-rangerms / darmrms)
+if args.trend_type == 'minute':
+    darmscaled *= (-rangerms / darmrms)
 
 # get aux data
 print("-- Loading auxiliary channel data")
@@ -208,9 +213,14 @@ def process_channel(input_):
         # plot auto-scaled verions
         tsscaled = ts.detrend()
         tsrms = numpy.sqrt(sum(tsscaled**2.0)/len(tsscaled))
-        tsscaled *= (rangerms / tsrms)
-        if corr1 > 0:
-            tsscaled *= -1
+        if args.trend_type == 'minute':
+            tsscaled *= (rangerms / tsrms)
+            if corr1 > 0:
+                tsscaled *= -1
+        else:
+            tsscaled *= (darmrms / tsrms)
+            if corr1 < 0:
+                tsscaled *= -1
         plot = TimeSeriesPlot(darmscaled, rangescaled, tsscaled,
                               figsize=[12, 6])
         plot.subplots_adjust(*p2)
