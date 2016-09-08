@@ -130,10 +130,7 @@ if args.trend_type == 'minute':
     # calculate the ρ^2 value between the DARM BLRMS and the Range timeseries
     corr3 = spearmanr(rangets.value, darmblrms.value)[0]**2
 else:
-<<<<<<< HEAD
     # for second trends, set correlation to 0 since sample rates differ
-=======
->>>>>>> 863f62c084d0feb8a1f10d7956e1b13a1494e595
     corr0 = 0
     corr3 = 0
 
