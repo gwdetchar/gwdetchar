@@ -130,6 +130,7 @@ if args.trend_type == 'minute':
     # calculate the ρ^2 value between the DARM BLRMS and the Range timeseries
     corr3 = spearmanr(rangets.value, darmblrms.value)[0]**2
 else:
+    # for second trends, set correlation to 0 since sample rates differ
     corr0 = 0
     corr3 = 0
 
@@ -227,7 +228,7 @@ def process_channel(input_):
         ax = plot.gca()
         ax.set_xlim(start, end)
         ax.set_epoch(start)
-        ax.set_ylabel('Scaled amplitude [arbitrary units')
+        ax.set_ylabel('Scaled amplitude [arbitrary units]')
         ax.legend(loc='best')
         plot2 = '%s_COMPARISON-%s.png' % (channelstub, gpsstub)
         try:
@@ -248,7 +249,7 @@ def process_channel(input_):
 
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, auxdata.iteritems())
-results.sort(key=lambda x: (x[1] is not None and x[1] + x[2] or 0, x[0]),
+results.sort(key=lambda x: (x[1] is not None and max(x[1],x[2],x[5],x[6]) or 0, x[0]),
              reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
 
