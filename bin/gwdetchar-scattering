@@ -37,7 +37,6 @@ from gwpy.plotter import (figure, rcParams, HistogramPlot)
 from gwpy.utils.compat import OrderedDict
 from gwpy.utils import gprint
 from gwpy.table.lsctables import New as new_table, SnglBurstTable
-from gwpy.table.io import trigfind
 from gwpy.timeseries import TimeSeriesDict
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
@@ -150,8 +149,8 @@ else:
                       columns=['peak_time', 'peak_time_ns',
                                'peak_frequency', 'snr'])
 for seg in statea:
-    cache = trigfind.find_trigger_urls(args.main_channel, 'omicron',
-                                       seg[0], seg[1])
+    cache = trigfind.find_trigger_files(args.main_channel, 'omicron',
+                                        seg[0], seg[1])
     if len(cache) == 0:
         warnings.warn("No Omicron triggers found for %s in segment [%d .. %d)"
                       % (args.main_channel, seg[0], seg[1]))
