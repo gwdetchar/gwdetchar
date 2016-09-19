@@ -33,6 +33,8 @@ import numpy
 from matplotlib import use
 use('agg')
 
+import trigfind
+
 from gwpy.plotter import (figure, rcParams, HistogramPlot)
 from gwpy.utils.compat import OrderedDict
 from gwpy.utils import gprint
