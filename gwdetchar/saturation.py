@@ -67,7 +67,7 @@ def find_saturations(timeseries, limit=2**16, precision=1, segments=False):
     saturated |= timeseries.value >= limit
     if segments:
         saturation = saturated.view(StateTimeSeries)
-        saturation.__dict__ = timeseries.copy_metadata()
+        saturation.__metadata_finalize__(timeseries)
         return saturation.to_dqflag()
     else:
         return timeseries.times[1:][numpy.diff(saturated.astype(int)) > 0]
