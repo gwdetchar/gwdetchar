@@ -32,6 +32,8 @@ from .utils import natural_sort
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
+_CHANNELS = {}
+
 
 def find_overflows(timeseries, cumulative=True):
     """Find the times of overflows from an overflow counter
@@ -128,7 +130,11 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
         e.args = ('No %s-%s frames found at GPS %d'
                   % (ifo[0], frametype, gpstime),)
         raise
-    allchannels = get_channels(framefile)
+    try:
+        allchannels = _CHANNELS[framefile]
+    except KeyError:
+        _CHANNELS[framefile] = get_channels(framefile)
+        allchannels = _CHANNELS[framefile]
     if accum:
         regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_ACC_\d+_\d+\Z'
                            % (ifo, dcuid))
