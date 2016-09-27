@@ -36,7 +36,7 @@ from getpass import getuser
 
 from glue import pipeline
 
-from gwdetchar import omega
+from gwdetchar import (omega, cli)
 
 # attempt to get WDQ path
 WDQ = os.path.join(os.path.dirname(__file__), 'wdq')
@@ -54,6 +54,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('gps-time', nargs='+',
                     help='GPS time(s) to scan, or path to a file '
                          'containing a single column of such times')
+cli.add_ifo_option(parser)
 parser.add_argument('-o', '--output-dir', default=os.getcwd(),
                     help='output directory for all scans')
 
@@ -131,6 +132,7 @@ if args.universe != 'local':
 # add common wdq options
 job.add_opt('wpipeline', args.wpipeline)
 job.add_opt('colormap', args.colormap)
+job.add_opt('ifo', args.ifo)
 job.add_opt('condor', '')
 if args.config_file is not None:
     job.add_opt('config-file', args.config_file)
