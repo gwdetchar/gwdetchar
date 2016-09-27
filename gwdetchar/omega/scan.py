@@ -29,14 +29,13 @@ import signal
 
 from gwpy.detector import (Channel, ChannelList)
 
-__author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+from . import WPIPELINE
 
-OMEGA_LOCATION = os.getenv('OMEGA_LOCATION', None)
-WPIPELINE = OMEGA_LOCATION and os.path.join(OMEGA_LOCATION, 'bin', 'wpipeline')
+__author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 # -- utilities ----------------------------------------------------------------
 
-def get_omega_version(executable='/home/omega/opt/omega/bin/wpipeline'):
+def get_omega_version(executable=WPIPELINE):
     """Determine the omega version from the executable
 
     >>> get_omega_version()
