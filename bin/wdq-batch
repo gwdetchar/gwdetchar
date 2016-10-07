@@ -77,7 +77,7 @@ cargs = parser.add_argument_group('Condor options')
 cargs.add_argument('-u', '--universe', default='vanilla', type=str,
                    help='universe for condor processing')
 cargs.add_argument('--condor-accounting-group',
-                   default='ligo.dev.o1.detchar.user_req.omegascan',
+                   default='ligo.dev.o2.detchar.user_req.omegascan',
                    help='accounting_group for condor submission on the LIGO '
                         'Data Grid')
 cargs.add_argument('--condor-accounting-group-user', default=getuser(),
