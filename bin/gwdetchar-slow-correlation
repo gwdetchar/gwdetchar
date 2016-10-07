@@ -177,6 +177,7 @@ p2 = (.1, .15, .9, .9)
 def process_channel(input_):
     chan, ts = input_
     flat = ts.value.min() == ts.value.max()
+    threshold = 0.1
     if flat:
         corr1 = None
         corr2 = None
@@ -193,23 +194,27 @@ def process_channel(input_):
         else:
             corr2 = 0.0
             corr2s = 0.0
-        plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
-                              figsize=(12, 12))
-        plot.subplots_adjust(*p1)
-        plot.axes[0].set_ylabel('$h(t)$ BLRMS [strain]')
-        plot.axes[1].set_ylabel('Channel units')
-        plot.axes[2].set_ylabel('Sensitive range [Mpc]')
-        for ax in plot.axes:
-            ax.legend(loc='best')
-            ax.set_xlim(start, end)
-            ax.set_epoch(start)
-        channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
-        plot1 = '%s_TRENDS-%s.png' % (channelstub, gpsstub)
-        try:
-            plot.save(plot1)
-        except (IOError, IndexError):
-            plot.save(plot1)
-        plot.close()
+        if(corr1< threshold) and (corr1s< threshold) and (corr2< threshold) and (corr2s < threshold):
+            plot1 = None
+            plot2 = None
+        else:
+            plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
+                                  figsize=(12, 12))
+            plot.subplots_adjust(*p1)
+            plot.axes[0].set_ylabel('$h(t)$ BLRMS [strain]')
+            plot.axes[1].set_ylabel('Channel units')
+            plot.axes[2].set_ylabel('Sensitive range [Mpc]')
+            for ax in plot.axes:
+                ax.legend(loc='best')
+                ax.set_xlim(start, end)
+                ax.set_epoch(start)
+            channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
+            plot1 = '%s_TRENDS-%s.png' % (channelstub, gpsstub)
+            try:
+                plot.save(plot1)
+            except (IOError, IndexError):
+                plot.save(plot1)
+            plot.close()
 
         # plot auto-scaled verions
         tsscaled = ts.detrend()
@@ -342,6 +347,8 @@ for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     page.div(class_='panel-body')
     if corr1 is None:
         page.p("This vector is flat")
+    elif (plot1 is None):
+        page.p("This corrolation is too low")
     else:
         for p in (plot1, plot2):
             page.a(href=p, target='_blank')
