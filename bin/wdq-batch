@@ -43,6 +43,12 @@ WDQ = os.path.join(os.path.dirname(__file__), 'wdq')
 if not os.path.isfile(WDQ):
     WDQ = None
 
+# set default accounting information
+CONDOR_ACCOUNTING_GROUP = os.getenv(
+    '_CONDOR_ACCOUNTING_GROUP', 'ligo.dev.o2.detchar.user_req.omegascan')
+CONDOR_ACCOUNTING_USER = os.getenv(
+    '_CONDOR_ACCOUNTING_USER', getuser())
+
 
 # -- parse command line -------------------------------------------------------
 
@@ -77,10 +83,11 @@ cargs = parser.add_argument_group('Condor options')
 cargs.add_argument('-u', '--universe', default='vanilla', type=str,
                    help='universe for condor processing')
 cargs.add_argument('--condor-accounting-group',
-                   default='ligo.dev.o2.detchar.user_req.omegascan',
+                   default=CONDOR_ACCOUNTING_GROUP,
                    help='accounting_group for condor submission on the LIGO '
                         'Data Grid')
-cargs.add_argument('--condor-accounting-group-user', default=getuser(),
+cargs.add_argument('--condor-accounting-group-user',
+                   default=CONDOR_ACCOUNTING_USER,
                    help='accounting_group_user for condor submission on the '
                         'LIGO Data Grid')
 
