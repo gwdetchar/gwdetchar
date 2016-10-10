@@ -195,10 +195,10 @@ def run(gpstime, config, cachefile, outdir='.', report=True,
             cmd.extend(('--colormap', colormap))
 
     # set up handling of SIGTERM (from condor eviction)
+    lockf = os.path.join(outdir, 'lock.txt')
     if remove_lock_on_term:
         if verbose:
-            print("Installing signal handler for condor eviction")
-        lockf = os.path.join(outdir, 'lock.txt')
+            print("Installing signal handler for condor removal")
         def _term_handler(signal, frame):
             """Handle SIGTERM from condor gracefully
             """
@@ -216,6 +216,11 @@ def run(gpstime, config, cachefile, outdir='.', report=True,
     proc = subprocess.Popen(cmd, stdout=verbose and subprocess.PIPE or None)
     proc.communicate()
     if proc.returncode:
+        if remove_lock_on_term:
+            try:
+                os.remove(lockf)
+            except IOError:
+                pass
         raise subprocess.CalledProcessError(proc.returncode, ' '.join(cmd))
     if verbose:
         print('Omega scan complete')
