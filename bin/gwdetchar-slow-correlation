@@ -125,15 +125,15 @@ else:
     darmblrms.name = '%s RMS' % primary
 
 if args.trend_type == 'minute':
-    # calculate the r^2 value between the DARM BLRMS and the Range timeseries
-    corr0 = numpy.corrcoef(rangets.value, darmblrms.value)[0, 1]**2
-    # calculate the ρ^2 value between the DARM BLRMS and the Range timeseries
-    corr3 = spearmanr(rangets.value, darmblrms.value)[0]**2
+    # calculate the r value between the DARM BLRMS and the Range timeseries
+    corr_p = numpy.corrcoef(rangets.value, darmblrms.value)[0, 1]
+    # calculate the ρ value between the DARM BLRMS and the Range timeseries
+    corr_s = spearmanr(rangets.value, darmblrms.value)[0]
 else:
     # for second trends, set correlation to 0 since sample rates differ
-    corr0 = 0
-    corr3 = 0
-
+    corr_p = 0
+    corr_s = 0
+    
 # create scaled versions of data to compare to each other
 print("-- Creating scaled data")
 rangescaled = rangets.detrend()
@@ -186,10 +186,10 @@ def process_channel(input_):
         plot2 = None
     else:
         corr1 = numpy.corrcoef(ts.value, darmblrms.value)[0, 1]
-        corr1s = spearmanr(ts.value, darmblrms.value)[0]**2
+        corr1s = spearmanr(ts.value, darmblrms.value)[0]
         if args.trend_type == 'minute':
-            corr2 = numpy.corrcoef(ts.value, rangets.value)[0, 1] ** 2
-            corr2s = spearmanr(ts.value, rangets.value)[0]**2
+            corr2 = numpy.corrcoef(ts.value, rangets.value)[0, 1]
+            corr2s = spearmanr(ts.value, rangets.value)[0]
         else:
             corr2 = 0.0
             corr2s = 0.0
@@ -236,7 +236,6 @@ def process_channel(input_):
         except (IOError, IndexError):
             plot.save(plot2)
         plot.close()
-        corr1 **= 2.
 
     # increment counter and print status
     with counter.get_lock():
@@ -249,8 +248,8 @@ def process_channel(input_):
 
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, auxdata.iteritems())
-results.sort(key=lambda x: (x[1] is not None and max(x[1],x[2],x[5],x[6]) or 0, x[0]),
-             reverse=True)
+results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
+             abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
 
 print("")
@@ -279,12 +278,12 @@ page.div.close()
 
 # results
 page.h2('Results')
-rsq_blrms = "<i>r<sub>blrms</sub> <sup>2</sup></i>"
-rsq_range = "<i>r<sub>range</sub> <sup>2</sup></i>"
-rsq = "<i>r<sup>2</sup></i>"
-rho_blrms = "<i>&rho;<sub>blrms</sub> <sup>2</sup></i>"
-rho_range = "<i>&rho;<sub>range</sub> <sup>2</sup></i>"
-rho = "<i>&rho;<sup>2</sup></i>"
+r_blrms = "<i>r<sub>blrms</sub> </i>"
+r_range = "<i>r<sub>range</sub> </i>"
+r = "<i>r</i>"
+rho_blrms = "<i>&rho;<sub>blrms</sub> </i>"
+rho_range = "<i>&rho;<sub>range</sub> </i>"
+rho = "<i>&rho;</i>"
 Pearson_wikilink = html.markup.oneliner.a(
     "Pearson's correlation coefficient",
     href="https://en.wikipedia.org/wiki/"
@@ -307,22 +306,22 @@ scipylink = html.markup.oneliner.a(
     rel="external")
 page.p("In the results below, all %s values are calculated as the square of %s using %s"
 "and all %s values are calculated as the square of %s using %s."
-       % (rsq, Pearson_wikilink, numpylink, rho, Spearman_wikilink, scipylink))
+       % (r, Pearson_wikilink, numpylink, rho, Spearman_wikilink, scipylink))
 if args.trend_type == 'minute':
     page.p("%s and %s are reported for <code>%s</code>. %s and %s are reported for"
     "<code>%s</code>. The %s between these two channels is %.2f."
     "The %s between these two channels is %.2f."
-        % (rsq_blrms, rho_blrms, primary, rsq_range, rho_range, rangechannel, rsq, corr0, rho, corr3))
+        % (r_blrms, rho_blrms, primary, r_range, rho_range, rangechannel, r, corr_p, rho, corr_s))
     
 page.div(class_='panel-group', id_='results')
 for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     if corr1 is None:
         h = '%s [flat]' % ch
     elif args.trend_type == 'minute':
-        h = '%s [%s = %.2f, %s = %.2f] [%s = %.2f, %s = %.2f]' % (ch, rsq_blrms, corr1,
-        rsq_range, corr2, rho_blrms, corr1s, rho_range, corr2s)
+        h = '%s [%s = %.2f, %s = %.2f] [%s = %.2f, %s = %.2f]' % (ch, r_blrms, corr1,
+        r_range, corr2, rho_blrms, corr1s, rho_range, corr2s)
     else:
-        h = '%s [%s = %.2f]' % (ch, rsq_blrms, corr1)
+        h = '%s [%s = %.2f]' % (ch, r_blrms, corr1)
     if corr1 is None or corr1 == 0:
         context = ''
     elif corr1 + corr2 >= .8:
