@@ -110,8 +110,14 @@ span = Segment(args.gpsstart, args.gpsend)
 # get segments
 if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
-                                 args.gpsend.seconds,
-                                 url=const.O1_SEGMENT_SERVER)
+                                  args.gpsend.seconds,
+                                  url=const.O1_SEGMENT_SERVER)
+    tmp = type(state.active)()
+    for i, seg in enumerate(state.active):
+        if abs(seg) < args.segment_end_pad:
+            continue
+        tmp.append(type(seg)(seg[0], seg[1]-args.segment_end_pad))
+    state.active = tmp.coalesce()
     statea = state.active
 else:
     statea = SegmentList([span])
@@ -166,11 +172,9 @@ for dcuid in args.dcuid:
         gprint("    %d channels found" % len(channel))
     for seg in cachesegs:
         c = cache.sieve(segment=seg)
-        if (seg[1]-args.segment_end_pad) < seg[0]:
-            continue
         gprint("    Reading ACCUM_OVERFLOW data for %d-%d..." % seg, end=' ')
         data = TimeSeries.read(c, channel, nproc=args.nproc,
-                               start=seg[0], end=seg[1]-args.segment_end_pad)
+                               start=seg[0], end=seg[1])
         if use_segments:
             new = daq.find_overflow_segments(data)
             osegs = type(new.active)([type(s)(s[0]-2, s[0]+2) for

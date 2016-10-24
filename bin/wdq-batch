@@ -36,12 +36,18 @@ from getpass import getuser
 
 from glue import pipeline
 
-from gwdetchar import omega
+from gwdetchar import (omega, cli)
 
 # attempt to get WDQ path
 WDQ = os.path.join(os.path.dirname(__file__), 'wdq')
 if not os.path.isfile(WDQ):
     WDQ = None
+
+# set default accounting information
+CONDOR_ACCOUNTING_GROUP = os.getenv(
+    '_CONDOR_ACCOUNTING_GROUP', 'ligo.dev.o2.detchar.user_req.omegascan')
+CONDOR_ACCOUNTING_USER = os.getenv(
+    '_CONDOR_ACCOUNTING_USER', getuser())
 
 
 # -- parse command line -------------------------------------------------------
@@ -54,6 +60,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('gps-time', nargs='+',
                     help='GPS time(s) to scan, or path to a file '
                          'containing a single column of such times')
+cli.add_ifo_option(parser)
 parser.add_argument('-o', '--output-dir', default=os.getcwd(),
                     help='output directory for all scans')
 
@@ -76,10 +83,11 @@ cargs = parser.add_argument_group('Condor options')
 cargs.add_argument('-u', '--universe', default='vanilla', type=str,
                    help='universe for condor processing')
 cargs.add_argument('--condor-accounting-group',
-                   default='ligo.dev.o1.detchar.user_req.omegascan',
+                   default=CONDOR_ACCOUNTING_GROUP,
                    help='accounting_group for condor submission on the LIGO '
                         'Data Grid')
-cargs.add_argument('--condor-accounting-group-user', default=getuser(),
+cargs.add_argument('--condor-accounting-group-user',
+                   default=CONDOR_ACCOUNTING_USER,
                    help='accounting_group_user for condor submission on the '
                         'LIGO Data Grid')
 
@@ -131,6 +139,7 @@ if args.universe != 'local':
 # add common wdq options
 job.add_opt('wpipeline', args.wpipeline)
 job.add_opt('colormap', args.colormap)
+job.add_opt('ifo', args.ifo)
 job.add_opt('condor', '')
 if args.config_file is not None:
     job.add_opt('config-file', args.config_file)

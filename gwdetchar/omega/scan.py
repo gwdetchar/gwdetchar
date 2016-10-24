@@ -29,14 +29,13 @@ import signal
 
 from gwpy.detector import (Channel, ChannelList)
 
-__author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+from . import WPIPELINE
 
-OMEGA_LOCATION = os.getenv('OMEGA_LOCATION', None)
-WPIPELINE = OMEGA_LOCATION and os.path.join(OMEGA_LOCATION, 'bin', 'wpipeline')
+__author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 # -- utilities ----------------------------------------------------------------
 
-def get_omega_version(executable='/home/omega/opt/omega/bin/wpipeline'):
+def get_omega_version(executable=WPIPELINE):
     """Determine the omega version from the executable
 
     >>> get_omega_version()
@@ -196,10 +195,10 @@ def run(gpstime, config, cachefile, outdir='.', report=True,
             cmd.extend(('--colormap', colormap))
 
     # set up handling of SIGTERM (from condor eviction)
+    lockf = os.path.join(outdir, 'lock.txt')
     if remove_lock_on_term:
         if verbose:
-            print("Installing signal handler for condor eviction")
-        lockf = os.path.join(outdir, 'lock.txt')
+            print("Installing signal handler for condor removal")
         def _term_handler(signal, frame):
             """Handle SIGTERM from condor gracefully
             """
@@ -217,6 +216,11 @@ def run(gpstime, config, cachefile, outdir='.', report=True,
     proc = subprocess.Popen(cmd, stdout=verbose and subprocess.PIPE or None)
     proc.communicate()
     if proc.returncode:
+        if remove_lock_on_term:
+            try:
+                os.remove(lockf)
+            except IOError:
+                pass
         raise subprocess.CalledProcessError(proc.returncode, ' '.join(cmd))
     if verbose:
         print('Omega scan complete')
