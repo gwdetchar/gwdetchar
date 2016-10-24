@@ -194,7 +194,7 @@ def process_channel(input_):
         else:
             corr2 = 0.0
             corr2s = 0.0
-        if(corr1< threshold) and (corr1s< threshold) and (corr2< threshold) and (corr2s < threshold):
+        if(corr1**2 < threshold) and (corr1s**2 < threshold) and (corr2**2 < threshold) and (corr2s**2 < threshold):
             plot1 = None
             plot2 = None
         else:
