@@ -177,7 +177,7 @@ p2 = (.1, .15, .9, .9)
 def process_channel(input_):
     chan, ts = input_
     flat = ts.value.min() == ts.value.max()
-    threshold = 0.1
+    threshold = (0.64)**2
     if flat:
         corr1 = None
         corr2 = None
