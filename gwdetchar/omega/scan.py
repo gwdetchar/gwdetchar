@@ -219,7 +219,7 @@ def run(gpstime, config, cachefile, outdir='.', report=True,
         if remove_lock_on_term:
             try:
                 os.remove(lockf)
-            except IOError:
+            except OSError:
                 pass
         raise subprocess.CalledProcessError(proc.returncode, ' '.join(cmd))
     if verbose:
