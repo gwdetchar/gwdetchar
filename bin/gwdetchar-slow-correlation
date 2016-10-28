@@ -195,9 +195,9 @@ def process_channel(input_):
             corr2 = 0.0
             corr2s = 0.0
         if(corr1**2 < threshold) and (corr1s**2 < threshold) and (corr2**2 < threshold) and (corr2s**2 < threshold):
-            plot1 = None
-            plot2 = None
+            meetThresh = 0
         else:
+            meetThresh = 1
             plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
                                   figsize=(12, 12))
             plot.subplots_adjust(*p1)
@@ -346,8 +346,8 @@ for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     page.div(class_='panel-body')
     if corr1 is None:
         page.p("This vector is flat")
-    elif (plot1 is None):
-        page.p("This corrolation is too low")
+    elif meetThresh = 0:
+        page.p("does not meet threshold")
     else:
         for p in (plot1, plot2):
             page.a(href=p, target='_blank')
