@@ -175,6 +175,7 @@ p1 = (.1, .1, .9, .95)
 p2 = (.1, .15, .9, .9)
 
 def process_channel(input_):
+    meetThresh = 0
     chan, ts = input_
     flat = ts.value.min() == ts.value.max()
     threshold = 0.1
@@ -196,8 +197,6 @@ def process_channel(input_):
             corr2s = 0.0
         if(((corr1**2 < threshold) and (corr1s**2 < threshold)) or ((corr2**2 < threshold) and (corr2s**2 < threshold))):
             meetThresh = 0
-        else:
-            meetThresh = 1
         plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
                                   figsize=(12, 12))
         plot.subplots_adjust(*p1)
