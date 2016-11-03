@@ -198,23 +198,23 @@ def process_channel(input_):
             meetThresh = 0
         else:
             meetThresh = 1
-            plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
+        plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
                                   figsize=(12, 12))
-            plot.subplots_adjust(*p1)
-            plot.axes[0].set_ylabel('$h(t)$ BLRMS [strain]')
-            plot.axes[1].set_ylabel('Channel units')
-            plot.axes[2].set_ylabel('Sensitive range [Mpc]')
-            for ax in plot.axes:
-                ax.legend(loc='best')
-                ax.set_xlim(start, end)
-                ax.set_epoch(start)
-            channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
-            plot1 = '%s_TRENDS-%s.png' % (channelstub, gpsstub)
-            try:
-                plot.save(plot1)
-            except (IOError, IndexError):
-                plot.save(plot1)
-            plot.close()
+        plot.subplots_adjust(*p1)
+        plot.axes[0].set_ylabel('$h(t)$ BLRMS [strain]')
+        plot.axes[1].set_ylabel('Channel units')
+        plot.axes[2].set_ylabel('Sensitive range [Mpc]')
+        for ax in plot.axes:
+            ax.legend(loc='best')
+            ax.set_xlim(start, end)
+            ax.set_epoch(start)
+        channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
+        plot1 = '%s_TRENDS-%s.png' % (channelstub, gpsstub)
+        try:
+            plot.save(plot1)
+        except (IOError, IndexError):
+            plot.save(plot1)
+        plot.close()
 
         # plot auto-scaled verions
         tsscaled = ts.detrend()
