@@ -348,7 +348,7 @@ for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     page.div(class_='panel-body')
     if corr1 is None:
         page.p("This vector is flat")
-    elif meetThresh = 0:
+    elif meetThresh == 0:
         page.p("does not meet threshold")
     else:
         for p in (plot1, plot2):
