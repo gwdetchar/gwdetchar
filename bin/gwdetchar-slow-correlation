@@ -196,7 +196,9 @@ def process_channel(input_):
             corr2 = 0.0
             corr2s = 0.0
         if(((corr1**2 < threshold) and (corr1s**2 < threshold)) or ((corr2**2 < threshold) and (corr2s**2 < threshold))):
-            meetThresh = 0
+            plot1 = None
+            plot2 = None
+            return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
         plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
                                   figsize=(12, 12))
         plot.subplots_adjust(*p1)
@@ -256,11 +258,11 @@ results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
              abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
 
-threshold = 0.1
-if(((corr1**2 < threshold) and (corr1s**2 < threshold)) or ((corr2**2 < threshold) and (corr2s**2 < threshold))):
-    meetThresh = 0
-else:
-    meetThresh = 1
+# threshold = 0.1
+# if(((corr1**2 < threshold) and (corr1s**2 < threshold)) or ((corr2**2 < threshold) and (corr2s**2 < threshold))):
+#     meetThresh = 0
+# else:
+#     meetThresh = 1
 
 print("")
 
@@ -327,7 +329,7 @@ page.div(class_='panel-group', id_='results')
 for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     if corr1 is None:
         h = '%s [flat]' % ch
-    elif meetThresh == 0:
+    elif plot1 is None:
         h = '%s [below threshold]' % ch
     elif args.trend_type == 'minute':
         h = '%s [%s = %.2f, %s = %.2f] [%s = %.2f, %s = %.2f]' % (ch, r_blrms, corr1,
