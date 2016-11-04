@@ -195,7 +195,8 @@ def process_channel(input_):
         else:
             corr2 = 0.0
             corr2s = 0.0
-        if(((corr1**2 < threshold) and (corr1s**2 < threshold)) or ((corr2**2 < threshold) and (corr2s**2 < threshold))):
+        if((numpy.absolute(corr1) < threshold) and (numpy.absolute(corr1s) < threshold) 
+                and (numpy.absolute(corr2) < threshold) and (numpy.absolute(corr2s) < threshold)):
             plot1 = None
             plot2 = None
             return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
@@ -257,12 +258,6 @@ results = pool.map(process_channel, auxdata.iteritems())
 results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
              abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
-
-# threshold = 0.1
-# if(((corr1**2 < threshold) and (corr1s**2 < threshold)) or ((corr2**2 < threshold) and (corr2s**2 < threshold))):
-#     meetThresh = 0
-# else:
-#     meetThresh = 1
 
 print("")
 
@@ -330,7 +325,7 @@ for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     if corr1 is None:
         h = '%s [flat]' % ch
     elif plot1 is None:
-        h = '%s [below threshold]' % ch
+        h = '%s [%s = %.2f][below threshold]' % (ch, r_blrms, corr1)
     elif args.trend_type == 'minute':
         h = '%s [%s = %.2f, %s = %.2f] [%s = %.2f, %s = %.2f]' % (ch, r_blrms, corr1,
         r_range, corr2, rho_blrms, corr1s, rho_range, corr2s)
