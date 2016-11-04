@@ -248,7 +248,7 @@ def process_channel(input_):
         print("Completed [%d/%d] %3d%% %-50s"
               % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
         sys.stdout.flush()
-    return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
+    return chan, corr1, corr2, plot1, plot2, corr1s, corr2s, meetThresh
 
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, auxdata.iteritems())
