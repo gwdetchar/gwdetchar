@@ -175,7 +175,7 @@ p1 = (.1, .1, .9, .95)
 p2 = (.1, .15, .9, .9)
 
 def process_channel(input_):
-    meetThresh = 0
+    meetThresh = 1
     chan, ts = input_
     flat = ts.value.min() == ts.value.max()
     threshold = 0.1
@@ -248,13 +248,19 @@ def process_channel(input_):
         print("Completed [%d/%d] %3d%% %-50s"
               % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
         sys.stdout.flush()
-    return chan, corr1, corr2, plot1, plot2, corr1s, corr2s, meetThresh
+    return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
 
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, auxdata.iteritems())
 results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
              abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
+
+threshold = 0.1
+if(((corr1**2 < threshold) and (corr1s**2 < threshold)) or ((corr2**2 < threshold) and (corr2s**2 < threshold))):
+    meetThresh = 0
+else:
+    meetThresh = 1
 
 print("")
 
