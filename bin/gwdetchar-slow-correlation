@@ -176,8 +176,8 @@ p2 = (.1, .15, .9, .9)
 
 threshold = 0.1
 
-def process_channel(chan, ts, threshold):#input_):
-#    chan, ts, threshold = input_
+def process_channel(input_):
+    chan, ts = input_
     flat = ts.value.min() == ts.value.max()
     if flat:
         corr1 = None
@@ -195,8 +195,8 @@ def process_channel(chan, ts, threshold):#input_):
         else:
             corr2 = 0.0
             corr2s = 0.0
-        if((numpy.absolute(corr1) < threshold) and (numpy.absolute(corr1s) < threshold) 
-                and (numpy.absolute(corr2) < threshold) and (numpy.absolute(corr2s) < threshold)):
+        if((numpy.absolute(corr1) < *threshold) and (numpy.absolute(corr1s) < *threshold) 
+                and (numpy.absolute(corr2) < *threshold) and (numpy.absolute(corr2s) < *threshold)):
             plot1 = None
             plot2 = None
             return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
@@ -254,7 +254,7 @@ def process_channel(chan, ts, threshold):#input_):
     return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
 
 pool = multiprocessing.Pool(nprocplot)
-results = pool.map(process_channel(chan, ts, threshold), auxdata.iteritems())
+results = pool.map(process_channel, auxdata.iteritems())
 results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
              abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
