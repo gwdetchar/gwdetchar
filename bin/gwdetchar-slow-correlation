@@ -195,8 +195,8 @@ def process_channel(input_):
         else:
             corr2 = 0.0
             corr2s = 0.0
-        if((numpy.absolute(corr1) < *threshold) and (numpy.absolute(corr1s) < *threshold) 
-                and (numpy.absolute(corr2) < *threshold) and (numpy.absolute(corr2s) < *threshold)):
+        if((numpy.absolute(corr1) < threshold) and (numpy.absolute(corr1s) < threshold) 
+                and (numpy.absolute(corr2) < threshold) and (numpy.absolute(corr2s) < threshold)):
             plot1 = None
             plot2 = None
             return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
@@ -254,7 +254,7 @@ def process_channel(input_):
     return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
 
 pool = multiprocessing.Pool(nprocplot)
-results = pool.map(process_channel, auxdata.iteritems())
+results = pool.map(process_channel, auxdata.iteritems(),threshold)
 results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
              abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
@@ -352,7 +352,7 @@ for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     if corr1 is None:
         page.p("The amplitude data for this channel is flat (does not change) for the chosen time period.")
     elif plot1 is None:
-        page.p("Niether r or rho are above the threshold of %.2f." (threshold))
+        page.p("Niether r or rho are above the threshold of %.2f." %(threshold))
     else:
         for p in (plot1, plot2):
             page.a(href=p, target='_blank')
