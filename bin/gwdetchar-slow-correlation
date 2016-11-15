@@ -176,7 +176,7 @@ p2 = (.1, .15, .9, .9)
 
 threshold = 0.1
 
-def process_channel(input_):
+def process_channel(input_,threshold):
     chan, ts = input_
     flat = ts.value.min() == ts.value.max()
     if flat:
@@ -255,7 +255,7 @@ def process_channel(input_):
 
 print("moo")
 pool = multiprocessing.Pool(nprocplot)
-results = pool.map(process_channel, auxdata.iteritems(),threshold)
+results = pool.map(process_channel(auxdata.iteritems(),threshold), auxdata.iteritems())
 results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
              abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
