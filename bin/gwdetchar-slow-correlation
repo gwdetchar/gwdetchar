@@ -254,13 +254,12 @@ def process_channel(input_):
         sys.stdout.flush()
     return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
 
-print("moo")
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, auxdata.iteritems())
 results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
              abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
-print("moo")
+
 print("")
 
 with open('results.txt', 'w') as f:
@@ -334,7 +333,7 @@ for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
         r_range, corr2, rho_blrms, corr1s, rho_range, corr2s)
     else:
         h = '%s [%s = %.2f]' % (ch, r_blrms, corr1)
-    if corr1 is None or corr1 == 0:
+    if (corr1 is None) or (corr1 == 0) or (plot1 is None):
         context = ''
     elif (numpy.absolute(corr1) >= .6) or (numpy.absolute(corr2) >= .6):
         context = 'panel-danger'
