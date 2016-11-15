@@ -334,9 +334,9 @@ for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
         h = '%s [%s = %.2f]' % (ch, r_blrms, corr1)
     if corr1 is None or corr1 == 0:
         context = ''
-    elif corr1 + corr2 >= .8:
+    elif numpy.absolute(corr1) + numpy.absolute(corr2) >= .8:
         context = 'panel-danger'
-    elif corr1 + corr2 >= .6:
+    elif numpy.absolute(corr1) + numpy.absolute(corr2) >= .6:
         context = 'panel-warning'
     else:
         context = 'panel-info'
