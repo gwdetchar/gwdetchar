@@ -27,6 +27,8 @@ import sys
 import numpy
 from scipy.stats import spearmanr
 
+from functools import partial
+
 from matplotlib import use
 use('agg')
 
@@ -176,8 +178,8 @@ p2 = (.1, .15, .9, .9)
 
 threshold = 0.1
 
-def process_channel(input_):
-    threshold = 0.1
+def process_channel(input_, thresh):
+    threshold = thresh
     chan, ts = input_
     flat = ts.value.min() == ts.value.max()
     if flat:
@@ -255,7 +257,7 @@ def process_channel(input_):
     return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
 
 pool = multiprocessing.Pool(nprocplot)
-results = pool.map(process_channel, auxdata.iteritems())
+results = pool.map(partial(process_channel, thresh=threshold), auxdata.iteritems())
 results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
              abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
