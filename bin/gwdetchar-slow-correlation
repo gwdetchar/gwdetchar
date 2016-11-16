@@ -179,7 +179,6 @@ p2 = (.1, .15, .9, .9)
 threshold = 0.1
 
 def process_channel(input_, thresh):
-    threshold = thresh
     chan, ts = input_
     flat = ts.value.min() == ts.value.max()
     if flat:
@@ -198,8 +197,8 @@ def process_channel(input_, thresh):
         else:
             corr2 = 0.0
             corr2s = 0.0
-        if((numpy.absolute(corr1) < threshold) and (numpy.absolute(corr1s) < threshold) 
-                and (numpy.absolute(corr2) < threshold) and (numpy.absolute(corr2s) < threshold)):
+        if((numpy.absolute(corr1) < thresh) and (numpy.absolute(corr1s) < thresh) 
+                and (numpy.absolute(corr2) < thresh) and (numpy.absolute(corr2s) < thresh)):
             plot1 = None
             plot2 = None
             return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
