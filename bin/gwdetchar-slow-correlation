@@ -202,7 +202,7 @@ def process_channel(input_,):
             plot2 = None
             return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
         plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
-                                  figsize=(12, 12))
+                              figsize=(12, 12))
         plot.subplots_adjust(*p1)
         plot.axes[0].set_ylabel('$h(t)$ BLRMS [strain]')
         plot.axes[1].set_ylabel('Channel units')
