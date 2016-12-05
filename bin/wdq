@@ -91,7 +91,9 @@ if args.config_file is None:
             break
     if epoch is None:
         epoch = epochs[-1]
-    print("Identified epoch as %r" % epoch)
+        print("GPS time not identified in any epoch, defaulting to %r" % epoch)
+    else:
+        print("Identified epoch as %r" % epoch)
 
     # find and parse configuration file
     args.config_file = os.path.expanduser(
