@@ -22,7 +22,6 @@
 
 from __future__ import print_function
 
-import argparse
 import os.path
 import sys
 from subprocess import (Popen, PIPE, CalledProcessError)
@@ -35,7 +34,7 @@ from gwdetchar import (cli, omega, const)
 from gwdetchar.io.datafind import find_frames
 from gwdetchar.utils import which
 
-parser = argparse.ArgumentParser(description=__doc__)
+parser = cli.create_parser(description=__doc__)
 parser.add_argument('gpstime', type=str, help='GPS time of scan')
 cli.add_ifo_option(parser)
 parser.add_argument('-o', '--output-directory',

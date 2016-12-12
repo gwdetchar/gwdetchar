@@ -30,7 +30,6 @@ Submitting the workflow to Condor will result in the scans being processed
 in parallel, or you can just run the `.sh` script to process in serial.
 """
 
-import argparse
 import os
 from getpass import getuser
 
@@ -52,9 +51,9 @@ CONDOR_ACCOUNTING_USER = os.getenv(
 
 # -- parse command line -------------------------------------------------------
 
-parser = argparse.ArgumentParser(
+parser = cli.create_parser(
     description=__doc__,
-    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    formatter_class=cli.argparse.ArgumentDefaultsHelpFormatter,
 )
 
 parser.add_argument('gps-time', nargs='+',
