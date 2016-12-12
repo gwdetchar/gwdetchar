@@ -35,6 +35,13 @@ def create_parser(**kwargs):
     return argparse.ArgumentParser(**kwargs)
 
 
+def add_option(parser, short, long=None, **kwargs):
+    args = [short]
+    if long is not None:
+        args.append(long)
+    return parser.add_argument(*args, **kwargs)
+
+
 def add_ifo_option(parser, ifo=const.IFO, required=None):
     """Add a `-i/--ifo` option to the given parser
     """
@@ -84,8 +91,3 @@ def add_nproc_option(
                                type=type, **kwargs)
 
 
-def add_option(parser, short, long=None, **kwargs):
-    args = [short]
-    if long is not None:
-        args.append(long)
-    return parser.add_argument(*args, **kwargs)
