@@ -102,7 +102,6 @@ def remove_outliers(ts,N):
         print('-- Found %d outliers in %s, recursively removing' % (len(outliers),ts.name))
         while outliers.any():
             cache = outliers
-            print('Channel median is: %.2E' % ts.median())
             mask = numpy.ones(len(ts), dtype=bool)
             mask[outliers] = False
             spline = UnivariateSpline(ts[mask].times.value,ts[mask].value,s=0,k=3)
