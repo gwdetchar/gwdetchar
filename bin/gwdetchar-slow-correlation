@@ -148,8 +148,6 @@ else:
     darmblrms = darmts.notch(60).crop(dstart, dend).rms(stride)
     darmblrms.name = '%s RMS' % primary
 
-print('BLRMS median is: %.2E' % darmblrms.median())
-
 if args.remove_outliers:
     print('-- Removing outliers above %f sigma' % args.remove_outliers)
     remove_outliers(darmblrms,args.remove_outliers)
