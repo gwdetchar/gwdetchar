@@ -23,7 +23,6 @@
 from __future__ import division
 
 import os.path
-import argparse
 import re
 import warnings
 from StringIO import StringIO
@@ -62,7 +61,7 @@ rcParams.update({
 
 # -- parse command line -------------------------------------------------------
 
-parser = argparse.ArgumentParser(description=__doc__)
+parser = cli.create_parser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
 parser.add_argument('-a', '--state-flag', metavar='FLAG',

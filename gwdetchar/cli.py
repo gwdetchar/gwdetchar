@@ -24,7 +24,7 @@ import os
 
 from gwpy.time import to_gps
 
-from . import const
+from . import (const, __version__)
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
@@ -32,7 +32,24 @@ __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 def create_parser(**kwargs):
     """Create a new `argparse.ArgumentParser`
     """
-    return argparse.ArgumentParser(**kwargs)
+    version = kwargs.pop('version', __version__)
+    parser = argparse.ArgumentParser(**kwargs)
+    if version is not None:
+        add_version_option(parser, version=version)
+    return parser
+
+
+def add_option(parser, short, long=None, **kwargs):
+    args = [short]
+    if long is not None:
+        args.append(long)
+    return parser.add_argument(*args, **kwargs)
+
+
+def add_version_option(parser, version=None):
+    if version is None:
+        version = __version__
+    parser.add_argument('-V', '--version', action='version', version=version)
 
 
 def add_ifo_option(parser, ifo=const.IFO, required=None):
@@ -84,8 +101,3 @@ def add_nproc_option(
                                type=type, **kwargs)
 
 
-def add_option(parser, short, long=None, **kwargs):
-    args = [short]
-    if long is not None:
-        args.append(long)
-    return parser.add_argument(*args, **kwargs)

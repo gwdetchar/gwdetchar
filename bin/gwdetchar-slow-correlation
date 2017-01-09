@@ -64,6 +64,8 @@ parser.add_argument('-r', '--range-channel',
                     help='name of range channel to use')
 parser.add_argument('-R', '--range-frametype',
                     help='frametype for --range-channel')
+parser.add_argument('-O', '--remove-outliers', type=float, default=None,
+                    help='Std. dev. limit for removing outliers')
 
 psig = parser.add_argument_group('Signal processing options')
 psig.add_argument('-b', '--band-pass', type=float, nargs=2, default=None,
@@ -91,6 +93,17 @@ if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
 os.chdir(args.output_dir)
 nprocplot = args.nproc_plot or args.nproc
+
+def remove_outliers(ts,N):
+    outliers = numpy.nonzero(abs(ts - numpy.mean(ts)) > N*numpy.std(ts))[0]
+    for idx in outliers:
+        if idx == 0:
+            ts.value[idx] = numpy.mean([ts.value[idx+1],ts.value[idx+2]])
+        elif idx == (len(ts)-1):
+            ts.value[idx] = numpy.mean([ts.value[idx-1],ts.value[idx-2]])
+        else:
+            ts.value[idx] = numpy.mean([ts.value[idx-1],ts.value[idx+1]])
+    return
 
 # load data
 print("-- Loading range data")
@@ -123,6 +136,10 @@ if flower:
 else:
     darmblrms = darmts.notch(60).crop(dstart, dend).rms(stride)
     darmblrms.name = '%s RMS' % primary
+
+if args.remove_outliers:
+    remove_outliers(darmblrms,args.remove_outliers)
+    remove_outliers(rangets,args.remove_outliers)
 
 if args.trend_type == 'minute':
     # calculate the r value between the DARM BLRMS and the Range timeseries

@@ -22,7 +22,6 @@
 
 from __future__ import print_function
 
-import argparse
 import numpy
 import os.path
 import sys
@@ -74,7 +73,7 @@ def get_real_channel(adcchannel):
     return cds.get_adc_channel(ifo, modelname, int(card), int(slot))
 
 
-parser = argparse.ArgumentParser(description=__doc__)
+parser = cli.create_parser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
 parser.add_argument('dcuid', type=int, nargs='+',
