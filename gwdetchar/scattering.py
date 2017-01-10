@@ -65,6 +65,7 @@ def get_fringe_frequency(timeseries, multiplier=2.0):
     """Calculate the scattering fringe frequency from a optic motion timeseries
     """
     velocity = timeseries.diff()
+    velocity.override_unit('m/s')  # just so multiplication works
     fringef = numpy.abs(multiplier * 2. / 1.064 * velocity *
                         velocity.sample_rate.value)
     fringef.override_unit('Hz')
