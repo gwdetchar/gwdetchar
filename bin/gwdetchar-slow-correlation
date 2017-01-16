@@ -112,8 +112,8 @@ rangets = TimeSeries.get(rangechannel, start, end,
                          nproc=args.nproc)
 
 if args.trend_type == 'minute':
-	dstart=dstart+(60 - (dstart%60))
-	dend=dend-(dend%60)
+	dstart=start+(60 - (start%60))
+	dend=end-(end%60)
 else:
     dstart = start
     dend = end
