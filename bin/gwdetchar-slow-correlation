@@ -78,6 +78,11 @@ args = parser.parse_args()
 
 start = args.gpsstart.seconds
 end = args.gpsend.seconds
+
+if args.trend_type == 'minute':
+	start=start+(60 - (start%60))
+	end=end-(end%60)
+
 pad = args.filter_padding
 try:
     flower, fupper = args.band_pass
@@ -112,8 +117,7 @@ rangets = TimeSeries.get(rangechannel, start, end,
                          nproc=args.nproc)
 
 if args.trend_type == 'minute':
-	dstart=start+(60 - (start%60))
-	dend=end-(end%60)
+	dstart, dend = rangets.span
 else:
     dstart = start
     dend = end
