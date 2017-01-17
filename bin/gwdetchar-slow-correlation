@@ -117,7 +117,7 @@ rangets = TimeSeries.get(rangechannel, start, end,
                          nproc=args.nproc)
 
 if args.trend_type == 'minute':
-	dstart, dend = rangets.span
+    dstart, dend = rangets.span
 else:
     dstart = start
     dend = end
