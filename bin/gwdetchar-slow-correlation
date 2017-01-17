@@ -79,7 +79,7 @@ args = parser.parse_args()
 start = args.gpsstart.seconds
 end = args.gpsend.seconds
 
-if (args.trend_type == 'minute') and (0 =! (end-start)%60):
+if (args.trend_type == 'minute') and (0 != (end-start)%60):
 		print("-- Warning: cliping start and end times to work with minute trends!")
 		pstart = start
 		pend = end
