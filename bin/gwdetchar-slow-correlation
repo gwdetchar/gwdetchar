@@ -79,9 +79,13 @@ args = parser.parse_args()
 start = args.gpsstart.seconds
 end = args.gpsend.seconds
 
-if args.trend_type == 'minute':
-	start=start+(60 - (start%60))
-	end=end-(end%60)
+if (args.trend_type == 'minute') and (0 =! (end-start)%60):
+		print("-- Warning: cliping start and end times to work with minute trends!")
+		pstart = start
+		pend = end
+		start=start+(60 - (start%60))
+		end=end-(end%60)
+	
 
 pad = args.filter_padding
 try:
@@ -231,8 +235,8 @@ def process_channel(input_,):
         plot.axes[2].set_ylabel('Sensitive range [Mpc]')
         for ax in plot.axes:
             ax.legend(loc='best')
-            ax.set_xlim(start, end)
-            ax.set_epoch(start)
+            ax.set_xlim(pstart, pend)
+            ax.set_epoch(pstart)
         channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
         plot1 = '%s_TRENDS-%s.png' % (channelstub, gpsstub)
         try:
@@ -256,8 +260,8 @@ def process_channel(input_,):
                               figsize=[12, 6])
         plot.subplots_adjust(*p2)
         ax = plot.gca()
-        ax.set_xlim(start, end)
-        ax.set_epoch(start)
+        ax.set_xlim(pstart, pend)
+        ax.set_epoch(pstart)
         ax.set_ylabel('Scaled amplitude [arbitrary units]')
         ax.legend(loc='best')
         plot2 = '%s_COMPARISON-%s.png' % (channelstub, gpsstub)
@@ -289,7 +293,7 @@ with open('results.txt', 'w') as f:
         print('%s %s %s %s %s' % (ch, corr1, corr2, corr1s, corr2s), file=f)
 
 # -- write html
-title = '%s slow correlations: %d-%d' % (args.ifo, start, end)
+title = '%s slow correlations: %d-%d' % (args.ifo, pstart, pend)
 page = html.new_bootstrap_page(title=title)
 page.div(class_='container')
 
@@ -397,8 +401,8 @@ def write_param(param, value):
 
 page.h2('Parameters')
 page.p('This analysis used the following parameters:')
-write_param('Start time', '%s (%d)' % (from_gps(start), start))
-write_param('End time', '%s (%d)' % (from_gps(end), end))
+write_param('Start time', '%s (%d)' % (from_gps(pstart), pstart))
+write_param('End time', '%s (%d)' % (from_gps(pend), pend))
 write_param('Primary channel',
             '%s (%s)' % (primary, args.primary_frametype.format(ifo=args.ifo)))
 write_param('Range channel',
