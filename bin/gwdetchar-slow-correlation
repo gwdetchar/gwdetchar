@@ -246,6 +246,11 @@ def process_channel(input_,):
             plot.save(plot1)
         except (IOError, IndexError):
             plot.save(plot1)
+        except RuntimeError as e:
+            if 'latex' in str(e).lower():
+                plot.save(plot1)
+            else:
+                raise
         plot.close()
 
         # plot auto-scaled verions
@@ -272,6 +277,11 @@ def process_channel(input_,):
             plot.save(plot2)
         except (IOError, IndexError):
             plot.save(plot2)
+        except RuntimeError as e:
+            if 'latex' in str(e).lower():
+                plot.save(plot2)
+            else:
+                raise
         plot.close()
 
     # increment counter and print status
