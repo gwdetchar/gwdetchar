@@ -84,6 +84,8 @@ end = args.gpsend.seconds
 cstart = start
 cend = end
 
+#this is a test code change to learn more about git
+
 if (args.trend_type == 'minute') and (0 != (end-start)%60):
 		warn("Clipping start and end times to work with minute trends!")
 		cstart=start+(60 - (start%60))
