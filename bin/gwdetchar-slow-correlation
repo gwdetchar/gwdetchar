@@ -85,9 +85,9 @@ cstart = start
 cend = end
 
 if (args.trend_type == 'minute') and (0 != (end-start)%60):
-		warn("Clipping start and end times to work with minute trends!")
-		cstart=start+(60 - (start%60))
-		cend=end-(end%60)
+    warn("Clipping start and end times to work with minute trends!")
+    cstart=start+(60 - (start%60))
+    cend=end-(end%60)
 	
 
 pad = args.filter_padding
