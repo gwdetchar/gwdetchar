@@ -22,7 +22,7 @@
 from __future__ import print_function
 
 import numpy
-import os.path
+import os
 import sys
 
 from matplotlib import use
@@ -86,8 +86,8 @@ duration = abs(span)
 # initialize output files for each threshold and store them in a dict
 outfiles = {}
 for thresh in args.threshold:
-    outfiles[str(thresh)] = (args.output_path + '%s-%s-DAC-%d-%d.xml.gz'
-        % (args.channel.replace(':','-'), str(int(thresh)).replace('-','n'), 
+    outfiles[str(thresh)] = (args.output_path + '%s_%s_DAC-%d-%d.xml.gz'
+        % (args.channel.replace('-','_').replace(':','-'), str(int(thresh)).replace('-','n'), 
            args.gpsstart.seconds, duration))
 
 # get frame cache
@@ -98,6 +98,8 @@ cachesegs = statea & cache_segments(cache)
 
 # initialize a ligolw table for each threshold and store them in a dict
 tables = {}
+if not os.path.exists(args.output_path):
+    os.makedirs(args.output_path)
 for thresh in args.threshold:
     tables[str(thresh)] = ligolw.new_table('sngl_burst',
         columns=['peak_time', 'peak_time_ns', 'peak_frequency','snr'])
