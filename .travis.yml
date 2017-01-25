@@ -10,17 +10,17 @@ addons:
 
 matrix:
   include:
-    - python: 2.6
-    - python: 2.7
+    - python: "2.6"
+    - python: "2.7"
       env: PRE=""
-    - python: 2.7
+    - python: "2.7"
       env: PRE="--pre"
-    - python: 3.5
+    - python: "3.5"
   allow_failures:
-    - python: 2.6
-    - python: 2.7
+    - python: "2.6"
+    - python: "2.7"
       env: PRE="--pre"
-    - python: 3.5
+    - python: "3.5"
 
 before_install:
   - pip install -q --upgrade pip
