@@ -24,8 +24,6 @@ matrix:
   allow_failures:
     - python: "2.6"
       env: PRE=""
-    - python: "2.6"
-      env: PRE="--pre"
     - python: "2.7"
       env: PRE="--pre"
     - python: "3.5"
