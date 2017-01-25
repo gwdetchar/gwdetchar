@@ -8,19 +8,28 @@ addons:
       - liblapack-dev  # scipy
       - swig  # m2crypto
 
+python:
+  - '2.6'
+  - '2.7'
+  - '3.5'
+  - 'nightly'
+
+env:
+  - PRE="--pre"
+  - PRE=""
+
 matrix:
-  include:
-    - python: "2.6"
-    - python: "2.7"
-      env: PRE=""
-    - python: "2.7"
-      env: PRE="--pre"
-    - python: "3.5"
   allow_failures:
     - python: "2.6"
+      env: PRE=""
+    - python: "2.6"
+      env: PRE="--pre"
     - python: "2.7"
       env: PRE="--pre"
     - python: "3.5"
+      env: PRE=""
+    - python: "3.5"
+      env: PRE="--pre"
 
 before_install:
   - pip install -q --upgrade pip
