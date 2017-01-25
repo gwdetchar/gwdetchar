@@ -12,13 +12,15 @@ python:
   - '2.6'
   - '2.7'
   - '3.5'
-  - 'nightly'
 
 env:
   - PRE="--pre"
   - PRE=""
 
 matrix:
+  exclude:
+    - python: "2.6"
+      env: PRE="--pre"
   allow_failures:
     - python: "2.6"
       env: PRE=""
