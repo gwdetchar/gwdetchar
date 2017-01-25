@@ -155,7 +155,7 @@ else:
         times = daq.find_overflows(timeseries)
         times = times[(times >= float(segment[0])) &
                       (times < float(segment[1]))]
-        daq.extend(table_from_times(times, channel))
+        overflows.extend(table_from_times(times, channel))
 
 # get channel and find overflows
 for dcuid in args.dcuid:
@@ -206,7 +206,7 @@ for dcuid in args.dcuid:
             except KeyError:
                 overflows[channel] = new
         elif not args.deep:
-            daq.extend(table_from_times(new, channel))
+            overflows.extend(table_from_times(new, channel))
     gprint("    Complete")
 
 # get segments
