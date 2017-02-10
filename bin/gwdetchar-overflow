@@ -101,6 +101,7 @@ parser.add_argument('-s', '--segment-end-pad', type=float, default=1.0,
 parser.add_argument('-m', '--html', help='path to write html output')
 parser.add_argument('-v', '--plot', action='store_true', default=None,
                     help='make plots of all overflows, defaul: %(default)s')
+parser.add_argument('-c', '--fec-map', help='URL of human-readable FEC map')
 
 args = parser.parse_args()
 
@@ -154,7 +155,7 @@ else:
         times = daq.find_overflows(timeseries)
         times = times[(times >= float(segment[0])) &
                       (times < float(segment[1]))]
-        daq.extend(table_from_times(times, channel))
+        overflows.extend(table_from_times(times, channel))
 
 # get channel and find overflows
 for dcuid in args.dcuid:
@@ -205,7 +206,7 @@ for dcuid in args.dcuid:
             except KeyError:
                 overflows[channel] = new
         elif not args.deep:
-            daq.extend(table_from_times(new, channel))
+            overflows.extend(table_from_times(new, channel))
     gprint("    Complete")
 
 # get segments
@@ -342,6 +343,11 @@ if args.html:
     write_param('End time', args.gpsend)
     write_param('State flag', args.state_flag)
     write_param('DCUIDs', ' '.join(map(str, args.dcuid)))
+
+    if args.fec_map:
+        page.h2('Links')
+        write_param('FEC map', '<a href="{0}" target="_blank" title="{1} FEC '
+                               'map">{0}</a>'.format(args.fec_map, args.ifo))
 
     # -- close and write
     page.div.close()

@@ -28,6 +28,7 @@ from warnings import warn
 
 import numpy
 from scipy.stats import spearmanr
+from scipy.interpolate import UnivariateSpline
 
 from matplotlib import use
 use('agg')
@@ -108,14 +109,22 @@ nprocplot = args.nproc_plot or args.nproc
 
 def remove_outliers(ts,N):
     outliers = numpy.nonzero(abs(ts - numpy.mean(ts)) > N*numpy.std(ts))[0]
-    for idx in outliers:
-        if idx == 0:
-            ts.value[idx] = numpy.mean([ts.value[idx+1],ts.value[idx+2]])
-        elif idx == (len(ts)-1):
-            ts.value[idx] = numpy.mean([ts.value[idx-1],ts.value[idx-2]])
-        else:
-            ts.value[idx] = numpy.mean([ts.value[idx-1],ts.value[idx+1]])
-    return
+    c = 1
+    if outliers.any():
+        print('-- Found %d outliers in %s, recursively removing' % (len(outliers),ts.name))
+        while outliers.any():
+            cache = outliers
+            mask = numpy.ones(len(ts), dtype=bool)
+            mask[outliers] = False
+            spline = UnivariateSpline(ts[mask].times.value,ts[mask].value,s=0,k=3)
+            ts[outliers] = spline(ts[outliers].times.value)
+            outliers = numpy.nonzero(abs(ts - numpy.mean(ts)) > N*numpy.std(ts))[0]
+            print('Completed %d removal cycles' % c)
+            if numpy.array_equal(outliers,cache):
+                print('Outliers did not change, breaking recursion')
+                break
+            print('%d outliers remain' % len(outliers))
+            c += 1
 
 # load data
 print("-- Loading range data")
@@ -142,14 +151,17 @@ else:
     stride = 1
 if flower:
     darmblrms = (
-        darmts.highpass(flower/2.).notch(60).bandpass(flower, fupper).crop(
-            dstart, dend).rms(stride))
+        darmts.highpass(flower/2., fstop=flower/4., filtfilt=False, ftype='butter').notch(
+        60, filtfilt=False).bandpass(
+        flower, fupper, fstop=[flower/2., fupper*1.5], filtfilt=False, ftype='butter').crop(
+        dstart, dend).rms(stride))
     darmblrms.name = '%s %s-%s Hz BLRMS' % (primary, flower, fupper)
 else:
     darmblrms = darmts.notch(60).crop(dstart, dend).rms(stride)
     darmblrms.name = '%s RMS' % primary
 
 if args.remove_outliers:
+    print('-- Removing outliers above %f sigma' % args.remove_outliers)
     remove_outliers(darmblrms,args.remove_outliers)
     remove_outliers(rangets,args.remove_outliers)
 
@@ -246,6 +258,11 @@ def process_channel(input_,):
             plot.save(plot1)
         except (IOError, IndexError):
             plot.save(plot1)
+        except RuntimeError as e:
+            if 'latex' in str(e).lower():
+                plot.save(plot1)
+            else:
+                raise
         plot.close()
 
         # plot auto-scaled verions
@@ -272,6 +289,11 @@ def process_channel(input_,):
             plot.save(plot2)
         except (IOError, IndexError):
             plot.save(plot2)
+        except RuntimeError as e:
+            if 'latex' in str(e).lower():
+                plot.save(plot2)
+            else:
+                raise
         plot.close()
 
     # increment counter and print status
@@ -415,3 +437,5 @@ write_param('Band-pass', '%s-%s' % (flower, fupper))
 page.div.close()  # container
 with open('index.html', 'w') as f:
     print(str(page), file=f)
+
+print ("-- Process Completed")
