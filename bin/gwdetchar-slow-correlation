@@ -82,15 +82,6 @@ args = parser.parse_args()
 start = args.gpsstart.seconds
 end = args.gpsend.seconds
 
-cstart = start
-cend = end
-
-if (args.trend_type == 'minute') and (0 != (end-start)%60):
-    warn("Clipping start and end times to work with minute trends!")
-    cstart=start+(60 - (start%60))
-    cend=end-(end%60)
-	
-
 pad = args.filter_padding
 try:
     flower, fupper = args.band_pass
@@ -128,15 +119,15 @@ def remove_outliers(ts,N):
 
 # load data
 print("-- Loading range data")
-rangets = TimeSeries.get(rangechannel, cstart, cend,
+rangets = TimeSeries.get(rangechannel, start, end,
                          frametype=args.range_frametype, verbose=True,
                          nproc=args.nproc)
 
 if args.trend_type == 'minute':
     dstart, dend = rangets.span
 else:
-    dstart = cstart
-    dend = cend
+    dstart = start
+    dend = end
 
 print("-- Loading h(t) data")
 darmts = TimeSeries.get(primary, dstart-pad, dend+pad, verbose=True,
@@ -386,11 +377,11 @@ for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
         h = '%s [%s = %.2f]' % (ch, r_blrms, corr1)
     if (corr1 is None) or (corr1 == 0) or (plot1 is None):
         context = 'panel-default'
-    elif((numpy.absolute(corr1) >= .6) and (numpy.absolute(corr1s) >= .6)
-          and (numpy.absolute(corr2) >= .6) and (numpy.absolute(corr2s) >= .6)):
+    elif((numpy.absolute(corr1) >= .6) or (numpy.absolute(corr1s) >= .6)
+          or (numpy.absolute(corr2) >= .6) or (numpy.absolute(corr2s) >= .6)):
         context = 'panel-danger'
-    elif((numpy.absolute(corr1) >= .4) and (numpy.absolute(corr1s) >= .4)
-          and (numpy.absolute(corr2) >= .4) and (numpy.absolute(corr2s) >= .4)):
+    elif((numpy.absolute(corr1) >= .4) or (numpy.absolute(corr1s) >= .4)
+          or (numpy.absolute(corr2) >= .4) or (numpy.absolute(corr2s) >= .4)):
         context = 'panel-warning'
     else:
         context = 'panel-info'
