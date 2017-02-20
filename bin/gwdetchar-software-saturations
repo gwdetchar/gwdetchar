@@ -218,8 +218,7 @@ def is_saturated(channel, cache, start=None, end=None,
     # check limit if set
     indicators = ['%s_%s' % (c, indicator) for c in channels]
     data = TimeSeriesDict.read(
-        cache[0].path, indicators, start=start, end=start+1, format='framecpp',
-        type='adc')
+        cache[0].path, indicators, start=start, end=start+1)
     if indicator.upper() == 'LIMEN':
         active = dict((c, data[indicators[i]].value[0]) for
                       i, c in enumerate(channels))
@@ -235,7 +234,7 @@ def is_saturated(channel, cache, start=None, end=None,
     datachans = ['%s_%s' % (c, s) for c in activechans for
                  s in ('LIMIT', 'OUTPUT')]
     data = TimeSeriesDict.read(cache, datachans, start=start, end=end,
-                               nproc=nproc, type='adc')
+                               nproc=nproc)
     # loop over channels and return the following:
     #     no limit      -   None
     #     no saturation -   False
