@@ -104,7 +104,7 @@ if args.frequency_threshold.is_integer():
     args.frequency_threshold = int(args.frequency_threshold)
 
 tstr = str(args.frequency_threshold).replace('.', '_')
-gpsstr = '%s-%s' % (args.gpsstart.seconds, (args.gpsend-args.gpsstart).seconds)
+gpsstr = '%s-%s' % (int(args.gpsstart), int(args.gpsend-args.gpsstart))
 
 if args.optic is None:
     args.optic = scattering.OPTIC_MOTION_CHANNELS.keys()
@@ -121,8 +121,8 @@ span = Segment(args.gpsstart, args.gpsend)
 
 # get segments
 if args.state_flag:
-    state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
-                                  args.gpsend.seconds,
+    state = DataQualityFlag.query(args.state_flag, int(args.gpsstart)
+                                  int(args.gpsend)
                                   url=const.O1_SEGMENT_SERVER)
     for i, seg in enumerate(state.active):
         state.active[i] = type(seg)(seg[0], seg[1]-args.segment_end_pad)
@@ -173,7 +173,7 @@ page = htmlio.new_bootstrap_page(title='%s scattering' % args.ifo)
 page.div(class_='container')
 page.div(class_='page-header')
 page.h1('%s scattering: %d-%d'
-        % (args.ifo, args.gpsstart.seconds, args.gpsend.seconds))
+        % (args.ifo, int(args.gpsstart), int(args.gpsend)))
 page.p("This analysis searched for evidence of beam scattering based on the "
        "velocity of optic motion. The fringe frequency is predicted using "
        "equation (3) of <a href=\"http://iopscience.iop.org/article/10.1088/"
@@ -349,7 +349,7 @@ for i, channel in enumerate(sorted(allchannels)):
         transform=axes['segments'].transAxes, va='top', ha='left',
         bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
     for ax in axes.values():
-        ax.set_epoch(args.gpsstart.seconds)
+        ax.set_epoch(int(args.gpsstart))
         ax.set_xlim(*span)
         if ax is not axes['triggers']:
             plot.add_colorbar(ax=ax, visible=False)

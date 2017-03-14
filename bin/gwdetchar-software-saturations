@@ -301,8 +301,8 @@ frametype = args.frametype or '%s_R' % ifo
 # get segments
 span = Segment(args.gpsstart, args.gpsend)
 if args.state_flag:
-    state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
-                                  args.gpsend.seconds,
+    state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
+                                  int(args.gpsend),
                                   url=const.O1_SEGMENT_SERVER)
     for i, seg in enumerate(state.active):
         state.active[i] = type(seg)(seg[0], seg[1]-args.pad_state_end)
@@ -314,9 +314,9 @@ else:
 
 # find frames
 cache = find_frames(site, frametype,
-                    args.gpsstart.seconds, args.gpsend.seconds)
-tcache = find_frames(site, '%s_T' % ifo, args.gpsstart.seconds,
-                     args.gpsend.seconds)
+                    int(args.gpsstart), int(args.gpsend))
+tcache = find_frames(site, '%s_T' % ifo, int(args.gpsstart),
+                     int(args.gpsend))
 
 # find channels
 if not os.getenv('LIGO_DATAFIND_SERVER'):
@@ -326,8 +326,8 @@ else:
     print("Finding channels in frames...")
     if len(cache) == 0:
         raise RuntimeError("No frames recovered for %s in interval [%s, %s)" %
-                           (frametype, args.gpsstart.seconds,
-                            args.gpsend.seconds))
+                           (frametype, int(args.gpsstart),
+                            int(args.gpsend)))
     allchannels = get_adc_channels(cache[0].path)
     print("   Found %d channels in frame" % len(allchannels))
     sys.stdout.flush()
@@ -413,8 +413,8 @@ if len(bad):
 
 # write LIGO_LW XML
 outfile = ('%s-SOFTWARE_SATURATIONS-%d-%d.xml.gz'
-           % (ifo, args.gpsstart.seconds,
-              args.gpsend.seconds - args.gpsstart.seconds))
+           % (ifo, int(args.gpsstart),
+              int(args.gpsend) - int(args.gpsstart)))
 saturations.write(outfile)
 print("Saturation segments written to \n%s" % outfile)
 
@@ -430,7 +430,7 @@ if args.html:
     # -- header
     page.div(class_='page-header')
     page.h1('%s software saturations: %d-%d'
-            % (ifo, args.gpsstart.seconds, args.gpsend.seconds))
+            % (ifo, int(args.gpsstart), int(args.gpsend)))
     page.p("This analysis searched %d channels for times during which their "
            "OUTPUT value matched the LIMIT value set in software. Only "
            "those signals achieving saturation are printed in the Segments "

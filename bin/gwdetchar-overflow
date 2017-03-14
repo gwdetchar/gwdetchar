@@ -109,8 +109,8 @@ span = Segment(args.gpsstart, args.gpsend)
 
 # get segments
 if args.state_flag:
-    state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
-                                  args.gpsend.seconds,
+    state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
+                                  int(args.gpsend),
                                   url=const.O1_SEGMENT_SERVER)
     tmp = type(state.active)()
     for i, seg in enumerate(state.active):
@@ -126,12 +126,12 @@ if not args.output_file:
     duration = abs(span)
     args.output_file = (
         '%s-OVERFLOWS-%d-%d.xml.gz'
-        % (args.ifo, args.gpsstart.seconds, duration))
+        % (args.ifo, int(args.gpsstart), duration))
     gprint("Set default output file as %s" % args.output_file)
 
 # get frame cache
 cache = datafind.find_frames(args.ifo[0], args.frametype,
-                             args.gpsstart.seconds, args.gpsend.seconds)
+                             int(args.gpsstart), int(args.gpsend))
 cachesegs = statea & cache_segments(cache)
 
 # set up container
@@ -240,7 +240,7 @@ if args.html:
     if os.path.basename(args.html) == 'index.html':
         page = htmlio.new_bootstrap_page(
             title='%s Overflows: %d-%d' % (
-                args.ifo, args.gpsstart.seconds, args.gpsend.seconds))
+                args.ifo, int(args.gpsstart), int(args.gpsend)))
     else:
         page = htmlio.markup.page()
     page.div(class_='container')
@@ -248,7 +248,7 @@ if args.html:
     # -- header
     page.div(class_='page-header')
     page.h1('%s ADC/DAC Overflows: %d-%d'
-            % (args.ifo, args.gpsstart.seconds, args.gpsend.seconds))
+            % (args.ifo, int(args.gpsstart), int(args.gpsend)))
     page.p("This analysis searched for digital-to-analogue (DAC) or "
            "analogue-to-digital (ADC) conversion overflows in the LIGO "
            "real-time controls system.")

@@ -77,8 +77,8 @@ psig.add_argument('-x', '--filter-padding', type=float, default=3.,
 
 args = parser.parse_args()
 
-start = args.gpsstart.seconds
-end = args.gpsend.seconds
+start = int(args.gpsstart)
+end = int(args.gpsend)
 pad = args.filter_padding
 try:
     flower, fupper = args.band_pass
