@@ -451,7 +451,7 @@ for i, channel in enumerate(sorted(allchannels)):
 # -- finalize -----------------------------------------------------------------
 
 # write segments
-scatter_segments.write(segxml)
+scatter_segments.write(segxml, overwrite=True)
 if args.verbose:
     gprint("%s written" % segxml)
 
