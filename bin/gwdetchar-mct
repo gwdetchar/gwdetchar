@@ -74,8 +74,8 @@ span = Segment(args.gpsstart, args.gpsend)
 gprint('Processing channel %s over span %d - %d' % (args.channel,args.gpsstart,args.gpsend))
 
 if args.state_flag:
-    state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
-                                 args.gpsend.seconds,
+    state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
+                                 int(args.gpsend),
                                  url=const.O1_SEGMENT_SERVER)
     statea = state.active
 else:
@@ -88,11 +88,11 @@ outfiles = {}
 for thresh in args.threshold:
     outfiles[str(thresh)] = (args.output_path + '%s_%s_DAC-%d-%d.xml.gz'
         % (args.channel.replace('-','_').replace(':','-'), str(int(thresh)).replace('-','n'), 
-           args.gpsstart.seconds, duration))
+           int(args.gpsstart), duration))
 
 # get frame cache
 cache = datafind.find_frames(args.ifo[0], args.frametype,
-                             args.gpsstart.seconds, args.gpsend.seconds)
+                             int(args.gpsstart), int(args.gpsend))
 
 cachesegs = statea & cache_segments(cache)
 
@@ -123,5 +123,4 @@ for thresh in args.threshold:
     gprint('Writing output XML: %s' % outfiles[str(thresh)])
     file = open(outfiles[str(thresh)],'w')
     gz = True
-    write_fileobj(ligolw.table_to_document(tables[str(thresh)]),file,gz=gz)
-
+write_fileobj(ligolw.table_to_document(tables[str(thresh)]),file,gz=gz)
