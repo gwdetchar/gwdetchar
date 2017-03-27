@@ -123,7 +123,7 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
     if frametype is None:
         frametype = '%s_R' % ifo
     if gpstime is None:
-        gpstime = tconvert().seconds - 1000
+        gpstime = int(tconvert()) - 1000
     try:
         framefile = find_frames(ifo[0], frametype, gpstime, gpstime)[0].path
     except IndexError as e:
