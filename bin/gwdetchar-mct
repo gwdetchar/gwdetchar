@@ -123,5 +123,4 @@ for thresh in args.threshold:
     gprint('Writing output XML: %s' % outfiles[str(thresh)])
     file = open(outfiles[str(thresh)],'w')
     gz = True
-    write_fileobj(ligolw.table_to_document(tables[str(thresh)]),file,gz=gz)
-
+write_fileobj(ligolw.table_to_document(tables[str(thresh)]),file,gz=gz)
