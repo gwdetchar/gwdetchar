@@ -115,7 +115,7 @@ for seg in cachesegs:
     for thresh in args.threshold:
         times = find_crossings(data,thresh)
         gprint('Found %d crossings for threshold %d' % (len(times),thresh))
-        gprint('Rate of crossings: %d Hz' % (len(times)/abs(seg)))
+        gprint('Rate of crossings: %.2f Hz' % (float(len(times))/abs(seg)))
         if len(times) and (len(times)/abs(seg) < args.rate_thresh):
             tables[str(thresh)].extend(table_from_times(times))
 
