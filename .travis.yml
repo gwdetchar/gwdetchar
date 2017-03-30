@@ -2,11 +2,22 @@ language: python
 
 addons:
   apt:
+    sources:
+      - sourceline: deb http://software.ligo.org/lscsoft/debian wheezy contrib
+        key_url: http://software.ligo.org/keys/deb/lscsoft.key
+      - sourceline: deb-src http://software.ligo.org/lscsoft/debian wheezy contrib
+        key_url: http://software.ligo.org/keys/deb/lscsoft.key
     packages:
       - gfortran  # scipy
       - libblas-dev  # scipy
       - liblapack-dev  # scipy
       - swig  # m2crypto
+      - pkg-config  # lal
+      - zlib1g-dev  # lal
+      - libgsl0-dev  # lal
+      - swig  # lal
+      - bc  # lal
+      - libfftw3-dev  # lal
 
 python:
   - '2.6'
@@ -14,28 +25,27 @@ python:
   - '3.5'
 
 env:
-  - PRE="--pre"
-  - PRE=""
+  global:
+    - LAL_VERSION="6.18.0"
+  matrix:
+    - PIP_FLAGS="--quiet --pre"
+    - PIP_FLAGS="--quiet"
 
 matrix:
   exclude:
-    - python: "2.6"
-      env: PRE="--pre"
+    - python: '2.6'
+      env: PIP_FLAGS="--quiet --pre"
   allow_failures:
-    - python: "2.6"
-      env: PRE=""
-    - python: "2.7"
-      env: PRE="--pre"
-    - python: "3.5"
-      env: PRE=""
-    - python: "3.5"
-      env: PRE="--pre"
+    - python: '2.6'
+    - python: '3.5'
+  fast_finish: true
 
 before_install:
   - pip install -q --upgrade pip
   # need to install astropy 1.1 specifically for py26
   - if [[ ${TRAVIS_PYTHON_VERSION} == '2.6' ]]; then pip install "astropy==1.1"; fi
-  - pip install ${PRE} -r requirements.txt
+  - pip install ${PIP_FLAGS} -r requirements.txt
+  - .travis/build-lal.sh
   - pip install coveralls unittest2 pytest
 
 install:
@@ -53,3 +63,5 @@ after_success:
 cache:
   apt: true
   pip: true
+  directories:
+    - lal-${LAL_VERSION}
