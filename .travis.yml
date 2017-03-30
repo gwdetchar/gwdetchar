@@ -8,16 +8,17 @@ addons:
       - sourceline: deb-src http://software.ligo.org/lscsoft/debian wheezy contrib
         key_url: http://software.ligo.org/keys/deb/lscsoft.key
     packages:
+      # lal dependencies
+      - pkg-config
+      - zlib1g-dev
+      - libgsl0-dev
+      - swig
+      - bc
+      - libfftw3-dev
+      # other dependencies
       - gfortran  # scipy
       - libblas-dev  # scipy
       - liblapack-dev  # scipy
-      - swig  # m2crypto
-      - pkg-config  # lal
-      - zlib1g-dev  # lal
-      - libgsl0-dev  # lal
-      - swig  # lal
-      - bc  # lal
-      - libfftw3-dev  # lal
 
 python:
   - '2.6'
