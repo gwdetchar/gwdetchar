@@ -47,7 +47,7 @@ before_install:
   - if [[ ${TRAVIS_PYTHON_VERSION} == '2.6' ]]; then pip install "astropy==1.1"; fi
   - pip install ${PIP_FLAGS} -r requirements.txt
   - .travis/build-lal.sh
-  - pip install coveralls unittest2 pytest
+  - pip install ${PIP_FLAGS} coveralls unittest2 pytest
 
 install:
   - pip install .
