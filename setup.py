@@ -52,10 +52,11 @@ setup_requires = [
     'pytest-runner',
 ]
 install_requires = [
-    'numpy>=1.5',
-    'matplotlib>=1.3.0',
-    'astropy>=1.0',
-    'gwpy>=0.1',
+    'numpy>=1.10',
+    'scipy>=1.16',
+    'matplotlib>=1.4.1',
+    'astropy>=1.2',
+    'gwpy>=0.3',
     'trigfind>=0.3',
 ]
 requires = [
