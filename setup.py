@@ -53,7 +53,7 @@ setup_requires = [
 ]
 install_requires = [
     'numpy>=1.10',
-    'scipy>=1.16',
+    'scipy>=0.16',
     'matplotlib>=1.4.1',
     'astropy>=1.2',
     'gwpy>=0.3',
