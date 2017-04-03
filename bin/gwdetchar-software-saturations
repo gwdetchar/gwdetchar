@@ -265,8 +265,7 @@ def is_saturated(channel, cache, start=None, end=None,
 #
 # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
-# parse command line
+# -- parse command line -------------------------------------------------------
 
 parser = cli.create_parser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
@@ -395,8 +394,7 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
                       % (c, i*ngroup + j + 1, nchans), end='\r')
             sys.stdout.flush()
 
-# -----------------------------------------------------------------------------
-# print results and exit
+# -- print results and exit ---------------------------------------------------
 
 print("\n----------------------------------------------------------------"
       "-----")
