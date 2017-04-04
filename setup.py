@@ -56,7 +56,7 @@ install_requires = [
     'scipy>=0.16',
     'matplotlib>=1.4.1',
     'astropy>=1.2',
-    'gwpy>=0.3',
+    'gwpy>=0.4',
     'trigfind>=0.3',
 ]
 requires = [
