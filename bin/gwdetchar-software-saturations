@@ -27,7 +27,7 @@ import os
 import re
 import subprocess
 import sys
-from multiprocessing import cpu_count
+from multiprocessing import (Pool, cpu_count)
 from StringIO import StringIO
 
 from matplotlib import use
@@ -157,6 +157,12 @@ def find_limit_channels(channels, skip=None):
     return limens, swstats
 
 
+def _find_saturations(data):
+    out = find_saturations(data[0], data[1], precision=.99, segments=True)
+    out.name = out.name[:-7]
+    return out
+
+
 def is_saturated(channel, cache, start=None, end=None,
                  indicator='LIMEN', nproc=DEFAULT_NPROC, segments=True):
     """Check whether a channel has saturated its software limit
@@ -224,28 +230,22 @@ def is_saturated(channel, cache, start=None, end=None,
                  s in ('LIMIT', 'OUTPUT')]
     data = TimeSeriesDict.read(cache, datachans, start=start, end=end,
                                nproc=nproc, **iokwargs)
-    # loop over channels and return the following:
-    #     no limit      -   None
-    #     no saturation -   False
-    #     saturation    -   True
-    out = []
-    for c in channels:
-        if c not in activechans:
-            out.append(None)
-            continue
-        if segments:
-            out.append(find_saturations(data['%s_OUTPUT' % c],
-                                        data['%s_LIMIT' % c], precision=.99,
-                                        segments=True))
-            out[-1].name = out[-1].name[:-7]
-        else:
-            out.append(find_saturations(data['%s_OUTPUT' % c],
-                                        data['%s_LIMIT' % c],
-                                        precision=.99).any())
-    if isinstance(channel, (list, tuple)):
-        return out
+
+    # find saturations of the limit for each channel
+    dataiter = ((data['%s_OUTPUT' % c], data['%s_LIMIT' % c])
+                for c in activechans)
+    if nproc > 1:
+        pool = Pool(processes=nproc)
+        saturations = list(pool.map(_find_saturations, dataiter))
+        pool.close()
     else:
-        return out[0]
+        saturations = list(map(_find_saturations, dataiter))
+
+    # return many or one (based on input)
+    if isinstance(channel, (list, tuple)):
+        return saturations
+    else:
+        return saturations[0]
 
 
 # -----------------------------------------------------------------------------
@@ -360,15 +360,18 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
             saturated = is_saturated(cset, cache2, seg[0], seg[1],
                                      indicator=suffix, nproc=args.nproc,
                                      segments=True)
-            for j, (c, sat) in enumerate(zip(cset, saturated)):
-                if sat is not None:
-                    try:
-                        saturations[c] += sat
-                    except KeyError:
-                        saturations[c] = sat
+            for new in saturated:
+                try:
+                    saturations[new.name] += new
+                except KeyError:
+                    saturations[new.name] = new
         for j, c in enumerate(cset):
-            if c in saturations:
+            try:
                 sat = saturations[c]
+            except KeyError:
+                print('%40s:      SKIP      [%d/%d]'
+                      % (c, i*ngroup + j + 1, nchans), end='\r')
+            else:
                 if abs(sat.active):
                     print('%40s: ---- FAIL ---- [%d/%d]'
                           % (c, i*ngroup + j + 1, nchans))
@@ -378,9 +381,6 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
                 else:
                     print('%40s:      PASS      [%d/%d]'
                           % (c, i*ngroup + j + 1, nchans))
-            else:
-                print('%40s:      SKIP      [%d/%d]'
-                      % (c, i*ngroup + j + 1, nchans), end='\r')
             sys.stdout.flush()
 
 # -- print results and exit ---------------------------------------------------
