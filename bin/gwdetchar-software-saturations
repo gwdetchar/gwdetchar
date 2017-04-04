@@ -35,6 +35,7 @@ use('agg')
 
 from glue import markup
 
+from gwpy.io.gwf import get_channel_names
 from gwpy.segments import (Segment, SegmentList,
                            DataQualityFlag, DataQualityDict)
 from gwpy.time import to_gps
@@ -119,29 +120,6 @@ def plot_saturations(flag, span, facecolor='red', edgecolor='darkred',
     plot.set_xlim(*span)
     plot.set_epoch(span[0])
     return plot
-
-
-def get_adc_channels(framefile):
-    """Return the names of all ADC channels stored in the framefile
-    """
-    # try just using FrChannels in a subprocess, it's faster
-    try:
-        frchans = subprocess.Popen(
-            ['FrChannels', framefile], stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        out, err = frchans.communicate()
-        if frchans.returncode:
-            raise subprocess.CalledProcessError("FrChannels %s" % framefile)
-    # otherwise manually open the frame and read the ADCs
-    except (OSError, subprocess.CalledProcessError):
-        import lalframe
-        frfile = lalframe.FrameUFrFileOpen(framefile, "r")
-        frtoc = lalframe.FrameUFrTOCRead(frfile)
-        nadc = lalframe.FrameUFrTOCQueryAdcN(frtoc)
-        return [lalframe.FrameUFrTOCQueryAdcName(frtoc, i) for
-                i in range(nadc)]
-    else:
-        return zip(*map(str.split, out.splitlines()))[0]
 
 
 def find_limit_channels(channels, skip=None):
@@ -338,7 +316,7 @@ else:
         raise RuntimeError("No frames recovered for %s in interval [%s, %s)" %
                            (frametype, int(args.gpsstart),
                             int(args.gpsend)))
-    allchannels = get_adc_channels(cache[0].path)
+    allchannels = get_channel_names(cache[0].path)
     print("   Found %d channels in frame" % len(allchannels))
     sys.stdout.flush()
     channels = find_limit_channels(allchannels, skip=args.skip)
