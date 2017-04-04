@@ -290,7 +290,7 @@ parser.add_argument('-c', '--channels',
                          "from frames")
 parser.add_argument('-s', '--skip', nargs='*', default=[],
                     help='skip channels matching this string')
-parser.add_argument('-g', '--group-size', default=256, type=int,
+parser.add_argument('-g', '--group-size', default=1024, type=int,
                     help="number of channels to process in a single batch, "
                          "default: %(default)s")
 parser.add_argument('-a', '--state-flag', metavar='FLAG',
@@ -366,7 +366,7 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
         ngroup = args.group_size
     else:
         ngroup = int(
-            min(nchans, args.group_size, .5 * 1024**3 / 4. / 16. / dur))
+            min(nchans, args.group_size, 2 * 1024**3 / 4. / 16. / dur))
     print('Processing %s channels in groups of %d:' % (suffix, ngroup))
     sys.stdout.flush()
     sets = grouper(clist, ngroup)
