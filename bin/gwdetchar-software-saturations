@@ -45,6 +45,13 @@ from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import find_frames
 from gwdetchar.saturation import find_saturations
 
+try:
+    from LDAStools import frameCPP
+except ImportError:
+    HAS_FRAMECPP = False
+else:
+    HAS_FRAMECPP = True
+
 __author__ = 'Dan Hoak <daniel.hoak@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
@@ -217,8 +224,12 @@ def is_saturated(channel, cache, start=None, end=None,
             channels[i] = c[:-6]
     # check limit if set
     indicators = ['%s_%s' % (c, indicator) for c in channels]
+    if HAS_FRAMECPP:
+        iokwargs = {'type': 'adc', 'format': 'gwf.framecpp'}
+    else:
+        iokwargs = {'format': 'gwf'}
     data = TimeSeriesDict.read(
-        cache[0].path, indicators, start=start, end=start+1)
+        cache[0].path, indicators, start=start, end=start+1, **iokwargs)
     if indicator.upper() == 'LIMEN':
         active = dict((c, data[indicators[i]].value[0]) for
                       i, c in enumerate(channels))
@@ -234,7 +245,7 @@ def is_saturated(channel, cache, start=None, end=None,
     datachans = ['%s_%s' % (c, s) for c in activechans for
                  s in ('LIMIT', 'OUTPUT')]
     data = TimeSeriesDict.read(cache, datachans, start=start, end=end,
-                               nproc=nproc)
+                               nproc=nproc, **iokwargs)
     # loop over channels and return the following:
     #     no limit      -   None
     #     no saturation -   False
