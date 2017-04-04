@@ -424,7 +424,7 @@ if len(bad):
 outfile = ('%s-SOFTWARE_SATURATIONS-%d-%d.xml.gz'
            % (ifo, int(args.gpsstart),
               int(args.gpsend) - int(args.gpsstart)))
-saturations.write(outfile)
+saturations.write(outfile, overwrite=True)
 print("Saturation segments written to \n%s" % outfile)
 
 if args.html:
