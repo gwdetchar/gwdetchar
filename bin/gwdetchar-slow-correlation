@@ -67,6 +67,8 @@ parser.add_argument('-R', '--range-frametype',
                     help='frametype for --range-channel')
 parser.add_argument('-O', '--remove-outliers', type=float, default=None,
                     help='Std. dev. limit for removing outliers')
+parser.add_argument('-t', '--threshold', type=float, default=0.1, 
+                    help='threshold for making a plot')
 
 psig = parser.add_argument_group('Signal processing options')
 psig.add_argument('-b', '--band-pass', type=float, nargs=2, default=None,
@@ -203,8 +205,6 @@ counter = multiprocessing.Value('i', 0)
 p1 = (.1, .1, .9, .95)
 p2 = (.1, .15, .9, .9)
 
-threshold = 0.1
-
 def process_channel(input_,):
     chan, ts = input_
     flat = ts.value.min() == ts.value.max()
@@ -225,8 +225,8 @@ def process_channel(input_,):
             corr2 = 0.0
             corr2s = 0.0
         #if all corralations are below threshold it does not plot
-        if((numpy.absolute(corr1) < threshold) and (numpy.absolute(corr1s) < threshold)
-                and (numpy.absolute(corr2) < threshold) and (numpy.absolute(corr2s) < threshold)):
+        if((numpy.absolute(corr1) < args.threshold) and (numpy.absolute(corr1s) < args.threshold)
+                and (numpy.absolute(corr2) < args.threshold) and (numpy.absolute(corr2s) < args.threshold)):
             plot1 = None
             plot2 = None
             return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
@@ -394,7 +394,7 @@ for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     if corr1 is None:
         page.p("The amplitude data for this channel is flat (does not change) for the chosen time period.")
     elif plot1 is None:
-        page.p("Niether r or rho are above the threshold of %.2f." %(threshold))
+        page.p("Niether r or rho are above the threshold of %.2f." %(args.threshold))
     else:
         for p in (plot1, plot2):
             page.a(href=p, target='_blank')
