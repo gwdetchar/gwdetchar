@@ -1,4 +1,21 @@
 #!/usr/bin/env python
+# coding=utf-8
+# Copyright (C) LIGO Scientific Collaboration (2015-)
+#
+# This file is part of the GW DetChar python package.
+#
+# GW DetChar is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GW DetChar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import (division, print_function)
 
@@ -8,6 +25,8 @@ import multiprocessing
 import sys
 
 import numpy
+from scipy.stats import spearmanr
+from scipy.interpolate import UnivariateSpline
 
 from matplotlib import use
 use('agg')
@@ -46,6 +65,10 @@ parser.add_argument('-r', '--range-channel',
                     help='name of range channel to use')
 parser.add_argument('-R', '--range-frametype',
                     help='frametype for --range-channel')
+parser.add_argument('-O', '--remove-outliers', type=float, default=None,
+                    help='Std. dev. limit for removing outliers')
+parser.add_argument('-t', '--threshold', type=float, default=0.1, 
+                    help='threshold for making a plot')
 
 psig = parser.add_argument_group('Signal processing options')
 psig.add_argument('-b', '--band-pass', type=float, nargs=2, default=None,
@@ -56,8 +79,8 @@ psig.add_argument('-x', '--filter-padding', type=float, default=3.,
 
 args = parser.parse_args()
 
-start = args.gpsstart.seconds
-end = args.gpsend.seconds
+start = int(args.gpsstart)
+end = int(args.gpsend)
 pad = args.filter_padding
 try:
     flower, fupper = args.band_pass
@@ -73,6 +96,25 @@ if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
 os.chdir(args.output_dir)
 nprocplot = args.nproc_plot or args.nproc
+
+def remove_outliers(ts,N):
+    outliers = numpy.nonzero(abs(ts - numpy.mean(ts)) > N*numpy.std(ts))[0]
+    c = 1
+    if outliers.any():
+        print('-- Found %d outliers in %s, recursively removing' % (len(outliers),ts.name))
+        while outliers.any():
+            cache = outliers
+            mask = numpy.ones(len(ts), dtype=bool)
+            mask[outliers] = False
+            spline = UnivariateSpline(ts[mask].times.value,ts[mask].value,s=0,k=3)
+            ts[outliers] = spline(ts[outliers].times.value)
+            outliers = numpy.nonzero(abs(ts - numpy.mean(ts)) > N*numpy.std(ts))[0]
+            print('Completed %d removal cycles' % c)
+            if numpy.array_equal(outliers,cache):
+                print('Outliers did not change, breaking recursion')
+                break
+            print('%d outliers remain' % len(outliers))
+            c += 1
 
 # load data
 print("-- Loading range data")
@@ -99,19 +141,40 @@ else:
     stride = 1
 if flower:
     darmblrms = (
-        darmts.highpass(flower/2.).notch(60).bandpass(flower, fupper).crop(
-            dstart, dend).rms(stride))
+        darmts.highpass(flower/2., fstop=flower/4., filtfilt=False, ftype='butter').notch(
+        60, filtfilt=False).bandpass(
+        flower, fupper, fstop=[flower/2., fupper*1.5], filtfilt=False, ftype='butter').crop(
+        dstart, dend).rms(stride))
     darmblrms.name = '%s %s-%s Hz BLRMS' % (primary, flower, fupper)
 else:
     darmblrms = darmts.notch(60).crop(dstart, dend).rms(stride)
     darmblrms.name = '%s RMS' % primary
 
+if args.remove_outliers:
+    print('-- Removing outliers above %f sigma' % args.remove_outliers)
+    remove_outliers(darmblrms,args.remove_outliers)
+    remove_outliers(rangets,args.remove_outliers)
+
+if args.trend_type == 'minute':
+    # calculate the r value between the DARM BLRMS and the Range timeseries
+    corr_p = numpy.corrcoef(rangets.value, darmblrms.value)[0, 1]
+    # calculate the ρ value between the DARM BLRMS and the Range timeseries
+    corr_s = spearmanr(rangets.value, darmblrms.value)[0]
+else:
+    # for second trends, set correlation to 0 since sample rates differ
+    corr_p = 0
+    corr_s = 0
+    
 # create scaled versions of data to compare to each other
 print("-- Creating scaled data")
 rangescaled = rangets.detrend()
-rangemax = rangescaled.value.max()
+rangerms = numpy.sqrt(sum(rangescaled**2.0)/len(rangescaled))
 darmscaled = darmblrms.detrend()
-darmscaled *= (-rangemax / darmscaled.value.max())
+darmrms = numpy.sqrt(sum(darmscaled**2.0)/len(darmscaled))
+
+#create scaled darm using the rms(range) and the rms(darm)
+if args.trend_type == 'minute':
+    darmscaled *= (-rangerms / darmrms)
 
 # get aux data
 print("-- Loading auxiliary channel data")
@@ -125,9 +188,9 @@ else:
 nchan = len(channels)
 print("Identified %d channels" % nchan)
 if args.trend_type == 'minute':
-    frametype = '%s_M' % args.ifo
+    frametype = '%s_M' % args.ifo # for minute trends
 else:
-    frametype = '%s_T' % args.ifo
+    frametype = '%s_T' % args.ifo # for second trends
 auxdata = TimeSeriesDict.get(map(str, channels), dstart, dend, verbose=True,
                              frametype=frametype, nproc=args.nproc,
                              observatory=args.ifo[0], pad=0)
@@ -142,20 +205,31 @@ counter = multiprocessing.Value('i', 0)
 p1 = (.1, .1, .9, .95)
 p2 = (.1, .15, .9, .9)
 
-def process_channel(input_):
+def process_channel(input_,):
     chan, ts = input_
     flat = ts.value.min() == ts.value.max()
     if flat:
         corr1 = None
         corr2 = None
+        corr1s = None
+        corr2s = None
         plot1 = None
         plot2 = None
     else:
         corr1 = numpy.corrcoef(ts.value, darmblrms.value)[0, 1]
+        corr1s = spearmanr(ts.value, darmblrms.value)[0]
         if args.trend_type == 'minute':
-            corr2 = numpy.corrcoef(ts.value, rangets.value)[0, 1] ** 2.
+            corr2 = numpy.corrcoef(ts.value, rangets.value)[0, 1]
+            corr2s = spearmanr(ts.value, rangets.value)[0]
         else:
             corr2 = 0.0
+            corr2s = 0.0
+        #if all corralations are below threshold it does not plot
+        if((numpy.absolute(corr1) < args.threshold) and (numpy.absolute(corr1s) < args.threshold)
+                and (numpy.absolute(corr2) < args.threshold) and (numpy.absolute(corr2s) < args.threshold)):
+            plot1 = None
+            plot2 = None
+            return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
         plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
                               figsize=(12, 12))
         plot.subplots_adjust(*p1)
@@ -172,28 +246,43 @@ def process_channel(input_):
             plot.save(plot1)
         except (IOError, IndexError):
             plot.save(plot1)
+        except RuntimeError as e:
+            if 'latex' in str(e).lower():
+                plot.save(plot1)
+            else:
+                raise
         plot.close()
 
         # plot auto-scaled verions
         tsscaled = ts.detrend()
-        tsscaled *= rangemax / tsscaled.value.max()
-        if corr1 > 0:
-            tsscaled *= -1
+        tsrms = numpy.sqrt(sum(tsscaled**2.0)/len(tsscaled))
+        if args.trend_type == 'minute':
+            tsscaled *= (rangerms / tsrms)
+            if corr1 > 0:
+                tsscaled *= -1
+        else:
+            tsscaled *= (darmrms / tsrms)
+            if corr1 < 0:
+                tsscaled *= -1
         plot = TimeSeriesPlot(darmscaled, rangescaled, tsscaled,
                               figsize=[12, 6])
         plot.subplots_adjust(*p2)
         ax = plot.gca()
         ax.set_xlim(start, end)
         ax.set_epoch(start)
-        ax.set_ylabel('Scaled amplitude [arbitrary units')
+        ax.set_ylabel('Scaled amplitude [arbitrary units]')
         ax.legend(loc='best')
         plot2 = '%s_COMPARISON-%s.png' % (channelstub, gpsstub)
         try:
             plot.save(plot2)
         except (IOError, IndexError):
             plot.save(plot2)
+        except RuntimeError as e:
+            if 'latex' in str(e).lower():
+                plot.save(plot2)
+            else:
+                raise
         plot.close()
-        corr1 **= 2.
 
     # increment counter and print status
     with counter.get_lock():
@@ -202,19 +291,19 @@ def process_channel(input_):
         print("Completed [%d/%d] %3d%% %-50s"
               % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
         sys.stdout.flush()
-    return chan, corr1, corr2, plot1, plot2
+    return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
 
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, auxdata.iteritems())
-results.sort(key=lambda x: (x[1] is not None and x[1] + x[2] or 0, x[0]),
-             reverse=True)
+results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
+             abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
 
 print("")
 
 with open('results.txt', 'w') as f:
-    for ch, corr1, corr2, _, _ in results:
-        print('%s %s %s' % (ch, corr1, corr2), file=f)
+    for ch, corr1, corr2, _, _, corr1s, corr2s in results:
+        print('%s %s %s %s %s' % (ch, corr1, corr2, corr1s, corr2s), file=f)
 
 # -- write html
 title = '%s slow correlations: %d-%d' % (args.ifo, start, end)
@@ -236,8 +325,13 @@ page.div.close()
 
 # results
 page.h2('Results')
-rsq = "<i>r<sup>2</sup></i>"
-wikilink = html.markup.oneliner.a(
+r_blrms = "<i>r<sub>blrms</sub> </i>"
+r_range = "<i>r<sub>range</sub> </i>"
+r = "<i>r</i>"
+rho_blrms = "<i>&rho;<sub>blrms</sub> </i>"
+rho_range = "<i>&rho;<sub>range</sub> </i>"
+rho = "<i>&rho;</i>"
+Pearson_wikilink = html.markup.oneliner.a(
     "Pearson's correlation coefficient",
     href="https://en.wikipedia.org/wiki/"
          "Pearson_product-moment_correlation_coefficient",
@@ -247,24 +341,44 @@ numpylink = html.markup.oneliner.a(
     href="http://docs.scipy.org/doc/numpy-1.10.1/reference/generated/"
          "numpy.corrcoef.html",
     rel="external")
-page.p("In the results below, %s is calculated as the square of %s using %s."
-       % (rsq, wikilink, numpylink))
+Spearman_wikilink = html.markup.oneliner.a(
+    "Spearman's correlation coefficient",
+    href="https://en.wikipedia.org/wiki/"
+         "Spearman%27s_rank_correlation_coefficient",
+    rel="external")
+scipylink = html.markup.oneliner.a(
+    "<code>scipy.stats.spearmanr</code>",
+    href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/"
+         "scipy.stats.spearmanr.html",
+    rel="external")
+page.p("In the results below, all %s values are calculated as the square of %s using %s"
+"and all %s values are calculated as the square of %s using %s."
+       % (r, Pearson_wikilink, numpylink, rho, Spearman_wikilink, scipylink))
 if args.trend_type == 'minute':
-    page.p("%s is reported for both <code>%s</code> and <code>%s</code>."
-           % (rsq, primary, rangechannel))
+    page.p("%s and %s are reported for <code>%s</code>. %s and %s are reported for"
+    "<code>%s</code>. The %s between these two channels is %.2f."
+    "The %s between these two channels is %.2f."
+        % (r_blrms, rho_blrms, primary, r_range, rho_range, rangechannel, r, corr_p, rho, corr_s))
+    
 page.div(class_='panel-group', id_='results')
-for i, (ch, corr1, corr2, plot1, plot2) in enumerate(results):
+for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     if corr1 is None:
         h = '%s [flat]' % ch
+    elif plot1 is None:
+        h = '%s [%s = %.2f, %s = %.2f] [%s = %.2f, %s = %.2f] [below threshold]' % (ch, r_blrms, corr1,
+        r_range, corr2, rho_blrms, corr1s, rho_range, corr2s)
     elif args.trend_type == 'minute':
-        h = '%s [%s = %.2f, %.2f]' % (ch, rsq, corr1, corr2)
+        h = '%s [%s = %.2f, %s = %.2f] [%s = %.2f, %s = %.2f]' % (ch, r_blrms, corr1,
+        r_range, corr2, rho_blrms, corr1s, rho_range, corr2s)
     else:
-        h = '%s [%s = %.2f]' % (ch, rsq, corr1)
-    if corr1 is None or corr1 == 0:
-        context = ''
-    elif corr1 + corr2 >= .8:
+        h = '%s [%s = %.2f]' % (ch, r_blrms, corr1)
+    if (corr1 is None) or (corr1 == 0) or (plot1 is None):
+        context = 'panel-default'
+    elif((numpy.absolute(corr1) >= .6) or (numpy.absolute(corr1s) >= .6)
+          or (numpy.absolute(corr2) >= .6) or (numpy.absolute(corr2s) >= .6)):
         context = 'panel-danger'
-    elif corr1 + corr2 >= .6:
+    elif((numpy.absolute(corr1) >= .4) or (numpy.absolute(corr1s) >= .4)
+          or (numpy.absolute(corr2) >= .4) or (numpy.absolute(corr2s) >= .4)):
         context = 'panel-warning'
     else:
         context = 'panel-info'
@@ -278,7 +392,9 @@ for i, (ch, corr1, corr2, plot1, plot2) in enumerate(results):
     page.div(id_='channel%d' % i, class_='panel-collapse collapse')
     page.div(class_='panel-body')
     if corr1 is None:
-        page.p("This vector is flat")
+        page.p("The amplitude data for this channel is flat (does not change) for the chosen time period.")
+    elif plot1 is None:
+        page.p("Niether r or rho are above the threshold of %.2f." %(args.threshold))
     else:
         for p in (plot1, plot2):
             page.a(href=p, target='_blank')
@@ -309,3 +425,5 @@ write_param('Band-pass', '%s-%s' % (flower, fupper))
 page.div.close()  # container
 with open('index.html', 'w') as f:
     print(str(page), file=f)
+
+print ("-- Process Completed")

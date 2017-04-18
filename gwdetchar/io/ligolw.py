@@ -47,7 +47,7 @@ def new_table(tab, *args, **kwargs):
         a newly-created table with the relevant attributes and structure
     """
     if isinstance(tab, str):
-        tab = lsctables.TableByName[table.StripTableName(tab)]
+        tab = lsctables.TableByName[table.Table.TableName(tab)]
     return lsctables.New(tab, *args, **kwargs)
 
 

@@ -22,7 +22,6 @@
 
 from __future__ import print_function
 
-import argparse
 import numpy
 import os.path
 import sys
@@ -38,7 +37,7 @@ from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.io.cache import cache_segments
 from gwpy.utils import gprint
 
-from gwdetchar import (cds, cli, const, overflow, __version__)
+from gwdetchar import (cds, cli, const, daq, __version__)
 from gwdetchar.io import (datafind, ligolw, html as htmlio)
 
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
@@ -74,7 +73,7 @@ def get_real_channel(adcchannel):
     return cds.get_adc_channel(ifo, modelname, int(card), int(slot))
 
 
-parser = argparse.ArgumentParser(description=__doc__)
+parser = cli.create_parser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
 parser.add_argument('dcuid', type=int, nargs='+',
@@ -102,6 +101,7 @@ parser.add_argument('-s', '--segment-end-pad', type=float, default=1.0,
 parser.add_argument('-m', '--html', help='path to write html output')
 parser.add_argument('-v', '--plot', action='store_true', default=None,
                     help='make plots of all overflows, defaul: %(default)s')
+parser.add_argument('-c', '--fec-map', help='URL of human-readable FEC map')
 
 args = parser.parse_args()
 
@@ -109,9 +109,15 @@ span = Segment(args.gpsstart, args.gpsend)
 
 # get segments
 if args.state_flag:
-    state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
-                                 args.gpsend.seconds,
-                                 url=const.O1_SEGMENT_SERVER)
+    state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
+                                  int(args.gpsend),
+                                  url=const.O1_SEGMENT_SERVER)
+    tmp = type(state.active)()
+    for i, seg in enumerate(state.active):
+        if abs(seg) < args.segment_end_pad:
+            continue
+        tmp.append(type(seg)(seg[0], seg[1]-args.segment_end_pad))
+    state.active = tmp.coalesce()
     statea = state.active
 else:
     statea = SegmentList([span])
@@ -120,12 +126,12 @@ if not args.output_file:
     duration = abs(span)
     args.output_file = (
         '%s-OVERFLOWS-%d-%d.xml.gz'
-        % (args.ifo, args.gpsstart.seconds, duration))
+        % (args.ifo, int(args.gpsstart), duration))
     gprint("Set default output file as %s" % args.output_file)
 
 # get frame cache
 cache = datafind.find_frames(args.ifo[0], args.frametype,
-                             args.gpsstart.seconds, args.gpsend.seconds)
+                             int(args.gpsstart), int(args.gpsend))
 cachesegs = statea & cache_segments(cache)
 
 # set up container
@@ -133,7 +139,7 @@ if args.output_format.endswith('segments'):
     use_segments = True
     overflows = DataQualityDict()
     def find_overflows(timeseries, channel, segment):
-        segs = overflow.find_overflow_segments(timeseries)
+        segs = daq.find_overflow_segments(timeseries)
         segs.known &= SegmentList([segment])
         segs.coalesce()
         try:
@@ -146,7 +152,7 @@ else:
         'sngl_burst',
         columns=['peak_time', 'peak_time_ns', 'event_id', 'channel', 'snr'])
     def find_overflows(timeseries, channel, segment):
-        times = overflow.find_overflows(timeseries)
+        times = daq.find_overflows(timeseries)
         times = times[(times >= float(segment[0])) &
                       (times < float(segment[1]))]
         overflows.extend(table_from_times(times, channel))
@@ -154,30 +160,28 @@ else:
 # get channel and find overflows
 for dcuid in args.dcuid:
     gprint("Processing DCUID %d" % dcuid)
-    channel = overflow.ligo_accum_overflow_channel(dcuid, args.ifo)
+    channel = daq.ligo_accum_overflow_channel(dcuid, args.ifo)
     if args.deep:
         gprint("    Getting list of overflow channels...", end=' ')
         try:
-            channels = overflow.ligo_model_overflow_channels(
+            channels = daq.ligo_model_overflow_channels(
                 dcuid, args.ifo, args.frametype, gpstime=span[0])
         except IndexError:  # no frame found for GPS start, try GPS end
-            channels = overflow.ligo_model_overflow_channels(
+            channels = daq.ligo_model_overflow_channels(
                 dcuid, args.ifo, args.frametype, gpstime=span[-1])
         gprint("    %d channels found" % len(channel))
     for seg in cachesegs:
         c = cache.sieve(segment=seg)
-        if (seg[1]-args.segment_end_pad) < seg[0]:
-            continue
         gprint("    Reading ACCUM_OVERFLOW data for %d-%d..." % seg, end=' ')
         data = TimeSeries.read(c, channel, nproc=args.nproc,
-                               start=seg[0], end=seg[1]-args.segment_end_pad)
+                               start=seg[0], end=seg[1])
         if use_segments:
-            new = overflow.find_overflow_segments(data)
+            new = daq.find_overflow_segments(data)
             osegs = type(new.active)([type(s)(s[0]-2, s[0]+2) for
                                       s in new.active])
             go_deep = len(new.active) > 0
         else:
-            new = overflow.find_overflows(data)
+            new = daq.find_overflows(data)
             osegs = SegmentList([Segment(t-2, t+2) for t in new])
             go_deep = new.size != 0
         gprint("%d overflows found" % len(osegs))
@@ -236,7 +240,7 @@ if args.html:
     if os.path.basename(args.html) == 'index.html':
         page = htmlio.new_bootstrap_page(
             title='%s Overflows: %d-%d' % (
-                args.ifo, args.gpsstart.seconds, args.gpsend.seconds))
+                args.ifo, int(args.gpsstart), int(args.gpsend)))
     else:
         page = htmlio.markup.page()
     page.div(class_='container')
@@ -244,7 +248,7 @@ if args.html:
     # -- header
     page.div(class_='page-header')
     page.h1('%s ADC/DAC Overflows: %d-%d'
-            % (args.ifo, args.gpsstart.seconds, args.gpsend.seconds))
+            % (args.ifo, int(args.gpsstart), int(args.gpsend)))
     page.p("This analysis searched for digital-to-analogue (DAC) or "
            "analogue-to-digital (ADC) conversion overflows in the LIGO "
            "real-time controls system.")
@@ -339,6 +343,11 @@ if args.html:
     write_param('End time', args.gpsend)
     write_param('State flag', args.state_flag)
     write_param('DCUIDs', ' '.join(map(str, args.dcuid)))
+
+    if args.fec_map:
+        page.h2('Links')
+        write_param('FEC map', '<a href="{0}" target="_blank" title="{1} FEC '
+                               'map">{0}</a>'.format(args.fec_map, args.ifo))
 
     # -- close and write
     page.div.close()

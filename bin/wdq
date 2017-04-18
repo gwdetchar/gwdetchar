@@ -22,7 +22,6 @@
 
 from __future__ import print_function
 
-import argparse
 import os.path
 import sys
 from subprocess import (Popen, PIPE, CalledProcessError)
@@ -35,7 +34,7 @@ from gwdetchar import (cli, omega, const)
 from gwdetchar.io.datafind import find_frames
 from gwdetchar.utils import which
 
-parser = argparse.ArgumentParser(description=__doc__)
+parser = cli.create_parser(description=__doc__)
 parser.add_argument('gpstime', type=str, help='GPS time of scan')
 cli.add_ifo_option(parser)
 parser.add_argument('-o', '--output-directory',
@@ -48,6 +47,14 @@ parser.add_argument(
 parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
                     required=omega.WPIPELINE is None,
                     help='path to wpipeline binary, default: %(default)s')
+parser.add_argument('--condor', action='store_true', default=False,
+                    help='indicates this job is running under condor, '
+                         'only use when running as part of a workflow')
+
+oargs = parser.add_argument_group('Omega options')
+oargs.add_argument('-c', '--colormap', default='parula',
+                  help='name of colormap to use (only supported for '
+                       'omega > r3449)')
 
 args = parser.parse_args()
 
@@ -67,25 +74,27 @@ if not os.path.isdir(outdir):
     os.makedirs(outdir)
 print("Ouput directory created as %s" % outdir)
 
-# find epoch
-epoch = None
-epochs = sorted(const.EPOCH.items(), key=lambda x: x[1].start)
-for i, (epoch_, segment) in enumerate(epochs):
-    if gpstime in segment:
-        epoch = epoch_
-        break
-    elif (i == 0 and gpstime < segment.start):
-        epoch = epoch_
-        break
-    elif gpstime < segment.start:
-        epoch = epochs[i-1][0]
-        break
-if epoch is None:
-    epoch = 'O1'
-print("Identified epoch as %r" % epoch)
-
-# find and parse configuration file
 if args.config_file is None:
+    # find epoch
+    epoch = None
+    epochs = sorted(const.EPOCH.items(), key=lambda x: x[1].start)
+    for i, (epoch_, segment) in enumerate(epochs):
+        if gpstime in segment:
+            epoch = epoch_
+            break
+        elif (i == 0 and gpstime < segment.start):
+            epoch = epoch_
+            break
+        elif gpstime < segment.start:
+            epoch = epochs[i-1][0]
+            break
+    if epoch is None:
+        epoch = epochs[-1]
+        print("GPS time not identified in any epoch, defaulting to %r" % epoch)
+    else:
+        print("Identified epoch as %r" % epoch)
+
+    # find and parse configuration file
     args.config_file = os.path.expanduser(
         '~detchar/etc/omega/{epoch}/{obs}-{ifo}_R-selected.txt'.format(
         epoch=epoch, obs=obs, ifo=ifo))
@@ -120,4 +129,5 @@ print("Cachefile generated as %s" % cachefile)
 
 # run scan
 omega.run(gps, args.config_file, cachefile, outdir=outdir,
-          wpipeline=args.wpipeline, verbose=True)
+          wpipeline=args.wpipeline, colormap=args.colormap, verbose=True,
+          remove_lock_on_term=args.condor)

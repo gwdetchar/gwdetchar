@@ -19,16 +19,34 @@
 """Methods and utilties for performing Omega pipline scans
 """
 
+from __future__ import print_function
+
 import re
 import os
 import subprocess
+import sys
+import signal
 
 from gwpy.detector import (Channel, ChannelList)
 
+from . import WPIPELINE
+
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
-OMEGA_LOCATION = os.getenv('OMEGA_LOCATION', None)
-WPIPELINE = OMEGA_LOCATION and os.path.join(OMEGA_LOCATION, 'bin', 'wpipeline')
+# -- utilities ----------------------------------------------------------------
+
+def get_omega_version(executable=WPIPELINE):
+    """Determine the omega version from the executable
+
+    >>> get_omega_version()
+    'r3449'
+    """
+    cmd = [executable, 'version']
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    if p.returncode:
+        raise subprocess.CalledProcessError(p.returncode, ' '.join(cmd))
+    return out.split('\n')[0].split(' ')[-1]
 
 
 # -- scan configuration parsing -----------------------------------------------
@@ -46,6 +64,11 @@ class OmegaChannel(Channel):
 
 
 class OmegaChannelList(ChannelList):
+    """List of channels configured for processing in an Omega-pipeline scan
+
+    The main access point for this class is the `OmegaChannelList.read`
+    method, which will parse a scan configuration file.
+    """
     @classmethod
     def read(cls, filename):
         """Parse an Omega-scan configuration file into a `ChannelList`
@@ -128,7 +151,8 @@ def omega_param(val):
 # -- scan processing ----------------------------------------------------------
 
 def run(gpstime, config, cachefile, outdir='.', report=True,
-        wpipeline=WPIPELINE, verbose=False):
+        wpipeline=WPIPELINE, colormap='parula', verbose=False,
+        remove_lock_on_term=False):
     """Run a wpipeline scan at the given GPS time
 
     Parameters
@@ -156,15 +180,47 @@ def run(gpstime, config, cachefile, outdir='.', report=True,
     if wpipeline is None:
         raise RuntimeError("Unable to determine wpipeline path automatically, "
                            "please give explicitly")
-    cmd = [wpipeline, 'scan', '--configuration', config,
-           '--framecache', cachefile, '--outdir', outdir, str(gpstime)]
+    # create command
+    cmd = [wpipeline, 'scan', str(gpstime), '--configuration', config,
+           '--framecache', cachefile, '--outdir', outdir]
     if report:
         cmd.append('--report')
+    # if omega is new enough, add the --colormap option
+    try:
+        version = get_omega_version(wpipeline)
+    except subprocess.CalledProcessError:
+        pass
+    else:
+        if version >= 'r3449':
+            cmd.extend(('--colormap', colormap))
+
+    # set up handling of SIGTERM (from condor eviction)
+    lockf = os.path.join(outdir, 'lock.txt')
+    if remove_lock_on_term:
+        if verbose:
+            print("Installing signal handler for condor removal")
+        def _term_handler(signal, frame):
+            """Handle SIGTERM from condor gracefully
+            """
+            print("SIGTERM raised: deleting %s" % lockf, file=sys.stderr)
+            try:
+                os.remove(lockf)
+            except IOError:
+                pass
+            sys.exit(0)
+        signal.signal(signal.SIGTERM, _term_handler)
+
+    # RUN
     if verbose:
         print("Running omega scan as\n\n%s\n" % ' '.join(cmd))
     proc = subprocess.Popen(cmd, stdout=verbose and subprocess.PIPE or None)
     proc.communicate()
     if proc.returncode:
+        if remove_lock_on_term:
+            try:
+                os.remove(lockf)
+            except OSError:
+                pass
         raise subprocess.CalledProcessError(proc.returncode, ' '.join(cmd))
     if verbose:
         print('Omega scan complete')

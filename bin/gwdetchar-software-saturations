@@ -22,13 +22,12 @@
 
 from __future__ import print_function
 
-import argparse
 import itertools
 import os
 import re
 import subprocess
 import sys
-from multiprocessing import cpu_count
+from multiprocessing import (Pool, cpu_count)
 from StringIO import StringIO
 
 from matplotlib import use
@@ -36,6 +35,7 @@ use('agg')
 
 from glue import markup
 
+from gwpy.io.gwf import get_channel_names
 from gwpy.segments import (Segment, SegmentList,
                            DataQualityFlag, DataQualityDict)
 from gwpy.time import to_gps
@@ -45,6 +45,13 @@ from gwdetchar import (__version__, cli, const)
 from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import find_frames
 from gwdetchar.saturation import find_saturations
+
+try:
+    from LDAStools import frameCPP
+except ImportError:
+    HAS_FRAMECPP = False
+else:
+    HAS_FRAMECPP = True
 
 __author__ = 'Dan Hoak <daniel.hoak@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -115,29 +122,6 @@ def plot_saturations(flag, span, facecolor='red', edgecolor='darkred',
     return plot
 
 
-def get_adc_channels(framefile):
-    """Return the names of all ADC channels stored in the framefile
-    """
-    # try just using FrChannels in a subprocess, it's faster
-    try:
-        frchans = subprocess.Popen(
-            ['FrChannels', framefile], stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        out, err = frchans.communicate()
-        if frchans.returncode:
-            raise subprocess.CalledProcessError("FrChannels %s" % framefile)
-    # otherwise manually open the frame and read the ADCs
-    except (OSError, subprocess.CalledProcessError):
-        import lalframe
-        frfile = lalframe.FrameUFrFileOpen(framefile, "r")
-        frtoc = lalframe.FrameUFrTOCRead(frfile)
-        nadc = lalframe.FrameUFrTOCQueryAdcN(frtoc)
-        return [lalframe.FrameUFrTOCQueryAdcName(frtoc, i) for
-                i in range(nadc)]
-    else:
-        return zip(*map(str.split, out.splitlines()))[0]
-
-
 def find_limit_channels(channels, skip=None):
     """Find all 'LIMIT' channels that have a matching 'LIMEN' or 'SWSTAT'
 
@@ -171,6 +155,12 @@ def find_limit_channels(channels, skip=None):
         elif re_swstat.search(useful[i+1]):
             swstats.append(x[:-6])
     return limens, swstats
+
+
+def _find_saturations(data):
+    out = find_saturations(data[0], data[1], precision=.99, segments=True)
+    out.name = out.name[:-7]
+    return out
 
 
 def is_saturated(channel, cache, start=None, end=None,
@@ -218,9 +208,12 @@ def is_saturated(channel, cache, start=None, end=None,
             channels[i] = c[:-6]
     # check limit if set
     indicators = ['%s_%s' % (c, indicator) for c in channels]
+    if HAS_FRAMECPP:
+        iokwargs = {'type': 'adc', 'format': 'gwf.framecpp'}
+    else:
+        iokwargs = {'format': 'gwf'}
     data = TimeSeriesDict.read(
-        cache[0].path, indicators, start=start, end=start+1, format='framecpp',
-        type='adc')
+        cache[0].path, indicators, start=start, end=start+1, **iokwargs)
     if indicator.upper() == 'LIMEN':
         active = dict((c, data[indicators[i]].value[0]) for
                       i, c in enumerate(channels))
@@ -236,29 +229,23 @@ def is_saturated(channel, cache, start=None, end=None,
     datachans = ['%s_%s' % (c, s) for c in activechans for
                  s in ('LIMIT', 'OUTPUT')]
     data = TimeSeriesDict.read(cache, datachans, start=start, end=end,
-                               nproc=nproc, type='adc')
-    # loop over channels and return the following:
-    #     no limit      -   None
-    #     no saturation -   False
-    #     saturation    -   True
-    out = []
-    for c in channels:
-        if c not in activechans:
-            out.append(None)
-            continue
-        if segments:
-            out.append(find_saturations(data['%s_OUTPUT' % c],
-                                        data['%s_LIMIT' % c], precision=.99,
-                                        segments=True))
-            out[-1].name = out[-1].name[:-7]
-        else:
-            out.append(find_saturations(data['%s_OUTPUT' % c],
-                                        data['%s_LIMIT' % c],
-                                        precision=.99).any())
-    if isinstance(channel, (list, tuple)):
-        return out
+                               nproc=nproc, **iokwargs)
+
+    # find saturations of the limit for each channel
+    dataiter = ((data['%s_OUTPUT' % c], data['%s_LIMIT' % c])
+                for c in activechans)
+    if nproc > 1:
+        pool = Pool(processes=nproc)
+        saturations = list(pool.map(_find_saturations, dataiter))
+        pool.close()
     else:
-        return out[0]
+        saturations = list(map(_find_saturations, dataiter))
+
+    # return many or one (based on input)
+    if isinstance(channel, (list, tuple)):
+        return saturations
+    else:
+        return saturations[0]
 
 
 # -----------------------------------------------------------------------------
@@ -267,10 +254,9 @@ def is_saturated(channel, cache, start=None, end=None,
 #
 # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
-# parse command line
+# -- parse command line -------------------------------------------------------
 
-parser = argparse.ArgumentParser()
+parser = cli.create_parser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
 cli.add_frametype_option(parser, required=const.IFO is None,
@@ -282,7 +268,7 @@ parser.add_argument('-c', '--channels',
                          "from frames")
 parser.add_argument('-s', '--skip', nargs='*', default=[],
                     help='skip channels matching this string')
-parser.add_argument('-g', '--group-size', default=256, type=int,
+parser.add_argument('-g', '--group-size', default=1024, type=int,
                     help="number of channels to process in a single batch, "
                          "default: %(default)s")
 parser.add_argument('-a', '--state-flag', metavar='FLAG',
@@ -303,8 +289,8 @@ frametype = args.frametype or '%s_R' % ifo
 # get segments
 span = Segment(args.gpsstart, args.gpsend)
 if args.state_flag:
-    state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
-                                  args.gpsend.seconds,
+    state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
+                                  int(args.gpsend),
                                   url=const.O1_SEGMENT_SERVER)
     for i, seg in enumerate(state.active):
         state.active[i] = type(seg)(seg[0], seg[1]-args.pad_state_end)
@@ -316,9 +302,9 @@ else:
 
 # find frames
 cache = find_frames(site, frametype,
-                    args.gpsstart.seconds, args.gpsend.seconds)
-tcache = find_frames(site, '%s_T' % ifo, args.gpsstart.seconds,
-                     args.gpsend.seconds)
+                    int(args.gpsstart), int(args.gpsend))
+tcache = find_frames(site, '%s_T' % ifo, int(args.gpsstart),
+                     int(args.gpsend))
 
 # find channels
 if not os.getenv('LIGO_DATAFIND_SERVER'):
@@ -328,9 +314,9 @@ else:
     print("Finding channels in frames...")
     if len(cache) == 0:
         raise RuntimeError("No frames recovered for %s in interval [%s, %s)" %
-                           (frametype, args.gpsstart.seconds,
-                            args.gpsend.seconds))
-    allchannels = get_adc_channels(cache[0].path)
+                           (frametype, int(args.gpsstart),
+                            int(args.gpsend)))
+    allchannels = get_channel_names(cache[0].path)
     print("   Found %d channels in frame" % len(allchannels))
     sys.stdout.flush()
     channels = find_limit_channels(allchannels, skip=args.skip)
@@ -358,7 +344,7 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
         ngroup = args.group_size
     else:
         ngroup = int(
-            min(nchans, args.group_size, .5 * 1024**3 / 4. / 16. / dur))
+            min(nchans, args.group_size, 2 * 1024**3 / 4. / 16. / dur))
     print('Processing %s channels in groups of %d:' % (suffix, ngroup))
     sys.stdout.flush()
     sets = grouper(clist, ngroup)
@@ -374,15 +360,18 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
             saturated = is_saturated(cset, cache2, seg[0], seg[1],
                                      indicator=suffix, nproc=args.nproc,
                                      segments=True)
-            for j, (c, sat) in enumerate(zip(cset, saturated)):
-                if sat is not None:
-                    try:
-                        saturations[c] += sat
-                    except KeyError:
-                        saturations[c] = sat
+            for new in saturated:
+                try:
+                    saturations[new.name] += new
+                except KeyError:
+                    saturations[new.name] = new
         for j, c in enumerate(cset):
-            if c in saturations:
+            try:
                 sat = saturations[c]
+            except KeyError:
+                print('%40s:      SKIP      [%d/%d]'
+                      % (c, i*ngroup + j + 1, nchans), end='\r')
+            else:
                 if abs(sat.active):
                     print('%40s: ---- FAIL ---- [%d/%d]'
                           % (c, i*ngroup + j + 1, nchans))
@@ -392,13 +381,9 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
                 else:
                     print('%40s:      PASS      [%d/%d]'
                           % (c, i*ngroup + j + 1, nchans))
-            else:
-                print('%40s:      SKIP      [%d/%d]'
-                      % (c, i*ngroup + j + 1, nchans), end='\r')
             sys.stdout.flush()
 
-# -----------------------------------------------------------------------------
-# print results and exit
+# -- print results and exit ---------------------------------------------------
 
 print("\n----------------------------------------------------------------"
       "-----")
@@ -415,9 +400,9 @@ if len(bad):
 
 # write LIGO_LW XML
 outfile = ('%s-SOFTWARE_SATURATIONS-%d-%d.xml.gz'
-           % (ifo, args.gpsstart.seconds,
-              args.gpsend.seconds - args.gpsstart.seconds))
-saturations.write(outfile)
+           % (ifo, int(args.gpsstart),
+              int(args.gpsend) - int(args.gpsstart)))
+saturations.write(outfile, overwrite=True)
 print("Saturation segments written to \n%s" % outfile)
 
 if args.html:
@@ -432,7 +417,7 @@ if args.html:
     # -- header
     page.div(class_='page-header')
     page.h1('%s software saturations: %d-%d'
-            % (ifo, args.gpsstart.seconds, args.gpsend.seconds))
+            % (ifo, int(args.gpsstart), int(args.gpsend)))
     page.p("This analysis searched %d channels for times during which their "
            "OUTPUT value matched the LIMIT value set in software. Only "
            "those signals achieving saturation are printed in the Segments "

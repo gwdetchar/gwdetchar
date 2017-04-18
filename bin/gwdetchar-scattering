@@ -23,7 +23,6 @@
 from __future__ import division
 
 import os.path
-import argparse
 import re
 import warnings
 from StringIO import StringIO
@@ -33,11 +32,12 @@ import numpy
 from matplotlib import use
 use('agg')
 
+import trigfind
+
 from gwpy.plotter import (figure, rcParams, HistogramPlot)
 from gwpy.utils.compat import OrderedDict
 from gwpy.utils import gprint
 from gwpy.table.lsctables import New as new_table, SnglBurstTable
-from gwpy.table.io import trigfind
 from gwpy.timeseries import TimeSeriesDict
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
@@ -61,7 +61,7 @@ rcParams.update({
 
 # -- parse command line -------------------------------------------------------
 
-parser = argparse.ArgumentParser(description=__doc__)
+parser = cli.create_parser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
 parser.add_argument('-a', '--state-flag', metavar='FLAG',
@@ -104,7 +104,7 @@ if args.frequency_threshold.is_integer():
     args.frequency_threshold = int(args.frequency_threshold)
 
 tstr = str(args.frequency_threshold).replace('.', '_')
-gpsstr = '%s-%s' % (args.gpsstart.seconds, (args.gpsend-args.gpsstart).seconds)
+gpsstr = '%s-%s' % (int(args.gpsstart), int(args.gpsend-args.gpsstart))
 
 if args.optic is None:
     args.optic = scattering.OPTIC_MOTION_CHANNELS.keys()
@@ -121,9 +121,8 @@ span = Segment(args.gpsstart, args.gpsend)
 
 # get segments
 if args.state_flag:
-    state = DataQualityFlag.query(args.state_flag, args.gpsstart.seconds,
-                                  args.gpsend.seconds,
-                                  url=const.O1_SEGMENT_SERVER)
+    state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
+                                  int(args.gpsend), url=const.O1_SEGMENT_SERVER)
     for i, seg in enumerate(state.active):
         state.active[i] = type(seg)(seg[0], seg[1]-args.segment_end_pad)
     state.coalesce()
@@ -150,11 +149,11 @@ else:
                       columns=['peak_time', 'peak_time_ns',
                                'peak_frequency', 'snr'])
 for seg in statea:
-    cache = trigfind.find_trigger_urls(args.main_channel, 'omicron',
-                                       seg[0], seg[1])
+    cache = trigfind.find_trigger_files(args.main_channel, 'omicron',
+                                        seg[0], seg[1])
     if len(cache) == 0:
-        warning.warn("No Omicron triggers found for %s in segment [%d .. %d)"
-                     % (args.main_channel, seg[0], seg[1]))
+        warnings.warn("No Omicron triggers found for %s in segment [%d .. %d)"
+                      % (args.main_channel, seg[0], seg[1]))
         continue
     trigs.extend(SnglBurstTable.read(
         cache, columns=trigs.columnnames,
@@ -173,7 +172,7 @@ page = htmlio.new_bootstrap_page(title='%s scattering' % args.ifo)
 page.div(class_='container')
 page.div(class_='page-header')
 page.h1('%s scattering: %d-%d'
-        % (args.ifo, args.gpsstart.seconds, args.gpsend.seconds))
+        % (args.ifo, int(args.gpsstart), int(args.gpsend)))
 page.p("This analysis searched for evidence of beam scattering based on the "
        "velocity of optic motion. The fringe frequency is predicted using "
        "equation (3) of <a href=\"http://iopscience.iop.org/article/10.1088/"
@@ -349,7 +348,7 @@ for i, channel in enumerate(sorted(allchannels)):
         transform=axes['segments'].transAxes, va='top', ha='left',
         bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
     for ax in axes.values():
-        ax.set_epoch(args.gpsstart.seconds)
+        ax.set_epoch(int(args.gpsstart))
         ax.set_xlim(*span)
         if ax is not axes['triggers']:
             plot.add_colorbar(ax=ax, visible=False)
@@ -452,7 +451,7 @@ for i, channel in enumerate(sorted(allchannels)):
 # -- finalize -----------------------------------------------------------------
 
 # write segments
-scatter_segments.write(segxml)
+scatter_segments.write(segxml, overwrite=True)
 if args.verbose:
     gprint("%s written" % segxml)
 

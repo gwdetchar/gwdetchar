@@ -32,6 +32,8 @@ from .utils import natural_sort
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
+_CHANNELS = {}
+
 
 def find_overflows(timeseries, cumulative=True):
     """Find the times of overflows from an overflow counter
@@ -121,14 +123,18 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
     if frametype is None:
         frametype = '%s_R' % ifo
     if gpstime is None:
-        gpstime = tconvert().seconds - 1000
+        gpstime = int(tconvert()) - 1000
     try:
         framefile = find_frames(ifo[0], frametype, gpstime, gpstime)[0].path
     except IndexError as e:
         e.args = ('No %s-%s frames found at GPS %d'
                   % (ifo[0], frametype, gpstime),)
         raise
-    allchannels = get_channels(framefile)
+    try:
+        allchannels = _CHANNELS[framefile]
+    except KeyError:
+        _CHANNELS[framefile] = get_channels(framefile)
+        allchannels = _CHANNELS[framefile]
     if accum:
         regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_ACC_\d+_\d+\Z'
                            % (ifo, dcuid))
@@ -136,3 +142,27 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
         regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_\d+_\d+\Z'
                            % (ifo, dcuid))
     return natural_sort(filter(regex.match, allchannels))
+
+def find_crossings(timeseries,threshold):
+    """Find the times that a timeseries crosses a specific value
+
+    Parameters
+    ----------
+    timeseries : `~gwpy.timeseries.TimeSeries`
+        the input data to test against a threshold
+    threshold : `float`
+        function will analyze input timeseries and find times when data 
+        crosses this threshold
+
+    Returns
+    -------
+    times : `numpy.ndarray`
+        an array of GPS times (`~numpy.float64`) at which the input data 
+        crossed the threshold
+    """
+    if threshold >= 0:
+        crossing_idx = numpy.nonzero(numpy.diff((timeseries.value >= threshold).astype(int)))[0]+1
+    else:
+        crossing_idx = numpy.nonzero(numpy.diff((timeseries.value > threshold).astype(int)))[0]+1
+
+    return timeseries.times.value[crossing_idx]

@@ -3,7 +3,7 @@ astropy
 m2crypto
 pykerberos
 python-cjson
-http://software.ligo.org/lscsoft/source/glue-1.49.1.tar.gz
-http://software.ligo.org/lscsoft/source/dqsegdb-1.2.2.tar.gz
+http://software.ligo.org/lscsoft/source/glue-1.54.1.tar.gz
+http://software.ligo.org/lscsoft/source/dqsegdb-1.4.0.tar.gz
 https://github.com/ligovirgo/trigfind/archive/v0.3.tar.gz
-gwpy
+gwpy>=0.4
