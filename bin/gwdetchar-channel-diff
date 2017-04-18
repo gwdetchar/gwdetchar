@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+
+from gwpy.io import datafind
+from gwpy.io.gwf import get_channel_names
+from gwpy.timeseries import TimeSeriesDict
+from numpy import diff
+
+def find_sec_frames(ifo,start,end):
+    ifo_lett = ifo[0]
+    try:
+        conn = datafind.connect()
+        cache = conn.find_frame_urls(ifo_lett, ifo_lett+'1_T',
+                                    start, end, urltype='file')
+    except RuntimeError:
+        conn.close()
+        cache = conn.find_frame_urls(ifo_lett, ifo_lett+'1_T',
+                                    start, end, urltype='file')
+    return cache
+
+import argparse
+parser = argparse.ArgumentParser(description='Find state changes.')
+parser.add_argument('-i','--ifo', type=str, help='IFO', required=True)
+parser.add_argument('-s','--t1', type=int, help='First GPS time', required=True)
+parser.add_argument('-e','--t2', type=int, help='Second GPS time', required=True)
+
+args = parser.parse_args()
+
+# Shortcuts for the times
+t1, t2 = args.t1, args.t2
+
+# Find the data
+ifo=args.ifo
+cache1=find_sec_frames(ifo, t1-8, t1)
+cache2=find_sec_frames(ifo, t2, t2+1)
+
+channels=filter(lambda x: x.endswith('.mean'),
+                get_channel_names(cache1[0].path))
+result=[]
+for idx in range(0,len(channels),10000):
+    chans = channels[idx:idx+10000]
+    data_dict1=TimeSeriesDict.read(cache1, chans, t1-8, t1,
+                                format='framecpp', type='adc', nproc=8)
+    data_dict2=TimeSeriesDict.read(cache2, chans, t2, t2+1,
+                                format='framecpp', type='adc', nproc=8)
+    for chan in chans:
+        data1=data_dict1[chan].value
+        data2=data_dict2[chan].value
+        # Check for unchanging channel
+        if any(diff(data1) != 0.):
+            result.append((chan, 'live', None))
+            continue
+
+        val1 = data1[-1]
+        val2 = data2[0]
+
+        if val1 == val2:
+            result.append((chan, 'same', val1))
+        else:
+            result.append((chan, val1, val2))
+            print '%s changes from %.4g to %.4g'%(chan,val1,val2)
+
+# Write out the results
+with open('changes-%u-%u.txt' % (t1,t2),'w') as fout:
+    for line in result:
+        if type(line[1]) is not str:
+            fout.write('%s changes from %.4g to %.4g\n' % line)
+
