@@ -201,7 +201,7 @@ for dcuid in args.dcuid:
                     for ch in channels:
                         find_overflows(data[ch], ch, seg)
                 gprint("Done")
-            else:
+            elif use_segments:
                 for ch in channels:
                     try:
                         overflows[ch] += DataQualityFlag(ch, known=[seg])
