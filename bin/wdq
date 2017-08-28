@@ -49,7 +49,7 @@ parser.add_argument(
 parser.add_argument(
     '-c', '--cache-file',
     help='path to data cache file, if not given, data locations '
-         'are found using the datafind server')
+         'are found using the datafind server, must be in LAL cache format')
 parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
                     required=omega.WPIPELINE is None,
                     help='path to wpipeline binary, default: %(default)s')
