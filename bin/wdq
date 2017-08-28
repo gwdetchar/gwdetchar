@@ -23,15 +23,17 @@
 from __future__ import print_function
 
 import os.path
+import shutil
 import sys
 from subprocess import (Popen, PIPE, CalledProcessError)
 
 from glue.lal import Cache
 
+from gwpy.io.cache import cache_segments
 from gwpy.time import to_gps
 
 from gwdetchar import (cli, omega, const)
-from gwdetchar.io.datafind import find_frames
+from gwdetchar.io import datafind
 from gwdetchar.utils import which
 
 parser = cli.create_parser(description=__doc__)
@@ -44,6 +46,10 @@ parser.add_argument(
     '-f', '--config-file',
     help='path to configuration file to use, default: '
          '~detchar/etc/omega/{epoch}/{OBS}-{IFO}_R-selected.txt')
+parser.add_argument(
+    '-c', '--cache-file',
+    help='path to data cache file, if not given, data locations '
+         'are found using the datafind server')
 parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
                     required=omega.WPIPELINE is None,
                     help='path to wpipeline binary, default: %(default)s')
@@ -52,9 +58,9 @@ parser.add_argument('--condor', action='store_true', default=False,
                          'only use when running as part of a workflow')
 
 oargs = parser.add_argument_group('Omega options')
-oargs.add_argument('-c', '--colormap', default='parula',
-                  help='name of colormap to use (only supported for '
-                       'omega > r3449)')
+oargs.add_argument('--colormap', default='parula',
+                   help='name of colormap to use (only supported for '
+                        'omega > r3449)')
 
 args = parser.parse_args()
 
@@ -101,31 +107,25 @@ if args.config_file is None:
 config = omega.OmegaChannelList.read(args.config_file)
 print("Successfully parsed config file %s" % args.config_file)
 
+# read frames from user-given cache
+if args.cache_file:
+    with open(args.cache_file, 'r') as f:
+        cache = Cache.fromfile(f)
 # find frames
-padding = 1000
-cachestart = int(gpstime) - padding
-cacheend = int(gpstime) + padding
-frametypes = set(c.frametype for c in config)
-cache = Cache()
+else:
+    padding = 1000
+    cachestart = int(gpstime) - padding
+    cacheend = int(gpstime) + padding
+    frametypes = set(c.frametype for c in config)
+    cache = Cache()
+    for ft in set(c.frametype for c in config):
+        cache.extend(datafind.find_frames(obs, ft, cachestart, cacheend))
+
+cseg = cache_segments(cache).extent()
 cachefile = os.path.join(
-    outdir, '%s-OMEGA_CACHE_FILE-%d-%d.lcf'
-            % (ifo, cachestart, cacheend-cachestart),
-)
-mode = 'w'
-for ft in set(c.frametype for c in config):
-    cmd = ['gw_data_find', '--observatory', obs, '--type', ft,
-           '--gps-start-time', str(cachestart),
-           '--gps-end-time', str(cacheend),
-           '--frame-cache',
-           '--url-type', 'file']
-    proc = Popen(cmd, stdout=PIPE)
-    out, err = proc.communicate()
-    if proc.returncode:
-        raise CalledProcessError(proc.returncode, ' '.join(cmd))
-    with open(cachefile, mode) as fp:
-        print(out.rstrip(), file=fp)
-    mode = 'a'
-print("Cachefile generated as %s" % cachefile)
+    outdir, '%s-OMEGA_CACHE_FILE-%d-%d.lcf' % (ifo, cseg[0], abs(cseg)))
+datafind.write_omega_cache(cache, cachefile)
+print("Cachefile written to %s" % cachefile)
 
 # run scan
 omega.run(gps, args.config_file, cachefile, outdir=outdir,
