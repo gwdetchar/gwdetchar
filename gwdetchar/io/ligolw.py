@@ -19,9 +19,8 @@
 """Utilties for LIGO_LW XML I/O
 """
 
-from glue.ligolw import (ligolw, table)
+from glue.ligolw import (ligolw, table, lsctables)
 
-from gwpy.table import lsctables
 from gwpy.segments import (Segment, DataQualityFlag, DataQualityDict)
 
 LIGOTimeGPS = lsctables.LIGOTimeGPS
