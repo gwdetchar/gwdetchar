@@ -34,16 +34,25 @@ use('agg')
 
 import trigfind
 
+from glue.lal import Cache
+
 from gwpy.plotter import (figure, rcParams, HistogramPlot)
 from gwpy.utils.compat import OrderedDict
 from gwpy.utils import gprint
-from gwpy.table.lsctables import New as new_table, SnglBurstTable
+from gwpy.table import EventTable
 from gwpy.timeseries import TimeSeriesDict
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
 
 from gwdetchar import (cli, const, scattering, __version__)
 from gwdetchar.io import html as htmlio
+
+try:
+    from LDAStools import frameCPP
+except ImportError:
+    io_kw = {'format': 'gwf'}
+else:
+    io_kw = {'type': 'adc', 'format': 'gwf.framecpp'}
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
@@ -138,16 +147,15 @@ else:
 
 if args.verbose:
     gprint("Loading Omicron triggers for %s..." % args.main_channel, end=' ')
+
+names = ['peak', 'peak_frequency', 'snr']
+llwcols = ['peak_time', 'peak_time_ns', 'peak_frequency', 'snr']
 if args.plot_main_tiles:
-    trigs = new_table(SnglBurstTable,
-                      columns=['start_time', 'start_time_ns',
-                               'stop_time', 'stop_time_ns', 'duration',
-                               'peak_time', 'peak_time_ns', 'central_freq',
-                               'peak_frequency', 'flow', 'bandwidth', 'snr'])
-else:
-    trigs = new_table(SnglBurstTable,
-                      columns=['peak_time', 'peak_time_ns',
-                               'peak_frequency', 'snr'])
+    names.extend(['start', 'duration', 'central_freq', 'bandwidth'])
+    llwcols.extend(['start_time', 'start_time_ns', 'duration', 'central_freq',
+                    'bandwidth'])
+
+fullcache = Cache()
 for seg in statea:
     cache = trigfind.find_trigger_files(args.main_channel, 'omicron',
                                         seg[0], seg[1])
@@ -155,14 +163,18 @@ for seg in statea:
         warnings.warn("No Omicron triggers found for %s in segment [%d .. %d)"
                       % (args.main_channel, seg[0], seg[1]))
         continue
-    trigs.extend(SnglBurstTable.read(
-        cache, columns=trigs.columnnames,
-        filt=lambda t: t.peak_frequency < args.frequency_threshold * 2))
-if args.plot_main_tiles:
-    for t in trigs:
-        t.flow, t.fhigh = t.get_band()
-highsnrtrigs = trigs.copy()
-highsnrtrigs.extend(filter(lambda t: t.snr >= 8., trigs))
+    fullcache.extend(cache)
+
+# read triggers
+trigs = EventTable.read(
+    fullcache, columns=names,
+    ligolw_columns=llwcols, get_as_columns=True,
+    selection='peak_frequency < %s' % (args.frequency_threshold * 2),
+    format='ligolw.sngl_burst', nproc=args.nproc)
+# restrict to requested times (easier to do once here than in .read())
+trigs = trigs[trigs['peak'].in_segmentlist(statea)]
+
+highsnrtrigs = trigs[trigs['snr'] >= 8]
 if args.verbose:
     gprint("%d read" % len(trigs))
 
@@ -208,7 +220,7 @@ alldata = []
 for i, seg in enumerate(statea):
     alldata.append(
         TimeSeriesDict.get(allchannels, seg[0], seg[1], nproc=args.nproc,
-                           resample=128, frametype=args.frametype))
+                           resample=128, frametype=args.frametype, **io_kw))
     if args.verbose:
         gprint("Reading all data... %d/%d segments read"
            % (i+1, len(statea)), end='\r')
@@ -284,7 +296,8 @@ for i, channel in enumerate(sorted(allchannels)):
         deadtimepc = 0.
     if args.verbose:
         gprint("Deadtime: %.2f%% (%.2f/%ds)" % (deadtimepc, deadtime, livetime))
-    efficiency = len(highsnrtrigs.vetoed(scatter_segments[channel].active))
+    efficiency = highsnrtrigs['peak'].in_segmentlist(
+        scatter_segments[channel].active).sum()
     try:
         efficiencypc = efficiency / len(highsnrtrigs) * 100
     except ZeroDivisionError:
@@ -292,10 +305,10 @@ for i, channel in enumerate(sorted(allchannels)):
     if args.verbose:
         gprint("Efficiency (SNR>=8): %.2f%% (%d/%d)"
            % (efficiencypc, efficiency, len(highsnrtrigs)))
-    try:
-        effdt = efficiencypc/deadtimepc
-    except ZeroDivisionError:
+    if deadtimepc == 0.:
         effdt = 0
+    else:
+        effdt = efficiencypc/deadtimepc
     if args.verbose:
         gprint("Efficiency/Deadtime: %.2f" % effdt)
 
@@ -330,7 +343,7 @@ for i, channel in enumerate(sorted(allchannels)):
                                     'bandwidth', 'snr', edgecolor='face',
                                     linewidth=.1, anchor='ll')
     else:
-        axes['triggers'].plot(trigs, 'time', 'peak_frequency', color='snr',
+        axes['triggers'].plot(trigs, 'peak', 'peak_frequency', color='snr',
                               edgecolor='none')
     axes['triggers'].text(
         0.01, 0.95,
