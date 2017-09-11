@@ -67,6 +67,10 @@ parser.add_argument(
     '-f', '--config-file',
     help='path to configuration file to use, default: '
          '~detchar/etc/omega/{epoch}/{OBS}-{IFO}_R-selected.txt')
+parser.add_argument(
+    '-c', '--cache-file',
+    help='path to data cache file, if not given, data locations '
+         'are found using the datafind server, must be in LAL cache format')
 parser.add_argument('-q', '--wdq', default=WDQ, required=WDQ is None,
                     help='path to wdq executable')
 parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
@@ -74,7 +78,7 @@ parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
                     help='path to wpipeline binary')
 
 oargs = parser.add_argument_group('Omega options')
-oargs.add_argument('-c', '--colormap', default='parula',
+oargs.add_argument('--colormap', default='parula',
                    help='name of colormap to use (only supported for '
                         'omega > r3449)')
 
@@ -142,6 +146,8 @@ job.add_opt('ifo', args.ifo)
 job.add_opt('condor', '')
 if args.config_file is not None:
     job.add_opt('config-file', args.config_file)
+if args.cache_file is not None:
+    job.add_opt('cache-file', args.cache_file)
 
 # make node in workflow for each time
 for t in times:
