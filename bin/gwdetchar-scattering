@@ -279,7 +279,8 @@ for i, channel in enumerate(sorted(allchannels)):
             scatter.active = scatter.active.protract(args.segment_padding)
             scatter.coalesce()
         axes['segments'].plot(scatter, facecolor='red', edgecolor='darkred',
-                              known={'alpha': 0.1, 'facecolor': 'lightgray'},
+                              known={'alpha': 0.2, 'facecolor': 'lightgray',
+                                     'edgecolor': 'gray'},
                               y=0, label=' ')
         scatter_segments[channel] += scatter
         if args.verbose:
