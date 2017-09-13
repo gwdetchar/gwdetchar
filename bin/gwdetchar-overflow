@@ -52,7 +52,8 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
 def plot_overflows(flag, span, facecolor='red', edgecolor='darkred',
-                   known={'alpha': 0.1, 'facecolor': 'lightgray'}):
+                   known={'alpha': 0.2, 'facecolor': 'lightgray',
+                          'edgecolor': 'gray'}):
     """Plot the overflow segments contained within this flag
     """
     plot = flag.plot(figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
