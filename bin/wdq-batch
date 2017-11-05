@@ -39,7 +39,9 @@ from gwdetchar import (omega, cli)
 
 # attempt to get WDQ path
 WDQ = os.path.join(os.path.dirname(__file__), 'wdq')
+print 'looking for wdq at %s' % WDQ
 if not os.path.isfile(WDQ):
+    print 'wdq not found' 
     WDQ = None
 
 # set default accounting information
