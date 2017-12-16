@@ -37,7 +37,7 @@ from gwpy.time import from_gps
 from gwpy.plotter import TimeSeriesPlot
 from gwpy.plotter import Plot as gwplot
 from gwpy.detector import ChannelList
-from gwpy.io import nds2 as io_nds2
+from gwpy.io import nds as ndsio
 
 from gwdetchar import cli
 from gwdetchar.io import html
@@ -183,7 +183,7 @@ if args.trend_type == 'minute':
 
 # get aux data
 print("-- Loading auxiliary channel data")
-host, port = io_nds2.host_resolution_order(args.ifo)[0]
+host, port = ndsio.host_resolution_order(args.ifo)[0]
 if args.channel_file is None:
     channels = ChannelList.query_nds2('*.mean', host=host, port=port,
                                       type='m-trend')
