@@ -300,7 +300,7 @@ def process_channel(input_,):
         rangeColor="red"
         darmblrmsColor="blue"
         plotHeight=10
-        plotWidth=20
+        plotWidth=25
 
         tsCopy=ts.reshape(-1,1)
         rangetsCopy=rangets.reshape(-1,1)
@@ -318,7 +318,7 @@ def process_channel(input_,):
 
         scatPlot.add_subplot(121)
         axes = scatPlot.gca()
-        axes.set_xlabel(channelstub.replace("_","\_"))
+        axes.set_xlabel(channelstub.replace("_","\_"), labelpad=30)
         axes.set_ylabel(rangechannel.replace("_","\_")+" [Mpc]")
         axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr3r)), verticalalignment='bottom', horizontalalignment='right',
             transform=axes.transAxes, color="black", size=30)
@@ -329,7 +329,7 @@ def process_channel(input_,):
 
         scatPlot.add_subplot(122)
         axes = scatPlot.gca()
-        axes.set_xlabel(channelstub.replace("_","\_"))
+        axes.set_xlabel(channelstub.replace("_","\_"), labelpad=30)
         axes.set_ylabel(primary.replace("_","\_")+" [strain]")
 	range=abs(max(darmblrms.value)-min(darmblrms.value))
 	upperLim=max(darmblrms.value)+.1*range
