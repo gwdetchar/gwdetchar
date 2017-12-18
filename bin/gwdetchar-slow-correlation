@@ -310,9 +310,9 @@ def process_channel(input_,):
         rangeReg.fit(tsCopy, rangetsCopy)
         rangeFit = rangeReg.predict(tsCopy)
         
-        darblrmsReg = linear_model.LinearRegression()
-        darblrmsReg.fit(tsCopy, darmblrmsCopy)
-        darblrmsFit = darmblrmsReg.predict(tsCopy)
+        darmblrmsReg = linear_model.LinearRegression()
+        darmblrmsReg.fit(tsCopy, darmblrmsCopy)
+        darmblrmsFit = darmblrmsReg.predict(tsCopy)
 
         scatPlot=gwplot()
 
