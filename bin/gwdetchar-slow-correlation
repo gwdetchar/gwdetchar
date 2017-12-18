@@ -369,7 +369,7 @@ rhos = numpy.asarray([x[1] for x in results if x is not None])
 print("")
 
 with open('results.txt', 'w') as f:
-    for ch, corr1, corr2, corr3r, corr3d, corr1s, corr2s in results:
+    for ch, corr1, corr2, corr3r, corr3d, _, _, _, corr1s, corr2s in results:
         print('%s %s %s %s %s %s %s' % (ch, corr1, corr2, corr3r, corr3d, corr1s, corr2s), file=f)
 
 # -- write html
