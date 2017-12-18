@@ -334,7 +334,7 @@ def process_channel(input_,):
         axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr3d)), verticalalignment='bottom', horizontalalignment='right',
             transform=axes.transAxes, color="black", size=30)
         scatPlot.add_scatter(ts, darmblrms, color=darmblrmsColor)
-       #scatPlot.add_line(ts, darmblrmsFit, color="black")
+        scatPlot.add_line(ts, darmblrmsFit, color="black")
         scatPlot.set_figheight(plotHeight)
         scatPlot.set_figwidth(plotWidth)
         
