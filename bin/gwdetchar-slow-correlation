@@ -318,10 +318,8 @@ def process_channel(input_,):
 
         scatPlot.add_subplot(121)
         axes = scatPlot.gca()
-        axes.set_xlabel(ts.name.replace("_","\_"))
-        axes.set_ylabel(rangets.name.replace("_","\_")+" [Mpc]")
-        axes.set_xlabel(ts.name.replace("_","\_"))
-        axes.set_ylabel(range.name.replace("_","\_")+" [Mpc]")
+        axes.set_xlabel(channelstub.replace("_","\_"))
+        axes.set_ylabel(rangechannel.replace("_","\_")+" [Mpc]")
         axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr3r)), verticalalignment='bottom', horizontalalignment='right',
             transform=axes.transAxes, color="black", size=30)
         scatPlot.add_scatter(ts, rangets, color=rangeColor)
@@ -331,10 +329,8 @@ def process_channel(input_,):
 
         scatPlot.add_subplot(122)
         axes = scatPlot.gca()
-        axes.set_xlabel(ts.name.replace("_","\_"))
-        axes.set_ylabel(darmblrms.name.replace("_","\_")+" [strain]")
-        axes.set_xlabel(ts.name.replace("_","\_"))
-        axes.set_ylabel(darmblrms.name.replace("_","\_")+" [strain]")
+        axes.set_xlabel(channelstub.replace("_","\_"))
+        axes.set_ylabel(primary.replace("_","\_")+" [strain]")
         axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr3d)), verticalalignment='bottom', horizontalalignment='right',
             transform=axes.transAxes, color="black", size=30)
         scatPlot.add_scatter(ts, darmblrms, color=darmblrmsColor)
