@@ -25,7 +25,7 @@ import multiprocessing
 import sys
 
 import numpy
-%matplotlib inline
+
 from scipy.stats import spearmanr, pearsonr
 from scipy.interpolate import UnivariateSpline
 
