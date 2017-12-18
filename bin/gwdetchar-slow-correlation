@@ -331,6 +331,10 @@ def process_channel(input_,):
         axes = scatPlot.gca()
         axes.set_xlabel(channelstub.replace("_","\_"))
         axes.set_ylabel(primary.replace("_","\_")+" [strain]")
+	range=abs(max(darmblrms.value)-min(darmblrms.value))
+	upperLim=max(darmblrms.value)+.1*range
+	lowerLim=min(darmblrms.value)-.1*range
+	axes.set_ylim(lowerLim,upperLim)
         axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr3d)), verticalalignment='bottom', horizontalalignment='right',
             transform=axes.transAxes, color="black", size=30)
         scatPlot.add_scatter(ts, darmblrms, color=darmblrmsColor)
