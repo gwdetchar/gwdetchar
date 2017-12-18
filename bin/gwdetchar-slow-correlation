@@ -335,7 +335,7 @@ def process_channel(input_,):
         axes.set_ylabel(darmblrms.name.replace("_","\_")+" [strain]")
         axes.set_xlabel(ts.name.replace("_","\_"))
         axes.set_ylabel(darmblrms.name.replace("_","\_")+" [strain]")
-        axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr3d), verticalalignment='bottom', horizontalalignment='right',
+        axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr3d)), verticalalignment='bottom', horizontalalignment='right',
             transform=axes.transAxes, color="black", size=30)
         scatPlot.add_scatter(ts, darmblrms, color=darmblrmsColor)
         scatPlot.add_line(ts, darmblrmsFit, color="black")
