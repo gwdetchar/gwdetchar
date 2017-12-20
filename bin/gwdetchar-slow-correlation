@@ -125,7 +125,7 @@ def remove_outliers(ts,N):
 print("-- Loading range data")
 rangets = TimeSeries.get(rangechannel, start, end,
                          frametype=args.range_frametype, verbose=True,
-                         nproc=args.nproc)
+                         allow_tape=False, nproc=args.nproc)
 
 if args.trend_type == 'minute':
     dstart, dend = rangets.span
@@ -136,7 +136,7 @@ else:
 print("-- Loading h(t) data")
 darmts = TimeSeries.get(primary, dstart-pad, dend+pad, verbose=True,
                         frametype=args.primary_frametype,
-                        nproc=args.nproc)
+                        allow_tape=False, nproc=args.nproc)
 
 # get darm BLRMS
 print("-- Filtering h(t) data")
@@ -197,7 +197,7 @@ if args.trend_type == 'minute':
 else:
     frametype = '%s_T' % args.ifo # for second trends
 auxdata = TimeSeriesDict.get(map(str, channels), dstart, dend, verbose=True,
-                             frametype=frametype, nproc=args.nproc,
+                             allow_tape=False, frametype=frametype, nproc=args.nproc,
                              observatory=args.ifo[0], pad=0)
 
 gpsstub = '%d-%d' % (start, end-start)
@@ -300,7 +300,7 @@ def process_channel(input_,):
         rangeColor="red"
         darmblrmsColor="blue"
         plotHeight=10
-        plotWidth=25
+	plotWidth=20
 
         tsCopy=ts.reshape(-1,1)
         rangetsCopy=rangets.reshape(-1,1)
