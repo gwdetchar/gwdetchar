@@ -26,7 +26,7 @@ import sys
 
 import numpy
 
-from scipy.stats import spearmanr, pearsonr
+from scipy.stats import spearmanr
 from scipy.interpolate import UnivariateSpline
 
 from matplotlib import use
@@ -125,7 +125,7 @@ def remove_outliers(ts,N):
 print("-- Loading range data")
 rangets = TimeSeries.get(rangechannel, start, end,
                          frametype=args.range_frametype, verbose=True,
-                         allow_tape=False, nproc=args.nproc)
+                         nproc=args.nproc)
 
 if args.trend_type == 'minute':
     dstart, dend = rangets.span
@@ -136,7 +136,7 @@ else:
 print("-- Loading h(t) data")
 darmts = TimeSeries.get(primary, dstart-pad, dend+pad, verbose=True,
                         frametype=args.primary_frametype,
-                        allow_tape=False, nproc=args.nproc)
+                        nproc=args.nproc)
 
 # get darm BLRMS
 print("-- Filtering h(t) data")
@@ -197,7 +197,7 @@ if args.trend_type == 'minute':
 else:
     frametype = '%s_T' % args.ifo # for second trends
 auxdata = TimeSeriesDict.get(map(str, channels), dstart, dend, verbose=True,
-                             allow_tape=False, frametype=frametype, nproc=args.nproc,
+                             frametype=frametype, nproc=args.nproc,
                              observatory=args.ifo[0], pad=0)
 
 gpsstub = '%d-%d' % (start, end-start)
@@ -218,16 +218,12 @@ def process_channel(input_,):
         corr2 = None
         corr1s = None
         corr2s = None
-        corr3r = None
-        corr3d = None
         plot1 = None
         plot2 = None
         plot3 = None
     else:
         corr1 = numpy.corrcoef(ts.value, darmblrms.value)[0, 1]
         corr1s = spearmanr(ts.value, darmblrms.value)[0]
-        corr3r = pearsonr(ts, rangets)[0]
-        corr3d = pearsonr(ts, darmblrms)[0]
         
         if args.trend_type == 'minute':
             corr2 = numpy.corrcoef(ts.value, rangets.value)[0, 1]
@@ -241,7 +237,7 @@ def process_channel(input_,):
             plot1 = None
             plot2 = None
             plot3 = None
-            return chan, corr1, corr2, corr3r, corr3d, plot1, plot2, plot3, corr1s, corr2s
+            return chan, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s
         plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
                               figsize=(12, 12))
         plot.subplots_adjust(*p1)
@@ -305,29 +301,19 @@ def process_channel(input_,):
         tsCopy=ts.reshape(-1,1)
         rangetsCopy=rangets.reshape(-1,1)
         darmblrmsCopy=darmblrms.reshape(-1,1)
-
-        rangeReg = linear_model.LinearRegression()
-        rangeReg.fit(tsCopy, rangetsCopy)
-        rangeFit = rangeReg.predict(tsCopy)
         
         darmblrmsReg = linear_model.LinearRegression()
         darmblrmsReg.fit(tsCopy, darmblrmsCopy)
         darmblrmsFit = darmblrmsReg.predict(tsCopy)
 
+        rangeReg = linear_model.LinearRegression()
+        rangeReg.fit(tsCopy, rangetsCopy)
+        rangeFit = rangeReg.predict(tsCopy)
+
+
         scatPlot=gwplot()
 
         scatPlot.add_subplot(121)
-        axes = scatPlot.gca()
-        axes.set_xlabel(channelstub.replace("_","\_"), labelpad=30)
-        axes.set_ylabel(rangechannel.replace("_","\_")+" [Mpc]")
-        axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr3r)), verticalalignment='bottom', horizontalalignment='right',
-            transform=axes.transAxes, color="black", size=30)
-        scatPlot.add_scatter(ts, rangets, color=rangeColor)
-        scatPlot.add_line(ts, rangeFit, color="black")
-        scatPlot.set_figheight(plotHeight)
-        scatPlot.set_figwidth(plotWidth)
-
-        scatPlot.add_subplot(122)
         axes = scatPlot.gca()
         axes.set_xlabel(channelstub.replace("_","\_"), labelpad=30)
         axes.set_ylabel(primary.replace("_","\_")+" [strain]")
@@ -335,12 +321,24 @@ def process_channel(input_,):
 	upperLim=max(darmblrms.value)+.1*range
 	lowerLim=min(darmblrms.value)-.1*range
 	axes.set_ylim(lowerLim,upperLim)
-        axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr3d)), verticalalignment='bottom', horizontalalignment='right',
+        axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr1)), verticalalignment='bottom', horizontalalignment='right',
             transform=axes.transAxes, color="black", size=30)
         scatPlot.add_scatter(ts, darmblrms, color=darmblrmsColor)
         scatPlot.add_line(ts, darmblrmsFit, color="black")
+	scatPlot.set_figheight(plotHeight)
+	scatPlot.set_figwidth(plotWidth)
+
+        scatPlot.add_subplot(122)
+        axes = scatPlot.gca()
+        axes.set_xlabel(channelstub.replace("_","\_"), labelpad=30)
+        axes.set_ylabel(rangechannel.replace("_","\_")+" [Mpc]")
+        axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr2)), verticalalignment='bottom', horizontalalignment='right',
+            transform=axes.transAxes, color="black", size=30)
+        scatPlot.add_scatter(ts, rangets, color=rangeColor)
+        scatPlot.add_line(ts, rangeFit, color="black")
         scatPlot.set_figheight(plotHeight)
         scatPlot.set_figwidth(plotWidth)
+
         
         plot3 = '%s_SCATTER-%s.png' % (channelstub, gpsstub)
         try:
@@ -362,19 +360,19 @@ def process_channel(input_,):
         print("Completed [%d/%d] %3d%% %-50s"
               % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
         sys.stdout.flush()
-    return chan, corr1, corr2, corr3r, corr3d, plot1, plot2, plot3, corr1s, corr2s
+    return chan, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s
 
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, auxdata.iteritems())
 results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
-             abs(x[8]),abs(x[9])) or 0, x[0]), reverse=True)
+             abs(x[6]),abs(x[7])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
 
 print("")
 
 with open('results.txt', 'w') as f:
-    for ch, corr1, corr2, corr3r, corr3d, _, _, _, corr1s, corr2s in results:
-        print('%s %s %s %s %s %s %s' % (ch, corr1, corr2, corr3r, corr3d, corr1s, corr2s), file=f)
+    for ch, corr1, corr2, _, _, _, corr1s, corr2s in results:
+        print('%s %s %s %s %s' % (ch, corr1, corr2, corr1s, corr2s), file=f)
 
 # -- write html
 title = '%s slow correlations: %d-%d' % (args.ifo, start, end)
@@ -432,7 +430,7 @@ if args.trend_type == 'minute':
         % (r_blrms, rho_blrms, primary, r_range, rho_range, rangechannel, r, corr_p, rho, corr_s))
     
 page.div(class_='panel-group', id_='results')
-for i, (ch, corr1, corr2, corr3r, corr3d, plot1, plot2, plot3, corr1s, corr2s) in enumerate(results):
+for i, (ch, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s) in enumerate(results):
     if corr1 is None:
         h = '%s [flat]' % ch
     elif plot1 is None:
