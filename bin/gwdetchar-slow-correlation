@@ -34,11 +34,15 @@ use('agg')
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.time import from_gps
 from gwpy.plotter import TimeSeriesPlot
+from gwpy.plotter import Plot as gwplot
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
 from gwdetchar import cli
 from gwdetchar.io import html
+
+from sklearn import linear_model, preprocessing, datasets
+from sklearn.metrics import mean_squared_error, r2_score
 
 parser = cli.create_parser(
     description=__doc__,
@@ -215,6 +219,7 @@ def process_channel(input_,):
         corr2s = None
         plot1 = None
         plot2 = None
+	plot3 = None
     else:
         corr1 = numpy.corrcoef(ts.value, darmblrms.value)[0, 1]
         corr1s = spearmanr(ts.value, darmblrms.value)[0]
@@ -229,7 +234,8 @@ def process_channel(input_,):
                 and (numpy.absolute(corr2) < args.threshold) and (numpy.absolute(corr2s) < args.threshold)):
             plot1 = None
             plot2 = None
-            return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
+	    plot3 = None
+            return chan, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s
         plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
                               figsize=(12, 12))
         plot.subplots_adjust(*p1)
@@ -284,6 +290,67 @@ def process_channel(input_,):
                 raise
         plot.close()
 
+        #plot scatter plots
+        rangeColor="red"
+        darmblrmsColor="blue"
+        plotHeight=10
+        plotWidth=20
+
+        tsCopy=ts.reshape(-1,1)
+        rangetsCopy=rangets.reshape(-1,1)
+        darmblrmsCopy=darmblrms.reshape(-1,1)
+
+        darmblrmsReg = linear_model.LinearRegression()
+        darmblrmsReg.fit(tsCopy, darmblrmsCopy)
+        darmblrmsFit = darmblrmsReg.predict(tsCopy)
+
+        rangeReg = linear_model.LinearRegression()
+        rangeReg.fit(tsCopy, rangetsCopy)
+        rangeFit = rangeReg.predict(tsCopy)
+
+
+        scatPlot=gwplot()
+
+        scatPlot.add_subplot(121)
+        axes = scatPlot.gca()
+        axes.set_xlabel(channelstub.replace("_","\_"), labelpad=30)
+        axes.set_ylabel(primary.replace("_","\_")+" [strain]")
+        range=abs(max(darmblrms.value)-min(darmblrms.value))
+        upperLim=max(darmblrms.value)+.1*range
+        lowerLim=min(darmblrms.value)-.1*range
+        axes.set_ylim(lowerLim,upperLim)
+        axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr1)), verticalalignment='bottom', horizontalalignment='right',
+            transform=axes.transAxes, color="black", size=30)
+        scatPlot.add_scatter(ts, darmblrms, color=darmblrmsColor)
+        scatPlot.add_line(ts, darmblrmsFit, color="black")
+        scatPlot.set_figheight(plotHeight)
+        scatPlot.set_figwidth(plotWidth)
+
+        scatPlot.add_subplot(122)
+        axes = scatPlot.gca()
+        axes.set_xlabel(channelstub.replace("_","\_"), labelpad=30)
+        axes.set_ylabel(rangechannel.replace("_","\_")+" [Mpc]")
+        axes.text(.9,.1,"r = " + str('{0:.2}'.format(corr2)), verticalalignment='bottom', horizontalalignment='right',
+            transform=axes.transAxes, color="black", size=30)
+        scatPlot.add_scatter(ts, rangets, color=rangeColor)
+        scatPlot.add_line(ts, rangeFit, color="black")
+        scatPlot.set_figheight(plotHeight)
+        scatPlot.set_figwidth(plotWidth)
+
+
+        plot3 = '%s_SCATTER-%s.png' % (channelstub, gpsstub)
+	try:
+            scatPlot.save(plot3)
+        except (IOError, IndexError):
+            scatPlot.save(plot3)
+        except RuntimeError as e:
+            if 'latex' in str(e).lower():
+                scatPlot.save(plot3)
+            else:
+                raise
+
+        scatPlot.close()
+
     # increment counter and print status
     with counter.get_lock():
         counter.value += 1
@@ -291,18 +358,18 @@ def process_channel(input_,):
         print("Completed [%d/%d] %3d%% %-50s"
               % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
         sys.stdout.flush()
-    return chan, corr1, corr2, plot1, plot2, corr1s, corr2s
+    return chan, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s
 
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, auxdata.iteritems())
 results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]),abs(x[2]),
-             abs(x[5]),abs(x[6])) or 0, x[0]), reverse=True)
+             abs(x[6]),abs(x[7])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
 
 print("")
 
 with open('results.txt', 'w') as f:
-    for ch, corr1, corr2, _, _, corr1s, corr2s in results:
+    for ch, corr1, corr2, _, _, _, corr1s, corr2s in results:
         print('%s %s %s %s %s' % (ch, corr1, corr2, corr1s, corr2s), file=f)
 
 # -- write html
@@ -361,7 +428,7 @@ if args.trend_type == 'minute':
         % (r_blrms, rho_blrms, primary, r_range, rho_range, rangechannel, r, corr_p, rho, corr_s))
     
 page.div(class_='panel-group', id_='results')
-for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
+for i, (ch, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s) in enumerate(results):
     if corr1 is None:
         h = '%s [flat]' % ch
     elif plot1 is None:
@@ -396,7 +463,7 @@ for i, (ch, corr1, corr2, plot1, plot2, corr1s, corr2s) in enumerate(results):
     elif plot1 is None:
         page.p("Niether r or rho are above the threshold of %.2f." %(args.threshold))
     else:
-        for p in (plot1, plot2):
+        for p in (plot1, plot2, plot3):
             page.a(href=p, target='_blank')
             page.img(class_='img-responsive', src=p)
             page.a.close()
