@@ -1,0 +1,499 @@
+#!/usr/bin/env python
+# coding=utf-8
+# Copyright (C) LIGO Scientific Collaboration (2015-)
+#
+# This file is part of the GW DetChar python package.
+#
+# GW DetChar is free software: you can redistribute it and/or modify
+# it under the terms of topyright (C) LIGO Scientific Collaboration (2015-)
+#
+# This file is part of the GW DetChar python package.
+#
+# GW DetChar is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GW DetChar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import (division, print_function)
+
+import os
+import re
+import multiprocessing
+import sys
+
+import numpy
+from scipy.stats import spearmanr
+from scipy.interpolate import UnivariateSpline
+
+from matplotlib import use
+use('agg')
+import matplotlib.pyplot as plt
+
+from sklearn.linear_model import (Lasso, LassoCV)
+from sklearn.preprocessing import scale
+
+from gwpy.table import Table
+from pandas.tools.plotting import table as pandasTab
+from pandas import DataFrame
+
+from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
+from gwpy.time import from_gps
+from gwpy.plotter import TimeSeriesPlot
+from gwpy.plotter import Plot as gwplot
+from gwpy.detector import ChannelList
+from gwpy.io import nds2 as io_nds2
+
+from gwdetchar import cli
+from gwdetchar.io import html
+
+try:
+    from LDAStools import frameCPP
+except ImportError:
+    io_kw = {}
+else:
+    io_kw = {'format': 'gwf.framecpp', 'type': 'adc'}
+
+
+def find_outliers(ts, N):
+    ts = ts.value  # strip out Quantity extras
+    return numpy.nonzero(abs(ts - numpy.mean(ts)) > N*numpy.std(ts))[0]
+
+
+def remove_outliers(ts, N):
+    outliers = find_outliers(ts, N)
+    c = 1
+    if outliers.any():
+        print('-- Found %d outliers in %s, recursively removing'
+              % (len(outliers),ts.name))
+        while outliers.any():
+            cache = outliers
+            mask = numpy.ones(len(ts), dtype=bool)
+            mask[outliers] = False
+            spline = UnivariateSpline(ts[mask].times.value, ts[mask].value,
+                                      s=0, k=3)
+            ts[outliers] = spline(ts[outliers].times.value)
+            outliers = find_outliers(ts, N)
+            print('Completed %d removal cycles' % c)
+            if numpy.array_equal(outliers, cache):
+                print('Outliers did not change, breaking recursion')
+                break
+            print('%d outliers remain' % len(outliers))
+            c += 1
+
+
+# -- parse command line -------------------------------------------------------
+
+parser = cli.create_parser(
+    description=__doc__,
+    formatter_class=cli.argparse.ArgumentDefaultsHelpFormatter)
+cli.add_gps_start_stop_arguments(parser)
+cli.add_ifo_option(parser)
+cli.add_nproc_option(parser, default=1)
+parser.add_argument('-J', '--nproc-plot', type=int, default=None,
+                    help='number of processes to use for plotting')
+parser.add_argument('-o', '--output-dir', default=os.curdir,
+                    help='output directory for plots')
+parser.add_argument('-f', '--channel-file', type=os.path.abspath,
+                    help='path for channel file')
+parser.add_argument('-T', '--trend-type', default='minute',
+                    choices=['second', 'minute'],
+                    help='type of trend for correlation')
+parser.add_argument('-p', '--primary-channel',
+                    default='{ifo}:GDS-CALIB_STRAIN',
+                    help='name of primary channel to use')
+parser.add_argument('-P', '--primary-frametype',
+                    help='frametype for --primary-channel')
+parser.add_argument('-r', '--range-channel',
+                    default='{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean',
+                    help='name of range channel to use')
+parser.add_argument('-R', '--range-frametype',
+                    help='frametype for --range-channel')
+parser.add_argument('-O', '--remove-outliers', type=float, default=None,
+                    help='Std. dev. limit for removing outliers')
+parser.add_argument('-t', '--threshold', type=float, default=0.1, 
+                    help='threshold for making a plot')
+
+psig = parser.add_argument_group('Signal processing options')
+psig.add_argument('-b', '--band-pass', type=float, nargs=2, default=None,
+                  metavar="FLOW FHIGH",
+                  help='lower and upper frequencies for bandpass on h(t)')
+psig.add_argument('-x', '--filter-padding', type=float, default=3.,
+                  help='amount of time (seconds) to pad data for filtering')
+
+lsig = parser.add_argument_group('LASSO options')
+lsig.add_argument('-a', '--alpha', default=None, type=float,
+                  help='alpha parameter for LASSO fit')
+
+args = parser.parse_args()
+
+start = int(args.gpsstart)
+end = int(args.gpsend)
+pad = args.filter_padding
+
+if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
+    args.primary_frametype = '%s_HOFT_C00' % args.ifo
+primary = args.primary_channel.format(ifo=args.ifo)
+rangechannel = args.range_channel.format(ifo=args.ifo)
+
+if not os.path.isdir(args.output_dir):
+    os.makedirs(args.output_dir)
+os.chdir(args.output_dir)
+nprocplot = args.nproc_plot or args.nproc
+
+
+# load data
+print("-- Loading range data")
+rangets = TimeSeries.get(rangechannel, start, end,
+                         frametype=args.range_frametype, verbose=True,
+                         nproc=args.nproc)
+
+if args.trend_type == 'minute':
+    dstart, dend = rangets.span
+else:
+    dstart = start
+    dend = end
+
+if args.remove_outliers:
+    print('-- Removing outliers above %f sigma' % args.remove_outliers)
+    remove_outliers(rangets, args.remove_outliers)
+    
+# create scaled versions of data to compare to each other
+print("-- Creating scaled data")
+rangescaled = rangets.detrend()
+rangerms = numpy.sqrt(sum(rangescaled**2.0)/len(rangescaled))
+
+# get aux data
+print("-- Loading auxiliary channel data")
+host, port = io_nds2.host_resolution_order(args.ifo)[0]
+if args.channel_file is None:
+    channels = ChannelList.query_nds2('*.mean', host=host, port=port,
+                                      type='m-trend')
+else:
+    with open(args.channel_file, 'r') as f:
+        channels = f.read().rstrip('\n').split('\n')
+nchan = len(channels)
+print("Identified %d channels" % nchan)
+
+if args.trend_type == 'minute':
+    frametype = '%s_M' % args.ifo  # for minute trends
+else:
+    frametype = '%s_T' % args.ifo  # for second trends
+
+auxdata = TimeSeriesDict.get(
+    map(str, channels), dstart, dend, verbose=True,
+    frametype=frametype, nproc=args.nproc,
+    observatory=args.ifo[0], pad=0, **io_kw)
+
+# -- perform LASSO regression -------------------------------------------------
+
+# create model
+if args.alpha is None:
+    model = LassoCV()
+else:
+    model = Lasso(args.alpha)
+
+# reformat auxiliary data
+data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
+
+# perform LASSO regression fit
+model.fit(data, scale(rangets.value))
+
+# restructure results for convenience
+unsortedResults=[]
+for n in range (0,len(channels)):
+	unsortedResults.append([channels[n], model.coef_[n]])
+
+unsortedResults=sorted(unsortedResults, key=lambda x: abs(x[1]), reverse=True)
+sortedResults=[[x[0] for x in unsortedResults],[y[1] for y in unsortedResults]]
+
+resultstab = Table(data=(sortedResults[0],sortedResults[1]),
+                names=('Channel', 'LASSO Coefficient'))
+
+i=0
+while(i<len(resultstab['LASSO Coefficient']) and abs(resultstab['LASSO Coefficient'][i])>=args.threshold):
+	i+=1
+useful=Table(data=(resultstab['Channel'][0:i],resultstab['LASSO Coefficient'][0:i]), names =('Channel', 'LASSO Coefficient'))
+
+# print results
+print('Found {} channels with |LASSO Coefficient| >= {}'.format(
+    len(useful), args.threshold))
+print(useful)
+
+resultstab.write('resultstab.txt',format='ascii')
+df = useful.to_pandas()
+
+#-- Process aux channels, making plots
+print("-- Processing channels")
+counter = multiprocessing.Value('i', 0)
+
+gpsstub = '%d-%d' % (start, end-start)
+re_delim = re.compile('[:_-]')
+form = '%%.%dd' % len(str(nchan))
+
+p1 = (.1, .1, .9, .95) # global plot defaults for plot1, timeseries subplots
+p2 = (.1, .15, .9, .9) # global plot defaults for plot2, timeseries overlay
+
+modelIndex=0
+
+def process_channel(input_,):  
+    global modelIndex
+    chan, ts = input_
+    flat = ts.value.min() == ts.value.max()
+    if flat:
+        lassocoef = None
+        plot1 = None
+        plot2 = None
+    else:
+        lassocoef = model.coef_[modelIndex]
+        plot1 = None
+        plot2 = None
+        if(numpy.absolute(lassocoef) < args.threshold):
+            plot1 = None
+            plot2 = None
+            modelIndex+=1
+            return chan, lassocoef, plot1, plot2
+        # -- Create time series subplot
+        plot = TimeSeriesPlot(rangets, ts, sep=True, sharex=True,
+                              figsize=(12, 12))
+        plot.subplots_adjust(*p1)
+        plot.axes[0].set_ylabel('Sensitive range [Mpc]')
+        plot.axes[1].set_ylabel('Channel units')
+        for ax in plot.axes:
+            ax.legend(loc='best')
+            ax.set_xlim(start, end)
+            ax.set_epoch(start)
+        channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
+        plot1 = '%s_TRENDS-%s.png' % (channelstub, gpsstub)
+        try:
+            plot.save(plot1)
+        except (IOError, IndexError):
+            plot.save(plot1)
+        except RuntimeError as e:
+            if 'latex' in str(e).lower():
+                plot.save(plot1)
+            else:
+                raise
+        plot.close()
+           
+        
+        # Create scaled, sign-corrected, and overlayed timeseries
+        tsscaled = ts.detrend()
+        tsrms = numpy.sqrt(sum(tsscaled**2.0)/len(tsscaled))
+        if args.trend_type == 'minute':
+            tsscaled *= (rangerms / tsrms)
+            if lassocoef < 0:
+                tsscaled *= -1
+        #else:
+        #    tsscaled *= (darmrms / tsrms)
+        #    if corr1 < 0:
+        #        tsscaled *= -1
+        plot = TimeSeriesPlot(rangescaled, tsscaled,
+                              figsize=[12, 6])
+        plot.subplots_adjust(*p2)
+        ax = plot.gca()
+        ax.set_xlim(start, end)
+        ax.set_epoch(start)
+        ax.set_ylabel('Scaled amplitude [arbitrary units]')
+        ax.legend(loc='best')
+        plot2 = '%s_COMPARISON-%s.png' % (channelstub, gpsstub)
+        try:
+            plot.save(plot2)
+        except (IOError, IndexError):
+            plot.save(plot2)
+        except RuntimeError as e:
+            if 'latex' in str(e).lower():
+                plot.save(plot2)
+            else:
+                raise
+        plot.close()
+        modelIndex+=1        
+
+    # increment counter and print status
+    with counter.get_lock():
+        counter.value += 1
+        pc = 100 * counter.value / nchan
+        print("Completed [%d/%d] %3d%% %-50s"
+              % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
+        sys.stdout.flush()
+    return chan, lassocoef, plot1, plot2
+
+# -- generate LASSO plots
+modelFit=model.predict(data)
+
+fig = plt.figure(figsize=(6,6))
+plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+plt.plot(modelFit, label='LASSO model')
+plt.xlabel('Time [min]')
+plt.ylabel('Scaled arbitrary units')
+plt.legend(loc='best')
+plt.tight_layout()
+plot4 = 'LASSO-MODEL-%s.png' % gpsstub
+
+try:
+	plt.savefig(plot4)
+except (IOError, IndexError):
+	plt.savefig(plot4)
+except RuntimeError as e:
+	if 'latex' in str(e).lower():
+		plt.savefig(plot4)
+	else:
+		raise
+
+plt.close()
+
+# -- process channels
+pool = multiprocessing.Pool(nprocplot)
+results = pool.map(process_channel, auxdata.iteritems())
+
+# sort results by the lasso coefficient
+results=sorted(results, key=lambda x: abs(x[1]), reverse=True)
+
+#plot channel contributions to range
+fig = plt.figure(figsize=(6,6))
+plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+plt.xlabel('Time [min]')
+plt.ylabel('Scaled arbitrary units')
+plt.legend(loc='best')
+plt.tight_layout()
+
+plot5 = 'CHANNEL-CONTRIBUTIONS-TO-RANGE-%s.png' % gpsstub
+
+try:
+        plt.savefig(plot5)
+except (IOError, IndexError):
+        plt.savefig(plot5)
+except RuntimeError as e:
+        if 'latex' in str(e).lower():
+                plt.savefig(plot5)
+        else:
+                raise
+
+plt.close()
+
+
+
+# -- write html
+title = '%s LASSO slow correlations: %d-%d' % (args.ifo, start, end)
+page = html.new_bootstrap_page(title=title)
+page.div(class_='container')
+
+page.div(class_='page-header')
+page.h1(title)
+if args.alpha is None:
+    page.p("This analysis searched %d channels and created a LASSO regression model for %s using LASSO CV."
+       % (nchan, rangechannel, args.alpha))
+else:
+    page.p("This analysis searched %d channels and created a LASSO regression model for %s with an alpha of %s."
+       % (nchan, rangechannel, args.alpha))
+page.div.close()#page-header
+
+# results
+page.h2('Model Information')
+
+page.div(class_='model')
+page.div(class_='model-body')
+page.div(style_='display: inline-block;')
+
+page.div(class_='range-lasso', style_='display: inline-block;')
+page.a(href=plot4, target='_blank')
+page.img(class_='lasso-img', src=plot4)
+page.a.close()#range lasso plot
+page.div.close()#range-lasso
+
+page.div(class_='model-info', style_='display: inline-block;')
+page.p('<font size ="4">Model: LASSO<br />Non-zero coefficients: %d<br />Alpha: %g</font>' % (len(useful), args.alpha))
+page.div.close()#model-info
+
+page.div.close()#close inline-block
+
+page.div(style_='display: inline-block;')
+page.div(class_='channel-list', style_='display: inline-block;')
+page.p('<br /><br />%s<br /><br />' % df.to_html(index=False))
+page.div.close()#channel-list
+
+page.div(class_='channels-and-range', style_='display: inline-block;')
+page.a(href=plot5, target='_blank')
+page.img(class_='channels-contrib-img', src=plot5)
+page.a.close()#channels-contrib plot
+page.div.close()#channels-and-range
+page.div.close()#close inline-block
+
+page.div.close()#model-body
+page.div.close()#model
+
+# results
+page.h2('Top Channels')
+
+page.div(class_='panel-group', id_='results')
+
+# for each auxiliary channel create information container and put plots in it
+for i, (ch, lassocoef, plot1, plot2) in enumerate(results):
+    # Set container color/context based on lasso coefficient
+    if lassocoef is None:
+        h = '%s [flat]' % ch
+    elif plot1 is None:
+        h = '%s [lasso coefficient = %.2f] (Below threshold)' % (ch, lassocoef)
+    else:
+        h = '%s [lasso coefficient = %.2f]' % (ch, lassocoef)
+    if (lassocoef is None) or (lassocoef == 0) or (plot1 is None):
+        context = 'panel-default'
+    elif(numpy.absolute(lassocoef) >= .5):
+        context = 'panel-danger'
+    elif(numpy.absolute(lassocoef) >= .2):
+        context = 'panel-warning'
+    else:
+        context = 'panel-info'
+    page.div(class_='panel %s' % context)
+    
+    # heading
+    page.div(class_='panel-heading')
+    page.a(h, class_='panel-title', href='#channel%d' % i,
+           **{'data-toggle': 'collapse', 'data-parent': '#results'})
+    page.div.close()#panel-heading
+    # body
+    page.div(id_='channel%d' % i, class_='panel-collapse collapse')
+    page.div(class_='panel-body')
+    if lassocoef is None:
+        page.p("The amplitude data for this channel is flat (does not change) for the chosen time period.")
+    elif plot1 is None:
+        page.p("LASSO coefficient below the threshold of %.2f." %(args.threshold))
+    else:
+        for p in (plot1, plot2):
+            page.a(href=p, target='_blank')
+            page.img(class_='img-responsive', src=p)
+            page.a.close()
+    page.div.close()  # panel-body
+    page.div.close()  # panel-collapse
+    page.div.close()  # panel
+page.div.close()  # panel-group
+
+# params
+def write_param(param, value):
+    page.p()
+    page.strong('%s: ' % param)
+    page.add(str(value))
+    page.p.close()
+
+page.h2('Parameters')
+page.p('This analysis used the following parameters:')
+write_param('Start time', '%s (%d)' % (from_gps(start), start))
+write_param('End time', '%s (%d)' % (from_gps(end), end))
+#write_param('Primary channel',
+#            '%s (%s)' % (primary, args.primary_frametype.format(ifo=args.ifo)))
+write_param('Range channel',
+            '%s (%s)' % (rangechannel, args.range_frametype or '-'))
+#write_param('Band-pass', '%s-%s' % (flower, fupper))
+
+page.div.close()  # container
+with open('index.html', 'w') as f:
+    print(str(page), file=f)
+
+print ("-- Process Completed")
