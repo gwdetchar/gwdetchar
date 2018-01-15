@@ -37,7 +37,7 @@ from matplotlib import use
 use('agg')
 import matplotlib.pyplot as plt
 
-from sklearn.linear_model import (Lasso, LassoCV)
+from sklearn import linear_model
 from sklearn.preprocessing import scale
 
 from gwpy.table import Table
@@ -118,7 +118,7 @@ parser.add_argument('-R', '--range-frametype',
                     help='frametype for --range-channel')
 parser.add_argument('-O', '--remove-outliers', type=float, default=None,
                     help='Std. dev. limit for removing outliers')
-parser.add_argument('-t', '--threshold', type=float, default=0.1, 
+parser.add_argument('-t', '--threshold', type=float, default=0.0001, 
                     help='threshold for making a plot')
 
 psig = parser.add_argument_group('Signal processing options')
@@ -192,24 +192,48 @@ auxdata = TimeSeriesDict.get(
     frametype=frametype, nproc=args.nproc,
     observatory=args.ifo[0], pad=0, **io_kw)
 
+# -- removes flat data to be re-introdused later
+
+flatdata = dict()
+gooddata = dict()
+
+goodchan = list()
+
+for k, ts in auxdata.items():
+	flat = ts.value.min() == ts.value.max()
+	if flat:
+		flatdata[k] = ts
+	else:
+		gooddata[k] = ts
+		goodchan.append(k)
+
+auxdata = gooddata
+        
+data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 # -- perform LASSO regression -------------------------------------------------
 
 # create model
 if args.alpha is None:
-    model = LassoCV()
+	model = linear_model.LassoCV()
 else:
-    model = Lasso(args.alpha)
-
-# reformat auxiliary data
-data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
+	model = linear_model.Lasso(args.alpha)
 
 # perform LASSO regression fit
 model.fit(data, scale(rangets.value))
 
+
+#pulls out alphas
+usedalpha = 0
+if args.alpha is None:
+	usedalpha = model.alpha_
+else:
+	usedalpha = args.alpha
+
+
 # restructure results for convenience
 unsortedResults=[]
-for n in range (0,len(channels)):
-	unsortedResults.append([channels[n], model.coef_[n]])
+for n, k in enumerate(auxdata.keys()):
+	unsortedResults.append([k, model.coef_[n]])
 
 unsortedResults=sorted(unsortedResults, key=lambda x: abs(x[1]), reverse=True)
 sortedResults=[[x[0] for x in unsortedResults],[y[1] for y in unsortedResults]]
@@ -229,6 +253,7 @@ print(useful)
 
 resultstab.write('resultstab.txt',format='ascii')
 df = useful.to_pandas()
+df.index+=1
 
 #-- Process aux channels, making plots
 print("-- Processing channels")
@@ -248,18 +273,25 @@ def process_channel(input_,):
     chan, ts = input_
     flat = ts.value.min() == ts.value.max()
     if flat:
-        lassocoef = None
+        lassocoef = 0.0
         plot1 = None
         plot2 = None
+        plot3 = None
+        pcorr= None
     else:
         lassocoef = model.coef_[modelIndex]
         plot1 = None
         plot2 = None
-        if(numpy.absolute(lassocoef) < args.threshold):
+        if args.trend_type == 'minute':
+            pcorr = numpy.corrcoef(ts.value, rangets.value)[0, 1]
+        else:
+            pcorr = 0.0
+        if(abs(lassocoef) < args.threshold):
             plot1 = None
             plot2 = None
+	    plot3 = None
             modelIndex+=1
-            return chan, lassocoef, plot1, plot2
+            return chan, lassocoef, plot1, plot2, plot3, ts
         # -- Create time series subplot
         plot = TimeSeriesPlot(rangets, ts, sep=True, sharex=True,
                               figsize=(12, 12))
@@ -285,34 +317,64 @@ def process_channel(input_,):
            
         
         # Create scaled, sign-corrected, and overlayed timeseries
-        tsscaled = ts.detrend()
-        tsrms = numpy.sqrt(sum(tsscaled**2.0)/len(tsscaled))
-        if args.trend_type == 'minute':
-            tsscaled *= (rangerms / tsrms)
-            if lassocoef < 0:
-                tsscaled *= -1
 
-        plot = TimeSeriesPlot(rangescaled, tsscaled,
-                              figsize=[12, 6])
-        plot.subplots_adjust(*p2)
-        ax = plot.gca()
-        ax.set_xlim(start, end)
-        ax.set_epoch(start)
-        ax.set_ylabel('Scaled amplitude [arbitrary units]')
-        ax.legend(loc='best')
+	tsscaled = scale(ts.value)
+	if lassocoef < 0:
+                tsscaled = numpy.negative(tsscaled)
+	fig = plt.figure(figsize=(12,6))
+	plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+	plt.plot(tsscaled, label=chan.replace("_","\_"))
+	plt.xlabel('Time [min]')
+	plt.ylabel('Scaled amplitude [arbitrary units]')
+	plt.legend(loc='best')
+	plt.tight_layout()
+
         plot2 = '%s_COMPARISON-%s.png' % (channelstub, gpsstub)
         try:
-            plot.save(plot2)
+            plt.savefig(plot2)
         except (IOError, IndexError):
-            plot.save(plot2)
+            plt.savefig(plot2)
         except RuntimeError as e:
             if 'latex' in str(e).lower():
-                plot.save(plot2)
+                plt.savefig(plot2)
             else:
                 raise
-        plot.close()
-        modelIndex+=1        
+        plt.close()
 
+        #plot scatter plots
+        rangeColor="red"
+        plotHeight=6
+        plotWidth=12
+
+        tsCopy=ts.reshape(-1,1)
+        rangetsCopy=rangets.reshape(-1,1)
+        rangeReg = linear_model.LinearRegression()
+        rangeReg.fit(tsCopy, rangetsCopy)
+        rangeFit = rangeReg.predict(tsCopy)
+        scatPlot=gwplot()
+        axes = scatPlot.gca()
+        axes.set_xlabel(chan.replace("_","\_") + " [Channel units]", labelpad=30)
+        axes.set_ylabel("Sensitive range [Mpc]")
+        axes.text(.9,.1,"r = " + str('{0:.2}'.format(pcorr)), verticalalignment='bottom', horizontalalignment='right', transform=axes.transAxes, color="black", size=20, bbox=dict(boxstyle='square', facecolor='white', alpha=.75, edgecolor="black"))
+        scatPlot.add_scatter(ts, rangets, color=rangeColor)
+        scatPlot.add_line(ts, rangeFit, color="black")
+        scatPlot.set_figheight(plotHeight)
+        scatPlot.set_figwidth(plotWidth)
+	scatPlot.tight_layout()
+
+        plot3 = '%s_SCATTER-%s.png' % (channelstub, gpsstub)
+	try:
+            scatPlot.save(plot3)
+        except (IOError, IndexError):
+            scatPlot.save(plot3)
+        except RuntimeError as e:
+            if 'latex' in str(e).lower():
+                scatPlot.save(plot3)
+            else:
+                raise
+
+        scatPlot.close()
+	modelIndex+=1          
     # increment counter and print status
     with counter.get_lock():
         counter.value += 1
@@ -320,7 +382,7 @@ def process_channel(input_,):
         print("Completed [%d/%d] %3d%% %-50s"
               % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
         sys.stdout.flush()
-    return chan, lassocoef, plot1, plot2
+    return chan, lassocoef, plot1, plot2, plot3, ts
 
 # -- generate LASSO plots
 modelFit=model.predict(data)
@@ -349,19 +411,29 @@ plt.close()
 # -- process channels
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, auxdata.iteritems())
-
+	
 # sort results by the lasso coefficient
 results=sorted(results, key=lambda x: abs(x[1]), reverse=True)
 
+for k in flatdata.keys():
+	results.append((k, None, None, None, None, None))
+
 #plot channel contributions to range
-fig = plt.figure(figsize=(6,6))
+fig = plt.figure(figsize=(12,6))
 plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+plt.plot(scale(results[0][5].value)*results[0][1], label = "Channel 1")
+for n in range(1,len(useful)):
+	summation=scale(results[0][5].value)*results[0][1]
+	for m in range(n,0,-1):
+		summation=numpy.add(summation,scale(results[m][5].value)*results[m][1])
+	plt.plot(summation, label = "Channels 1-" + str(n+1))
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
+plt.title('Summations of Channel Contributions to Range')
 plt.legend(loc='best')
 plt.tight_layout()
 
-plot5 = 'CHANNEL-CONTRIBUTIONS-TO-RANGE-%s.png' % gpsstub
+plot5 = 'SUMMATION-OF-CHANNELS-AND-RANGE-%s.png' % gpsstub
 
 try:
         plt.savefig(plot5)
@@ -375,7 +447,31 @@ except RuntimeError as e:
 
 plt.close()
 
+fig = plt.figure(figsize=(12,6))
+plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+for n in range (0, len(useful)):
+	if results[n][5] is not None:
+	        plt.plot(scale(results[n][5].value)*results[n][1], label = results[n][0].replace("_","\_"))
 
+plt.xlabel('Time [min]')
+plt.ylabel('Scaled arbitrary units')
+plt.title('Individual Channel Contributions to Range')
+plt.legend(loc='best')
+plt.tight_layout()
+
+plot6 = 'CHANNEL-CONTRIBUTIONS-TO-RANGE-%s.png' % gpsstub
+
+try:
+        plt.savefig(plot6)
+except (IOError, IndexError):
+        plt.savefig(plot6)
+except RuntimeError as e:
+        if 'latex' in str(e).lower():
+                plt.savefig(plot6)
+        else:
+                raise
+
+plt.close()
 
 # -- write html
 title = '%s LASSO slow correlations: %d-%d' % (args.ifo, start, end)
@@ -386,10 +482,10 @@ page.div(class_='page-header')
 page.h1(title)
 if args.alpha is None:
     page.p("This analysis searched %d channels and created a LASSO regression model for %s using LASSO CV."
-       % (nchan, rangechannel, args.alpha))
+       % (nchan, rangechannel))
 else:
     page.p("This analysis searched %d channels and created a LASSO regression model for %s with an alpha of %s."
-       % (nchan, rangechannel, args.alpha))
+       % (nchan, rangechannel, usedalpha))
 page.div.close()#page-header
 
 # results
@@ -406,22 +502,26 @@ page.a.close()#range lasso plot
 page.div.close()#range-lasso
 
 page.div(class_='model-info', style_='display: inline-block;')
-page.p('<font size ="4">Model: LASSO<br />Non-zero coefficients: %d<br />Alpha: %g</font>' % (len(useful), args.alpha))
+page.p('<font size ="4">Model: LASSO<br />Non-zero coefficients: %d<br />Alpha: %g</font>' % (numpy.count_nonzero(model.coef_), usedalpha))
+page.p('<br /><br />%s' % df.to_html(index=True))
 page.div.close()#model-info
 
 page.div.close()#close inline-block
 
-page.div(style_='display: inline-block;')
-page.div(class_='channel-list', style_='display: inline-block;')
-page.p('<br /><br />%s<br /><br />' % df.to_html(index=False))
-page.div.close()#channel-list
+page.p('<br /><br />')
 
-page.div(class_='channels-and-range', style_='display: inline-block;')
+page.div(class_='channel-summation')
 page.a(href=plot5, target='_blank')
-page.img(class_='channels-contrib-img', src=plot5)
+page.img(class_='channels-summation-img', src=plot5)
+page.a.close()#channels-summation plot
+page.div.close()#channels-summation
+
+page.div(class_='channels-and-range')
+page.a(href=plot6, target='_blank')
+page.img(class_='channels-contrib-img', src=plot6)
 page.a.close()#channels-contrib plot
 page.div.close()#channels-and-range
-page.div.close()#close inline-block
+
 
 page.div.close()#model-body
 page.div.close()#model
@@ -432,7 +532,7 @@ page.h2('Top Channels')
 page.div(class_='panel-group', id_='results')
 
 # for each auxiliary channel create information container and put plots in it
-for i, (ch, lassocoef, plot1, plot2) in enumerate(results):
+for i, (ch, lassocoef, plot1, plot2, plot3, ts) in enumerate(results):
     # Set container color/context based on lasso coefficient
     if lassocoef is None:
         h = '%s [flat]' % ch
@@ -463,7 +563,7 @@ for i, (ch, lassocoef, plot1, plot2) in enumerate(results):
     elif plot1 is None:
         page.p("LASSO coefficient below the threshold of %.2f." %(args.threshold))
     else:
-        for p in (plot1, plot2):
+        for p in (plot1, plot2, plot3):
             page.a(href=p, target='_blank')
             page.img(class_='img-responsive', src=p)
             page.a.close()
