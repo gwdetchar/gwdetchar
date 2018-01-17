@@ -200,12 +200,12 @@ gooddata = dict()
 goodchan = list()
 
 for k, ts in auxdata.items():
-	flat = ts.value.min() == ts.value.max()
-	if flat:
-		flatdata[k] = ts
-	else:
-		gooddata[k] = ts
-		goodchan.append(k)
+    flat = ts.value.min() == ts.value.max()
+    if flat:
+        flatdata[k] = ts
+    else:
+        gooddata[k] = ts
+        goodchan.append(k)
 
 auxdata = gooddata
         
@@ -214,9 +214,9 @@ data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 
 # create model
 if args.alpha is None:
-	model = linear_model.LassoCV()
+    model = linear_model.LassoCV()
 else:
-	model = linear_model.Lasso(args.alpha)
+    model = linear_model.Lasso(args.alpha)
 
 # perform LASSO regression fit
 model.fit(data, scale(rangets.value))
@@ -225,15 +225,15 @@ model.fit(data, scale(rangets.value))
 #pulls out alphas
 usedalpha = 0
 if args.alpha is None:
-	usedalpha = model.alpha_
+    usedalpha = model.alpha_
 else:
-	usedalpha = args.alpha
+    usedalpha = args.alpha
 
 
 # restructure results for convenience
 unsortedResults=[]
 for n, k in enumerate(auxdata.keys()):
-	unsortedResults.append([k, model.coef_[n]])
+    unsortedResults.append([k, model.coef_[n]])
 
 unsortedResults=sorted(unsortedResults, key=lambda x: abs(x[1]), reverse=True)
 sortedResults=[[x[0] for x in unsortedResults],[y[1] for y in unsortedResults]]
@@ -243,7 +243,7 @@ resultstab = Table(data=(sortedResults[0],sortedResults[1]),
 
 i=0
 while(i<len(resultstab['LASSO Coefficient']) and abs(resultstab['LASSO Coefficient'][i])>=args.threshold):
-	i+=1
+    i+=1
 useful=Table(data=(resultstab['Channel'][0:i],resultstab['LASSO Coefficient'][0:i]), names =('Channel', 'LASSO Coefficient'))
 
 # print results
@@ -266,11 +266,10 @@ form = '%%.%dd' % len(str(nchan))
 p1 = (.1, .1, .9, .95) # global plot defaults for plot1, timeseries subplots
 p2 = (.1, .15, .9, .9) # global plot defaults for plot2, timeseries overlay
 
-modelIndex=0
+def process_channel(input_,):
+    chan = input_[1][0]
+    ts = input_[1][1]
 
-def process_channel(input_,):  
-    global modelIndex
-    chan, ts = input_
     flat = ts.value.min() == ts.value.max()
     if flat:
         lassocoef = 0.0
@@ -279,7 +278,7 @@ def process_channel(input_,):
         plot3 = None
         pcorr= None
     else:
-        lassocoef = model.coef_[modelIndex]
+        lassocoef = model.coef_[input_[0]]
         plot1 = None
         plot2 = None
         if args.trend_type == 'minute':
@@ -290,7 +289,6 @@ def process_channel(input_,):
             plot1 = None
             plot2 = None
 	    plot3 = None
-            modelIndex+=1
             return chan, lassocoef, plot1, plot2, plot3, ts
         # -- Create time series subplot
         plot = TimeSeriesPlot(rangets, ts, sep=True, sharex=True,
@@ -320,7 +318,7 @@ def process_channel(input_,):
 
 	tsscaled = scale(ts.value)
 	if lassocoef < 0:
-                tsscaled = numpy.negative(tsscaled)
+            tsscaled = numpy.negative(tsscaled)
 	fig = plt.figure(figsize=(12,6))
 	plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
 	plt.plot(tsscaled, label=chan.replace("_","\_"))
@@ -374,7 +372,7 @@ def process_channel(input_,):
                 raise
 
         scatPlot.close()
-	modelIndex+=1          
+          
     # increment counter and print status
     with counter.get_lock():
         counter.value += 1
@@ -397,36 +395,37 @@ plt.tight_layout()
 plot4 = 'LASSO-MODEL-%s.png' % gpsstub
 
 try:
-	plt.savefig(plot4)
+    plt.savefig(plot4)
 except (IOError, IndexError):
-	plt.savefig(plot4)
+    plt.savefig(plot4)
 except RuntimeError as e:
-	if 'latex' in str(e).lower():
-		plt.savefig(plot4)
-	else:
-		raise
+    if 'latex' in str(e).lower():
+        plt.savefig(plot4)
+    else:
+        raise
 
 plt.close()
 
 # -- process channels
 pool = multiprocessing.Pool(nprocplot)
-results = pool.map(process_channel, auxdata.iteritems())
+results = pool.map(process_channel, enumerate(auxdata.iteritems()))
+#results = pool.map(process_channel, enumerate(auxdata))
 	
 # sort results by the lasso coefficient
 results=sorted(results, key=lambda x: abs(x[1]), reverse=True)
 
 for k in flatdata.keys():
-	results.append((k, None, None, None, None, None))
+    results.append((k, None, None, None, None, None))
 
 #plot channel contributions to range
 fig = plt.figure(figsize=(12,6))
 plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
 plt.plot(scale(results[0][5].value)*results[0][1], label = "Channel 1")
 for n in range(1,len(useful)):
-	summation=scale(results[0][5].value)*results[0][1]
-	for m in range(n,0,-1):
-		summation=numpy.add(summation,scale(results[m][5].value)*results[m][1])
-	plt.plot(summation, label = "Channels 1-" + str(n+1))
+    summation=scale(results[0][5].value)*results[0][1]
+    for m in range(n,0,-1):
+        summation=numpy.add(summation,scale(results[m][5].value)*results[m][1])
+    plt.plot(summation, label = "Channels 1-" + str(n+1))
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
 plt.title('Summations of Channel Contributions to Range')
@@ -436,22 +435,22 @@ plt.tight_layout()
 plot5 = 'SUMMATION-OF-CHANNELS-AND-RANGE-%s.png' % gpsstub
 
 try:
-        plt.savefig(plot5)
+    plt.savefig(plot5)
 except (IOError, IndexError):
-        plt.savefig(plot5)
+    plt.savefig(plot5)
 except RuntimeError as e:
-        if 'latex' in str(e).lower():
-                plt.savefig(plot5)
-        else:
-                raise
+    if 'latex' in str(e).lower():
+        plt.savefig(plot5)
+    else:
+        raise
 
 plt.close()
 
 fig = plt.figure(figsize=(12,6))
 plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
 for n in range (0, len(useful)):
-	if results[n][5] is not None:
-	        plt.plot(scale(results[n][5].value)*results[n][1], label = results[n][0].replace("_","\_"))
+    if results[n][5] is not None:
+        plt.plot(scale(results[n][5].value)*results[n][1], label = results[n][0].replace("_","\_"))
 
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
@@ -462,14 +461,14 @@ plt.tight_layout()
 plot6 = 'CHANNEL-CONTRIBUTIONS-TO-RANGE-%s.png' % gpsstub
 
 try:
-        plt.savefig(plot6)
+    plt.savefig(plot6)
 except (IOError, IndexError):
-        plt.savefig(plot6)
+    plt.savefig(plot6)
 except RuntimeError as e:
-        if 'latex' in str(e).lower():
-                plt.savefig(plot6)
-        else:
-                raise
+    if 'latex' in str(e).lower():
+        plt.savefig(plot6)
+    else:
+        raise
 
 plt.close()
 
