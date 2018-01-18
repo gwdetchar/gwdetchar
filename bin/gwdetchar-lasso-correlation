@@ -29,6 +29,7 @@ import re
 import multiprocessing
 import sys
 
+from math import isnan
 import numpy
 from scipy.stats import spearmanr
 from scipy.interpolate import UnivariateSpline
@@ -208,8 +209,30 @@ for k, ts in auxdata.items():
         goodchan.append(k)
 
 auxdata = gooddata
+
+nandata = dict()
+gooddata = dict()
+
+goodchan = list()
+
+try:
+    data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
+except:
+    print('Nan found in data, removing bad channels')
+    for k, v in auxdata.items():
+        hasnan = 0
+        for x in range(len(v.value)):
+            if isnan(v.value[x]):
+                hasnan +=1
+        if hasnan > 0:
+            print('removing channel: %s' % k)
+            nandata[k] = v
+        else:
+            gooddata[k] = v
+            goodchan.append(k)
+    auxdata = gooddata
+    data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
         
-data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 # -- perform LASSO regression -------------------------------------------------
 
 # create model
@@ -385,11 +408,12 @@ def process_channel(input_,):
 # -- generate LASSO plots
 modelFit=model.predict(data)
 
-fig = plt.figure(figsize=(6,6))
+fig = plt.figure(figsize=(12,6))
 plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
 plt.plot(modelFit, label='LASSO model')
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
+plt.title('LASSO Model of Range')
 plt.legend(loc='best')
 plt.tight_layout()
 plot4 = 'LASSO-MODEL-%s.png' % gpsstub
@@ -492,22 +516,19 @@ page.h2('Model Information')
 
 page.div(class_='model')
 page.div(class_='model-body')
-page.div(style_='display: inline-block;')
-
-page.div(class_='range-lasso', style_='display: inline-block;')
-page.a(href=plot4, target='_blank')
-page.img(class_='lasso-img', src=plot4)
-page.a.close()#range lasso plot
-page.div.close()#range-lasso
 
 page.div(class_='model-info', style_='display: inline-block;')
 page.p('<font size ="4">Model: LASSO<br />Non-zero coefficients: %d<br />Alpha: %g</font>' % (numpy.count_nonzero(model.coef_), usedalpha))
 page.p('<br /><br />%s' % df.to_html(index=True))
 page.div.close()#model-info
 
-page.div.close()#close inline-block
-
 page.p('<br /><br />')
+
+page.div(class_='range-lasso', style_='display: inline-block;')
+page.a(href=plot4, target='_blank')
+page.img(class_='lasso-img', src=plot4)
+page.a.close()#range lasso plot
+page.div.close()#range-lasso)
 
 page.div(class_='channel-summation')
 page.a(href=plot5, target='_blank')
@@ -536,9 +557,9 @@ for i, (ch, lassocoef, plot1, plot2, plot3, ts) in enumerate(results):
     if lassocoef is None:
         h = '%s [flat]' % ch
     elif plot1 is None:
-        h = '%s [lasso coefficient = %.2f] (Below threshold)' % (ch, lassocoef)
+        h = '%s [lasso coefficient = %.4f] (Below threshold)' % (ch, lassocoef)
     else:
-        h = '%s [lasso coefficient = %.2f]' % (ch, lassocoef)
+        h = '%s [lasso coefficient = %.4f]' % (ch, lassocoef)
     if (lassocoef is None) or (lassocoef == 0) or (plot1 is None):
         context = 'panel-default'
     elif(numpy.absolute(lassocoef) >= .5):
