@@ -29,14 +29,14 @@ from StringIO import StringIO
 
 import numpy
 
-from matplotlib import use
+from matplotlib import (use, rcParams)
 use('agg')
 
 import trigfind
 
 from glue.lal import Cache
 
-from gwpy.plotter import (figure, rcParams, HistogramPlot)
+from gwpy.plotter import (figure, HistogramPlot)
 from gwpy.utils.compat import OrderedDict
 from gwpy.utils import gprint
 from gwpy.table import EventTable
