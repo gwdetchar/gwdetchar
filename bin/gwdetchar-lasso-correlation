@@ -318,7 +318,7 @@ def process_channel(input_,):
         if(abs(lassocoef) < args.threshold):
             plot1 = None
             plot2 = None
-	    plot3 = None
+            plot3 = None
             return chan, lassocoef, plot1, plot2, plot3, ts
         # -- Create time series subplot
         plot = TimeSeriesPlot(rangets, ts, sep=True, sharex=True,
@@ -346,16 +346,16 @@ def process_channel(input_,):
         
         # Create scaled, sign-corrected, and overlayed timeseries
 
-	tsscaled = scale(ts.value)
-	if lassocoef < 0:
+        tsscaled = scale(ts.value)
+        if lassocoef < 0:
             tsscaled = numpy.negative(tsscaled)
-	fig = plt.figure(figsize=(12,6))
-	plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
-	plt.plot(tsscaled, label=chan.replace("_","\_"))
-	plt.xlabel('Time [min]')
-	plt.ylabel('Scaled amplitude [arbitrary units]')
-	plt.legend(loc='best')
-	plt.tight_layout()
+        fig = plt.figure(figsize=(12,6))
+        plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+        plt.plot(tsscaled, label=chan.replace("_","\_"))
+        plt.xlabel('Time [min]')
+        plt.ylabel('Scaled amplitude [arbitrary units]')
+        plt.legend(loc='best')
+        plt.tight_layout()
 
         plot2 = '%s_COMPARISON-%s.png' % (channelstub, gpsstub)
         try:
@@ -388,10 +388,10 @@ def process_channel(input_,):
         scatPlot.add_line(ts, rangeFit, color="black")
         scatPlot.set_figheight(plotHeight)
         scatPlot.set_figwidth(plotWidth)
-	scatPlot.tight_layout()
+        scatPlot.tight_layout()
 
         plot3 = '%s_SCATTER-%s.png' % (channelstub, gpsstub)
-	try:
+        try:
             scatPlot.save(plot3)
         except (IOError, IndexError):
             scatPlot.save(plot3)
@@ -602,10 +602,10 @@ def generate_clusters(input_,):
                 line = plt.plot(scale(currentCluster[i][1].value)*numpy.sign(input_[1][1])*numpy.sign(currentCluster[i][2]), label=currentCluster[i][3].replace("_","\_") + ', r = ' + str('{0:.2}'.format(currentCluster[i][2])))
                 colors.append(line[0].get_color())
                 labels.append(line[0].get_label())
-	    plt.xlabel('Time [min]')
-	    plt.ylabel('Scaled amplitude [arbitrary units]')
+            plt.xlabel('Time [min]')
+            plt.ylabel('Scaled amplitude [arbitrary units]')
             plt.title('Highly Correlated Channels')
-	    plt.tight_layout()
+            plt.tight_layout()
 
             plot7 = '%s_CLUSTER-%s.png' % (re_delim.sub('_', str(currentchan)).replace('_', '-', 1), gpsstub)
             try:
