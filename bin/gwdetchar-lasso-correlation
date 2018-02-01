@@ -115,7 +115,7 @@ parser.add_argument('-R', '--range-frametype',
                     help='frametype for --range-channel')
 parser.add_argument('-O', '--remove-outliers', type=float, default=None,
                     help='Std. dev. limit for removing outliers')
-parser.add_argument('-t', '--threshold', type=float, default=0.0001, 
+parser.add_argument('-t', '--threshold', type=float, default=0.0001,
                     help='threshold for making a plot')
 
 psig = parser.add_argument_group('Signal processing options')
@@ -165,7 +165,7 @@ else:
 if args.remove_outliers:
     print('-- Removing outliers above %f sigma' % args.remove_outliers)
     remove_outliers(rangets, args.remove_outliers)
-    
+
 # create scaled versions of data to compare to each other
 print("-- Creating scaled data")
 rangescaled = rangets.detrend()
@@ -228,7 +228,7 @@ except:
             gooddata[k] = v
     auxdata = gooddata
     data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
-        
+
 # -- perform LASSO regression -------------------------------------------------
 
 # create model
@@ -342,8 +342,8 @@ def process_channel(input_,):
             else:
                 raise
         plot.close()
-           
-        
+
+
         # Create scaled, sign-corrected, and overlayed timeseries
 
         tsscaled = scale(ts.value)
@@ -402,7 +402,7 @@ def process_channel(input_,):
                 raise
 
         scatPlot.close()
-          
+
     # increment counter and print status
     with counter.get_lock():
         counter.value += 1
@@ -440,8 +440,7 @@ plt.close()
 # -- process channels
 pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, enumerate(auxdata.iteritems()))
-	
-# sort results by the lasso coefficient
+# -- sort results by the lasso coefficient
 results=sorted(results, key=lambda x: abs(x[1]), reverse=True)
 
 # generate plots for channel contribution to model
@@ -588,7 +587,7 @@ def generate_clusters(input_,):
             other+=1
         if len(currentCluster) == 0:
             return plot7, plot7_legend
-        else: 
+        else:
             colors = []
             labels = []
             fig = plt.figure(figsize=(8,5))
@@ -757,7 +756,7 @@ for i, (ch, lassocoef, plot1, plot2, plot3, ts) in enumerate(results):
     else:
         context = 'panel-info'
     page.div(class_='panel %s' % context)
-    
+
     # heading
     page.div(class_='panel-heading')
     page.a(h, class_='panel-title', href='#channel%d' % i,
