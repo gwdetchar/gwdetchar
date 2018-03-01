@@ -654,6 +654,18 @@ if args.cluster is True:
     pool = multiprocessing.Pool(nprocplot)
     clusters = pool.map(generate_clusters, enumerate(results[0:len(useful)]))
 
+channelsFile = '%s-CHANNELS-%s.txt'% (args.ifo, gpsstub)
+
+try:
+    numpy.savetxt(channelsFile, channels, fmt="%s")
+except(IOError, IndexError):
+    numpy.savetxt(channelsFile, channels, fmt="%s")
+except RuntimeError as e:
+    if 'latex' in str(e).lower():
+        numpy.savetxt(channelsfile, channels, fmt="%s")
+    else:
+        raise
+
 
 # -- write html
 title = '%s LASSO slow correlations: %d-%d' % (args.ifo, start, end)
@@ -677,7 +689,7 @@ write_param('Start time', '%s (%d)' % (from_gps(start), start))
 write_param('End time', '%s (%d)' % (from_gps(end), end))
 write_param('Range channel',
             '%s (%s)' % (rangechannel, args.range_frametype or '-'))
-write_param('Channels searched', '%d' % nchan)
+write_param('Channels searched', '%d (%s)' % (nchan, "<a href= %s target='_blank'>channel list</a>" % channelsFile))
 write_param('Number of flat channels', '%d (%s)' % (len(flatdata), "<a href= %s target='_blank'>flat channel list</a>" % (flatFile)))
 write_param('LASSO coefficient threshold', '%g' % args.threshold)
 
@@ -687,7 +699,10 @@ page.div(class_='model')
 page.div(class_='model-body')
 
 page.div(class_='model-info')
-page.p('<font size ="4">Model: LASSO<br />Non-zero coefficients: %d<br />Alpha: %g<br />Zero coefficients: %d (%s)</font>' % (numpy.count_nonzero(model.coef_), usedalpha, len(zeroedResults), "<a href= %s target='_blank'>zeroed channel list</a>" % (zeroFile)))
+write_param('Model', 'LASSO')
+write_param('Non-zero coefficients', '%d' % numpy.count_nonzero(model.coef_))
+write_param('Alpha', '%g' % usedalpha)
+write_param('Zero coefficients','%d (%s)' % (len(zeroedResults), "<a href= %s target='_blank'>zeroed channel list</a>" % (zeroFile)))
 page.p('<br /><br />%s' % df.to_html(index=True))
 page.div.close()#model-info
 
