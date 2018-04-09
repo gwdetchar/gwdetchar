@@ -166,13 +166,16 @@ for seg in statea:
     fullcache.extend(cache)
 
 # read triggers
-trigs = EventTable.read(
-    fullcache, columns=names,
-    ligolw_columns=llwcols, get_as_columns=True,
-    selection='peak_frequency < %s' % (args.frequency_threshold * 2),
-    format='ligolw.sngl_burst', nproc=args.nproc)
-# restrict to requested times (easier to do once here than in .read())
-trigs = trigs[trigs['peak'].in_segmentlist(statea)]
+if fullcache:
+    trigs = EventTable.read(
+        fullcache, columns=names,
+        ligolw_columns=llwcols, get_as_columns=True,
+        selection='peak_frequency < %s' % (args.frequency_threshold * 2),
+        format='ligolw.sngl_burst', nproc=args.nproc)
+    # restrict to requested times (easier to do once here than in .read())
+    trigs = trigs[trigs['peak'].in_segmentlist(statea)]
+else:  # no files (no livetime?)
+    trigs = EventTable(names=names)
 
 highsnrtrigs = trigs[trigs['snr'] >= 8]
 if args.verbose:
