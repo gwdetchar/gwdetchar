@@ -236,6 +236,7 @@ for i, channel in enumerate(sorted(allchannels)):
     if args.verbose:
         gprint("-- Processing %s --------------------" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
+    optic = channel.split('-')[1].split('_')[0]
     flag = '%s:DCH-%s_SCATTERING_GE_%s_HZ:1' % (args.ifo, optic, tstr)
     scatter_segments[channel] = DataQualityFlag(flag)
     # set up plot(s)
