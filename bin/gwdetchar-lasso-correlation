@@ -128,7 +128,7 @@ psig.add_argument('-x', '--filter-padding', type=float, default=3.,
 lsig = parser.add_argument_group('LASSO options')
 lsig.add_argument('-a', '--alpha', default=None, type=float,
                   help='alpha parameter for LASSO fit')
-lsig.add_argument('-C', '--cluster', default=True, type=bool,
+lsig.add_argument('-C', '--cluster', default='True', type=str,
                   help='generate clustered channel plots')
 lsig.add_argument('-c', '--cluster-coefficient', default=.85, type=float,
                   help='correlation coefficient threshold for clustering')
@@ -150,7 +150,7 @@ os.chdir(args.output_dir)
 nprocplot = args.nproc_plot or args.nproc
 
 
-# load data
+# load primary channel data
 print("-- Loading range data")
 rangets = TimeSeries.get(rangechannel, start, end,
                          frametype=args.range_frametype, verbose=True,
@@ -165,11 +165,6 @@ else:
 if args.remove_outliers:
     print('-- Removing outliers above %f sigma' % args.remove_outliers)
     remove_outliers(rangets, args.remove_outliers)
-
-# create scaled versions of data to compare to each other
-print("-- Creating scaled data")
-rangescaled = rangets.detrend()
-rangerms = numpy.sqrt(sum(rangescaled**2.0)/len(rangescaled))
 
 # get aux data
 print("-- Loading auxiliary channel data")
@@ -198,36 +193,36 @@ auxdata = TimeSeriesDict.get(
 flatdata = dict()
 gooddata = dict()
 
-#goodchan = list()
-
 for k, ts in auxdata.items():
     flat = ts.value.min() == ts.value.max()
     if flat:
         flatdata[k] = ts
     else:
         gooddata[k] = ts
-
 auxdata = gooddata
+flattab=Table(data = (numpy.asarray(flatdata.keys()),), names = ('Channels',))
 
+# -- removes NaN data
 nandata = dict()
 gooddata = dict()
 
 try:
     data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 except:
-    print('Nan found in data, removing bad channels')
+    print('Nan found in data, removing bad channels...')
     for k, v in auxdata.items():
         hasnan = 0
         for x in range(len(v.value)):
             if isnan(v.value[x]):
                 hasnan +=1
         if hasnan > 0:
-            print('removing channel: %s' % k)
             nandata[k] = v
         else:
             gooddata[k] = v
+    print('Nan channels removed.')
     auxdata = gooddata
     data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
+
 
 # -- perform LASSO regression -------------------------------------------------
 
@@ -240,7 +235,6 @@ else:
 # perform LASSO regression fit
 model.fit(data, scale(rangets.value))
 
-
 #pulls out alphas
 usedalpha = 0
 if args.alpha is None:
@@ -250,40 +244,46 @@ else:
 
 
 # restructure results for convenience
-unsortedResults=[]
+unsorted_results=[]
 for n, k in enumerate(auxdata.keys()):
-    unsortedResults.append([k, model.coef_[n]])
-
-unsortedResults=sorted(unsortedResults, key=lambda x: abs(x[1]), reverse=True)
-sortedResults=[[x[0] for x in unsortedResults],[y[1] for y in unsortedResults]]
-
-resultstab = Table(data=(sortedResults[0],sortedResults[1]),
+    unsorted_results.append([k, model.coef_[n]])
+unsorted_results=sorted(unsorted_results, key=lambda x: abs(x[1]), reverse=True)
+sorted_results=[[x[0] for x in unsorted_results],[y[1] for y in unsorted_results]]
+resultstab = Table(data=(sorted_results[0],sorted_results[1]),
                 names=('Channel', 'LASSO Coefficient'))
 
+nonzerodata=dict()
+nonzerocoef=dict()
+usefulcount=0
 i=0
-while(i<len(resultstab['LASSO Coefficient']) and abs(resultstab['LASSO Coefficient'][i])>=args.threshold):
+
+while(i<len(sorted_results[1]) and abs(sorted_results[1][i])>0):
+    nonzerodata[sorted_results[0][i]]=auxdata[sorted_results[0][i]]
+    nonzerocoef[sorted_results[0][i]]=sorted_results[1][i]
+    if abs(sorted_results[1][i])>=args.threshold:
+        usefulcount+=1
     i+=1
-useful=Table(data=(resultstab['Channel'][0:i],resultstab['LASSO Coefficient'][0:i]), names =('Channel', 'LASSO Coefficient'))
+
+usefultab=Table(data=(resultstab['Channel'][0:usefulcount],resultstab['LASSO Coefficient'][0:usefulcount]), names =('Channel', 'LASSO Coefficient'))
 
 zeroed = resultstab['LASSO Coefficient'] == 0
-zeroedResults=Table(data=(resultstab[zeroed]['Channel'],), names =('Channels',))
+zeroedtab=Table(data=(resultstab[zeroed]['Channel'],), names =('Channels',))
 
-flatResults=Table(data = (numpy.asarray(flatdata.keys()),), names = ('Channels',))
 
 # print results
 print('Found {} channels with |LASSO Coefficient| >= {}'.format(
-    len(useful), args.threshold))
-print(useful)
+    len(usefultab), args.threshold))
+print(usefultab)
 
 gpsstub = '%d-%d' % (start, end-start)
-zeroFile = '%s-ZERO_COEFFICIENT_CHANNELS-%s.txt'% (args.ifo, gpsstub)
-flatFile = '%s-FLAT_CHANNELS-%s.txt'% (args.ifo, gpsstub)
+zerofile = '%s-ZERO_COEFFICIENT_CHANNELS-%s.txt'% (args.ifo, gpsstub)
+flatfile = '%s-FLAT_CHANNELS-%s.txt'% (args.ifo, gpsstub)
 
-resultstab.write('resultstab.txt', format='ascii')
-zeroedResults.write(zeroFile, format='ascii')
-flatResults.write(flatFile, format='ascii')
+resultstab.write('resultstab.txt', format='ascii', overwrite=True)
+zeroedtab.write(zerofile, format='ascii', overwrite=True)
+flattab.write(flatfile, format='ascii', overwrite=True)
 
-df = useful.to_pandas()
+df = usefultab.to_pandas()
 df.index+=1
 
 #-- Process aux channels, making plots
@@ -299,16 +299,15 @@ p2 = (.1, .15, .9, .9) # global plot defaults for plot2, timeseries overlay
 def process_channel(input_,):
     chan = input_[1][0]
     ts = input_[1][1]
-    zeroed = model.coef_[input_[0]] == 0
+    lassocoef = nonzerocoef[chan]
+    zeroed = lassocoef == 0
 
     if zeroed:
-        lassocoef = 0
         plot1 = None
         plot2 = None
         plot3 = None
         pcorr = None
     else:
-        lassocoef = model.coef_[input_[0]]
         plot1 = None
         plot2 = None
         if args.trend_type == 'minute':
@@ -319,7 +318,14 @@ def process_channel(input_,):
             plot1 = None
             plot2 = None
             plot3 = None
+            with counter.get_lock():
+                counter.value += 1
+                pc = 100 * counter.value / len(nonzerodata)
+                print("Completed [%d/%d] %3d%% %-50s"
+                      % (counter.value, len(nonzerodata), pc, '(%s)' % str(chan)), end='\r')
+                sys.stdout.flush()
             return chan, lassocoef, plot1, plot2, plot3, ts
+
         # -- Create time series subplot
         plot = TimeSeriesPlot(rangets, ts, sep=True, sharex=True,
                               figsize=(12, 12))
@@ -351,6 +357,7 @@ def process_channel(input_,):
             tsscaled = numpy.negative(tsscaled)
         fig = plt.figure(figsize=(12,6))
         plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+
         plt.plot(tsscaled, label=chan.replace("_","\_"))
         plt.xlabel('Time [min]')
         plt.ylabel('Scaled amplitude [arbitrary units]')
@@ -400,15 +407,14 @@ def process_channel(input_,):
                 scatPlot.save(plot3)
             else:
                 raise
-
         scatPlot.close()
 
     # increment counter and print status
     with counter.get_lock():
         counter.value += 1
-        pc = 100 * counter.value / nchan
+        pc = 100 * counter.value / len(nonzerodata)
         print("Completed [%d/%d] %3d%% %-50s"
-              % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
+              % (counter.value, len(nonzerodata), pc, '(%s)' % str(chan)), end='\r')
         sys.stdout.flush()
     return chan, lassocoef, plot1, plot2, plot3, ts
 
@@ -434,13 +440,13 @@ except RuntimeError as e:
         plt.savefig(plot4)
     else:
         raise
-
 plt.close()
 
 # -- process channels
 pool = multiprocessing.Pool(nprocplot)
-results = pool.map(process_channel, enumerate(auxdata.iteritems()))
-# -- sort results by the lasso coefficient
+results = pool.map(process_channel, enumerate(nonzerodata.iteritems()))
+
+# sort results by the lasso coefficient
 results=sorted(results, key=lambda x: abs(x[1]), reverse=True)
 
 # generate plots for channel contribution to model
@@ -457,7 +463,7 @@ line2=plt.plot(scale(results[0][5].value)*results[0][1], label = "Channel 1")
 colors.append(line2[0].get_color())
 labels.append(line2[0].get_label())
 
-for n in range(1,len(useful)):
+for n in range(1,len(nonzerodata)):
     summation=scale(results[0][5].value)*results[0][1]
     for m in range(n,0,-1):
         summation=numpy.add(summation,scale(results[m][5].value)*results[m][1])
@@ -481,7 +487,6 @@ except RuntimeError as e:
         plt.savefig(plot5)
     else:
         raise
-
 plt.close()
 
 legend_fig =  plt.figure()
@@ -502,9 +507,7 @@ except RuntimeError as e:
         legend_fig.savefig(plot5_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
     else:
         raise
-
 plt.close()
-
 
 colors = []
 labels = []
@@ -514,8 +517,7 @@ line = plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
 colors.append(line[0].get_color())
 labels.append(line[0].get_label())
 
-
-for n in range (0, len(useful)):
+for n in range (0, len(nonzerodata)):
     if results[n][5] is not None:
         line = plt.plot(scale(results[n][5].value)*results[n][1], label = results[n][0].replace("_","\_"))
         colors.append(line[0].get_color())
@@ -537,7 +539,6 @@ except RuntimeError as e:
         plt.savefig(plot6)
     else:
         raise
-
 plt.close()
 
 legend_fig =  plt.figure()
@@ -558,34 +559,38 @@ except RuntimeError as e:
         legend_fig.savefig(plot6_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
     else:
         raise
-
 plt.close()
 
 
 # -- generate clustered time series plots
-
 counter = multiprocessing.Value('i', 0)
-def generate_clusters(input_,):
+def generate_cluster(input_,):
     currentchan = input_[1][0]
     currentts = input_[1][5]
     current = input_[0]
-    clusterThreshold = args.cluster_coefficient
+    cluster_threshold = args.cluster_coefficient
     plot7 = None
     plot7_legend = None
 
-    if current < len(useful):
-        currentCluster = []
+    if current < len(nonzerodata):
+        current_cluster = []
         other = 0
         while other < len(results):
             otherts = results[other][5]
             if current != other:
                 pcorr = numpy.corrcoef(currentts.value, otherts.value)[0,1]
-                if(abs(pcorr)>=clusterThreshold):
+                if(abs(pcorr)>=cluster_threshold):
                     chan = results[other][0]
                     channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
-                    currentCluster.append([other, otherts, pcorr, chan, channelstub])
+                    current_cluster.append([other, otherts, pcorr, chan, channelstub])
             other+=1
-        if len(currentCluster) == 0:
+        if len(current_cluster) == 0:
+            with counter.get_lock():
+                counter.value += 1
+                pc = 100 * counter.value / nchan
+                print("Completed [%d/%d] %3d%% %-50s"
+                      % (counter.value, len(nonzerodata), pc, '(%s)' % str(currentchan)), end='\r')
+                sys.stdout.flush()
             return plot7, plot7_legend
         else:
             colors = []
@@ -595,10 +600,10 @@ def generate_clusters(input_,):
             line = plt.plot(scale(currentts.value)*numpy.sign(input_[1][1]), label=currentchan.replace("_","\_"))
             colors.append(line[0].get_color())
             labels.append(line[0].get_label())
-            currentCluster = sorted(currentCluster, key=lambda x: abs(x[2]), reverse=True)
+            current_cluster = sorted(current_cluster, key=lambda x: abs(x[2]), reverse=True)
 
-            for i in range (0, len(currentCluster)):
-                line = plt.plot(scale(currentCluster[i][1].value)*numpy.sign(input_[1][1])*numpy.sign(currentCluster[i][2]), label=currentCluster[i][3].replace("_","\_") + ', r = ' + str('{0:.2}'.format(currentCluster[i][2])))
+            for i in range (0, len(current_cluster)):
+                line = plt.plot(scale(current_cluster[i][1].value)*numpy.sign(input_[1][1])*numpy.sign(current_cluster[i][2]), label=current_cluster[i][3].replace("_","\_") + ', r = ' + str('{0:.2}'.format(current_cluster[i][2])))
                 colors.append(line[0].get_color())
                 labels.append(line[0].get_label())
             plt.xlabel('Time [min]')
@@ -630,42 +635,30 @@ def generate_clusters(input_,):
             try:
                 legend_fig.savefig(plot7_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
             except (IOError, IndexError):
-                legend_fig.savefig(plot5_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
+                legend_fig.savefig(plot7_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
             except RuntimeError as e:
                 if 'latex' in str(e).lower():
-                    legend_fig.savefig(plot5_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
+                    legend_fig.savefig(plot7_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
                 else:
                     raise
-
             plt.close()
 
     with counter.get_lock():
         counter.value += 1
         pc = 100 * counter.value / nchan
         print("Completed [%d/%d] %3d%% %-50s"
-              % (counter.value, nchan, pc, '(%s)' % str(currentchan)), end='\r')
+              % (counter.value, len(nonzerodata), pc, '(%s)' % str(currentchan)), end='\r')
         sys.stdout.flush()
-
     return plot7, plot7_legend
 
 
-if args.cluster is True:
+if args.cluster.lower() == 'true':
     print("-- Generating clusters")
     pool = multiprocessing.Pool(nprocplot)
-    clusters = pool.map(generate_clusters, enumerate(results[0:len(useful)]))
+    clusters = pool.map(generate_cluster, enumerate(results))
 
-channelsFile = '%s-CHANNELS-%s.txt'% (args.ifo, gpsstub)
-
-try:
-    numpy.savetxt(channelsFile, channels, fmt="%s")
-except(IOError, IndexError):
-    numpy.savetxt(channelsFile, channels, fmt="%s")
-except RuntimeError as e:
-    if 'latex' in str(e).lower():
-        numpy.savetxt(channelsfile, channels, fmt="%s")
-    else:
-        raise
-
+channelsfile = '%s-CHANNELS-%s.txt'% (args.ifo, gpsstub)
+numpy.savetxt(channelsfile, channels, fmt="%s")
 
 # -- write html
 title = '%s LASSO slow correlations: %d-%d' % (args.ifo, start, end)
@@ -689,8 +682,8 @@ write_param('Start time', '%s (%d)' % (from_gps(start), start))
 write_param('End time', '%s (%d)' % (from_gps(end), end))
 write_param('Range channel',
             '%s (%s)' % (rangechannel, args.range_frametype or '-'))
-write_param('Channels searched', '%d (%s)' % (nchan, "<a href= %s target='_blank'>channel list</a>" % channelsFile))
-write_param('Number of flat channels', '%d (%s)' % (len(flatdata), "<a href= %s target='_blank'>flat channel list</a>" % (flatFile)))
+write_param('Channels searched', '%d (%s)' % (nchan, "<a href= %s target='_blank'>channel list</a>" % channelsfile))
+write_param('Number of flat channels', '%d (%s)' % (len(flatdata), "<a href= %s target='_blank'>flat channel list</a>" % (flatfile)))
 write_param('LASSO coefficient threshold', '%g' % args.threshold)
 
 page.h2('Model Information')
@@ -702,7 +695,7 @@ page.div(class_='model-info')
 write_param('Model', 'LASSO')
 write_param('Non-zero coefficients', '%d' % numpy.count_nonzero(model.coef_))
 write_param('Alpha', '%g' % usedalpha)
-write_param('Zero coefficients','%d (%s)' % (len(zeroedResults), "<a href= %s target='_blank'>zeroed channel list</a>" % (zeroFile)))
+write_param('Zero coefficients','%d (%s)' % (len(zeroedtab), "<a href= %s target='_blank'>zeroed channel list</a>" % (zerofile)))
 page.p('<br /><br />%s' % df.to_html(index=True))
 page.div.close()#model-info
 
@@ -789,7 +782,7 @@ for i, (ch, lassocoef, plot1, plot2, plot3, ts) in enumerate(results):
             page.a(href=p, target='_blank')
             page.img(class_='img-responsive', src=p)
             page.a.close()
-        if args.cluster is True:
+        if args.cluster.lower() == 'true':
             if clusters[i][0] is None:
                 page.p("<font size = '3'><br />No channels were highly correlated with this channel.</font>")
             else:
