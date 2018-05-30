@@ -28,6 +28,7 @@ from math import isnan
 import numpy
 from scipy.stats import spearmanr
 from scipy.interpolate import UnivariateSpline
+import astropy.units as u
 
 from matplotlib import use
 use('agg')
@@ -104,15 +105,10 @@ parser.add_argument('-T', '--trend-type', default='minute',
                     choices=['second', 'minute'],
                     help='type of trend for correlation')
 parser.add_argument('-p', '--primary-channel',
-                    default='{ifo}:GDS-CALIB_STRAIN',
+                    default='{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean',
                     help='name of primary channel to use')
 parser.add_argument('-P', '--primary-frametype',
                     help='frametype for --primary-channel')
-parser.add_argument('-r', '--range-channel',
-                    default='{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean',
-                    help='name of range channel to use')
-parser.add_argument('-R', '--range-frametype',
-                    help='frametype for --range-channel')
 parser.add_argument('-O', '--remove-outliers', type=float, default=None,
                     help='Std. dev. limit for removing outliers')
 parser.add_argument('-t', '--threshold', type=float, default=0.0001,
@@ -142,29 +138,54 @@ pad = args.filter_padding
 if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
     args.primary_frametype = '%s_HOFT_C00' % args.ifo
 primary = args.primary_channel.format(ifo=args.ifo)
-rangechannel = args.range_channel.format(ifo=args.ifo)
 
 if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
 os.chdir(args.output_dir)
 nprocplot = args.nproc_plot or args.nproc
 
+if args.band_pass:
+    try:
+        flower, fupper = args.band_pass
+    except TypeError:
+        flower, fupper = None
 
-# load primary channel data
-print("-- Loading range data")
-rangets = TimeSeries.get(rangechannel, start, end,
-                         frametype=args.range_frametype, verbose=True,
-                         nproc=args.nproc)
+    print("-- Loading primary channel data")
+    bandts = TimeSeries.get(primary, start-pad, end+pad, verbose=True,
+                        nproc=args.nproc)
+    if(flower<0 or fupper>=float(bandts.sample_rate/(1.* u.Hz))*.5):
+        print("\tError with band pass: frequency is out of range for this channel.")
+        print("\tBand (Hz): " + str(args.band_pass) + ", Channel sample rate (Hz): " + str(bandts.sample_rate))
+        quit()
 
-if args.trend_type == 'minute':
-    dstart, dend = rangets.span
+    # get darm BLRMS
+    print("-- Filtering data")
+    if args.trend_type == 'minute':
+        stride = 60
+    else:
+        stride = 1
+    if flower:
+        darmblrms = (
+            bandts.highpass(flower/2., fstop=flower/4., filtfilt=False, ftype='butter').notch(
+            60, filtfilt=False).bandpass(
+            flower, fupper, fstop=[flower/2., fupper*1.5], filtfilt=False, ftype='butter').crop(
+            start, end).rms(stride))
+        darmblrms.name = '%s %s-%s Hz BLRMS' % (primary, flower, fupper)
+    else:
+        darmblrms = bandts.notch(60).crop(start, end).rms(stride)
+        darmblrms.name = '%s RMS' % primary
+
+    primaryts=darmblrms
+
 else:
-    dstart = start
-    dend = end
+    # load primary channel data
+    print("-- Loading primary channel data")
+    primaryts = TimeSeries.get(primary, start, end, frametype=args.primary_frametype,
+                             verbose=True, nproc=args.nproc)
 
 if args.remove_outliers:
     print('-- Removing outliers above %f sigma' % args.remove_outliers)
-    remove_outliers(rangets, args.remove_outliers)
+    remove_outliers(primaryts, args.remove_outliers)
 
 # get aux data
 print("-- Loading auxiliary channel data")
@@ -184,7 +205,7 @@ else:
     frametype = '%s_T' % args.ifo  # for second trends
 
 auxdata = TimeSeriesDict.get(
-    map(str, channels), dstart, dend, verbose=True,
+    map(str, channels), start, end, verbose=True,
     frametype=frametype, nproc=args.nproc,
     observatory=args.ifo[0], pad=0, **io_kw)
 
@@ -233,7 +254,7 @@ else:
     model = linear_model.Lasso(args.alpha)
 
 # perform LASSO regression fit
-model.fit(data, scale(rangets.value))
+model.fit(data, scale(primaryts.value))
 
 #pulls out alphas
 usedalpha = 0
@@ -311,7 +332,7 @@ def process_channel(input_,):
         plot1 = None
         plot2 = None
         if args.trend_type == 'minute':
-            pcorr = numpy.corrcoef(ts.value, rangets.value)[0, 1]
+            pcorr = numpy.corrcoef(ts.value, primaryts.value)[0, 1]
         else:
             pcorr = 0.0
         if(abs(lassocoef) < args.threshold):
@@ -327,10 +348,10 @@ def process_channel(input_,):
             return chan, lassocoef, plot1, plot2, plot3, ts
 
         # -- Create time series subplot
-        plot = TimeSeriesPlot(rangets, ts, sep=True, sharex=True,
+        plot = TimeSeriesPlot(primaryts, ts, sep=True, sharex=True,
                               figsize=(12, 12))
         plot.subplots_adjust(*p1)
-        plot.axes[0].set_ylabel('Sensitive range [Mpc]')
+        plot.axes[0].set_ylabel('Primary channel units')
         plot.axes[1].set_ylabel('Channel units')
         for ax in plot.axes:
             ax.legend(loc='best')
@@ -356,7 +377,7 @@ def process_channel(input_,):
         if lassocoef < 0:
             tsscaled = numpy.negative(tsscaled)
         fig = plt.figure(figsize=(12,6))
-        plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+        plt.plot(scale(primaryts.value), label=primary.replace("_","\_"))
 
         plt.plot(tsscaled, label=chan.replace("_","\_"))
         plt.xlabel('Time [min]')
@@ -377,22 +398,22 @@ def process_channel(input_,):
         plt.close()
 
         #plot scatter plots
-        rangeColor="red"
+        primaryColor="red"
         plotHeight=6
         plotWidth=12
 
         tsCopy=ts.reshape(-1,1)
-        rangetsCopy=rangets.reshape(-1,1)
-        rangeReg = linear_model.LinearRegression()
-        rangeReg.fit(tsCopy, rangetsCopy)
-        rangeFit = rangeReg.predict(tsCopy)
+        primarytsCopy=primaryts.reshape(-1,1)
+        primaryReg = linear_model.LinearRegression()
+        primaryReg.fit(tsCopy, primarytsCopy)
+        primaryFit = primaryReg.predict(tsCopy)
         scatPlot=gwplot()
         axes = scatPlot.gca()
         axes.set_xlabel(chan.replace("_","\_") + " [Channel units]", labelpad=30)
-        axes.set_ylabel("Sensitive range [Mpc]")
+        axes.set_ylabel("Primary channel units")
         axes.text(.9,.1,"r = " + str('{0:.2}'.format(pcorr)), verticalalignment='bottom', horizontalalignment='right', transform=axes.transAxes, color="black", size=20, bbox=dict(boxstyle='square', facecolor='white', alpha=.75, edgecolor="black"))
-        scatPlot.add_scatter(ts, rangets, color=rangeColor)
-        scatPlot.add_line(ts, rangeFit, color="black")
+        scatPlot.add_scatter(ts, primaryts, color=primaryColor)
+        scatPlot.add_line(ts, primaryFit, color="black")
         scatPlot.set_figheight(plotHeight)
         scatPlot.set_figwidth(plotWidth)
         scatPlot.tight_layout()
@@ -422,11 +443,11 @@ def process_channel(input_,):
 modelFit=model.predict(data)
 
 fig = plt.figure(figsize=(12,6))
-plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+plt.plot(scale(primaryts.value), label=primary.replace("_","\_"))
 plt.plot(modelFit, label='LASSO model')
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
-plt.title('LASSO Model of Range')
+plt.title('LASSO Model of Primary Channel')
 plt.legend(loc='best')
 plt.tight_layout()
 plot4 = 'LASSO-MODEL-%s.png' % gpsstub
@@ -455,7 +476,7 @@ labels = []
 fig = plt.figure(figsize=(8,5))
 ax = plt.subplot(111)
 
-line1 = plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+line1 = plt.plot(scale(primaryts.value), label=primary.replace("_","\_"))
 colors.append(line1[0].get_color())
 labels.append(line1[0].get_label())
 
@@ -473,10 +494,10 @@ for n in range(1,len(nonzerodata)):
 
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
-plt.title('Summations of Channel Contributions to Range')
+plt.title('Summations of Channel Contributions to Primary Channel')
 plt.tight_layout()
 
-plot5 = 'SUMMATION-OF-CHANNELS-AND-RANGE-%s.png' % gpsstub
+plot5 = 'SUMMATION-OF-CHANNELS-AND-PRIMARY-%s.png' % gpsstub
 
 try:
     plt.savefig(plot5)
@@ -496,7 +517,7 @@ patches = [
 legend = legend_fig.legend(patches, labels, loc = 'center', frameon=False, fontsize= 'small')
 legend_fig.canvas.draw()
 
-plot5_legend = 'SUMMATION-OF-CHANNELS-AND-RANGE-%s-LEGEND.png' % gpsstub
+plot5_legend = 'SUMMATION-OF-CHANNELS-AND-PRIMARY-%s-LEGEND.png' % gpsstub
 
 try:
     legend_fig.savefig(plot5_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
@@ -513,7 +534,7 @@ colors = []
 labels = []
 fig = plt.figure(figsize=(8,5))
 ax = plt.subplot(111)
-line = plt.plot(scale(rangets.value), label=rangechannel.replace("_","\_"))
+line = plt.plot(scale(primaryts.value), label=primary.replace("_","\_"))
 colors.append(line[0].get_color())
 labels.append(line[0].get_label())
 
@@ -525,10 +546,10 @@ for n in range (0, len(nonzerodata)):
 
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
-plt.title('Individual Channel Contributions to Range')
+plt.title('Individual Channel Contributions to Primary Channel')
 plt.tight_layout()
 
-plot6 = 'CHANNEL-CONTRIBUTIONS-TO-RANGE-%s.png' % gpsstub
+plot6 = 'CHANNEL-CONTRIBUTIONS-TO-PRIMARY-%s.png' % gpsstub
 
 try:
     plt.savefig(plot6)
@@ -548,7 +569,7 @@ patches = [
 legend = legend_fig.legend(patches, labels, loc = 'center', frameon=False, fontsize = 'small')
 legend_fig.canvas.draw()
 
-plot6_legend = 'CHANNEL-CONTRIBUTIONS-TO-RANGE-%s-LEGEND.png' % gpsstub
+plot6_legend = 'CHANNEL-CONTRIBUTIONS-TO-PRIMARY-%s-LEGEND.png' % gpsstub
 
 try:
     legend_fig.savefig(plot6_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
@@ -680,8 +701,8 @@ page.h2('Parameters')
 page.p('This analysis used the following parameters:')
 write_param('Start time', '%s (%d)' % (from_gps(start), start))
 write_param('End time', '%s (%d)' % (from_gps(end), end))
-write_param('Range channel',
-            '%s (%s)' % (rangechannel, args.range_frametype or '-'))
+write_param('Primary channel',
+            '%s (%s)' % (primary, args.primary_frametype or '-'))
 write_param('Channels searched', '%d (%s)' % (nchan, "<a href= %s target='_blank'>channel list</a>" % channelsfile))
 write_param('Number of flat channels', '%d (%s)' % (len(flatdata), "<a href= %s target='_blank'>flat channel list</a>" % (flatfile)))
 write_param('LASSO coefficient threshold', '%g' % args.threshold)
@@ -701,11 +722,11 @@ page.div.close()#model-info
 
 page.p('<br /><br />')
 
-page.div(class_='range-lasso')
+page.div(class_='primary-lasso')
 page.a(href=plot4, target='_blank')
 page.img(class_='lasso-img', src=plot4)
-page.a.close()#range lasso plot
-page.div.close()#range-lasso)
+page.a.close()#primary lasso plot
+page.div.close()#primary-lasso)
 
 page.div(class_='channel-summation', style_='display: flex;flex-wrap:nowrap;justify-content:space-around;')
 page.div(style_='display: block;')
@@ -722,7 +743,7 @@ page.div.close()#overflowed window
 page.div.close()#scroll container
 page.div.close()#channels-summation
 
-page.div(class_='channels-and-range', style_='display: flex;flex-wrap:nowrap;justify-content:space-around;')
+page.div(class_='channels-and-primary', style_='display: flex;flex-wrap:nowrap;justify-content:space-around;')
 page.div(style_='display: block;')
 page.a(href=plot6, target='_blank')
 page.img(class_='channels-contrib-img', src=plot6)
@@ -735,7 +756,7 @@ page.img(class_='channels-contrib-img', src=plot6_legend)
 page.a.close()#legend image
 page.div.close()#overflowed window
 page.div.close()#scroll container
-page.div.close()#channels-and-range
+page.div.close()#channels-and-primary
 
 
 page.div.close()#model-body
