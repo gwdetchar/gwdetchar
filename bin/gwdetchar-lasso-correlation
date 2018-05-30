@@ -100,7 +100,7 @@ parser.add_argument('-J', '--nproc-plot', type=int, default=None,
 parser.add_argument('-o', '--output-dir', default=os.curdir,
                     help='output directory for plots')
 parser.add_argument('-f', '--channel-file', type=os.path.abspath,
-                    help='path for channel file')
+                    help='path for channel file', required=True)
 parser.add_argument('-T', '--trend-type', default='minute',
                     choices=['second', 'minute'],
                     help='type of trend for correlation')
@@ -138,6 +138,7 @@ pad = args.filter_padding
 if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
     args.primary_frametype = '%s_HOFT_C00' % args.ifo
 primary = args.primary_channel.format(ifo=args.ifo)
+range_is_primary = args.primary_channel == '{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean'
 
 if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
@@ -351,7 +352,10 @@ def process_channel(input_,):
         plot = TimeSeriesPlot(primaryts, ts, sep=True, sharex=True,
                               figsize=(12, 12))
         plot.subplots_adjust(*p1)
-        plot.axes[0].set_ylabel('Primary channel units')
+        if range_is_primary:
+            plot.axes[0].set_ylabel('Sensitive range [Mpc]')
+        else:
+            plot.axes[0].set_ylabel('Primary channel units')
         plot.axes[1].set_ylabel('Channel units')
         for ax in plot.axes:
             ax.legend(loc='best')
@@ -410,7 +414,14 @@ def process_channel(input_,):
         scatPlot=gwplot()
         axes = scatPlot.gca()
         axes.set_xlabel(chan.replace("_","\_") + " [Channel units]", labelpad=30)
-        axes.set_ylabel("Primary channel units")
+        if range_is_primary:
+            axes.set_ylabel("Sensitive range [Mpc]")
+        else:
+            axes.set_ylabel("Primary channel units")
+        yrange = abs(max(primaryts.value) - min(primaryts.value))
+        yupper = max(primaryts.value) + .1 * yrange
+        ylower = min(primaryts.value) + .1 * yrange
+        axes.set_ylim(ylower, yupper)
         axes.text(.9,.1,"r = " + str('{0:.2}'.format(pcorr)), verticalalignment='bottom', horizontalalignment='right', transform=axes.transAxes, color="black", size=20, bbox=dict(boxstyle='square', facecolor='white', alpha=.75, edgecolor="black"))
         scatPlot.add_scatter(ts, primaryts, color=primaryColor)
         scatPlot.add_line(ts, primaryFit, color="black")
@@ -447,7 +458,10 @@ plt.plot(scale(primaryts.value), label=primary.replace("_","\_"))
 plt.plot(modelFit, label='LASSO model')
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
-plt.title('LASSO Model of Primary Channel')
+if range_is_primary:
+    plt.title('LASSO Model of Range')
+else:
+    plt.title('LASSO Model of Primary Channel')
 plt.legend(loc='best')
 plt.tight_layout()
 plot4 = 'LASSO-MODEL-%s.png' % gpsstub
@@ -494,10 +508,10 @@ for n in range(1,len(nonzerodata)):
 
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
-plt.title('Summations of Channel Contributions to Primary Channel')
+plt.title('Summations of Channel Contributions to Model')
 plt.tight_layout()
 
-plot5 = 'SUMMATION-OF-CHANNELS-AND-PRIMARY-%s.png' % gpsstub
+plot5 = 'SUMMATION-OF-CHANNELS-AND-MODEL-%s.png' % gpsstub
 
 try:
     plt.savefig(plot5)
@@ -517,7 +531,7 @@ patches = [
 legend = legend_fig.legend(patches, labels, loc = 'center', frameon=False, fontsize= 'small')
 legend_fig.canvas.draw()
 
-plot5_legend = 'SUMMATION-OF-CHANNELS-AND-PRIMARY-%s-LEGEND.png' % gpsstub
+plot5_legend = 'SUMMATION-OF-CHANNELS-AND-MODEL-%s-LEGEND.png' % gpsstub
 
 try:
     legend_fig.savefig(plot5_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
@@ -546,10 +560,10 @@ for n in range (0, len(nonzerodata)):
 
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
-plt.title('Individual Channel Contributions to Primary Channel')
+plt.title('Individual Channel Contributions to Model')
 plt.tight_layout()
 
-plot6 = 'CHANNEL-CONTRIBUTIONS-TO-PRIMARY-%s.png' % gpsstub
+plot6 = 'CHANNEL-CONTRIBUTIONS-TO-MODEL-%s.png' % gpsstub
 
 try:
     plt.savefig(plot6)
@@ -569,7 +583,7 @@ patches = [
 legend = legend_fig.legend(patches, labels, loc = 'center', frameon=False, fontsize = 'small')
 legend_fig.canvas.draw()
 
-plot6_legend = 'CHANNEL-CONTRIBUTIONS-TO-PRIMARY-%s-LEGEND.png' % gpsstub
+plot6_legend = 'CHANNEL-CONTRIBUTIONS-TO-MODEL-%s-LEGEND.png' % gpsstub
 
 try:
     legend_fig.savefig(plot6_legend, bbox_inches=legend.get_window_extent().transformed(legend_fig.dpi_scale_trans.inverted()))
