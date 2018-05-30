@@ -420,7 +420,7 @@ def process_channel(input_,):
             axes.set_ylabel("Primary channel units")
         yrange = abs(max(primaryts.value) - min(primaryts.value))
         yupper = max(primaryts.value) + .1 * yrange
-        ylower = min(primaryts.value) + .1 * yrange
+        ylower = min(primaryts.value) - .1 * yrange
         axes.set_ylim(ylower, yupper)
         axes.text(.9,.1,"r = " + str('{0:.2}'.format(pcorr)), verticalalignment='bottom', horizontalalignment='right', transform=axes.transAxes, color="black", size=20, bbox=dict(boxstyle='square', facecolor='white', alpha=.75, edgecolor="black"))
         scatPlot.add_scatter(ts, primaryts, color=primaryColor)
