@@ -720,6 +720,8 @@ write_param('Primary channel',
 write_param('Channels searched', '%d (%s)' % (nchan, "<a href= %s target='_blank'>channel list</a>" % channelsfile))
 write_param('Number of flat channels', '%d (%s)' % (len(flatdata), "<a href= %s target='_blank'>flat channel list</a>" % (flatfile)))
 write_param('LASSO coefficient threshold', '%g' % args.threshold)
+write_param('Sigma for outlier removal', '%g' % args.remove_outliers)
+write_param('Cluster coefficient threshold: ', '%g' % args.cluster_coefficient)
 
 page.h2('Model Information')
 
