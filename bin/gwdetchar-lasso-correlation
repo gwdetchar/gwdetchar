@@ -24,7 +24,7 @@ import re
 import multiprocessing
 import sys
 
-from math import isnan
+from math import (isnan, log, log10)
 import numpy
 from scipy.stats import spearmanr
 from scipy.interpolate import UnivariateSpline
@@ -100,7 +100,7 @@ parser.add_argument('-J', '--nproc-plot', type=int, default=None,
 parser.add_argument('-o', '--output-dir', default=os.curdir,
                     help='output directory for plots')
 parser.add_argument('-f', '--channel-file', type=os.path.abspath,
-                    help='path for channel file', required=True)
+                    help='path for channel file')
 parser.add_argument('-T', '--trend-type', default='minute',
                     choices=['second', 'minute'],
                     help='type of trend for correlation')
@@ -154,7 +154,7 @@ if args.band_pass:
     print("-- Loading primary channel data")
     bandts = TimeSeries.get(primary, start-pad, end+pad, verbose=True,
                         nproc=args.nproc)
-    if(flower<0 or fupper>=float(bandts.sample_rate/(1.* u.Hz))*.5):
+    if(flower <0 or fupper >= float(bandts.sample_rate/(1.* u.Hz))*.5):
         print("\tError with band pass: frequency is out of range for this channel.")
         print("\tBand (Hz): " + str(args.band_pass) + ", Channel sample rate (Hz): " + str(bandts.sample_rate))
         quit()
@@ -176,7 +176,7 @@ if args.band_pass:
         darmblrms = bandts.notch(60).crop(start, end).rms(stride)
         darmblrms.name = '%s RMS' % primary
 
-    primaryts=darmblrms
+    primaryts = darmblrms
 
 else:
     # load primary channel data
@@ -222,7 +222,7 @@ for k, ts in auxdata.items():
     else:
         gooddata[k] = ts
 auxdata = gooddata
-flattab=Table(data = (numpy.asarray(flatdata.keys()),), names = ('Channels',))
+flattab = Table(data = (numpy.asarray(flatdata.keys()),), names = ('Channels',))
 
 # -- removes NaN data
 nandata = dict()
@@ -236,7 +236,7 @@ except:
         hasnan = 0
         for x in range(len(v.value)):
             if isnan(v.value[x]):
-                hasnan +=1
+                hasnan += 1
         if hasnan > 0:
             nandata[k] = v
         else:
@@ -250,46 +250,79 @@ except:
 
 # create model
 if args.alpha is None:
-    model = linear_model.LassoCV()
+    alphas = numpy.logspace(-1, 0, 100, endpoint=True)
+    primary_scaled = scale(primaryts.value)
+    nchans = numpy.zeros(len(alphas))
+    coef_path = numpy.zeros((len(data[0,:]), len(alphas)))
+    for i in range(0, len(alphas)):
+        model = linear_model.Lasso(alpha=alphas[i]) 
+        model.fit(data, primary_scaled)
+        nchans[i] = len(numpy.nonzero(model.coef_)[0])
+        coef_path[:, i] = model.coef_
+
+    X = data
+    y = primary_scaled
+    n_samples = X.shape[0] 
+    K_A = 2
+    K_B = log(n_samples)
+
+    R = y[:, numpy.newaxis] - numpy.dot(X, coef_path)  # residuals
+    mean_squared_error = numpy.mean(R ** 2, axis=0)
+    sigma2 = numpy.var(y)
+    
+    df = nchans
+    eps64 = numpy.finfo('float64').eps
+    criterion_A = (n_samples * mean_squared_error / (sigma2 + eps64) +
+                               K_A * df)  # Eqns. 2.15--16 in (Zou et al, 2007)
+    criterion_B = (n_samples * mean_squared_error / (sigma2 + eps64) +
+                               K_B * df)  # Eqns. 2.15--16 in (Zou et al, 2007)
+    n_best = numpy.argmin(criterion_B)
+    n_best_A = numpy.argmin(criterion_A)
+    
+    alpha_ = alphas[n_best]
+    coef_ = coef_path[:, n_best]
+    
+    alpha_A = alphas[n_best_A]
+    coef_A = coef_path[:, n_best_A]
+    model = linear_model.Lasso(alpha_)
+    model.fit(data, primary_scaled)
 else:
     model = linear_model.Lasso(args.alpha)
-
-# perform LASSO regression fit
-model.fit(data, scale(primaryts.value))
+    model.fit(data, scale(primaryts.value))
 
 #pulls out alphas
 usedalpha = 0
 if args.alpha is None:
-    usedalpha = model.alpha_
+    usedalpha = model.alpha
 else:
     usedalpha = args.alpha
 
 
 # restructure results for convenience
-unsorted_results=[]
+unsorted_results = []
 for n, k in enumerate(auxdata.keys()):
     unsorted_results.append([k, model.coef_[n]])
-unsorted_results=sorted(unsorted_results, key=lambda x: abs(x[1]), reverse=True)
-sorted_results=[[x[0] for x in unsorted_results],[y[1] for y in unsorted_results]]
+unsorted_results = sorted(unsorted_results, key=lambda x: abs(x[1]), reverse=True)
+sorted_results = [[x[0] for x in unsorted_results],[y[1] for y in unsorted_results]]
 resultstab = Table(data=(sorted_results[0],sorted_results[1]),
                 names=('Channel', 'LASSO Coefficient'))
 
-nonzerodata=dict()
-nonzerocoef=dict()
-usefulcount=0
-i=0
+nonzerodata = dict()
+nonzerocoef = dict()
+usefulcount = 0
+i = 0
 
-while(i<len(sorted_results[1]) and abs(sorted_results[1][i])>0):
-    nonzerodata[sorted_results[0][i]]=auxdata[sorted_results[0][i]]
-    nonzerocoef[sorted_results[0][i]]=sorted_results[1][i]
-    if abs(sorted_results[1][i])>=args.threshold:
-        usefulcount+=1
-    i+=1
+while(i < len(sorted_results[1]) and abs(sorted_results[1][i]) > 0):
+    nonzerodata[sorted_results[0][i]] = auxdata[sorted_results[0][i]]
+    nonzerocoef[sorted_results[0][i]] = sorted_results[1][i]
+    if abs(sorted_results[1][i]) >= args.threshold:
+        usefulcount += 1
+    i += 1
 
-usefultab=Table(data=(resultstab['Channel'][0:usefulcount],resultstab['LASSO Coefficient'][0:usefulcount]), names =('Channel', 'LASSO Coefficient'))
+usefultab = Table(data=(resultstab['Channel'][0:usefulcount],resultstab['LASSO Coefficient'][0:usefulcount]), names =('Channel', 'LASSO Coefficient'))
 
 zeroed = resultstab['LASSO Coefficient'] == 0
-zeroedtab=Table(data=(resultstab[zeroed]['Channel'],), names =('Channels',))
+zeroedtab = Table(data=(resultstab[zeroed]['Channel'],), names =('Channels',))
 
 
 # print results
@@ -306,7 +339,7 @@ zeroedtab.write(zerofile, format='ascii', overwrite=True)
 flattab.write(flatfile, format='ascii', overwrite=True)
 
 df = usefultab.to_pandas()
-df.index+=1
+df.index += 1
 
 #-- Process aux channels, making plots
 print("-- Processing channels")
@@ -380,10 +413,10 @@ def process_channel(input_,):
         tsscaled = scale(ts.value)
         if lassocoef < 0:
             tsscaled = numpy.negative(tsscaled)
-        fig = plt.figure(figsize=(12,6))
-        plt.plot(scale(primaryts.value), label=primary.replace("_","\_"))
+        fig = plt.figure(figsize=(12, 6))
+        plt.plot(scale(primaryts.value), label=primary.replace("_", "\_"))
 
-        plt.plot(tsscaled, label=chan.replace("_","\_"))
+        plt.plot(tsscaled, label=chan.replace("_", "\_"))
         plt.xlabel('Time [min]')
         plt.ylabel('Scaled amplitude [arbitrary units]')
         plt.legend(loc='best')
@@ -402,16 +435,16 @@ def process_channel(input_,):
         plt.close()
 
         #plot scatter plots
-        primaryColor="red"
-        plotHeight=6
-        plotWidth=12
+        primaryColor = "red"
+        plotHeight = 6
+        plotWidth = 12
 
-        tsCopy=ts.reshape(-1,1)
-        primarytsCopy=primaryts.reshape(-1,1)
+        tsCopy = ts.reshape(-1, 1)
+        primarytsCopy = primaryts.reshape(-1, 1)
         primaryReg = linear_model.LinearRegression()
         primaryReg.fit(tsCopy, primarytsCopy)
         primaryFit = primaryReg.predict(tsCopy)
-        scatPlot=gwplot()
+        scatPlot = gwplot()
         axes = scatPlot.gca()
         axes.set_xlabel(chan.replace("_","\_") + " [Channel units]", labelpad=30)
         if range_is_primary:
@@ -422,7 +455,7 @@ def process_channel(input_,):
         yupper = max(primaryts.value) + .1 * yrange
         ylower = min(primaryts.value) - .1 * yrange
         axes.set_ylim(ylower, yupper)
-        axes.text(.9,.1,"r = " + str('{0:.2}'.format(pcorr)), verticalalignment='bottom', horizontalalignment='right', transform=axes.transAxes, color="black", size=20, bbox=dict(boxstyle='square', facecolor='white', alpha=.75, edgecolor="black"))
+        axes.text(.9, .1, "r = " + str('{0:.2}'.format(pcorr)), verticalalignment='bottom', horizontalalignment='right', transform=axes.transAxes, color="black", size=20, bbox=dict(boxstyle='square', facecolor='white', alpha=.75, edgecolor="black"))
         scatPlot.add_scatter(ts, primaryts, color=primaryColor)
         scatPlot.add_line(ts, primaryFit, color="black")
         scatPlot.set_figheight(plotHeight)
@@ -451,10 +484,10 @@ def process_channel(input_,):
     return chan, lassocoef, plot1, plot2, plot3, ts
 
 # -- generate LASSO plots
-modelFit=model.predict(data)
+modelFit = model.predict(data)
 
-fig = plt.figure(figsize=(12,6))
-plt.plot(scale(primaryts.value), label=primary.replace("_","\_"))
+fig = plt.figure(figsize=(12, 6))
+plt.plot(scale(primaryts.value), label=primary.replace("_", "\_"))
 plt.plot(modelFit, label='LASSO model')
 plt.xlabel('Time [min]')
 plt.ylabel('Scaled arbitrary units')
@@ -482,26 +515,26 @@ pool = multiprocessing.Pool(nprocplot)
 results = pool.map(process_channel, enumerate(nonzerodata.iteritems()))
 
 # sort results by the lasso coefficient
-results=sorted(results, key=lambda x: abs(x[1]), reverse=True)
+results = sorted(results, key=lambda x: abs(x[1]), reverse=True)
 
 # generate plots for channel contribution to model
 colors = []
 labels = []
-fig = plt.figure(figsize=(8,5))
+fig = plt.figure(figsize=(8, 5))
 ax = plt.subplot(111)
 
-line1 = plt.plot(scale(primaryts.value), label=primary.replace("_","\_"))
+line1 = plt.plot(scale(primaryts.value), label=primary.replace("_", "\_"))
 colors.append(line1[0].get_color())
 labels.append(line1[0].get_label())
 
-line2=plt.plot(scale(results[0][5].value)*results[0][1], label = "Channel 1")
+line2 = plt.plot(scale(results[0][5].value)*results[0][1], label="Channel 1")
 colors.append(line2[0].get_color())
 labels.append(line2[0].get_label())
 
 for n in range(1,len(nonzerodata)):
-    summation=scale(results[0][5].value)*results[0][1]
+    summation = scale(results[0][5].value)*results[0][1]
     for m in range(n,0,-1):
-        summation=numpy.add(summation,scale(results[m][5].value)*results[m][1])
+        summation = numpy.add(summation, scale(results[m][5].value)*results[m][1])
     line = plt.plot(summation, label = "Channels 1-" + str(n+1))
     colors.append(line[0].get_color())
     labels.append(line[0].get_label())
@@ -528,7 +561,7 @@ legend_fig =  plt.figure()
 patches = [
     Patch(color=color, label=label)
     for label, color in zip(labels, colors)]
-legend = legend_fig.legend(patches, labels, loc = 'center', frameon=False, fontsize= 'small')
+legend = legend_fig.legend(patches, labels, loc ='center', frameon=False, fontsize='small')
 legend_fig.canvas.draw()
 
 plot5_legend = 'SUMMATION-OF-CHANNELS-AND-MODEL-%s-LEGEND.png' % gpsstub
@@ -546,15 +579,15 @@ plt.close()
 
 colors = []
 labels = []
-fig = plt.figure(figsize=(8,5))
+fig = plt.figure(figsize=(8, 5))
 ax = plt.subplot(111)
-line = plt.plot(scale(primaryts.value), label=primary.replace("_","\_"))
+line = plt.plot(scale(primaryts.value), label=primary.replace("_", "\_"))
 colors.append(line[0].get_color())
 labels.append(line[0].get_label())
 
 for n in range (0, len(nonzerodata)):
     if results[n][5] is not None:
-        line = plt.plot(scale(results[n][5].value)*results[n][1], label = results[n][0].replace("_","\_"))
+        line = plt.plot(scale(results[n][5].value)*results[n][1], label=results[n][0].replace("_", "\_"))
         colors.append(line[0].get_color())
         labels.append(line[0].get_label())
 
@@ -580,7 +613,7 @@ legend_fig =  plt.figure()
 patches = [
     Patch(color=color, label=label)
     for label, color in zip(labels, colors)]
-legend = legend_fig.legend(patches, labels, loc = 'center', frameon=False, fontsize = 'small')
+legend = legend_fig.legend(patches, labels, loc='center', frameon=False, fontsize='small')
 legend_fig.canvas.draw()
 
 plot6_legend = 'CHANNEL-CONTRIBUTIONS-TO-MODEL-%s-LEGEND.png' % gpsstub
@@ -614,11 +647,11 @@ def generate_cluster(input_,):
             otherts = results[other][5]
             if current != other:
                 pcorr = numpy.corrcoef(currentts.value, otherts.value)[0,1]
-                if(abs(pcorr)>=cluster_threshold):
+                if(abs(pcorr) >= cluster_threshold):
                     chan = results[other][0]
                     channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
                     current_cluster.append([other, otherts, pcorr, chan, channelstub])
-            other+=1
+            other += 1
         if len(current_cluster) == 0:
             with counter.get_lock():
                 counter.value += 1
@@ -630,15 +663,15 @@ def generate_cluster(input_,):
         else:
             colors = []
             labels = []
-            fig = plt.figure(figsize=(8,5))
+            fig = plt.figure(figsize=(8, 5))
             ax = plt.subplot(111)
-            line = plt.plot(scale(currentts.value)*numpy.sign(input_[1][1]), label=currentchan.replace("_","\_"))
+            line = plt.plot(scale(currentts.value)*numpy.sign(input_[1][1]), label=currentchan.replace("_", "\_"))
             colors.append(line[0].get_color())
             labels.append(line[0].get_label())
             current_cluster = sorted(current_cluster, key=lambda x: abs(x[2]), reverse=True)
 
             for i in range (0, len(current_cluster)):
-                line = plt.plot(scale(current_cluster[i][1].value)*numpy.sign(input_[1][1])*numpy.sign(current_cluster[i][2]), label=current_cluster[i][3].replace("_","\_") + ', r = ' + str('{0:.2}'.format(current_cluster[i][2])))
+                line = plt.plot(scale(current_cluster[i][1].value)*numpy.sign(input_[1][1])*numpy.sign(current_cluster[i][2]), label = current_cluster[i][3].replace("_", "\_") + ', r = ' + str('{0:.2}'.format(current_cluster[i][2])))
                 colors.append(line[0].get_color())
                 labels.append(line[0].get_label())
             plt.xlabel('Time [min]')
@@ -662,7 +695,7 @@ def generate_cluster(input_,):
             patches = [
                 Patch(color=color, label=label)
                 for label, color in zip(labels, colors)]
-            legend = legend_fig.legend(patches, labels, loc = 'center', frameon=False, fontsize= 'small')
+            legend = legend_fig.legend(patches, labels, loc ='center', frameon=False, fontsize='small')
             legend_fig.canvas.draw()
 
             plot7_legend = '%s_CLUSTER-%s-LEGEND.png' % (re_delim.sub('_', str(currentchan)).replace('_', '-', 1), gpsstub)
