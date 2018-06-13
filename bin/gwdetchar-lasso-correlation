@@ -124,8 +124,8 @@ psig.add_argument('-x', '--filter-padding', type=float, default=3.,
 lsig = parser.add_argument_group('LASSO options')
 lsig.add_argument('-a', '--alpha', default=None, type=float,
                   help='alpha parameter for LASSO fit')
-lsig.add_argument('-C', '--cluster', default='True', type=str,
-                  help='generate clustered channel plots')
+lsig.add_argument('-C', '--no-cluster', action='store_true', default=False,
+                  help='do not generate clustered channel plots')
 lsig.add_argument('-c', '--cluster-coefficient', default=.85, type=float,
                   help='correlation coefficient threshold for clustering')
 
@@ -796,7 +796,7 @@ def generate_cluster(input_,):
     return plot7, plot7_legend
 
 
-if args.cluster.lower() == 'true':
+if args.no_cluster is False:
     print("-- Generating clusters")
     pool = multiprocessing.Pool(nprocplot)
     clusters = pool.map(generate_cluster, enumerate(results))
@@ -946,7 +946,7 @@ for i, (ch, lassocoef, plot1, plot2, plot3, ts) in enumerate(results):
             page.a(href=p, target='_blank')
             page.img(class_='img-responsive', src=p)
             page.a.close()
-        if args.cluster.lower() == 'true':
+        if args.no_cluster is False:
             if clusters[i][0] is None:
                 page.p("<font size = '3'><br />No channels were highly"
                        "correlated with this channel.</font>")
