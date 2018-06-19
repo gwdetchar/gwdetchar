@@ -270,6 +270,16 @@ if args.alpha is None:
         model.fit(data, primary_scaled)
         nchans[i] = len(numpy.nonzero(model.coef_)[0])
         coef_path[:, i] = model.coef_
+    if 0 in nchans:
+        badalphas = list()
+        for i in range(0, len(alphas)):
+            if nchans[i] == 0:
+                badalphas.append(i)
+        badalphas = badalphas[::-1]
+        for i in range(0, len(badalphas)):
+            alphas = numpy.delete(alphas, badalphas[i])
+            nchans = numpy.delete(nchans, badalphas[i])
+            coef_path = numpy.delete(coef_path, badalphas[i], 1)
 
     X = data
     y = primary_scaled
