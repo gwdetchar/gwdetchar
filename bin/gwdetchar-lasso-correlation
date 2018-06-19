@@ -346,10 +346,11 @@ print('Found {} channels with |LASSO Coefficient| >= {}'.format(
 print(usefultab)
 
 gpsstub = '%d-%d' % (start, end-start)
+resultsfile = '%s-LASSO_RESULTS-%s.txt' % (args.ifo, gpsstub)
 zerofile = '%s-ZERO_COEFFICIENT_CHANNELS-%s.txt' % (args.ifo, gpsstub)
 flatfile = '%s-FLAT_CHANNELS-%s.txt' % (args.ifo, gpsstub)
 
-resultstab.write('resultstab.txt', format='ascii', overwrite=True)
+resultstab.write(resultsfile, format='ascii', overwrite=True)
 zeroedtab.write(zerofile, format='ascii', overwrite=True)
 flattab.write(flatfile, format='ascii', overwrite=True)
 
@@ -526,7 +527,7 @@ else:
     plt.title('LASSO Model of Primary Channel')
 plt.legend(loc='best')
 plt.tight_layout()
-plot4 = 'LASSO-MODEL-%s.png' % gpsstub
+plot4 = '%s-LASSO_MODEL-%s.png' % (args.ifo, gpsstub)
 
 try:
     plt.savefig(plot4)
@@ -581,7 +582,7 @@ plt.ylabel('Scaled arbitrary units')
 plt.title('Summations of Channel Contributions to Model')
 plt.tight_layout()
 
-plot5 = 'SUMMATION-OF-CHANNELS-AND-MODEL-%s.png' % gpsstub
+plot5 = '%s-LASSO_CHANNEL_SUMMATION-%s.png' % (args.ifo, gpsstub)
 
 try:
     plt.savefig(plot5)
@@ -602,7 +603,8 @@ legend = legend_fig.legend(patches, labels, loc='center',
                            frameon=False, fontsize='small')
 legend_fig.canvas.draw()
 
-plot5_legend = 'SUMMATION-OF-CHANNELS-AND-MODEL-%s-LEGEND.png' % gpsstub
+plot5_legend = ('%s-LASSO_CHANNEL_SUMMATION_LEGEND-%s.png'
+                % (args.ifo, gpsstub))
 
 try:
     legend_fig.savefig(
@@ -646,7 +648,7 @@ plt.ylabel('Scaled arbitrary units')
 plt.title('Individual Channel Contributions to Model')
 plt.tight_layout()
 
-plot6 = 'CHANNEL-CONTRIBUTIONS-TO-MODEL-%s.png' % gpsstub
+plot6 = '%s-LASSO_CHANNEL_CONTRIBUTIONS-%s.png' % (args.ifo, gpsstub)
 
 try:
     plt.savefig(plot6)
@@ -667,7 +669,8 @@ legend = legend_fig.legend(patches, labels, loc='center',
                            frameon=False, fontsize='small')
 legend_fig.canvas.draw()
 
-plot6_legend = 'CHANNEL-CONTRIBUTIONS-TO-MODEL-%s-LEGEND.png' % gpsstub
+plot6_legend = ('%s-LASSO_CHANNEL_CONTRIBUTIONS_LEGEND-%s.png'
+                % (args.ifo, gpsstub))
 
 try:
     legend_fig.savefig(
@@ -782,7 +785,7 @@ def generate_cluster(input_,):
                                        frameon=False, fontsize='small')
             legend_fig.canvas.draw()
 
-            plot7_legend = '%s_CLUSTER-%s-LEGEND.png' % (
+            plot7_legend = '%s_CLUSTER_LEGEND-%s.png' % (
                 re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
                 gpsstub)
 
