@@ -974,7 +974,7 @@ for i, (ch, lassocoef, plot1, plot2, plot3, ts) in enumerate(results):
     page.div(class_='panel-body')
     if lassocoef is None:
         page.p('The amplitude data for this channel is flat (does not change)'
-               'for the chosen time period.')
+               ' for the chosen time period.')
     elif plot1 is None:
         page.p('LASSO coefficient below the threshold of %.2f.'
                % (args.threshold))
@@ -986,7 +986,7 @@ for i, (ch, lassocoef, plot1, plot2, plot3, ts) in enumerate(results):
         if args.no_cluster is False:
             if clusters[i][0] is None:
                 page.p("<font size = '3'><br />No channels were highly"
-                       "correlated with this channel.</font>")
+                       " correlated with this channel.</font>")
             else:
                 page.div(
                     class_='clusters',
