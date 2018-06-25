@@ -24,7 +24,7 @@ import re
 import multiprocessing
 import sys
 
-from math import (isnan, log, log10)
+from math import (isnan, isinf, log, log10)
 import numpy
 from scipy.stats import spearmanr
 from scipy.interpolate import UnivariateSpline
@@ -199,6 +199,8 @@ if args.remove_outliers:
     remove_outliers(primaryts, args.remove_outliers)
 
 hour_axis = (numpy.arange(len(primaryts.value)))/60
+for i in range(len(hour_axis)):
+    hour_axis[i] = round(hour_axis[i], 2)
 
 # get aux data
 print("-- Loading auxiliary channel data")
@@ -242,17 +244,17 @@ gooddata = dict()
 try:
     data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 except ValueError:
-    print("Nan found in data, removing bad channels...")
+    print("Nan or Inf found in data, removing bad channels...")
     for k, v in auxdata.items():
         hasnan = 0
         for x in range(len(v.value)):
-            if isnan(v.value[x]):
+            if isnan(v.value[x]) or isinf(v.value[x]):
                 hasnan += 1
         if hasnan > 0:
             nandata[k] = v
         else:
             gooddata[k] = v
-    print("Nan channels removed.")
+    print("Nan and Inf channels removed.")
     auxdata = gooddata
     data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 
