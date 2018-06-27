@@ -449,11 +449,11 @@ def process_channel(input_,):
         plt.plot(
             hour_axis, tsscaled,
             label=chan.replace('_', '\_'))
+        plt.subplots_adjust(*p2)
         plt.margins(x=0)
         plt.xlabel(auto_xlabel)
         plt.ylabel('Scaled amplitude [arbitrary units]')
         plt.legend(loc='best')
-        plt.tight_layout()
 
         plot2 = '%s_COMPARISON-%s.png' % (channelstub, gpsstub)
         try:
@@ -477,10 +477,11 @@ def process_channel(input_,):
         primaryReg = linear_model.LinearRegression()
         primaryReg.fit(tsCopy, primarytsCopy)
         primaryFit = primaryReg.predict(tsCopy)
+
         scatPlot = gwplot()
+        scatPlot.subplots_adjust(*p2)
         axes = scatPlot.gca()
-        axes.set_xlabel(chan.replace('_', '\_') + ' [Channel units]',
-                        labelpad=30)
+        axes.set_xlabel(chan.replace('_', '\_') + ' [Channel units]')
         if range_is_primary:
             axes.set_ylabel('Sensitive range [Mpc]')
         else:
@@ -498,7 +499,6 @@ def process_channel(input_,):
         scatPlot.add_line(ts, primaryFit, color='black')
         scatPlot.set_figheight(plotHeight)
         scatPlot.set_figwidth(plotWidth)
-        scatPlot.tight_layout()
 
         plot3 = '%s_SCATTER-%s.png' % (channelstub, gpsstub)
         try:
@@ -530,6 +530,7 @@ modelFit = model.predict(data)
 fig = plt.figure(figsize=(12, 6))
 plt.plot(hour_axis, scale(primaryts.value), label=primary.replace('_', '\_'))
 plt.plot(hour_axis, modelFit, label='LASSO model')
+plt.subplots_adjust(*p2)
 plt.margins(x=0)
 plt.xlabel(auto_xlabel)
 plt.ylabel('Scaled arbitrary units')
@@ -538,7 +539,6 @@ if range_is_primary:
 else:
     plt.title('LASSO Model of Primary Channel')
 plt.legend(loc='best')
-plt.tight_layout()
 plot4 = '%s-LASSO_MODEL-%s.png' % (args.ifo, gpsstub)
 
 try:
@@ -564,6 +564,7 @@ colors = []
 labels = []
 fig = plt.figure(figsize=(8, 5))
 ax = plt.subplot(111)
+plt.subplots_adjust(*p2)
 
 line1 = plt.plot(
     hour_axis,
@@ -592,7 +593,6 @@ plt.margins(x=0)
 plt.xlabel(auto_xlabel)
 plt.ylabel('Scaled arbitrary units')
 plt.title('Summations of Channel Contributions to Model')
-plt.tight_layout()
 
 plot5 = '%s-LASSO_CHANNEL_SUMMATION-%s.png' % (args.ifo, gpsstub)
 
@@ -642,6 +642,7 @@ colors = []
 labels = []
 fig = plt.figure(figsize=(8, 5))
 ax = plt.subplot(111)
+plt.subplots_adjust(*p2)
 line = plt.plot(hour_axis, scale(primaryts.value),
                 label=primary.replace('_', '\_'))
 colors.append(line[0].get_color())
@@ -658,7 +659,6 @@ plt.margins(x=0)
 plt.xlabel(auto_xlabel)
 plt.ylabel('Scaled arbitrary units')
 plt.title('Individual Channel Contributions to Model')
-plt.tight_layout()
 
 plot6 = '%s-LASSO_CHANNEL_CONTRIBUTIONS-%s.png' % (args.ifo, gpsstub)
 
@@ -707,6 +707,7 @@ plt.close()
 
 # generate clustered time series plots
 counter = multiprocessing.Value('i', 0)
+p3 = (.135, .15, .95, .9)
 
 
 def generate_cluster(input_,):
@@ -719,18 +720,16 @@ def generate_cluster(input_,):
 
     if current < len(nonzerodata):
         current_cluster = []
-        other = 0
-        while other < len(results):
-            otherts = results[other][5]
-            if current != other:
+        for other, otheritem in enumerate(auxdata.iteritems()):
+            otherchan = otheritem[0]
+            otherts = otheritem[1]
+            if otherchan != currentchan:
                 pcorr = numpy.corrcoef(currentts.value, otherts.value)[0, 1]
                 if(abs(pcorr) >= cluster_threshold):
-                    chan = results[other][0]
-                    channelstub = (re_delim.sub('_', str(chan))
+                    otherchannelstub = (re_delim.sub('_', otherchan)
                                    .replace('_', '-', 1))
                     current_cluster.append([other, otherts, pcorr,
-                                            chan, channelstub])
-            other += 1
+                                            otherchan, otherchannelstub])
         if len(current_cluster) == 0:
             with counter.get_lock():
                 counter.value += 1
@@ -746,6 +745,7 @@ def generate_cluster(input_,):
             labels = []
             fig = plt.figure(figsize=(8, 5))
             ax = plt.subplot(111)
+            plt.subplots_adjust(*p3)
             line = plt.plot(
                 hour_axis,
                 scale(currentts.value)*numpy.sign(input_[1][1]),
@@ -771,7 +771,6 @@ def generate_cluster(input_,):
             plt.xlabel(auto_xlabel)
             plt.ylabel('Scaled amplitude [arbitrary units]')
             plt.title('Highly Correlated Channels')
-            plt.tight_layout()
 
             plot7 = '%s_CLUSTER-%s.png' % (
                 re_delim.sub('_', str(currentchan))
@@ -952,15 +951,15 @@ for i, (ch, lassocoef, plot1, plot2, plot3, ts) in enumerate(results):
     # set container color/context based on lasso coefficient
     if lassocoef == 0:
         break
-    elif plot1 is None:
+    elif abs(lassocoef) < args.threshold:
         h = '%s [lasso coefficient = %.4f] (Below threshold)' % (ch, lassocoef)
     else:
         h = '%s [lasso coefficient = %.4f]' % (ch, lassocoef)
-    if (lassocoef is None) or (lassocoef == 0) or (plot1 is None):
+    if (lassocoef is None) or (lassocoef == 0) or (abs(lassocoef) < args.threshold):
         context = 'panel-default'
-    elif(numpy.absolute(lassocoef) >= .5):
+    elif abs(lassocoef) >= .5:
         context = 'panel-danger'
-    elif(numpy.absolute(lassocoef) >= .2):
+    elif abs(lassocoef) >= .2:
         context = 'panel-warning'
     else:
         context = 'panel-info'
@@ -977,7 +976,7 @@ for i, (ch, lassocoef, plot1, plot2, plot3, ts) in enumerate(results):
     if lassocoef is None:
         page.p('The amplitude data for this channel is flat (does not change)'
                ' for the chosen time period.')
-    elif plot1 is None:
+    elif abs(lassocoef) < args.threshold:
         page.p('LASSO coefficient below the threshold of %.2f.'
                % (args.threshold))
     else:
