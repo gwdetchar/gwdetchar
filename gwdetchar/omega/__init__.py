@@ -18,7 +18,7 @@
 
 """Methods and utilties for performing Omega pipline scans
 
-See Chatterji 20015 [thesis] for details on the Q-pipeline.
+See Chatterji 2005 [thesis] for details on the Q-pipeline.
 """
 
 import os
