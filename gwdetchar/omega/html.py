@@ -47,14 +47,6 @@ OBSERVATORY_MAP = {
     'V1': 'Virgo'
 }
 
-OBSERVATORY_ZONE = {
-    'G1': 'Europe/Berlin',
-    'H1': 'US/Pacific',
-    'K1': 'Japan',
-    'L1': 'US/Central',
-    'V1': 'Europe/Rome'
-}
-
 # -- set up default JS and CSS files
 
 FANCYBOX_CSS = (
@@ -78,6 +70,9 @@ body {
 		margin-bottom: 120px;
 		font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
 		-webkit-font-smoothing: antialiased;
+}
+.with-margin {
+		margin-bottom: 15px;
 }
 .footer {
 		position: absolute;
@@ -444,7 +439,7 @@ def scaffold_plots(plots, nperrow=3):
     # scaffold plots
     for i, p in enumerate(plots):
         if i % nperrow == 0:
-            page.div(class_='row', style="width:95%;")
+            page.div(class_='row', style="width:96%;")
         page.div(class_='col-sm-%d' % x)
         page.add(fancybox_img(p))
         page.div.close()  # col
@@ -590,7 +585,7 @@ def write_toc(blocks):
         the formatted HTML for a table of contents
     """
     page = markup.page()
-    page.div(class_="container", style="width:100%;")
+    page.div(class_="container")
     page.h2('Table of Contents')
     page.ul()
     for i, block in enumerate(blocks):
@@ -635,46 +630,31 @@ def write_block(block, tableclass='table table-condensed table-hover '
     # -- range over channels in this block
     for i, channel in enumerate(block.channels):
         page.pre('%s' % cis_link(channel.name),
-                 style="width:100%; font-size:14px;")
+                 style="font-size:14px;")
         page.div(class_="container")
-        page.div(class_='row')
         # summary information
-        page.div(class_='col-md-3', id_='%s-%s-summary' % (block.key, i))
-        page.table(class_=tableclass)
+        page.div(class_='clearfix', id_='%s-%s-summary' % (block.key, i))
+        page.table(class_=tableclass, style="width:95%;")
         page.caption("Properties of the most significant time-frequency tile")
+        page.thead()
+        for header in ['GPS Time', 'Frequency', 'Quality Factor',
+                       'Z', 'X', 'SNR']:
+            page.th(header, scope='row')
+        page.thead.close()
         page.tbody()
         page.tr()
-        page.td('<b>GPS Time</b>')
-        page.td('placeholder')
-        page.tr.close()
-        page.tr()
-        page.td('<b>Frequency</b>')
-        page.td('placeholder')
-        page.tr.close()
-        page.tr()
-        page.td('<b>Quality factor</b>')
-        page.td('placeholder')
-        page.tr.close()
-        page.tr()
-        page.td('<b>Z</b>')
-        page.td('placeholder')
-        page.tr.close()
-        page.tr()
-        page.td('<b>X</b>')
-        page.td('placeholder')
-        page.tr.close()
-        page.tr()
-        page.td('<b>SNR</b>')
-        page.td('placeholder')
+        for header in ['GPS Time', 'Frequency', 'Quality Factor',
+                       'Z', 'X', 'SNR']:
+            page.td('placeholder')
         page.tr.close()
         page.tbody.close()
         page.table.close()
-        page.div.close()  # col-md-3
+        page.div.close()  # clearfix
         # plots
-        page.div(class_='col-md-9', id_='%s-%s-plots' % (block.key, i))
+        page.div(class_='content with-margin',
+                 id_='%s-%s-plots' % (block.key, i))
         page.add(scaffold_plots(channel.plots, nperrow=3))
-        page.div.close()  # col-md-9
-        page.div.close()  # row
+        page.div.close()  # content
         # other plots
         # FIXME: uncomment when ready
         #page.div(class_='row')
@@ -688,11 +668,10 @@ def write_block(block, tableclass='table table-condensed table-hover '
         #       href=channel.wtsplot,
         #       **{'data-fancybox-group': 'qscan-preview'})
         #page.p.close()
-        #page.div.close()  # row
+        #page.div.close()  # clearfix
         page.div.close()  # container
 
     # close and return
-    #page.div.close()  # panel-group
     page.div.close()  # panel-body
     page.div.close()  # panel
     return page()
