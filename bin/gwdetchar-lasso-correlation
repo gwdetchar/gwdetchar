@@ -633,6 +633,10 @@ def process_channel(input_,):
                 print("Error trying to save plot4 image, %s: " % plot4)
                 print(e)
                 plot4 = None
+        except ValueError as e:
+            print("Error trying to save plot4 image, %s: " % plot4)
+            print(e)
+            plot4 = None
         plt.close(fig)
 
         # create scaled, sign-corrected, and overlayed timeseries
@@ -665,6 +669,10 @@ def process_channel(input_,):
                 print("Error trying to save plot5 image, %s: " % plot5)
                 print(e)
                 plot5 = None
+        except ValueError as e:
+            print("Error trying to save plot5 image, %s: " % plot5)
+            print(e)
+            plot5 = None
         plt.close(fig)
 
         # scatter plot
@@ -712,6 +720,10 @@ def process_channel(input_,):
                 print("Error trying to save plot6 image, %s: " % plot6)
                 print(e)
                 plot6 = None
+        except ValueError as e:
+            print("Error trying to save plot6 image, %s: " % plot6)
+            print(e)
+            plot6 = None
         plt.close(fig)
 
     # increment counter and print status
@@ -734,6 +746,7 @@ results = sorted(results, key=lambda x: abs(x[1]), reverse=True)
 #  generate clustered time series plots
 counter = multiprocessing.Value('i', 0)
 p7 = (.135, .15, .95, .9)  # global plot defaults for plot7, clusters
+max_correlated_channels = 20
 
 
 def generate_cluster(input_,):
@@ -744,6 +757,7 @@ def generate_cluster(input_,):
     cluster_threshold = args.cluster_coefficient
     plot7 = None
     plot7_legend = None
+    plot7_list = None
 
     if current < len(nonzerodata):
         current_cluster = []
@@ -766,7 +780,7 @@ def generate_cluster(input_,):
                          '(%s)' % str(currentchan)),
                       end='\r')
                 sys.stdout.flush()
-            return plot7, plot7_legend
+            return plot7, plot7_legend, plot7_list
         else:
             colors = []
             labels = []
@@ -782,7 +796,22 @@ def generate_cluster(input_,):
             current_cluster = sorted(current_cluster, key=lambda x: abs(x[2]),
                                      reverse=True)
 
-            for i in range(0, len(current_cluster)):
+            exceeds_max_chans = len(current_cluster) > max_correlated_channels
+            if exceeds_max_chans:
+                cluster_range = max_correlated_channels
+                clustertab = (
+                    Table(data=(zip(*current_cluster)[3],
+                                zip(*current_cluster)[2]),
+                          names=('Channel', 'Pearson Coefficient')))
+                plot7_list = '%s_CLUSTER_LIST-%s.txt' % (
+                    re_delim.sub('_', str(currentchan))
+                            .replace('_', '-', 1),
+                    gpsstub)
+                clustertab.write(plot7_list, format='ascii', overwrite=True)
+            else:
+                cluster_range = len(current_cluster)
+
+            for i in range(0, cluster_range):
                 line = ax.plot(
                     hour_axis,
                     (scale(current_cluster[i][1].value)
@@ -801,7 +830,7 @@ def generate_cluster(input_,):
 
             plot7 = '%s_CLUSTER-%s.png' % (
                 re_delim.sub('_', str(currentchan))
-                    .replace('_', '-', 1),
+                        .replace('_', '-', 1),
                 gpsstub)
             try:
                 fig.canvas.draw_idle()
@@ -814,6 +843,10 @@ def generate_cluster(input_,):
                     print("Error trying to save plot7 image, %s: " % plot7)
                     print(e)
                     plot7 = None
+            except ValueError as e:
+                print("Error trying to save plot7 image, %s: " % plot7)
+                print(e)
+                plot7 = None
             plt.close(fig)
 
             legend_fig = plt.figure()
@@ -846,6 +879,11 @@ def generate_cluster(input_,):
                           % plot7_legend)
                     print(e)
                     plot7_legend = None
+            except ValueError as e:
+                print("Error trying to save plot7_legend image, %s: "
+                      % plot7_legend)
+                print(e)
+                plot7_legend = None
             plt.close(legend_fig)
 
     with counter.get_lock():
@@ -856,7 +894,7 @@ def generate_cluster(input_,):
                  '(%s)' % str(currentchan)),
               end='\r')
         sys.stdout.flush()
-    return plot7, plot7_legend
+    return plot7, plot7_legend, plot7_list
 
 
 if args.no_cluster is False:
@@ -1033,7 +1071,13 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
                 page.a.close()  # legend image
                 page.div.close()  # overflowed window
                 page.div.close()  # scroll container
-                page.div.close()  # channels-summation
+                page.div.close()  # clusters
+                if clusters[i][2] is not None:
+                    page.p("<font size = '3'><br />Only the first %d highly"
+                           " correlated channels are reported in this"
+                           " figure. <a href= %s target='_blank'>Here</a>"
+                           " is the full list.</font>"
+                           % (max_correlated_channels, clusters[i][2]))
     page.div.close()  # panel-body
     page.div.close()  # panel-collapse
     page.div.close()  # panel
