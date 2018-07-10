@@ -162,7 +162,7 @@ for block in blocks:
     # compute qscans
     for c in block.channels:
         series = data[c.name].resample(block.resample)
-        qscan = series.q_transform(qrange=(4, 96))
+        qscan = series.q_transform(qrange=(4, 96), gps=gpstime, search=0.5)
         for span, png in zip([.5, 2, 8], c.plots):
             fig = plot.omega_plot(qscan, gpstime, span, colormap=args.colormap)
             fig.savefig(str(png))
