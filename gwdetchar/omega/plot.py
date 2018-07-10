@@ -34,11 +34,35 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 rcParams.update({
+    'axes.labelsize': 20,
     'figure.subplot.bottom': 0.17,
-    'figure.subplot.left': 0.12,
+    'figure.subplot.left': 0.1,
     'figure.subplot.right': 0.9,
     'figure.subplot.top': 0.90,
     'axes.labelsize': 24,
     'axes.labelpad': 2,
     'grid.color': 'gray',
 })
+
+
+# -- Utilities ----------------------------------------------------------------
+
+def omega_plot(series, gpstime, span, colormap='viridis'):
+    """Plot any GWPy Series object with a time axis
+    """
+    plot = series.crop(gpstime-span, gpstime+span).plot(figsize=[5, 4])
+    ax = plot.gca()
+    ax.set_epoch(gpstime)
+    ax.set_xscale('auto-gps')
+    if span <= 1.:
+        ax.set_xlabel('Time [milliseconds]')
+    else:
+        ax.set_xlabel('Time [seconds]')
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(45)
+    ax.set_yscale('log')
+    ax.grid(True, axis='y', which='both')
+    plot.add_colorbar(cmap=colormap, clim=(0, 25),
+                      label='Normalized energy')
+    plot.tight_layout()
+    return plot

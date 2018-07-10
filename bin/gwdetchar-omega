@@ -45,7 +45,7 @@ from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
 
 from gwdetchar import (cli, const, omega, __version__)
-from gwdetchar.omega import (config, html)
+from gwdetchar.omega import (config, plot, html)
 
 try:
     from LDAStools import frameCPP
@@ -88,18 +88,6 @@ gps = args.gpstime
 gpstime = float(gps)
 ifo = args.ifo
 obs = ifo[0]
-
-# update rcParams
-rcParams.update({
-    'axes.labelsize': 20,
-    'figure.subplot.bottom': 0.17,
-    'figure.subplot.left': 0.1,
-    'figure.subplot.right': 0.9,
-    'figure.subplot.top': 0.90,
-    'grid.color': 'gray',
-    'image.cmap': args.colormap,
-    'svg.fonttype': 'none',
-})
 
 # set output directory
 outdir = args.output_directory
@@ -169,22 +157,15 @@ for block in blocks:
     chans = [c.name for c in block.channels]
     # read in 32 seconds of data
     # centered on gpstime
-    data = TimeSeriesDict.get(chans, start=gpstime-16, end=gpstime+16,
+    data = TimeSeriesDict.get(chans, start=gpstime-32, end=gpstime+32,
                                 frametype=block.frametype, nproc=8)
     # compute qscans
     for c in block.channels:
         series = data[c.name].resample(block.resample)
         qscan = series.q_transform(qrange=(4, 96))
         for span, png in zip([.5, 2, 8], c.plots):
-            plot = qscan.crop(gpstime-span, gpstime+span).plot(figsize=[7.5, 6.5])
-            ax = plot.gca()
-            ax.set_epoch(gpstime)
-            ax.set_xlabel('Time [seconds]')
-            ax.set_yscale('log')
-            ax.grid(True, axis='y', which='both')
-            plot.add_colorbar(cmap=args.colormap, clim=(0, 25),
-                              label='Normalized energy')
-            plot.savefig(str(png))
+            fig = plot.omega_plot(qscan, gpstime, span, colormap=args.colormap)
+            fig.savefig(str(png))
 
 
 # -- Prepare HTML -------------------------------------------------------------
