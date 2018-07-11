@@ -29,6 +29,7 @@ import warnings
 from StringIO import StringIO
 
 import numpy
+from numpy import fft as npfft
 
 from matplotlib import (use, rcParams)
 use('agg')
@@ -84,8 +85,8 @@ args = parser.parse_args()
 print("----------------------------------------------\n"
       "Creating %s omega scan at GPS second %s..." % (args.ifo, args.gpstime))
 
-gps = args.gpstime
-gpstime = float(gps)
+gpstime = args.gpstime
+gps = float(gpstime)
 ifo = args.ifo
 obs = ifo[0]
 
@@ -104,7 +105,7 @@ cp.read(args.config_file)
 
 # prepare html variables
 htmlv = {
-    'title': '%s Qscan | %s' % (ifo, gpstime),
+    'title': '%s Qscan | %s' % (ifo, gps),
     'config': args.config_file,
 }
 
@@ -120,7 +121,7 @@ class OmegaChannel(Channel):
         super(OmegaChannel, self).__init__(channelname, frametype=frametype,
                                            frequency_range=frequency_range)
         self.plots = [
-            html.FancyPlot('plots/%s-%s.png' % (self.name[3::], s))
+            html.FancyPlot('plots/%s_qscan_%s.png' % (self.name[3::], s))
             for s in ['short', 'med', 'long']
         ]
         self.section = section
@@ -156,21 +157,50 @@ for block in blocks:
     gprint('Processing block %s' % block.name)
     chans = [c.name for c in block.channels]
     # read in 32 seconds of data
-    # centered on gpstime
-    data = TimeSeriesDict.get(chans, start=gpstime-32, end=gpstime+32,
+    # centered on gps
+    data = TimeSeriesDict.get(chans, start=gps-32, end=gps+32,
                                 frametype=block.frametype, nproc=8)
     # compute qscans
     for c in block.channels:
+        # compute timeseries
         series = data[c.name].resample(block.resample)
-        qscan = series.q_transform(qrange=(4, 96), gps=gpstime, search=0.5)
+        hpseries = series.highpass(20)
+        wseries = series.whiten(64, 32).crop(gps-16, gps+16)
+        # compute Q-transforms
+        rqscan = series.q_transform(qrange=(4, 96),
+                                    gps=gps, search=0.5, whiten=False)
+        qscan = wseries.q_transform(qrange=(4, 96),
+                                    gps=gps, search=0.5, whiten=False)
         for span, png in zip([.5, 2, 8], c.plots):
-            fig = plot.omega_plot(qscan, gpstime, span, colormap=args.colormap)
-            fig.savefig(str(png))
+            png = str(png)
+            # plot whitened qscan
+            fig = plot.omega_plot(qscan, gps, span, colormap=args.colormap,
+                                  clim=(0, 25))
+            fig.savefig(png)
+            # plot autoscaled, whitened qscan
+            fig = plot.omega_plot(qscan, gps, span, colormap=args.colormap)
+            fig.savefig(png.replace('qscan', 'autoscaled_qscan'))
+            # plot raw qscan                                   
+            fig = plot.omega_plot(rqscan, gps, span, colormap=args.colormap,
+                                  clim=(0, 25)) 
+            fig.savefig(png.replace('qscan', 'raw_qscan'))
+            # plot raw timeseries
+            fig = plot.omega_plot(series, gps, span, logy=False,
+                                  ylabel='Strain')
+            fig.savefig(png.replace('qscan', 'raw_timeseries'))
+            # plot highpassed timeseries
+            fig = plot.omega_plot(hpseries, gps, span, logy=False,
+                                  ylabel='Highpassed Strain')
+            fig.savefig(png.replace('qscan', 'highpassed_timeseries'))
+            # plot whitened timeseries
+            fig = plot.omega_plot(wseries, gps, span, logy=False,
+                                  ylabel='Whitened Strain')
+            fig.savefig(png.replace('qscan', 'whitened_timeseries'))
 
 
 # -- Prepare HTML -------------------------------------------------------------
 
 # write HTML page and finish
 gprint('Preparing HTML at %s/index.html...' % outdir)
-html.write_qscan_page(ifo, gpstime, blocks, **htmlv)
+html.write_qscan_page(ifo, gps, blocks, **htmlv)
 gprint("-- index.html written, all done --")
