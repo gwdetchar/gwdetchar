@@ -63,6 +63,9 @@ parser.add_argument('--condor', action='store_true', default=False,
                          'only use when running as part of a workflow')
 parser.add_argument('--colormap', default='viridis',
                     help='name of colormap to use, default: %(default)s')
+parser.add_argument('-v', '--verbose', default='False',
+                    help='print verbose output, default: %(default)s')
+cli.add_nproc_option(parser)
 
 args = parser.parse_args()
 
@@ -145,9 +148,12 @@ for block in blocks:
     # read in 32 seconds of data
     # centered on gps
     data = TimeSeriesDict.get(chans, start=gps-32, end=gps+32,
-                              frametype=block.frametype, nproc=8)
+                              frametype=block.frametype, nproc=args.nproc,
+                              verbose=args.verbose)
     # compute qscans
     for c in block.channels:
+        if args.verbose:
+            gprint('Plotting omega scan for channel %s...' % c.name)
         # compute timeseries
         series = data[c.name].resample(block.resample)
         hpseries = series.highpass(20)
