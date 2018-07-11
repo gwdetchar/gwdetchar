@@ -34,10 +34,13 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 OMEGA_DEFAULTS = {}
 
+
+# -- define parser ------------------------------------------------------------
+
 class OmegaConfigParser(configparser.ConfigParser):
     def __init__(self, ifo=None, defaults=dict(), **kwargs):
         if ifo is not None:
-           defaults.setdefault('IFO', ifo)
+            defaults.setdefault('IFO', ifo)
         configparser.ConfigParser.__init__(self, defaults=defaults, **kwargs)
         self.set_omega_defaults()
 
