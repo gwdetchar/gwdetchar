@@ -47,22 +47,32 @@ rcParams.update({
 
 # -- Utilities ----------------------------------------------------------------
 
-def omega_plot(series, gpstime, span, colormap='viridis'):
+def omega_plot(series, gpstime, span, colormap='viridis', clim=None, logy=True,
+               ylabel=None):
     """Plot any GWPy Series object with a time axis
     """
-    plot = series.crop(gpstime-span, gpstime+span).plot(figsize=[5, 4])
+    plot = series.crop(gpstime-span, gpstime+span).plot(figsize=[6.25, 5])
     ax = plot.gca()
+    # set time axis units
     ax.set_epoch(gpstime)
     ax.set_xscale('auto-gps')
     if span <= 1.:
         ax.set_xlabel('Time [milliseconds]')
     else:
         ax.set_xlabel('Time [seconds]')
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(45)
-    ax.set_yscale('log')
+    # set y-axis properties
+    if logy:
+        ax.set_yscale('log')
+    else:
+        ax.set_yscale('linear')
+    if ylabel:
+        ax.set_ylabel(ylabel)
     ax.grid(True, axis='y', which='both')
-    plot.add_colorbar(cmap=colormap, clim=(0, 25),
-                      label='Normalized energy')
+    # set colorbar
+    try:
+        plot.add_colorbar(cmap=colormap, clim=clim,
+                          label='Normalized energy')
+    except:
+        pass  # probably not a spectrogram
     plot.tight_layout()
     return plot
