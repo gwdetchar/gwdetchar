@@ -637,15 +637,15 @@ def write_block(block, tableclass='table table-condensed table-hover '
         page.table(class_=tableclass, style="width:95%;")
         page.caption("Properties of the most significant time-frequency tile")
         page.thead()
-        for header in ['GPS Time', 'Frequency', 'Quality Factor',
-                       'Z', 'X', 'SNR']:
+        for header in ['GPS Time', 'Frequency', 'Quality Factor', 'Energy']:
             page.th(header, scope='row')
         page.thead.close()
         page.tbody()
         page.tr()
-        for header in ['GPS Time', 'Frequency', 'Quality Factor',
-                       'Z', 'X', 'SNR']:
-            page.td('placeholder')
+        page.td('%s' % channel.t)
+        page.td('%.2f Hz' % channel.f)
+        page.td('%.2f' % channel.Q)
+        page.td('%.2f' % channel.energy)
         page.tr.close()
         page.tbody.close()
         page.table.close()
