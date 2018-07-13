@@ -43,8 +43,7 @@ from sklearn import linear_model
 from sklearn.preprocessing import scale
 
 from gwpy.table import Table
-from pandas.tools.plotting import table as pandasTab
-from pandas import DataFrame
+from pandas import set_option
 
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.time import (Time, from_gps)
@@ -168,8 +167,7 @@ auto_xlabel = ('Time [hours] from '
 if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
     args.primary_frametype = '%s_HOFT_C00' % args.ifo
 primary = args.primary_channel.format(ifo=args.ifo)
-range_is_primary = (args.primary_channel
-                    == '{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean')
+range_is_primary = 'DMT-SNSH_EFFECTIVE_RANGE_MPC.mean' in args.primary_channel
 
 if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
@@ -381,6 +379,10 @@ print('Found {} channels with |LASSO Coefficient| >= {}'.format(
     len(usefultab), args.threshold))
 print(usefultab)
 
+set_option('max_colwidth', 200)
+df = usefultab.to_pandas()
+df.index += 1
+
 gpsstub = '%d-%d' % (start, end-start)
 resultsfile = '%s-LASSO_RESULTS-%s.txt' % (args.ifo, gpsstub)
 zerofile = '%s-ZERO_COEFFICIENT_CHANNELS-%s.txt' % (args.ifo, gpsstub)
@@ -389,9 +391,6 @@ flatfile = '%s-FLAT_CHANNELS-%s.txt' % (args.ifo, gpsstub)
 resultstab.write(resultsfile, format='ascii', overwrite=True)
 zeroedtab.write(zerofile, format='ascii', overwrite=True)
 flattab.write(flatfile, format='ascii', overwrite=True)
-
-df = usefultab.to_pandas()
-df.index += 1
 
 # generate LASSO plots
 modelFit = model.predict(data)
@@ -905,6 +904,53 @@ if args.no_cluster is False:
 channelsfile = '%s-CHANNELS-%s.txt' % (args.ifo, gpsstub)
 numpy.savetxt(channelsfile, channels, fmt='%s')
 
+
+# format results table
+def format_indices(value):
+    return "<div style='text-align:center;'>{}</div>".format(value)
+
+
+def format_channels(value):
+    return ("<div style='text-align:left;"
+            "font-family:monospace,monospace;'>{}</div>".format(value))
+
+
+def format_coefficients(value):
+    return "<div style='text-align:left;'>{}</div>".format(value)
+
+
+def style_table(html_table):
+    html_table = (
+        html_table.replace(
+            '<table',
+            ("<table style="
+             "'border-collapse:collapse;"
+             "border-style:hidden;"
+             "width:85%; '"))
+        .replace(
+            '<tr>',
+            ('''<tr style='''
+             '''"border-left:0 !important;'''
+             '''border-right:0 !important;"'''
+             '''onmouseover="this.style.backgroundColor='f2f2f2';"'''
+             '''onmouseout="this.style.backgroundColor='';">'''))
+        .replace(
+            '<th>',
+            ("<th style="
+             "'border-left:0 !important;"
+             "border-right:0 !important;"
+             "padding-left:10px;"
+             "padding-right:10px;"
+             "padding-top:5px; "
+             "padding-bottom:5px;'>"))
+        .replace(
+            '<td>',
+            ("<td style = "
+             "'border-left:0 !important;"
+             "border-right:0 !important;'>")))
+    return html_table
+
+
 # write html
 title = '%s LASSO slow correlations: %d-%d' % (args.ifo, start, end)
 page = html.new_bootstrap_page(title=title)
@@ -954,7 +1000,16 @@ write_param('Zero coefficients',
             '%d (%s)' % (len(zeroedtab),
                          "<a href= %s target='_blank'>zeroed channel list</a>"
                          % (zerofile)))
-page.p('<br /><br />%s' % df.to_html(index=True))
+page.div(class_='results-table', align='center')
+page.p('<br /><br />%s' % style_table(df.to_html(
+    index=True,
+    formatters={
+        'LASSO Coefficient': format_coefficients,
+        'Channel': format_channels,
+        '__index__': format_indices},
+    escape=False)))
+page.p.close()
+page.div.close()  # results-table
 page.div.close()  # model-info
 
 page.p('<br /><br />')
