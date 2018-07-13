@@ -163,10 +163,10 @@ for block in blocks:
         # compute Q-transforms
         rqscan = hpseries.q_transform(qrange=(4, 96), frange=(20, 1024),
                                       tres=0.002, fres=0.1, gps=gps,
-                                      search=0.5, whiten=False)
+                                      search=0.25, whiten=False)
         qscan = wseries.q_transform(qrange=(4, 96), frange=(20, 1024),
                                     tres=0.002, fres=0.1, gps=gps,
-                                    search=0.5, whiten=False)
+                                    search=0.25, whiten=False)
         # prepare plots
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
@@ -198,7 +198,7 @@ for block in blocks:
             fig.savefig(png.replace('qscan', 'whitened_timeseries'))
         # save parameters
         c.Q = qscan.q
-        qscan = qscan.crop(gps-0.5, gps+0.5)
+        qscan = qscan.crop(gps-0.25, gps+0.25)
         c.energy = qscan.value.max()
         tind, find = numpy.unravel_index(qscan.value.argmax(),
                                          qscan.value.shape)
