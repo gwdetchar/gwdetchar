@@ -167,13 +167,6 @@ for block in blocks:
         qscan = wseries.q_transform(qrange=(4, 96), frange=(20, 1024),
                                     tres=0.002, fres=0.1, gps=gps,
                                     search=0.5, whiten=False)
-        # save parameters
-        c.Q = qscan.q
-        c.energy = qscan.value.max()
-        tind = qscan.value.argmax(axis=0)
-        find = qscan.value.argmax(axis=1)
-        c.t = qscan.xindex[tind[0]].value
-        c.f = qscan.yindex[find[0]].value
         # prepare plots
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
@@ -203,6 +196,15 @@ for block in blocks:
             fig = plot.omega_plot(wseries, gps, span, c.name,
                                   ylabel='Whitened Amplitude')
             fig.savefig(png.replace('qscan', 'whitened_timeseries'))
+        # save parameters
+        c.Q = qscan.q
+        qscan = qscan.crop(gps-0.5, gps+0.5)
+        c.energy = qscan.value.max()
+        tind, find = numpy.unravel_index(qscan.value.argmax(),
+                                         qscan.value.shape)
+        c.t = qscan.xindex[tind].value
+        c.f = qscan.yindex[find].value
+        del qscan, rqscan, series, hpseries, wseries
 
 
 # -- Prepare HTML -------------------------------------------------------------

@@ -64,7 +64,7 @@ def omega_plot(series, gpstime, span, channel, colormap='viridis', clim=None,
     chan = channel.replace('_', '\_')
     if qscan:
         ax.set_yscale('log')
-        ax.set_title('%s at %s with $Q=%.2f$' % (chan, gpstime, series.q),
+        ax.set_title('%s at %s with $Q=%.1f$' % (chan, gpstime, series.q),
                      fontsize=12)
         plot.add_colorbar(cmap=colormap, clim=clim,
                           label='Normalized energy')
