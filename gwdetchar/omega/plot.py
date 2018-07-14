@@ -48,23 +48,23 @@ rcParams.update({
 
 # -- Utilities ----------------------------------------------------------------
 
-def omega_plot(series, gpstime, span, channel, colormap='viridis', clim=None,
+def omega_plot(series, gps, span, channel, colormap='viridis', clim=None,
                qscan=False, ylabel=None):
     """Plot any GWPy Series object with a time axis
     """
     # construct plot
     if qscan:
         # plot Q-transform
-        plot = series.crop(gpstime-span, gpstime+span).plot(figsize=[6.25, 5])
+        plot = series.crop(gps-span/2, gps+span/2).plot(figsize=[6.25, 5])
     else:
         # set color by IFO
         ifo = channel[:2]
-        series = series.crop(gpstime-span, gpstime+span)
+        series = series.crop(gps-span/2, gps+span/2)
         plot = series.plot(color=GW_OBSERVATORY_COLORS[ifo],
                            figsize=[6.25, 5])
     ax = plot.gca()
     # set time axis units
-    ax.set_epoch(gpstime)
+    ax.set_epoch(gps)
     ax.set_xscale('auto-gps')
     if span <= 1.:
         ax.set_xlabel('Time [milliseconds]')
@@ -74,13 +74,13 @@ def omega_plot(series, gpstime, span, channel, colormap='viridis', clim=None,
     chan = channel.replace('_', '\_')
     if qscan:
         ax.set_yscale('log')
-        ax.set_title('%s at %s with $Q=%.1f$' % (chan, gpstime, series.q),
+        ax.set_title('%s at %s with $Q=%.1f$' % (chan, gps, series.q),
                      fontsize=12)
         plot.add_colorbar(cmap=colormap, clim=clim,
                           label='Normalized energy')
     else:
         ax.set_yscale('linear')
-        ax.set_title('%s at %s' % (chan, gpstime), fontsize=12)
+        ax.set_title('%s at %s' % (chan, gps), fontsize=12)
     if ylabel:
         ax.set_ylabel(ylabel)
     ax.grid(True, axis='y', which='both')

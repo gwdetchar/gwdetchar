@@ -619,7 +619,7 @@ def write_toc(blocks):
 
 
 def write_block(block, context, tableclass='table table-condensed table-hover '
-                                  'table-responsive'):
+                                           'table-responsive'):
     """Write the HTML summary for a specific block of channels
 
     Parameters
@@ -679,7 +679,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         # plots
         page.div(class_='content with-margin',
                  id_='%s-%s-plots' % (block.key, i))
-        page.add(scaffold_plots(channel.plots, nperrow=3))
+        page.add(scaffold_plots(channel.plots['qscan_whitened'], nperrow=3))
         page.div.close()  # content
         # other plots
         # FIXME: uncomment when ready
