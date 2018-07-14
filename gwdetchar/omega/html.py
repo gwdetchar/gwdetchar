@@ -624,10 +624,14 @@ def write_block(block, panel, tableclass='table table-condensed table-hover '
 
     Parameters
     ----------
-    ifo : `str`
-        the interferometer prefix
     block : `OmegaChannelList`
         a list of channels and their analysis attributes
+    panel : `str`
+        the type of Bootstrap ``<panel>`` object to use, color-coded by GWO
+        standards (must be one of 'default', 'primary', 'success', 'info',
+        'warning', or 'danger')
+    tableclass : `str`, optional
+        the ``class`` for the summary ``<table>``
 
     Returns
     -------
