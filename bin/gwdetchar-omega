@@ -103,15 +103,17 @@ class OmegaChannel(Channel):
     def __init__(self, channelname, section, **params):
         self.name = channelname
         frametype = params.get('frametype', None)
-        frequency_range = tuple(
+        frange = tuple(
             [float(s) for s in params.get('frequency-range', None).split(',')]
         )
         super(OmegaChannel, self).__init__(channelname, frametype=frametype,
-                                           frequency_range=frequency_range)
-        self.plots = [
-            html.FancyPlot('plots/%s_qscan_%s.png' % (self.name[3::], s))
-            for s in ['short', 'med', 'long']
-        ]
+                                           frange=frange)
+        self.plots = {}
+        for plottype in ['timeseries_raw', 'timeseries_highpassed',
+                         'timeseries_whitened', 'qscan_raw',
+                         'qscan_whitened', 'qscan_autoscaled']:
+            self.plots[plottype] = [get_fancyplots(self.name, plottype, t)
+                                    for t in [1, 4, 16]]
         self.section = section
         self.params = params.copy()
 
@@ -120,11 +122,21 @@ class OmegaChannelList(object):
     def __init__(self, **params):
         self.name = params.get('name', None)
         self.key = self.name.lower().replace(' ', '-')
+        self.fftlength = int(params.get('fftlength', None))
         self.resample = int(params.get('resample', None))
         self.frametype = params.get('frametype', None)
         chans = params.get('channels', None).split(',\n')
         self.channels = [OmegaChannel(c, self.name, **params) for c in chans]
         self.params = params.copy()
+
+
+# -- Utilities ----------------------------------------------------------------
+
+def get_fancyplots(channel, plottype, duration):
+    plotdir = 'plots'
+    chan = channel.replace('-', '_').replace(':', '-')
+    filename = '%s/%s-%s-%s.png' % (plotdir, chan, plottype, duration)
+    return html.FancyPlot(filename)
 
 
 # -- Compute Qscan ------------------------------------------------------------
@@ -145,9 +157,10 @@ blocks = [OmegaChannelList(**cp[s]) for s in cp.sections()]
 for block in blocks:
     gprint('Processing block %s' % block.name)
     chans = [c.name for c in block.channels]
-    # read in 128 seconds of data
+    # read in fftlength seconds of data
     # centered on gps
-    data = TimeSeriesDict.get(chans, start=gps-32, end=gps+32,
+    fftlength = block.fftlength
+    data = TimeSeriesDict.get(chans, gps-fftlength/2, gps+fftlength/2,
                               frametype=block.frametype, nproc=args.nproc,
                               verbose=args.verbose)
     # compute qscans
@@ -158,44 +171,48 @@ for block in blocks:
         series = data[c.name].resample(block.resample)
         # compute filtered timeseries
         hpseries = series.highpass(20)
-        wseries = hpseries.whiten(64, 32).crop(gps-16, gps+16)
-        hpseries = hpseries.crop(gps-16, gps+16)
+        wseries = hpseries.whiten(fftlength, fftlength/2).crop(gps-fftlength/4,
+                                                               gps+fftlength/4)
+        hpseries = hpseries.crop(gps-fftlength/4, gps+fftlength/4)
         # compute Q-transforms
-        rqscan = hpseries.q_transform(qrange=(4, 96), frange=(20, 1024),
+        rqscan = hpseries.q_transform(qrange=(4, 96), frange=c.frange,
                                       tres=0.002, fres=0.1, gps=gps,
                                       search=0.25, whiten=False)
-        qscan = wseries.q_transform(qrange=(4, 96), frange=(20, 1024),
+        qscan = wseries.q_transform(qrange=(4, 96), frange=c.frange,
                                     tres=0.002, fres=0.1, gps=gps,
                                     search=0.25, whiten=False)
         # prepare plots
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
-        for span, png in zip([.5, 2, 8], c.plots):
-            png = str(png)
+        for span, png1, png2, png3, png4, png5, png6 in zip(
+            [1, 4, 16], c.plots['qscan_whitened'], c.plots['qscan_autoscaled'],
+            c.plots['qscan_raw'], c.plots['timeseries_raw'],
+            c.plots['timeseries_highpassed'], c.plots['timeseries_whitened']
+        ):
             # plot whitened qscan
-            fig = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
-                                  clim=(0, 25), colormap=args.colormap)
-            fig.savefig(png)
+            fig1 = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
+                                   clim=(0, 25), colormap=args.colormap)
+            fig1.savefig(str(png1))
             # plot autoscaled, whitened qscan
-            fig = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
-                                  colormap=args.colormap)
-            fig.savefig(png.replace('qscan', 'autoscaled_qscan'))
+            fig2 = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
+                                   colormap=args.colormap)
+            fig2.savefig(str(png2))
             # plot raw qscan
-            fig = plot.omega_plot(rqscan, gps, span, c.name, qscan=True,
-                                  clim=(0, 25), colormap=args.colormap)
-            fig.savefig(png.replace('qscan', 'raw_qscan'))
+            fig3 = plot.omega_plot(rqscan, gps, span, c.name, qscan=True,
+                                   clim=(0, 25), colormap=args.colormap)
+            fig3.savefig(str(png3))
             # plot raw timeseries
-            fig = plot.omega_plot(series, gps, span, c.name,
-                                  ylabel='Amplitude')
-            fig.savefig(png.replace('qscan', 'raw_timeseries'))
+            fig4 = plot.omega_plot(series, gps, span, c.name,
+                                   ylabel='Amplitude')
+            fig4.savefig(str(png4))
             # plot highpassed timeseries
-            fig = plot.omega_plot(hpseries, gps, span, c.name,
-                                  ylabel='Highpassed Amplitude')
-            fig.savefig(png.replace('qscan', 'highpassed_timeseries'))
+            fig5 = plot.omega_plot(hpseries, gps, span, c.name,
+                                   ylabel='Highpassed Amplitude')
+            fig5.savefig(str(png5))
             # plot whitened timeseries
-            fig = plot.omega_plot(wseries, gps, span, c.name,
-                                  ylabel='Whitened Amplitude')
-            fig.savefig(png.replace('qscan', 'whitened_timeseries'))
+            fig6 = plot.omega_plot(wseries, gps, span, c.name,
+                                   ylabel='Whitened Amplitude')
+            fig6.savefig(str(png6))
         # save parameters
         c.Q = qscan.q
         qscan = qscan.crop(gps-0.25, gps+0.25)
@@ -204,6 +221,8 @@ for block in blocks:
                                          qscan.value.shape)
         c.t = qscan.xindex[tind].value
         c.f = qscan.yindex[find].value
+        # delete intermediate data products
+        del fig1, fig2, fig3, fig4, fig5, fig6
         del qscan, rqscan, series, hpseries, wseries
 
 
