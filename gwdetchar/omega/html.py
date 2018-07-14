@@ -40,11 +40,30 @@ __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 # -- give context for ifo names
 
 OBSERVATORY_MAP = {
-    'G1': 'GEO',
-    'H1': 'LIGO Hanford',
-    'K1': 'KAGRA',
-    'L1': 'LIGO Livingston',
-    'V1': 'Virgo'
+    'G1': {
+        'name': 'GEO',
+        'panel': 'default'
+    },
+    'H1': {
+        'name': 'LIGO Hanford',
+        'panel': 'danger'
+    },
+    'I1': {
+        'name': 'LIGO India',
+        'panel': 'success'
+    },
+    'K1': {
+        'name': 'KAGRA',
+        'panel': 'warning'
+    },
+    'L1': {
+        'name': 'LIGO Livingston',
+        'panel': 'info'
+    },
+    'V1': {
+        'name': 'Virgo',
+        'panel': 'primary'
+    }
 }
 
 # -- set up default JS and CSS files
@@ -316,6 +335,7 @@ def wrap_html(func):
         # (but only on the main results page)
         if about:
             page.add(write_summary(ifo, gpstime))
+            kwargs['panel'] = OBSERVATORY_MAP[ifo]['panel']
         # write content
         contentf = os.path.join(outdir, '_inner.html')
         with open(contentf, 'w') as f:
@@ -559,7 +579,7 @@ def write_summary(
     page.tbody()
     page.tr()
     page.td("<b>Interferometer</b>")
-    page.td("%s (%s)" % (OBSERVATORY_MAP[ifo], ifo))
+    page.td("%s (%s)" % (OBSERVATORY_MAP[ifo]['name'], ifo))
     page.tr.close()
     page.tr()
     page.td("<b>UTC Time</b>")
@@ -598,12 +618,14 @@ def write_toc(blocks):
     return page()
 
 
-def write_block(block, tableclass='table table-condensed table-hover '
+def write_block(block, panel, tableclass='table table-condensed table-hover '
                                   'table-responsive'):
     """Write the HTML summary for a specific block of channels
 
     Parameters
     ----------
+    ifo : `str`
+        the interferometer prefix
     block : `OmegaChannelList`
         a list of channels and their analysis attributes
 
@@ -613,7 +635,7 @@ def write_block(block, tableclass='table table-condensed table-hover '
         the formatted HTML for this block
     """
     page = markup.page()
-    page.div(class_='panel panel-info', id_='block-%s' % block.key)
+    page.div(class_='panel panel-%s' % panel, id_='block-%s' % block.key)
     # -- make heading
     page.div(class_='panel-heading clearfix')
     # link to top of page
@@ -683,7 +705,7 @@ def write_block(block, tableclass='table table-condensed table-hover '
 # that for you.
 
 @wrap_html
-def write_qscan_page(blocks):
+def write_qscan_page(blocks, panel):
     """Write the Qscan results to HTML
 
     Parameters
@@ -708,7 +730,7 @@ def write_qscan_page(blocks):
     page.p('The following blocks of channels were scanned for interesting '
            'time-frequency morphology:', style="font-size:18px;")
     for block in blocks:
-        page.add(write_block(block))
+        page.add(write_block(block, panel))
     return page
 
 
