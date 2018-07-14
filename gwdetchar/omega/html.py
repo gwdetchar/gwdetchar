@@ -42,27 +42,27 @@ __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 OBSERVATORY_MAP = {
     'G1': {
         'name': 'GEO',
-        'panel': 'default'
+        'context': 'default'
     },
     'H1': {
         'name': 'LIGO Hanford',
-        'panel': 'danger'
+        'context': 'danger'
     },
     'I1': {
         'name': 'LIGO India',
-        'panel': 'success'
+        'context': 'success'
     },
     'K1': {
         'name': 'KAGRA',
-        'panel': 'warning'
+        'context': 'warning'
     },
     'L1': {
         'name': 'LIGO Livingston',
-        'panel': 'info'
+        'context': 'info'
     },
     'V1': {
         'name': 'Virgo',
-        'panel': 'primary'
+        'context': 'primary'
     }
 }
 
@@ -335,7 +335,7 @@ def wrap_html(func):
         # (but only on the main results page)
         if about:
             page.add(write_summary(ifo, gpstime))
-            kwargs['panel'] = OBSERVATORY_MAP[ifo]['panel']
+            kwargs['context'] = OBSERVATORY_MAP[ifo]['context']
         # write content
         contentf = os.path.join(outdir, '_inner.html')
         with open(contentf, 'w') as f:
@@ -618,7 +618,7 @@ def write_toc(blocks):
     return page()
 
 
-def write_block(block, panel, tableclass='table table-condensed table-hover '
+def write_block(block, context, tableclass='table table-condensed table-hover '
                                   'table-responsive'):
     """Write the HTML summary for a specific block of channels
 
@@ -626,7 +626,7 @@ def write_block(block, panel, tableclass='table table-condensed table-hover '
     ----------
     block : `OmegaChannelList`
         a list of channels and their analysis attributes
-    panel : `str`
+    context : `str`
         the type of Bootstrap ``<panel>`` object to use, color-coded by GWO
         standards (must be one of 'default', 'primary', 'success', 'info',
         'warning', or 'danger')
@@ -639,7 +639,7 @@ def write_block(block, panel, tableclass='table table-condensed table-hover '
         the formatted HTML for this block
     """
     page = markup.page()
-    page.div(class_='panel panel-%s' % panel, id_='block-%s' % block.key)
+    page.div(class_='panel panel-%s' % context, id_='block-%s' % block.key)
     # -- make heading
     page.div(class_='panel-heading clearfix')
     # link to top of page
@@ -709,7 +709,7 @@ def write_block(block, panel, tableclass='table table-condensed table-hover '
 # that for you.
 
 @wrap_html
-def write_qscan_page(blocks, panel):
+def write_qscan_page(blocks, context):
     """Write the Qscan results to HTML
 
     Parameters
@@ -720,8 +720,9 @@ def write_qscan_page(blocks, panel):
         the central GPS time of the analysis
     blocks : `list` of `OmegaChannelList`
         the channel blocks scanned in the analysis
-    outdir : `str`, optional
-        the output directory for the HTML
+    context : `str`, optional
+        the type of Bootstrap ``<panel>`` object to use, color-coded by
+        GWO standard
 
     Returns
     -------
@@ -734,7 +735,7 @@ def write_qscan_page(blocks, panel):
     page.p('The following blocks of channels were scanned for interesting '
            'time-frequency morphology:', style="font-size:18px;")
     for block in blocks:
-        page.add(write_block(block, panel))
+        page.add(write_block(block, context))
     return page
 
 
