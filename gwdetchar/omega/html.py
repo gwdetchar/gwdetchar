@@ -644,7 +644,12 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
     page.div(class_='panel-heading clearfix')
     # link to top of page
     page.div(class_='pull-right')
-    page.a("<small>[top]</small>", href='#')
+    if context == 'primary':
+        page.a("<small>[top]</small>", href='#', class_='text-light')
+    elif context == 'default':
+        page.a("<small>[top]</small>", href='#', class_='text-dark')
+    else:
+        page.a("<small>[top]</small>", href='#', class_='text-%s' % context)
     page.div.close()  # pull-right
     # heading
     page.h3('%s' % block.name, class_='panel-title', style="font-size:18px;")
