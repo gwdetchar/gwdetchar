@@ -29,6 +29,7 @@ from matplotlib.colors import LogNorm
 
 from gwpy.plotter import (SpectrogramPlot,
                           TimeSeriesPlot, Plot)
+from gwpy.plotter.colors import GW_OBSERVATORY_COLORS
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -51,7 +52,16 @@ def omega_plot(series, gpstime, span, channel, colormap='viridis', clim=None,
                qscan=False, ylabel=None):
     """Plot any GWPy Series object with a time axis
     """
-    plot = series.crop(gpstime-span, gpstime+span).plot(figsize=[6.25, 5])
+    # construct plot
+    if qscan:
+        # plot Q-transform
+        plot = series.crop(gpstime-span, gpstime+span).plot(figsize=[6.25, 5])
+    else:
+        # set color by IFO
+        ifo = channel[:2]
+        series = series.crop(gpstime-span, gpstime+span)
+        plot = series.plot(color=GW_OBSERVATORY_COLORS[ifo],
+                           figsize=[6.25, 5])
     ax = plot.gca()
     # set time axis units
     ax.set_epoch(gpstime)
