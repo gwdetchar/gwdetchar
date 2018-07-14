@@ -115,6 +115,15 @@ $(document).ready(function() {
 		helpers: {title: {type: 'inside'}}
 	});
 });
+function showImage(channelName, timeRanges, imageType) {
+	for (var timeRangeIndex in timeRanges) {
+		idBase = channelName + "_" + timeRange[timeRangeIndex]
+		document.getElementById("a_" + idBase).href =
+			"plots/" + channelName + "-" + imageType + "-" + timeRange[timeRangeIndex] + ".png";
+		document.getElementById("img_" + idBase).src =
+			"plots/" + channelName + "-" + imageType + "-" + timeRange[timeRangeIndex] + ".png";
+	};
+};
 """  # nopep8
 
 
@@ -427,14 +436,16 @@ def fancybox_img(img, linkparams=dict(), **params):
     }
     aparams.update(linkparams)
     img = str(img)
-    page.a(href=img, **aparams)
+    channel = img.split('-')[0]
+    duration = img.split('-')[-1]
+    page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
     imgparams = {
         'alt': os.path.basename(img),
         'class_': 'img-responsive',
     }
     imgparams['src'] = img
     imgparams.update(params)
-    page.img(**imgparams)
+    page.img(id_='img_%s_%s' % (channel, duration), **imgparams)
     page.a.close()
     return str(page)
 
@@ -680,6 +691,16 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.tr.close()
         page.tbody.close()
         page.table.close()
+        # arrange plots
+        page.div(class_='row')
+        page.p()
+        for plottype in channel.plots.iterkeys():
+            linktext = plottype.split('_')[1]
+            chanstring = channel.name.replace('-', '_').replace(':', '-')
+            page.a(linktext, href="javascript:showImage('%s', '%s', "
+                              "['1', '4', '8'])" % (chanstring, plottype))
+        page.p.close()
+        page.div.close()  # row
         page.div.close()  # clearfix
         # plots
         page.div(class_='content with-margin',
@@ -687,19 +708,6 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.add(scaffold_plots(channel.plots['qscan_whitened'], nperrow=3))
         page.div.close()  # content
         # other plots
-        # FIXME: uncomment when ready
-        #page.div(class_='row')
-        #page.p()
-        #page.a('[raw timeseries]', class_='fancybox', href=channel.rtsplot,
-        #       **{'data-fancybox-group': 'qscan-preview'})
-        #page.a('[highpassed timeseries]', class_='fancybox',
-        #       href=channel.htsplot,
-        #       **{'data-fancybox-group': 'qscan-preview'})
-        #page.a('[whitened timeseries]', class_='fancybox',
-        #       href=channel.wtsplot,
-        #       **{'data-fancybox-group': 'qscan-preview'})
-        #page.p.close()
-        #page.div.close()  # clearfix
         page.div.close()  # container
 
     # close and return
