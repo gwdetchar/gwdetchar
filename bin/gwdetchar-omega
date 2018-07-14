@@ -132,11 +132,13 @@ class OmegaChannelList(object):
 
 # -- Utilities ----------------------------------------------------------------
 
-def get_fancyplots(channel, plottype, duration):
+def get_fancyplots(channel, plottype, duration, caption=None):
     plotdir = 'plots'
     chan = channel.replace('-', '_').replace(':', '-')
     filename = '%s/%s-%s-%s.png' % (plotdir, chan, plottype, duration)
-    return html.FancyPlot(filename)
+    if not caption:
+        caption = os.path.basename(filename)
+    return html.FancyPlot(filename, caption)
 
 
 # -- Compute Qscan ------------------------------------------------------------
