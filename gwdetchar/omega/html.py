@@ -394,7 +394,8 @@ def toggle_button(plottype, channel):
     text = plottype.split('_')[1]
     chanstring = channel.name.replace('-', '_').replace(':', '-')
     captions = [p.caption for p in channel.plots[plottype]]
-    page.button(text, onclick=u"showImage('%s', ['1', '4', '16'], '%s', %s);"
+    page.button(text, type_='button', class_='btn btn-default',
+                onclick=u"showImage('%s', ['1', '4', '16'], '%s', %s);"
                               % (chanstring, plottype, captions))
     return page()
 
@@ -713,15 +714,19 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div(class_='row', style='margin-bottom: 15px;')
         page.div(class_='col-sm-4')
         page.p('Timeseries view: ')
+        page.div(class_='btn-group btn-group-sm')
         page.add(toggle_button('timeseries_raw', channel))
         page.add(toggle_button('timeseries_highpassed', channel))
         page.add(toggle_button('timeseries_whitened', channel))
+        page.div.close()  # btn-group
         page.div.close()  # col-sm-4
         page.div(class_='col-sm-4')
         page.p('Q-transform view: ')
+        page.div(class_='btn-group btn-group-sm')
         page.add(toggle_button('qscan_raw', channel))
         page.add(toggle_button('qscan_whitened', channel))
         page.add(toggle_button('qscan_autoscaled', channel))
+        page.div.close()  # btn-group
         page.div.close()  # col-sm-4
         page.div(class_='col-sm-4')
         page.div.close()  # col-sm-4
