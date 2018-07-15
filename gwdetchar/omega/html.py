@@ -118,7 +118,7 @@ $(document).ready(function() {
 function showImage(channelName, tRanges, imageType, captions) {
 	for (var tIndex in tRanges) {
 		var idBase = channelName + "_" + tRanges[tIndex];
-        var fileBase = channelName + "-" + imageType + "-" + tRanges[tIndex];
+		var fileBase = channelName + "-" + imageType + "-" + tRanges[tIndex];
 		document.getElementById("a_" + idBase).href =
 			"plots/" + fileBase + ".png";
 		document.getElementById("a_" + idBase).title = captions[tIndex];
@@ -391,11 +391,11 @@ def toggle_button(plottype, channel):
     """
     """
     page = markup.page()
-    text = plottype.split('_')[1]                                       
-    chanstring = channel.name.replace('-', '_').replace(':', '-')       
-    captions = [p.caption for p in channel.plots[plottype]]             
-    page.button(text, onclick=u"showImage('%s', ['1', '4', '16'], '%s', %s);"                               
-                               % (chanstring, plottype, captions))
+    text = plottype.split('_')[1]
+    chanstring = channel.name.replace('-', '_').replace(':', '-')
+    captions = [p.caption for p in channel.plots[plottype]]
+    page.button(text, onclick=u"showImage('%s', ['1', '4', '16'], '%s', %s);"
+                              % (chanstring, plottype, captions))
     return page()
 
 
@@ -719,8 +719,8 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div.close()  # col-sm-4
         page.div(class_='col-sm-4')
         page.p('Q-transform view: ')
-        page.add(toggle_button('qscan_raw', channel))                      
-        page.add(toggle_button('qscan_whitened', channel))               
+        page.add(toggle_button('qscan_raw', channel))
+        page.add(toggle_button('qscan_whitened', channel))
         page.add(toggle_button('qscan_autoscaled', channel))
         page.div.close()  # col-sm-4
         page.div(class_='col-sm-4')
