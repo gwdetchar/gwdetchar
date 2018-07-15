@@ -115,13 +115,16 @@ $(document).ready(function() {
 		helpers: {title: {type: 'inside'}}
 	});
 });
-function showImage(channelName, timeRanges, imageType) {
-	for (var timeRangeIndex in timeRanges) {
-		idBase = channelName + "_" + timeRange[timeRangeIndex]
+function showImage(channelName, tRanges, imageType, captions) {
+	for (var tIndex in tRanges) {
+		var idBase = channelName + "_" + tRanges[tIndex];
+        var fileBase = channelName + "-" + imageType + "-" + tRanges[tIndex];
 		document.getElementById("a_" + idBase).href =
-			"plots/" + channelName + "-" + imageType + "-" + timeRange[timeRangeIndex] + ".png";
+			"plots/" + fileBase + ".png";
+		document.getElementById("a_" + idBase).title = captions[tIndex];
 		document.getElementById("img_" + idBase).src =
-			"plots/" + channelName + "-" + imageType + "-" + timeRange[timeRangeIndex] + ".png";
+			"plots/" + fileBase + ".png";
+		document.getElementById("img_" + idBase).alt = fileBase + ".png";
 	};
 };
 """  # nopep8
@@ -384,6 +387,18 @@ def html_link(href, txt, target="_blank", **params):
     return markup.oneliner.a(txt, href=href, **params)
 
 
+def toggle_button(plottype, channel):
+    """
+    """
+    page = markup.page()
+    text = plottype.split('_')[1]                                       
+    chanstring = channel.name.replace('-', '_').replace(':', '-')       
+    captions = [p.caption for p in channel.plots[plottype]]             
+    page.button(text, onclick=u"showImage('%s', ['1', '4', '16'], '%s', %s);"                               
+                               % (chanstring, plottype, captions))
+    return page()
+
+
 def cis_link(channel, **params):
     """Write a channel name as a link to the Channel Information System
 
@@ -436,8 +451,9 @@ def fancybox_img(img, linkparams=dict(), **params):
     }
     aparams.update(linkparams)
     img = str(img)
-    channel = img.split('-')[0]
-    duration = img.split('-')[-1]
+    substrings = os.path.basename(img).split('-')
+    channel = '%s-%s' % tuple(substrings[:2])
+    duration = substrings[-1].split('.')[0]
     page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
     imgparams = {
         'alt': os.path.basename(img),
@@ -675,7 +691,9 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
                  style="font-size:14px;")
         page.div(class_="container")
         # summary information
-        page.div(class_='clearfix', id_='%s-%s-summary' % (block.key, i))
+        chanstring = channel.name.replace('-', '_').replace(':', '-')
+        page.div(class_='clearfix', id_='%s-%s-summary'
+                                        % (block.key, chanstring))
         page.table(class_=tableclass, style="width:95%;")
         page.caption("Properties of the most significant time-frequency tile")
         page.thead()
@@ -692,19 +710,26 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.tbody.close()
         page.table.close()
         # arrange plots
-        page.div(class_='row')
-        page.p()
-        for plottype in channel.plots.iterkeys():
-            linktext = plottype.split('_')[1]
-            chanstring = channel.name.replace('-', '_').replace(':', '-')
-            page.a(linktext, href="javascript:showImage('%s', '%s', "
-                              "['1', '4', '8'])" % (chanstring, plottype))
-        page.p.close()
+        page.div(class_='row', style='margin-bottom: 15px;')
+        page.div(class_='col-sm-4')
+        page.p('Timeseries view: ')
+        page.add(toggle_button('timeseries_raw', channel))
+        page.add(toggle_button('timeseries_highpassed', channel))
+        page.add(toggle_button('timeseries_whitened', channel))
+        page.div.close()  # col-sm-4
+        page.div(class_='col-sm-4')
+        page.p('Q-transform view: ')
+        page.add(toggle_button('qscan_raw', channel))                      
+        page.add(toggle_button('qscan_whitened', channel))               
+        page.add(toggle_button('qscan_autoscaled', channel))
+        page.div.close()  # col-sm-4
+        page.div(class_='col-sm-4')
+        page.div.close()  # col-sm-4
         page.div.close()  # row
         page.div.close()  # clearfix
         # plots
-        page.div(class_='content with-margin',
-                 id_='%s-%s-plots' % (block.key, i))
+        page.div(class_='content with-margin', style='margin-bottom: 20px;',
+                 id_='%s-%s-plots' % (block.key, chanstring))
         page.add(scaffold_plots(channel.plots['qscan_whitened'], nperrow=3))
         page.div.close()  # content
         # other plots
