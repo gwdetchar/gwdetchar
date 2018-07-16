@@ -162,7 +162,7 @@ for block in blocks:
     # read in fftlength seconds of data
     # centered on gps
     fftlength = block.fftlength
-    data = TimeSeriesDict.get(chans, gps-256-fftlength/4, gps+256+fftlength/4,
+    data = TimeSeriesDict.get(chans, gps-256, gps+256,
                               frametype=block.frametype, nproc=args.nproc,
                               verbose=args.verbose)
     # compute qscans
@@ -171,11 +171,12 @@ for block in blocks:
             gprint('Computing omega scans for channel %s...' % c.name)
         # get raw timeseries
         series = data[c.name].resample(block.resample)
-        # compute filtered timeseries
+        # filter the timeseries
         hpseries = series.highpass(20)
-        asd = hpseries.asd(fftlength, fftlength/2, method='lal_median_mean')
+        wseries = hpseries.whiten(fftlength, fftlength/2)
+        # crop the timeseries
+        wseries = wseries.crop(gps-fftlength/2, gps+fftlength/2)
         hpseries = hpseries.crop(gps-fftlength/2, gps+fftlength/2)
-        wseries = hpseries.whiten(fftlength, asd=asd, window='boxcar')
         # compute Q-transforms
         rqscan = hpseries.q_transform(qrange=(4, 96), frange=c.frange,
                                       tres=0.002, fres=0.1, gps=gps,
