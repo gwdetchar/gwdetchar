@@ -51,6 +51,7 @@ script:
   - .travis/test-exe.sh gwdetchar-software-saturations --help
   - .travis/test-exe.sh gwdetchar-scattering --help
   - .travis/test-exe.sh gwdetchar-overflow --help
+  - .travis/test-exe.sh gwdetchar-omega --help
 
 after_success:
   - coveralls
