@@ -25,19 +25,20 @@ from __future__ import division
 import os.path
 import re
 import warnings
-from StringIO import StringIO
+from collections import OrderedDict
+
+from six.moves import StringIO
 
 import numpy
 
 from matplotlib import (use, rcParams)
-use('agg')
+use('agg')  # nopep8
 
 import trigfind
 
 from glue.lal import Cache
 
 from gwpy.plotter import (figure, HistogramPlot)
-from gwpy.utils.compat import OrderedDict
 from gwpy.utils import gprint
 from gwpy.table import EventTable
 from gwpy.timeseries import TimeSeriesDict

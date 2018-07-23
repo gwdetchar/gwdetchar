@@ -22,10 +22,6 @@
 
 from __future__ import print_function
 
-import sys
-if sys.version < '2.6':
-    raise ImportError("Python versions older than 2.6 are not supported.")
-
 import glob
 import os.path
 

@@ -21,9 +21,9 @@ addons:
       - liblapack-dev  # scipy
 
 python:
-  - '2.6'
   - '2.7'
   - '3.5'
+  - '3.6'
 
 env:
   global:
@@ -33,20 +33,14 @@ env:
     - PIP_FLAGS="--quiet"
 
 matrix:
-  exclude:
-    - python: '2.6'
-      env: PIP_FLAGS="--quiet --pre"
   allow_failures:
-    - python: '2.6'
     - python: '3.5'
+    - python: '3.6'
   fast_finish: true
 
 before_install:
   - pip install -q --upgrade pip
-  # need to install astropy 1.1 specifically for py26
-  - if [[ ${TRAVIS_PYTHON_VERSION} == '2.6' ]]; then pip install "astropy==1.1"; fi
   - pip install ${PIP_FLAGS} -r requirements.txt
-  - .travis/build-lal.sh
   - pip install ${PIP_FLAGS} coveralls unittest2 pytest
 
 install:
