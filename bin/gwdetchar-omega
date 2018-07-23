@@ -176,28 +176,6 @@ def get_widths(x0, xdata):
         yield width
 
 
-def get_loudest_tile(eventgram, time, search=0.5):
-    """Retrieve properties of the loudest tile in an eventgram.
-
-    Parameters
-    ----------
-    eventgram : `gwpy.table.EventTable`
-        the eventgram to search
-    time : `float`
-        the central GPS time around which to search
-    search : `float`
-        the full duration of the search window
-    """
-    t = numpy.array(eventgram['central_time'])
-    index = numpy.where((t >= gps-search/2) & (t <= gps+search/2))
-    argZ = numpy.argmax(eventgram['energy'][index])
-    Z = eventgram['energy'][index][argZ]
-    snr = numpy.sqrt(2*Z)
-    tc = t[index][argZ]
-    fc = eventgram['central_freq'][index][argZ]
-    return tc, fc, Z, snr
-
-
 def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
               qrange=(4, 96), snrthresh=5.5):
     """Create an eventgram with the Q-plane that has the most significant
@@ -217,6 +195,12 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
         `(low, high)` range of Qs to scan
     snrthresh : `float`
         threshold on tile SNR, tiles quieter than this will not be included
+
+    Returns
+    -------
+    table : `gwpy.table.EventTable`
+        an `EventTable` object containing all tiles louder than `snrthresh` on
+        the Q plane with the loudest tile
     """
     # generate tilings
     planes = QTiling(abs(data.span), data.sample_rate.value, qrange=qrange,
@@ -226,16 +210,21 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
     fdata = data.fft().value
 
     # set up results
-    peakenergy = 0
+    Z = 0
 
     # Q-transform data for each `(Q, frequency)` tile
     for plane in planes:
         freqs, normenergies = plane.transform(fdata, epoch=data.x0)
         # find peak energy in this plane and record if loudest
-        for ts in normenergies:
+        for freq, ts in zip(freqs, normenergies):
             peak = ts.crop(time-search/2, time+search/2).value.max()
-            if peak > peakenergy:
-                peakenergy = peak
+            if peak > Z:
+                Z = peak
+                snr = numpy.sqrt(2*Z)
+                fc = freq
+                ts_cropped = ts.crop(time-search/2, time+search/2)
+                tc = ts_cropped.times.value[ts_cropped.value.argmax()]
+                del ts_cropped
                 peakplane = plane
 
     # create an eventgram for the plane with the loudest tile
@@ -259,6 +248,10 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
 
     # get parameters and return
     table.q = peakplane.q
+    table.Z = Z
+    table.snr = snr
+    table.tc = tc
+    table.fc = fc
     table.frange = peakplane.frange
     return table
 
@@ -368,11 +361,10 @@ for block in blocks:
 
         # save parameters
         c.Q = Q
-        tc, fc, Z, snr = get_loudest_tile(table, gps)
-        c.energy = Z
-        c.snr = snr
-        c.t = tc
-        c.f = fc
+        c.energy = table.Z
+        c.snr = table.snr
+        c.t = table.tc
+        c.f = table.fc
 
         # delete intermediate data products
         del fig1, fig2, fig3, fig4, fig5, fig6
