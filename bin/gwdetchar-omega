@@ -127,6 +127,7 @@ class OmegaChannelList(object):
     def __init__(self, **params):
         self.name = params.get('name', None)
         self.key = self.name.lower().replace(' ', '-')
+        self.duration = int(params.get('duration', None))
         self.fftlength = int(params.get('fftlength', None))
         self.resample = int(params.get('resample', None))
         self.frametype = params.get('frametype', None)
@@ -173,6 +174,28 @@ def get_widths(x0, xdata):
         width = 2 * (x - x0)
         x0 = x + width/2
         yield width
+
+
+def get_loudest_tile(eventgram, time, search=0.5):
+    """Retrieve properties of the loudest tile in an eventgram.
+
+    Parameters
+    ----------
+    eventgram : `gwpy.table.EventTable`
+        the eventgram to search
+    time : `float`
+        the central GPS time around which to search
+    search : `float`
+        the full duration of the search window
+    """
+    t = numpy.array(eventgram['central_time'])
+    index = numpy.where((t >= gps-search/2) & (t <= gps+search/2))
+    argZ = numpy.argmax(eventgram['energy'][index])
+    Z = eventgram['energy'][index][argZ]
+    snr = numpy.sqrt(2*Z)
+    tc = t[index][argZ]
+    fc = eventgram['central_freq'][index][argZ]
+    return tc, fc, Z, snr
 
 
 def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
@@ -260,6 +283,7 @@ for block in blocks:
     chans = [c.name for c in block.channels]
     # read in fftlength seconds of data
     # centered on gps
+    duration = block.duration
     fftlength = block.fftlength
     data = TimeSeriesDict.get(chans, gps-256-fftlength/4, gps+256+fftlength/4,
                               frametype=block.frametype, nproc=args.nproc,
@@ -279,8 +303,8 @@ for block in blocks:
                                   asd=asd)
 
         # crop the timeseries
-        wseries = wseries.crop(gps-fftlength/2, gps+fftlength/2)
-        hpseries = hpseries.crop(gps-fftlength/2, gps+fftlength/2)
+        wseries = wseries.crop(gps-duration/2, gps+duration/2)
+        hpseries = hpseries.crop(gps-duration/2, gps+duration/2)
 
         # compute eventgrams
         table = eventgram(gps, wseries, frange=c.frange)
@@ -344,10 +368,11 @@ for block in blocks:
 
         # save parameters
         c.Q = Q
-        c.energy = max(table['energy'])
-        c.snr = numpy.sqrt(2*c.energy)
-        c.t = table['central_time'][numpy.argmax(table['energy'])]
-        c.f = table['central_freq'][numpy.argmax(table['energy'])]
+        tc, fc, Z, snr = get_loudest_tile(table, gps)
+        c.energy = Z
+        c.snr = snr
+        c.t = tc
+        c.f = fc
 
         # delete intermediate data products
         del fig1, fig2, fig3, fig4, fig5, fig6
