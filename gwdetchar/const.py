@@ -26,9 +26,9 @@ from gwpy.segments import Segment
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 IFO = os.getenv('IFO', None)
-ifo = os.getenv('ifo', None)
+ifo = os.getenv('ifo', IFO.lower() if IFO else None)
 SITE = os.getenv('SITE', None)
-site = os.getenv('site', None)
+site = os.getenv('site', SITE.lower() if SITE else None)
 O1_SEGMENT_SERVER = os.getenv('O1_SEGMENT_SERVER', 'https://segments.ligo.org')
 S6_SEGMENT_SERVER = os.getenv('S6_SEGMENT_SERVER',
                               'https://segdb.ligo.caltech.edu')
