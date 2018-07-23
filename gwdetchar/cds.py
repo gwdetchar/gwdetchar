@@ -91,9 +91,9 @@ def model_name_from_dcuid(ifo, dcuid):
 
 def dcuid_from_model_name(ifo, model):
     global DCUID_MAP
-    if not ifo in DCUID_MAP:
+    if ifo not in DCUID_MAP:
         DCUID_MAP[ifo] = get_dcuid_map(ifo)
-    for dcuid, name in DCUID_MAP[ifo]:
+    for dcuid, name in DCUID_MAP[ifo].items():
         if model.lower() == name:
             return dcuid
     raise KeyError("No DCUID associated with model=%r" % model)
@@ -102,7 +102,7 @@ def dcuid_from_model_name(ifo, model):
 def get_adc_channel(ifo, model, card, slot):
     global ADC_MAP
     ADC_MAP.setdefault(ifo, {})
-    if not model in ADC_MAP:
+    if model not in ADC_MAP[ifo]:
         ADC_MAP[ifo][model] = get_adclist(ifo, model)
     try:
         return ADC_MAP[ifo][model][(card, slot)]
