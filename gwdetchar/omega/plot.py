@@ -24,6 +24,7 @@ from __future__ import division
 import os.path
 import warnings
 
+from matplotlib import cm
 from matplotlib import rcParams
 from matplotlib.colors import LogNorm
 
@@ -49,13 +50,18 @@ rcParams.update({
 # -- Utilities ----------------------------------------------------------------
 
 def omega_plot(series, gps, span, channel, colormap='viridis', clim=None,
-               qscan=False, ylabel=None):
+               qscan=False, eventgram=False, ylabel=None):
     """Plot any GWPy Series object with a time axis
     """
     # construct plot
     if qscan:
         # plot Q-transform
         plot = series.crop(gps-span/2, gps+span/2).plot(figsize=[6.25, 5])
+    elif eventgram:
+        # plot eventgram
+        plot = series.plot('central_time', 'central_freq', 'duration',
+                           'bandwidth', color='energy',
+                           figsize=[6.25, 5])
     else:
         # set color by IFO
         ifo = channel[:2]
@@ -72,7 +78,7 @@ def omega_plot(series, gps, span, channel, colormap='viridis', clim=None,
         ax.set_xlabel('Time [seconds]')
     # set y-axis properties
     chan = channel.replace('_', '\_')
-    if qscan:
+    if (qscan or eventgram):
         ax.set_yscale('log')
         ax.set_title('%s at %s with $Q=%.1f$' % (chan, gps, series.q),
                      fontsize=12)
@@ -83,6 +89,13 @@ def omega_plot(series, gps, span, channel, colormap='viridis', clim=None,
         ax.set_title('%s at %s' % (chan, gps), fontsize=12)
     if ylabel:
         ax.set_ylabel(ylabel)
+    if eventgram:
+        cmap = cm.get_cmap(colormap)
+        rgba = cmap(0)
+        ax.set_facecolor(rgba)
+        ax.set_xlim(gps-span/2, gps+span/2)
+        ax.set_yscale('log')
+        ax.set_ylabel('Frequency [Hz]')
     ax.grid(True, axis='y', which='both')
     plot.tight_layout()
     return plot

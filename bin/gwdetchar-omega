@@ -37,8 +37,10 @@ use('agg')  # nopep8
 
 from gwpy.utils import gprint
 from gwpy.time import tconvert
+from gwpy.table import EventTable
 from gwpy.timeseries import TimeSeriesDict
 from gwpy.detector import (Channel, ChannelList)
+from gwpy.signal.qtransform import QTiling
 
 from gwdetchar import (cli, __version__)
 from gwdetchar.omega import (config, plot, html)
@@ -112,7 +114,9 @@ class OmegaChannel(Channel):
         self.plots = {}
         for plottype in ['timeseries_raw', 'timeseries_highpassed',
                          'timeseries_whitened', 'qscan_raw',
-                         'qscan_whitened', 'qscan_autoscaled']:
+                         'qscan_whitened', 'qscan_autoscaled',
+                         'eventgram_raw', 'eventgram_whitened',
+                         'eventgram_autoscaled']:
             self.plots[plottype] = [get_fancyplots(self.name, plottype, t)
                                     for t in [1, 4, 16]]
         self.section = section
@@ -134,12 +138,106 @@ class OmegaChannelList(object):
 # -- Utilities ----------------------------------------------------------------
 
 def get_fancyplots(channel, plottype, duration, caption=None):
+    """Construct FancyPlot objects for output HTML pages
+
+    Parameters
+    ----------
+    channel : `str`
+        the name of the channel
+    plottype : `str`
+        the type of plot, e.g. 'raw_timeseries'
+    duration : `str`
+        duration of the plot, in seconds
+    caption : `str`, optional
+        a caption to render in the fancybox
+    """
     plotdir = 'plots'
     chan = channel.replace('-', '_').replace(':', '-')
     filename = '%s/%s-%s-%s.png' % (plotdir, chan, plottype, duration)
     if not caption:
         caption = os.path.basename(filename)
     return html.FancyPlot(filename, caption)
+
+
+def get_widths(x0, xdata):
+    """Generator to get the width of 1-D rectangular tiles
+
+    Parameters
+    ----------
+    x0 : `float`
+        starting point of the first tile
+    xdata : `array`
+        center points of all tiles
+    """
+    for x in xdata:
+        width = 2 * (x - x0)
+        x0 = x + width/2
+        yield width
+
+
+def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
+              qrange=(4, 96), snrthresh=5.5):
+    """Create an eventgram with the Q-plane that has the most significant
+    tile.
+
+    Parameters
+    ----------
+    time : `float` or `int`
+        central GPS time of the search, in seconds
+    data : `TimeSeries`
+        timeseries data to analyze
+    search : `float`, optional
+        search analysis window, will be centered at `time`
+    frange : `tuple` of `float`, optional
+        `(low, high)` range of frequencies to scan
+    qrange : `tuple` of `float`, optional
+        `(low, high)` range of Qs to scan
+    snrthresh : `float`
+        threshold on tile SNR, tiles quieter than this will not be included
+    """
+    # generate tilings
+    planes = QTiling(abs(data.span), data.sample_rate.value, qrange=qrange,
+                     frange=frange)
+
+    # get frequency domain data
+    fdata = data.fft().value
+
+    # set up results
+    peakenergy = 0
+
+    # Q-transform data for each `(Q, frequency)` tile
+    for plane in planes:
+        freqs, normenergies = plane.transform(fdata, epoch=data.x0)
+        # find peak energy in this plane and record if loudest
+        for ts in normenergies:
+            peak = ts.crop(time-search/2, time+search/2).value.max()
+            if peak > peakenergy:
+                peakenergy = peak
+                peakplane = plane
+
+    # create an eventgram for the plane with the loudest tile
+    energies = []
+    central_times, central_freqs, durations, bandwidths = [], [], [], []
+    freqs, normenergies = peakplane.transform(fdata, epoch=data.x0)
+    bws = get_widths(peakplane.frange[0], freqs)
+    for f, b, ts in zip(freqs, bws, normenergies):
+        durs = get_widths(data.x0.value, ts.times.value)
+        for t, dur, E in zip(ts.times.value, durs, ts.value):
+            if E >= snrthresh**2/2:
+                central_freqs.append(f)
+                bandwidths.append(b)
+                central_times.append(t)
+                durations.append(dur)
+                energies.append(E)
+    table = EventTable([central_times, central_freqs, durations,
+                       bandwidths, energies],
+                       names=('central_time', 'central_freq', 'duration',
+                       'bandwidth', 'energy'))
+
+    # get parameters and return
+    table.q = peakplane.q
+    table.frange = peakplane.frange
+    return table
 
 
 # -- Compute Qscan ------------------------------------------------------------
@@ -170,31 +268,42 @@ for block in blocks:
     for c in block.channels:
         if args.verbose:
             gprint('Computing omega scans for channel %s...' % c.name)
+
         # get raw timeseries
         series = data[c.name].resample(block.resample)
+
         # filter the timeseries
         hpseries = series.highpass(10)
         asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
         wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
                                   asd=asd)
+
         # crop the timeseries
         wseries = wseries.crop(gps-fftlength/2, gps+fftlength/2)
         hpseries = hpseries.crop(gps-fftlength/2, gps+fftlength/2)
+
+        # compute eventgrams
+        table = eventgram(gps, wseries, frange=c.frange)
+        Q = table.q
+        rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q))
+
         # compute Q-transforms
-        qscan = wseries.q_transform(qrange=(4, 96), frange=c.frange,
-                                      tres=0.002, fres=0.1, gps=gps,
-                                      search=0.25, whiten=False)
-        Q = qscan.q
-        rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
+        qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
                                     tres=0.002, fres=0.1, gps=gps,
                                     search=0.25, whiten=False)
+        rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
+                                      tres=0.002, fres=0.1, gps=gps,
+                                      search=0.25, whiten=False)
+
         # prepare plots
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
-        for span, png1, png2, png3, png4, png5, png6 in zip(
+        for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
             [1, 4, 16], c.plots['qscan_whitened'], c.plots['qscan_autoscaled'],
             c.plots['qscan_raw'], c.plots['timeseries_raw'],
-            c.plots['timeseries_highpassed'], c.plots['timeseries_whitened']
+            c.plots['timeseries_highpassed'], c.plots['timeseries_whitened'],
+            c.plots['eventgram_raw'], c.plots['eventgram_whitened'],
+            c.plots['eventgram_autoscaled']
         ):
             # plot whitened qscan
             fig1 = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
@@ -220,17 +329,29 @@ for block in blocks:
             fig6 = plot.omega_plot(wseries, gps, span, c.name,
                                    ylabel='Whitened Amplitude')
             fig6.savefig(str(png6))
+            # plot raw eventgram
+            fig7 = plot.omega_plot(rtable, gps, span, c.name, eventgram=True,
+                                   clim=(0, 25), colormap=args.colormap)
+            fig7.savefig(str(png7))
+            # plot raw eventgram
+            fig8 = plot.omega_plot(table, gps, span, c.name, eventgram=True,
+                                   clim=(0, 25), colormap=args.colormap)
+            fig8.savefig(str(png8))
+            # plot raw eventgram
+            fig9 = plot.omega_plot(table, gps, span, c.name, eventgram=True,
+                                   colormap=args.colormap)
+            fig9.savefig(str(png9))
+
         # save parameters
-        c.Q = qscan.q
-        qscan = qscan.crop(gps-0.25, gps+0.25)
-        c.energy = qscan.value.max()
-        tind, find = numpy.unravel_index(qscan.value.argmax(),
-                                         qscan.value.shape)
-        c.t = qscan.xindex[tind].value
-        c.f = qscan.yindex[find].value
+        c.Q = Q
+        c.energy = max(table['energy'])
+        c.snr = numpy.sqrt(2*c.energy)
+        c.t = table['central_time'][numpy.argmax(table['energy'])]
+        c.f = table['central_freq'][numpy.argmax(table['energy'])]
+
         # delete intermediate data products
         del fig1, fig2, fig3, fig4, fig5, fig6
-        del qscan, rqscan, series, hpseries, wseries
+        del qscan, rqscan, table, rtable, series, hpseries, wseries
 
 
 # -- Prepare HTML -------------------------------------------------------------

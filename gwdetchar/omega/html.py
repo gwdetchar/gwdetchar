@@ -713,15 +713,17 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.table(class_=tableclass, style="width:95%;")
         page.caption("Properties of the most significant time-frequency tile")
         page.thead()
-        for header in ['GPS Time', 'Frequency', 'Quality Factor', 'Energy']:
+        for header in ['GPS Time', 'Frequency', 'Quality Factor',
+                       'Energy', 'SNR']:
             page.th(header, scope='row')
         page.thead.close()
         page.tbody()
         page.tr()
-        page.td('%s' % channel.t)
+        page.td('%.3f' % channel.t)
         page.td('%.1f Hz' % channel.f)
         page.td('%.1f' % channel.Q)
         page.td('%.1f' % channel.energy)
+        page.td('%.1f' % channel.snr)
         page.tr.close()
         page.tbody.close()
         page.table.close()
@@ -744,6 +746,12 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div.close()  # btn-group
         page.div.close()  # col-sm-4
         page.div(class_='col-sm-4')
+        page.p('Eventgram view: ')
+        page.div(class_='btn-group btn-group-sm')
+        page.add(toggle_button('eventgram_raw', channel, context))
+        page.add(toggle_button('eventgram_whitened', channel, context))
+        page.add(toggle_button('eventgram_autoscaled', channel, context))
+        page.div.close()  # btn-group
         page.div.close()  # col-sm-4
         page.div.close()  # row
         page.div.close()  # clearfix
