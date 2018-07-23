@@ -7,4 +7,5 @@ lalsuite
 lscsoft-glue
 dqsegdb
 beautifulsoup4
+lxml
 https://github.com/ligovirgo/trigfind/archive/v0.3.tar.gz

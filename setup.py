@@ -61,6 +61,8 @@ requires = [
     'matplotlib',
     'astropy',
     'gwpy',
+    'beautifulsoup4',
+    'lxml',
 ]
 tests_require = [
     'pytest',
