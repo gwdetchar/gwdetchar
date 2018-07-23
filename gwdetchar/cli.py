@@ -39,17 +39,11 @@ def create_parser(**kwargs):
     return parser
 
 
-def add_option(parser, short, long=None, **kwargs):
-    args = [short]
-    if long is not None:
-        args.append(long)
-    return parser.add_argument(*args, **kwargs)
-
-
 def add_version_option(parser, version=None):
     if version is None:
         version = __version__
-    parser.add_argument('-V', '--version', action='version', version=version)
+    return parser.add_argument('-V', '--version', action='version',
+                               version=version)
 
 
 def add_ifo_option(parser, ifo=const.IFO, required=None):

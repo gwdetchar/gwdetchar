@@ -21,13 +21,77 @@
 
 import argparse
 
-from gwdetchar import cli
+import pytest
 
-from common import unittest
+from .. import (cli, __version__ as gwdetchar_version, const as _const)
 
 
-class CliTestCase(unittest.TestCase):
-    def test_create_parser(self):
-        parser = cli.create_parser(description=__doc__)
-        self.assertIsInstance(parser, argparse.ArgumentParser)
-        self.assertEqual(parser.description, __doc__)
+@pytest.fixture
+def const():
+    yield _const
+    reload(_const)
+
+
+@pytest.fixture
+def parser():
+    return argparse.ArgumentParser()
+
+
+def test_create_parser():
+    parser = cli.create_parser(description=__doc__)
+    assert isinstance(parser, argparse.ArgumentParser)
+    assert parser.description == __doc__
+    assert parser._actions[-1].version == gwdetchar_version
+
+
+@pytest.mark.parametrize('inv, outv', [
+    (None, gwdetchar_version),
+    ('test', 'test'),
+])
+def test_add_version_option(parser, inv, outv):
+    act = cli.add_version_option(parser, version=inv)
+    assert act.version == outv
+    with pytest.raises(SystemExit):
+        parser.parse_args(['--version'])
+
+
+@pytest.mark.parametrize('ifo', (_const.IFO, None))
+def add_ifo_option(parser, const, ifo):
+    const.IFO == ifo
+    act = parser.add_ifo_option()
+    args = parser.parse_args([])
+    assert args.ifo == ifo
+    if ifo is None:
+        with pytest.raises(argparse.ArgumentError):
+            parser.parse_args([])
+    assert parser.parse_args(['--ifo', 'test']).ifo == 'test'
+
+
+def test_add_gps_start_stop_arguments(parser):
+    cli.add_gps_start_stop_arguments(parser)
+    args = parser.parse_args(['Jan 1 2000', 'Jan 2 2000'])
+    assert args.gpsstart == 630720013
+    assert args.gpsend == 630806413
+
+
+def test_add_gps_start_stop_options(parser):
+    cli.add_gps_start_stop_options(parser)
+    args = parser.parse_args([])
+    assert args.gps_start_time is None
+    assert args.gps_end_time is None
+    args = parser.parse_args(['-s', 'Jan 1 2000',
+                              '--gps-end-time', 'Jan 2 2000'])
+    assert args.gps_start_time == 630720013
+    assert args.gps_end_time == 630806413
+
+
+def test_add_frame_type_name(parser):
+    cli.add_frametype_option(parser)
+    args = parser.parse_args(['--frametype', 'test'])
+    assert args.frametype == 'test'
+
+
+def test_add_nproc_option(parser):
+    cli.add_nproc_option(parser)
+    assert parser.parse_args([]).nproc is 8
+    assert parser.parse_args(['-j', '2']).nproc is 2
