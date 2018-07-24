@@ -16,18 +16,37 @@
 # You should have received a copy of the GNU General Public License
 # along with gwdetchar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test suite for `gwdetchar.cli`
+"""Test suite for `gwdetchar.const`
 """
 
 import argparse
+import os
 
-from gwdetchar import cli
+import pytest
 
-from common import unittest
+from .. import (cli, const as _const)
+
+_DEFAULT_ENV = os.environ.copy()
 
 
-class CliTestCase(unittest.TestCase):
-    def test_create_parser(self):
-        parser = cli.create_parser(description=__doc__)
-        self.assertIsInstance(parser, argparse.ArgumentParser)
-        self.assertEqual(parser.description, __doc__)
+@pytest.fixture
+def const():
+    yield _const
+    reload(_const)
+    os.environ.update(_DEFAULT_ENV)
+
+
+@pytest.mark.parametrize('env', [
+    {},
+    {'IFO': 'X1'},
+])
+def test_const(const, env):
+    os.environ.update(env)
+    reload(const)
+    if env:
+        assert const.IFO == env['IFO']
+        assert const.ifo == const.IFO.lower()
+    else:
+        assert const.IFO is None
+        assert const.ifo is None
+    assert const.site is None

@@ -70,4 +70,4 @@ def find_saturations(timeseries, limit=2**16, precision=1, segments=False):
         saturation.__metadata_finalize__(timeseries)
         return saturation.to_dqflag()
     else:
-        return timeseries.times[1:][numpy.diff(saturated.astype(int)) > 0]
+        return timeseries.times[1:].value[numpy.diff(saturated.astype(int)) > 0]
