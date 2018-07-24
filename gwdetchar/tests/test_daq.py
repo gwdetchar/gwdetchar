@@ -19,6 +19,11 @@
 """Tests for :mod:`gwdetchar.daq`
 """
 
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+
 import pytest
 
 import numpy
@@ -30,7 +35,6 @@ from gwpy.tests.utils import assert_segmentlist_equal
 
 from .. import daq
 
-
 OVERFLOW_SERIES = TimeSeries([0, 0, 0, 1, 1, 0, 0, 1, 0, 1], dx=.5)
 CUMULATIVE_SERIES = TimeSeries([0, 0, 0, 1, 2, 2, 2, 3, 3, 4], dx=.5)
 OVERFLOW_TIMES = numpy.array([1.5, 3.5, 4.5])
@@ -39,6 +43,18 @@ OVERFLOW_SEGMENTS = SegmentList([
     Segment(3.5, 4),
     Segment(4.5, 5),
 ])
+
+CHANNELS = [
+    'X1:TEST-CHANNEL_1',
+    'X1:FEC-1_ADC_OVERFLOW_ACC_0_1',
+    'X1:FEC-1_ADC_OVERFLOW_ACC_0_2',
+    'X1:FEC-1_ADC_OVERFLOW_ACC_0_3',
+    'X1:FEC-1_ADC_OVERFLOW_ACC_0_4',
+    'X1:FEC-1_DAC_OVERFLOW_0_1',
+    'X1:FEC-1_DAC_OVERFLOW_0_2',
+    'X1:FEC-2_DAC_OVERFLOW_0_1',
+    'X1:FEC-2_DAC_OVERFLOW_0_2',
+]
 
 
 @pytest.mark.parametrize('cmltv, series', [
@@ -56,3 +72,20 @@ def test_find_overflows_and_segments(cmltv, series):
 def test_ligo_accum_overflow_channel():
     assert daq.ligo_accum_overflow_channel(4, ifo='X1') == (
         'X1:FEC-4_ACCUM_OVERFLOW')
+
+
+@mock.patch('gwdetchar.daq.get_channel_names')
+@mock.patch('gwdetchar.daq.find_frames')
+def test_ligo_model_overflow_channels(get_names, find_frames):
+    get_names.return_value = CHANNELS
+
+    names = daq.ligo_model_overflow_channels(1, ifo='X1', accum=True)
+    assert names == CHANNELS[1:5]
+
+    names = daq.ligo_model_overflow_channels(1, ifo='X1', accum=False)
+    assert names == CHANNELS[5:7]
+
+    find_frames.return_value = []
+    with pytest.raises(IndexError) as exc:
+        daq.ligo_model_overflow_channels(1, ifo='X1')
+    assert str(exc.value).startswith('No X-X1_R frames found')

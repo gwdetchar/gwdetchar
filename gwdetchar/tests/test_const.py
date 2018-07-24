@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with gwdetchar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test suite for `gwdetchar.cli`
+"""Test suite for `gwdetchar.const`
 """
 
 import argparse
