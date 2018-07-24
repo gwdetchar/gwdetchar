@@ -118,7 +118,7 @@ class OmegaChannel(Channel):
                          'eventgram_raw', 'eventgram_whitened',
                          'eventgram_autoscaled']:
             self.plots[plottype] = [get_fancyplots(self.name, plottype, t)
-                                    for t in [1, 4, 16]]
+                                    for t in [1, 4]]
         self.section = section
         self.params = params.copy()
 
@@ -316,7 +316,7 @@ for block in blocks:
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
         for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
-            [1, 4, 16], c.plots['qscan_whitened'], c.plots['qscan_autoscaled'],
+            [1, 4], c.plots['qscan_whitened'], c.plots['qscan_autoscaled'],
             c.plots['qscan_raw'], c.plots['timeseries_raw'],
             c.plots['timeseries_highpassed'], c.plots['timeseries_whitened'],
             c.plots['eventgram_raw'], c.plots['eventgram_whitened'],

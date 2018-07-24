@@ -482,7 +482,7 @@ def fancybox_img(img, linkparams=dict(), **params):
     return str(page)
 
 
-def scaffold_plots(plots, nperrow=3):
+def scaffold_plots(plots, nperrow=2):
     """Embed a `list` of images in a bootstrap scaffold
 
     Parameters
@@ -703,30 +703,12 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
 
     # -- range over channels in this block
     for i, channel in enumerate(block.channels):
-        page.pre('%s' % cis_link(channel.name),
-                 style="font-size:14px;")
+        page.pre('%s' % cis_link(channel.name), style="font-size:14px;")
         page.div(class_="container")
         # summary information
         chanstring = channel.name.replace('-', '_').replace(':', '-')
         page.div(class_='clearfix', id_='%s-%s-summary'
                                         % (block.key, chanstring))
-        page.table(class_=tableclass, style="width:95%;")
-        page.caption("Properties of the most significant time-frequency tile")
-        page.thead()
-        for header in ['GPS Time', 'Frequency', 'Quality Factor',
-                       'Energy', 'SNR']:
-            page.th(header, scope='row')
-        page.thead.close()
-        page.tbody()
-        page.tr()
-        page.td('%.3f' % channel.t)
-        page.td('%.1f Hz' % channel.f)
-        page.td('%.1f' % channel.Q)
-        page.td('%.1f' % channel.energy)
-        page.td('%.1f' % channel.snr)
-        page.tr.close()
-        page.tbody.close()
-        page.table.close()
         # arrange plots
         page.div(class_='row', style='margin-bottom: 15px;')
         page.div(class_='col-sm-4')
@@ -755,12 +737,29 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div.close()  # col-sm-4
         page.div.close()  # row
         page.div.close()  # clearfix
+        page.div(class_='row')
+        # summary table
+        page.div(class_='col-md-3', style='margin-bottom: 20px;')
+        page.table(class_=tableclass)
+        page.caption("Properties of the most significant time-frequency tile")
+        header = ['GPS Time', 'Frequency', 'Q Factor', 'Energy', 'SNR']
+        entry = ['%.3f' % channel.t, '%.1f Hz' % channel.f, '%.1f' % channel.Q,
+                 '%.1f' % channel.energy, '%.1f' % channel.snr]
+        page.tbody()
+        for h, ent in zip(header, entry):
+            page.tr()
+            page.td('<b>%s</b>' % h)
+            page.td(ent)
+            page.tr.close()
+        page.tbody.close()
+        page.table.close()
+        page.div.close()  # col-md-3
         # plots
-        page.div(class_='content with-margin', style='margin-bottom: 20px;',
+        page.div(class_='col-md-9', style='margin-bottom: 20px;',
                  id_='%s-%s-plots' % (block.key, chanstring))
-        page.add(scaffold_plots(channel.plots['qscan_whitened'], nperrow=3))
-        page.div.close()  # content
-        # other plots
+        page.add(scaffold_plots(channel.plots['qscan_whitened'], nperrow=2))
+        page.div.close()  # col-md-9
+        page.div.close()  # row
         page.div.close()  # container
 
     # close and return
