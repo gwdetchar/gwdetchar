@@ -26,7 +26,7 @@ from gwpy.io.kerberos import which
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
-def natural_sort(l, key=None):
+def natural_sort(l, key=str):
     """Sort a list the way that humans expect.
 
     This differs from the built-in `sorted` method by building a custom
