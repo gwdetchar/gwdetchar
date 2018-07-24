@@ -23,6 +23,7 @@ import re
 
 import numpy
 
+from gwpy.io.gwf import get_channel_names
 from gwpy.time import tconvert
 from gwpy.timeseries import StateTimeSeries
 
@@ -133,7 +134,7 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
     try:
         allchannels = _CHANNELS[framefile]
     except KeyError:
-        _CHANNELS[framefile] = get_channels(framefile)
+        _CHANNELS[framefile] = get_channel_names(framefile)
         allchannels = _CHANNELS[framefile]
     if accum:
         regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_ACC_\d+_\d+\Z'
@@ -143,7 +144,8 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
                            % (ifo, dcuid))
     return natural_sort(filter(regex.match, allchannels))
 
-def find_crossings(timeseries,threshold):
+
+def find_crossings(timeseries, threshold):
     """Find the times that a timeseries crosses a specific value
 
     Parameters
@@ -161,8 +163,12 @@ def find_crossings(timeseries,threshold):
         crossed the threshold
     """
     if threshold >= 0:
-        crossing_idx = numpy.nonzero(numpy.diff((timeseries.value >= threshold).astype(int)))[0]+1
+        crossing_idx = numpy.nonzero(numpy.diff(
+            (timeseries.value >= threshold).astype(int)
+        ))[0] + 1
     else:
-        crossing_idx = numpy.nonzero(numpy.diff((timeseries.value > threshold).astype(int)))[0]+1
+        crossing_idx = numpy.nonzero(numpy.diff(
+            (timeseries.value > threshold).astype(int)
+        ))[0] + 1
 
     return timeseries.times.value[crossing_idx]
