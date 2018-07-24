@@ -56,18 +56,18 @@ def omega_plot(series, gps, span, channel, colormap='viridis', clim=None,
     # construct plot
     if qscan:
         # plot Q-transform
-        plot = series.crop(gps-span/2, gps+span/2).plot(figsize=[6.25, 5])
+        plot = series.crop(gps-span/2, gps+span/2).plot(figsize=[8, 5])
     elif eventgram:
         # plot eventgram
         plot = series.plot('central_time', 'central_freq', 'duration',
                            'bandwidth', color='energy',
-                           figsize=[6.25, 5])
+                           figsize=[8, 5])
     else:
         # set color by IFO
         ifo = channel[:2]
         series = series.crop(gps-span/2, gps+span/2)
         plot = series.plot(color=GW_OBSERVATORY_COLORS[ifo],
-                           figsize=[6.25, 5])
+                           figsize=[8, 5])
     ax = plot.gca()
     # set time axis units
     ax.set_epoch(gps)
