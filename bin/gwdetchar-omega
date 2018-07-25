@@ -109,8 +109,11 @@ class OmegaChannel(Channel):
         frange = tuple(
             [float(s) for s in params.get('frequency-range', None).split(',')]
         )
+        qrange = tuple(
+            [float(s) for s in params.get('q-range', None).split(',')]
+        )
         super(OmegaChannel, self).__init__(channelname, frametype=frametype,
-                                           frange=frange)
+                                           frange=frange, qrange=qrange)
         self.plots = {}
         for plottype in ['timeseries_raw', 'timeseries_highpassed',
                          'timeseries_whitened', 'qscan_raw',
@@ -127,9 +130,9 @@ class OmegaChannelList(object):
     def __init__(self, **params):
         self.name = params.get('name', None)
         self.key = self.name.lower().replace(' ', '-')
-        self.duration = int(params.get('duration', None))
-        self.fftlength = int(params.get('fftlength', None))
-        self.resample = int(params.get('resample', None))
+        self.duration = int(params.get('duration', 32))
+        self.fftlength = int(params.get('fftlength', 2))
+        self.resample = int(params.get('resample', 0))
         self.frametype = params.get('frametype', None)
         chans = params.get('channels', None).split(',\n')
         self.channels = [OmegaChannel(c, self.name, **params) for c in chans]
@@ -287,10 +290,12 @@ for block in blocks:
             gprint('Computing omega scans for channel %s...' % c.name)
 
         # get raw timeseries
-        series = data[c.name].resample(block.resample)
+        series = data[c.name]
+        if block.resample:
+            series = series.resample(block.resample)
 
         # filter the timeseries
-        hpseries = series.highpass(10)
+        hpseries = series.highpass(10, gpass=.5, filtfilt=True)
         asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
         wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
                                   asd=asd)
@@ -300,7 +305,7 @@ for block in blocks:
         hpseries = hpseries.crop(gps-duration/2, gps+duration/2)
 
         # compute eventgrams
-        table = eventgram(gps, wseries, frange=c.frange)
+        table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange)
         Q = table.q
         rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q))
 
@@ -316,11 +321,11 @@ for block in blocks:
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
         for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
-            [1, 4], c.plots['qscan_whitened'], c.plots['qscan_autoscaled'],
-            c.plots['qscan_raw'], c.plots['timeseries_raw'],
-            c.plots['timeseries_highpassed'], c.plots['timeseries_whitened'],
-            c.plots['eventgram_raw'], c.plots['eventgram_whitened'],
-            c.plots['eventgram_autoscaled']
+            [1, 4], c.plots['qscan_whitened'],
+            c.plots['qscan_autoscaled'], c.plots['qscan_raw'],
+            c.plots['timeseries_raw'], c.plots['timeseries_highpassed'],
+            c.plots['timeseries_whitened'], c.plots['eventgram_raw'],
+            c.plots['eventgram_whitened'], c.plots['eventgram_autoscaled']
         ):
             # plot whitened qscan
             fig1 = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
@@ -369,6 +374,7 @@ for block in blocks:
         # delete intermediate data products
         del fig1, fig2, fig3, fig4, fig5, fig6
         del qscan, rqscan, table, rtable, series, hpseries, wseries
+    del data
 
 
 # -- Prepare HTML -------------------------------------------------------------
