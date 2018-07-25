@@ -109,7 +109,6 @@ class OmegaChannel(Channel):
         frange = tuple(
             [float(s) for s in params.get('frequency-range', None).split(',')]
         )
-<<<<<<< HEAD
         qrange = tuple(
             [float(s) for s in params.get('q-range', None).split(',')]
         )
@@ -119,10 +118,6 @@ class OmegaChannel(Channel):
                                            frange=frange, qrange=qrange,
                                            mismatch=mismatch,
                                            snrthresh=snrthresh)
-=======
-        super(OmegaChannel, self).__init__(channelname, frametype=frametype,
-                                           frange=frange)
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
         self.plots = {}
         for plottype in ['timeseries_raw', 'timeseries_highpassed',
                          'timeseries_whitened', 'qscan_raw',
@@ -139,15 +134,9 @@ class OmegaChannelList(object):
     def __init__(self, **params):
         self.name = params.get('name', None)
         self.key = self.name.lower().replace(' ', '-')
-<<<<<<< HEAD
         self.duration = int(params.get('duration', 32))
         self.fftlength = int(params.get('fftlength', 2))
         self.resample = int(params.get('resample', 0))
-=======
-        self.duration = int(params.get('duration', None))
-        self.fftlength = int(params.get('fftlength', None))
-        self.resample = int(params.get('resample', None))
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
         self.frametype = params.get('frametype', None)
         chans = params.get('channels', None).split(',\n')
         self.channels = [OmegaChannel(c, self.name, **params) for c in chans]
@@ -195,11 +184,7 @@ def get_widths(x0, xdata):
 
 
 def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
-<<<<<<< HEAD
               qrange=(4, 96), snrthresh=5.5, mismatch=0.2):
-=======
-              qrange=(4, 96), snrthresh=5.5):
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
     """Create an eventgram with the Q-plane that has the most significant
     tile.
 
@@ -217,11 +202,8 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
         `(low, high)` range of Qs to scan
     snrthresh : `float`
         threshold on tile SNR, tiles quieter than this will not be included
-<<<<<<< HEAD
     mismatch : `float`
         the maximum fractional mismatch between neighboring tiles
-=======
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
 
     Returns
     -------
@@ -231,17 +213,12 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
     """
     # generate tilings
     planes = QTiling(abs(data.span), data.sample_rate.value, qrange=qrange,
-<<<<<<< HEAD
                      frange=frange, mismatch=mismatch)
-=======
-                     frange=frange)
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
 
     # get frequency domain data
     fdata = data.fft().value
 
     # set up results
-<<<<<<< HEAD
     Z = 0  # max normalized tile energy
     N = 0  # no. of independent tiles
     numplanes = 0
@@ -256,15 +233,6 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
         # find peak energy in this plane and record if loudest
         for freq, ts in zip(freqs, normenergies):
             n_ind += 1 + 2 * numpy.pi * abs(data.span) * freq / plane.q
-=======
-    Z = 0
-
-    # Q-transform data for each `(Q, frequency)` tile
-    for plane in planes:
-        freqs, normenergies = plane.transform(fdata, epoch=data.x0)
-        # find peak energy in this plane and record if loudest
-        for freq, ts in zip(freqs, normenergies):
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
             peak = ts.crop(time-search/2, time+search/2).value.max()
             if peak > Z:
                 Z = peak
@@ -274,10 +242,7 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
                 tc = ts_cropped.times.value[ts_cropped.value.argmax()]
                 del ts_cropped
                 peakplane = plane
-<<<<<<< HEAD
         N += n_ind * pweight / numplanes
-=======
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
 
     # create an eventgram for the plane with the loudest tile
     energies = []
@@ -305,10 +270,7 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
     table.tc = tc
     table.fc = fc
     table.frange = peakplane.frange
-<<<<<<< HEAD
     table.engthresh = -numpy.log10(1e-3 * abs(data.span) / (1.5 * N))
-=======
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
     return table
 
 
@@ -343,19 +305,12 @@ for block in blocks:
             gprint('Computing omega scans for channel %s...' % c.name)
 
         # get raw timeseries
-<<<<<<< HEAD
         series = data[c.name]
         if block.resample:
             series = series.resample(block.resample)
 
         # filter the timeseries
         hpseries = series.highpass(10, gpass=.5, filtfilt=True)
-=======
-        series = data[c.name].resample(block.resample)
-
-        # filter the timeseries
-        hpseries = series.highpass(10)
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
         asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
         wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
                                   asd=asd)
@@ -365,21 +320,16 @@ for block in blocks:
         hpseries = hpseries.crop(gps-duration/2, gps+duration/2)
 
         # compute eventgrams
-<<<<<<< HEAD
         table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange,
                           snrthresh=c.snrthresh, mismatch=c.mismatch)
         if table.Z < table.engthresh:
             gprint('Channel %s not significant at white noise false rate 1e-3'
                    % c.name)
             del series, hpseries, wseries, asd, table
+            continue
         Q = table.q
         rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q),
                            snrthresh=c.snrthresh, mismatch=c.mismatch)
-=======
-        table = eventgram(gps, wseries, frange=c.frange)
-        Q = table.q
-        rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q))
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
 
         # compute Q-transforms
         qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
@@ -393,19 +343,11 @@ for block in blocks:
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
         for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
-<<<<<<< HEAD
             [1, 4], c.plots['qscan_whitened'],
             c.plots['qscan_autoscaled'], c.plots['qscan_raw'],
             c.plots['timeseries_raw'], c.plots['timeseries_highpassed'],
             c.plots['timeseries_whitened'], c.plots['eventgram_raw'],
             c.plots['eventgram_whitened'], c.plots['eventgram_autoscaled']
-=======
-            [1, 4], c.plots['qscan_whitened'], c.plots['qscan_autoscaled'],
-            c.plots['qscan_raw'], c.plots['timeseries_raw'],
-            c.plots['timeseries_highpassed'], c.plots['timeseries_whitened'],
-            c.plots['eventgram_raw'], c.plots['eventgram_whitened'],
-            c.plots['eventgram_autoscaled']
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
         ):
             # plot whitened qscan
             fig1 = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
@@ -453,12 +395,8 @@ for block in blocks:
 
         # delete intermediate data products
         del fig1, fig2, fig3, fig4, fig5, fig6
-<<<<<<< HEAD
         del qscan, rqscan, table, rtable, series, hpseries, wseries, asd
     del data
-=======
-        del qscan, rqscan, table, rtable, series, hpseries, wseries
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
 
 
 # -- Prepare HTML -------------------------------------------------------------

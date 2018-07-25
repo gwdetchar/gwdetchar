@@ -710,11 +710,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div(class_='clearfix', id_='%s-%s-summary'
                                         % (block.key, chanstring))
         # arrange plots
-<<<<<<< HEAD
         page.div(class_='row', style='margin-bottom: 15px; width: 97%;')
-=======
-        page.div(class_='row', style='margin-bottom: 15px;')
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
         page.div(class_='col-sm-4')
         page.p('Timeseries view: ')
         page.div(class_='btn-group btn-group-sm')
@@ -744,13 +740,8 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div(class_='row')
         # summary table
         page.div(class_='col-md-3', style='margin-bottom: 20px;')
-<<<<<<< HEAD
         page.p("Properties of the most significant time-frequency tile")
         page.table(class_=tableclass, style='width: 95%;')
-=======
-        page.table(class_=tableclass)
-        page.caption("Properties of the most significant time-frequency tile")
->>>>>>> a8153611f27feb598ff6d3072af02b0768c1f7c0
         header = ['GPS Time', 'Frequency', 'Q Factor', 'Energy', 'SNR']
         entry = ['%.3f' % channel.t, '%.1f Hz' % channel.f, '%.1f' % channel.Q,
                  '%.1f' % channel.energy, '%.1f' % channel.snr]
