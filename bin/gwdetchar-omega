@@ -219,13 +219,20 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
     fdata = data.fft().value
 
     # set up results
-    Z = 0
+    Z = 0  # max normalized tile energy
+    N = 0  # no. of independent tiles
+    numplanes = 0
+    qmax, qmin = qrange[1], qrange[0]
+    pweight = (1 + numpy.log10(qmax/qmin)/numpy.sqrt(2))
 
     # Q-transform data for each `(Q, frequency)` tile
     for plane in planes:
+        n_ind = 0
+        numplanes += 1
         freqs, normenergies = plane.transform(fdata, epoch=data.x0)
         # find peak energy in this plane and record if loudest
         for freq, ts in zip(freqs, normenergies):
+            n_ind += 1 + 2 * numpy.pi * abs(data.span) * freq / plane.q
             peak = ts.crop(time-search/2, time+search/2).value.max()
             if peak > Z:
                 Z = peak
@@ -235,6 +242,7 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
                 tc = ts_cropped.times.value[ts_cropped.value.argmax()]
                 del ts_cropped
                 peakplane = plane
+        N += n_ind * pweight / numplanes
 
     # create an eventgram for the plane with the loudest tile
     energies = []
@@ -262,6 +270,7 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
     table.tc = tc
     table.fc = fc
     table.frange = peakplane.frange
+    table.engthresh = -numpy.log10(1e-3 * abs(data.span) / (1.5 * N))
     return table
 
 
@@ -313,6 +322,10 @@ for block in blocks:
         # compute eventgrams
         table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange,
                           snrthresh=c.snrthresh, mismatch=c.mismatch)
+        if table.Z < table.engthresh:
+            gprint('Channel %s not significant at white noise false rate 1e-3'
+                   % c.name)
+            del series, hpseries, wseries, asd, table
         Q = table.q
         rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q),
                            snrthresh=c.snrthresh, mismatch=c.mismatch)
@@ -381,7 +394,7 @@ for block in blocks:
 
         # delete intermediate data products
         del fig1, fig2, fig3, fig4, fig5, fig6
-        del qscan, rqscan, table, rtable, series, hpseries, wseries
+        del qscan, rqscan, table, rtable, series, hpseries, wseries, asd
     del data
 
 
