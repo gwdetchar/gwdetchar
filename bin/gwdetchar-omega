@@ -116,10 +116,12 @@ class OmegaChannel(Channel):
         snrthresh = float(params.get('snr-threshold', 5.5))
         pranges = [int(t) for t in params.get('plot-time-durations',
                                                None).split(',')]
+        always_plot = bool(params.get('always-plot', False))
         super(OmegaChannel, self).__init__(channelname, frametype=frametype,
                                            frange=frange, qrange=qrange,
                                            mismatch=mismatch, pranges=pranges,
-                                           snrthresh=snrthresh)
+                                           snrthresh=snrthresh,
+                                           always_plot=always_plot)
         self.plots = {}
         for plottype in ['timeseries_raw', 'timeseries_highpassed',
                          'timeseries_whitened', 'qscan_raw',
@@ -312,7 +314,8 @@ for block in blocks:
             series = series.resample(block.resample)
 
         # filter the timeseries
-        hpseries = series.highpass(10, gpass=.5, filtfilt=True)
+        corner = c.frange[0] / 1.5
+        hpseries = series.highpass(corner, gpass=.5, gstop=100, filtfilt=True)
         asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
         wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
                                   asd=asd)
@@ -324,9 +327,10 @@ for block in blocks:
         # compute eventgrams
         table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange,
                           snrthresh=c.snrthresh, mismatch=c.mismatch)
-        if table.Z < table.engthresh:
-            gprint('Channel %s not significant at white noise false rate 1e-3'
-                   % c.name)
+        if table.Z < table.engthresh and not c.always_plot:
+            if args.verbose:
+                gprint('Channel not significant at white noise false rate '
+                       '1e-3 Hz')
             del series, hpseries, wseries, asd, table
             continue
         Q = table.q
