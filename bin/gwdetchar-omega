@@ -142,7 +142,7 @@ class OmegaChannelList(object):
         self.fftlength = int(params.get('fftlength', 2))
         self.resample = int(params.get('resample', 0))
         self.frametype = params.get('frametype', None)
-        chans = params.get('channels', None).split(',\n')
+        chans = params.get('channels', None).split('\n')
         self.channels = [OmegaChannel(c, self.name, **params) for c in chans]
         self.params = params.copy()
 
