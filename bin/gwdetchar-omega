@@ -114,9 +114,11 @@ class OmegaChannel(Channel):
         )
         mismatch = float(params.get('max-mismatch', 0.2))
         snrthresh = float(params.get('snr-threshold', 5.5))
+        pranges = [int(t) for t in params.get('plot-time-durations',
+                                               None).split(',')]
         super(OmegaChannel, self).__init__(channelname, frametype=frametype,
                                            frange=frange, qrange=qrange,
-                                           mismatch=mismatch,
+                                           mismatch=mismatch, pranges=pranges,
                                            snrthresh=snrthresh)
         self.plots = {}
         for plottype in ['timeseries_raw', 'timeseries_highpassed',
@@ -125,7 +127,7 @@ class OmegaChannel(Channel):
                          'eventgram_raw', 'eventgram_whitened',
                          'eventgram_autoscaled']:
             self.plots[plottype] = [get_fancyplots(self.name, plottype, t)
-                                    for t in [1, 4]]
+                                    for t in pranges]
         self.section = section
         self.params = params.copy()
 
@@ -343,7 +345,7 @@ for block in blocks:
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
         for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
-            [1, 4], c.plots['qscan_whitened'],
+            c.pranges, c.plots['qscan_whitened'],
             c.plots['qscan_autoscaled'], c.plots['qscan_raw'],
             c.plots['timeseries_raw'], c.plots['timeseries_highpassed'],
             c.plots['timeseries_whitened'], c.plots['eventgram_raw'],
