@@ -115,7 +115,7 @@ class OmegaChannel(Channel):
         mismatch = float(params.get('max-mismatch', 0.2))
         snrthresh = float(params.get('snr-threshold', 5.5))
         pranges = [int(t) for t in params.get('plot-time-durations',
-                                               None).split(',')]
+                                              None).split(',')]
         always_plot = bool(params.get('always-plot', False))
         super(OmegaChannel, self).__init__(channelname, frametype=frametype,
                                            frange=frange, qrange=qrange,
