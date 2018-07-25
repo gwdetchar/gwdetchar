@@ -112,8 +112,12 @@ class OmegaChannel(Channel):
         qrange = tuple(
             [float(s) for s in params.get('q-range', None).split(',')]
         )
+        mismatch = float(params.get('max-mismatch', 0.2))
+        snrthresh = float(params.get('snr-threshold', 5.5))
         super(OmegaChannel, self).__init__(channelname, frametype=frametype,
-                                           frange=frange, qrange=qrange)
+                                           frange=frange, qrange=qrange,
+                                           mismatch=mismatch,
+                                           snrthresh=snrthresh)
         self.plots = {}
         for plottype in ['timeseries_raw', 'timeseries_highpassed',
                          'timeseries_whitened', 'qscan_raw',
@@ -180,7 +184,7 @@ def get_widths(x0, xdata):
 
 
 def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
-              qrange=(4, 96), snrthresh=5.5):
+              qrange=(4, 96), snrthresh=5.5, mismatch=0.2):
     """Create an eventgram with the Q-plane that has the most significant
     tile.
 
@@ -198,6 +202,8 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
         `(low, high)` range of Qs to scan
     snrthresh : `float`
         threshold on tile SNR, tiles quieter than this will not be included
+    mismatch : `float`
+        the maximum fractional mismatch between neighboring tiles
 
     Returns
     -------
@@ -207,7 +213,7 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
     """
     # generate tilings
     planes = QTiling(abs(data.span), data.sample_rate.value, qrange=qrange,
-                     frange=frange)
+                     frange=frange, mismatch=mismatch)
 
     # get frequency domain data
     fdata = data.fft().value
@@ -305,9 +311,11 @@ for block in blocks:
         hpseries = hpseries.crop(gps-duration/2, gps+duration/2)
 
         # compute eventgrams
-        table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange)
+        table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange,
+                          snrthresh=c.snrthresh, mismatch=c.mismatch)
         Q = table.q
-        rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q))
+        rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q),
+                           snrthresh=c.snrthresh, mismatch=c.mismatch)
 
         # compute Q-transforms
         qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
