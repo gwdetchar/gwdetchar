@@ -25,6 +25,7 @@ from __future__ import division
 import os
 import re
 import sys
+import ast
 import warnings
 from StringIO import StringIO
 
@@ -116,7 +117,7 @@ class OmegaChannel(Channel):
         snrthresh = float(params.get('snr-threshold', 5.5))
         pranges = [int(t) for t in params.get('plot-time-durations',
                                               None).split(',')]
-        always_plot = bool(params.get('always-plot', False))
+        always_plot = ast.literal_eval(params.get('always-plot', 'False'))
         super(OmegaChannel, self).__init__(channelname, frametype=frametype,
                                            frange=frange, qrange=qrange,
                                            mismatch=mismatch, pranges=pranges,
@@ -274,7 +275,7 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
     table.tc = tc
     table.fc = fc
     table.frange = peakplane.frange
-    table.engthresh = -numpy.log10(1e-3 * abs(data.span) / (1.5 * N))
+    table.engthresh = -numpy.log(1e-3 * abs(data.span) / (1.5 * N))
     return table
 
 
@@ -331,7 +332,7 @@ for block in blocks:
             if args.verbose:
                 gprint('Channel not significant at white noise false rate '
                        '1e-3 Hz')
-            del series, hpseries, wseries, asd, table
+            del c, series, hpseries, wseries, asd, table
             continue
         Q = table.q
         rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q),
