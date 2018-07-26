@@ -350,7 +350,7 @@ for i, block in enumerate(blocks):
 
         # compute Q-transforms
         try:
-            fres = c.frange[0] / 10
+            fres = c.frange[0] / 5
             qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
                                         tres=0.002, fres=fres, gps=gps,
                                         search=0.25, whiten=False)
