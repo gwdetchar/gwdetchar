@@ -285,8 +285,6 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
 
 # -- Compute Qscan ------------------------------------------------------------
 
-gprint('Computing Q-scans...')
-
 # make subdirectories
 plotdir = 'plots'
 aboutdir = 'about'
@@ -296,6 +294,13 @@ for d in [plotdir, aboutdir]:
 
 # determine channel blocks
 blocks = [OmegaChannelList(**cp[s]) for s in cp.sections()]
+
+# set up html output
+gprint('Setting up HTML at %s/index.html...' % outdir)
+html.write_qscan_page(ifo, gps, blocks, **htmlv)
+
+# launch omega scans
+gprint('Launching Omega scans...')
 
 # range over blocks
 for i, block in enumerate(blocks):
@@ -335,7 +340,7 @@ for i, block in enumerate(blocks):
         if table.Z < table.engthresh and not c.always_plot:
             if args.verbose:
                 gprint('Channel not significant at white noise false alarm '
-                       'rate `%s Hz' % far)
+                       'rate %s Hz' % far)
             del series, hpseries, wseries, asd, table
             del block.channels[j]
             continue
@@ -409,16 +414,21 @@ for i, block in enumerate(blocks):
         # delete intermediate data products
         del fig1, fig2, fig3, fig4, fig5, fig6
         del qscan, rqscan, table, rtable, series, hpseries, wseries, asd
+
+    # delete data
     del data
 
     # if the entire block is unprocessed, delete it
     if not block.channels:
         del blocks[i]
 
+    # update html output
+    html.write_qscan_page(ifo, gps, blocks, **htmlv)
+
 
 # -- Prepare HTML -------------------------------------------------------------
 
 # write HTML page and finish
-gprint('Preparing HTML at %s/index.html...' % outdir)
+gprint('Finalizing HTML at %s/index.html...' % outdir)
 html.write_qscan_page(ifo, gps, blocks, **htmlv)
 gprint("-- index.html written, all done --")
