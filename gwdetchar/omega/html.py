@@ -776,7 +776,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div(class_='col-md-9', style='margin-bottom: 20px;',
                  id_='%s-%s-plots' % (block.key, chanstring))
         page.add(scaffold_plots(channel.plots['qscan_whitened'],
-                 nperrow=len(channel.pranges)))
+                 nperrow=min(len(channel.pranges), 2)))
         page.div.close()  # col-md-9
         page.div.close()  # row
         page.div.close()  # container

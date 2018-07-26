@@ -367,6 +367,9 @@ for i, block in enumerate(blocks):
         # prepare plots
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
+        # work out figure size
+        width = min(16 / len(c.pranges), 8)
+        figsize = [width, 5]
         for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
             c.pranges, c.plots['qscan_whitened'],
             c.plots['qscan_autoscaled'], c.plots['qscan_raw'],
@@ -376,39 +379,45 @@ for i, block in enumerate(blocks):
         ):
             # plot whitened qscan
             fig1 = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
-                                   clim=(0, 25), colormap=args.colormap)
+                                   clim=(0, 25), colormap=args.colormap,
+                                   figsize=figsize)
             fig1.savefig(str(png1))
             # plot autoscaled, whitened qscan
             fig2 = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
-                                   colormap=args.colormap)
+                                   colormap=args.colormap, figsize=figsize)
             fig2.savefig(str(png2))
             # plot raw qscan
             fig3 = plot.omega_plot(rqscan, gps, span, c.name, qscan=True,
-                                   clim=(0, 25), colormap=args.colormap)
+                                   clim=(0, 25), colormap=args.colormap,
+                                   figsize=figsize)
             fig3.savefig(str(png3))
             # plot raw timeseries
             fig4 = plot.omega_plot(series, gps, span, c.name,
-                                   ylabel='Amplitude')
+                                   ylabel='Amplitude', figsize=figsize)
             fig4.savefig(str(png4))
             # plot highpassed timeseries
             fig5 = plot.omega_plot(hpseries, gps, span, c.name,
-                                   ylabel='Highpassed Amplitude')
+                                   ylabel='Highpassed Amplitude',
+                                   figsize=figsize)
             fig5.savefig(str(png5))
             # plot whitened timeseries
             fig6 = plot.omega_plot(wseries, gps, span, c.name,
-                                   ylabel='Whitened Amplitude')
+                                   ylabel='Whitened Amplitude',
+                                   figsize=figsize)
             fig6.savefig(str(png6))
             # plot raw eventgram
             fig7 = plot.omega_plot(rtable, gps, span, c.name, eventgram=True,
-                                   clim=(0, 25), colormap=args.colormap)
+                                   clim=(0, 25), colormap=args.colormap,
+                                   figsize=figsize)
             fig7.savefig(str(png7))
             # plot raw eventgram
             fig8 = plot.omega_plot(table, gps, span, c.name, eventgram=True,
-                                   clim=(0, 25), colormap=args.colormap)
+                                   clim=(0, 25), colormap=args.colormap,
+                                   figsize=figsize)
             fig8.savefig(str(png8))
             # plot raw eventgram
             fig9 = plot.omega_plot(table, gps, span, c.name, eventgram=True,
-                                   colormap=args.colormap)
+                                   colormap=args.colormap, figsize=figsize)
             fig9.savefig(str(png9))
 
         # save parameters
