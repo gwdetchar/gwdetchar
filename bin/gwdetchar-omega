@@ -62,6 +62,9 @@ parser.add_argument('-f', '--config-file', action='append', default=None,
                     help='path to configuration file to use, can be given '
                          'multiple times (files read in order), default: '
                          'None')
+parser.add_argument('-t', '--far-threshold', type=float, default=1e-3,
+                    help='White noise false alarm rate threshold for '
+                         'processing channels; default: %(default)s')
 parser.add_argument('--condor', action='store_true', default=False,
                     help='indicates this job is running under condor, '
                          'only use when running as part of a workflow')
@@ -80,6 +83,7 @@ gpstime = args.gpstime
 gps = float(gpstime)
 ifo = args.ifo
 obs = ifo[0]
+far = args.far_threshold
 
 # set output directory
 outdir = args.output_directory
@@ -275,7 +279,7 @@ def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
     table.tc = tc
     table.fc = fc
     table.frange = peakplane.frange
-    table.engthresh = -numpy.log(1e-3 * abs(data.span) / (1.5 * N))
+    table.engthresh = -numpy.log(far * abs(data.span) / (1.5 * N))
     return table
 
 
@@ -330,8 +334,8 @@ for i, block in enumerate(blocks):
                           snrthresh=c.snrthresh, mismatch=c.mismatch)
         if table.Z < table.engthresh and not c.always_plot:
             if args.verbose:
-                gprint('Channel not significant at white noise false rate '
-                       '1e-3 Hz')
+                gprint('Channel not significant at white noise false alarm '
+                       'rate `%s Hz' % far)
             del series, hpseries, wseries, asd, table
             del block.channels[j]
             continue
