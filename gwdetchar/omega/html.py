@@ -388,7 +388,7 @@ def html_link(href, txt, target="_blank", **params):
     return markup.oneliner.a(txt, href=href, **params)
 
 
-def toggle_button(plottype, channel, context):
+def toggle_button(plottype, channel, pranges, context):
     """Create a Bootstrap button object that toggles between plot types.
 
     Parameters
@@ -397,6 +397,8 @@ def toggle_button(plottype, channel, context):
         the type of plot to toggle toward
     channel : `OmegaChannel`
         the channel object corresponding to the plots shown
+    pranges : `list` of `int`s
+        a list of ranges for the time axis of each plot
     context : `str`
         the Bootstrap context that controls color-coding
 
@@ -407,12 +409,13 @@ def toggle_button(plottype, channel, context):
     """
     page = markup.page()
     text = plottype.split('_')[1]
+    pstrings = ["'%s'" % p for p in pranges]
     chanstring = channel.name.replace('-', '_').replace(':', '-')
     captions = [p.caption for p in channel.plots[plottype]]
     page.button('<b>%s</b>' % text, type_='button',
                 class_='btn btn-%s' % context, style='opacity:0.6;',
-                onclick=u"showImage('%s', ['1', '4', '16'], '%s', %s);"
-                        % (chanstring, plottype, captions))
+                onclick=u"showImage('%s', [%s], '%s', %s);"
+                        % (chanstring, ','.join(pstrings), plottype, captions))
     return page()
 
 
@@ -719,25 +722,34 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div(class_='col-sm-4')
         page.p('Timeseries view: ')
         page.div(class_='btn-group btn-group-sm')
-        page.add(toggle_button('timeseries_raw', channel, context))
-        page.add(toggle_button('timeseries_highpassed', channel, context))
-        page.add(toggle_button('timeseries_whitened', channel, context))
+        page.add(toggle_button('timeseries_raw', channel, channel.pranges,
+                               context))
+        page.add(toggle_button('timeseries_highpassed', channel,
+                               channel.pranges, context))
+        page.add(toggle_button('timeseries_whitened', channel, channel.pranges,
+                               context))
         page.div.close()  # btn-group
         page.div.close()  # col-sm-4
         page.div(class_='col-sm-4')
         page.p('Q-transform view: ')
         page.div(class_='btn-group btn-group-sm')
-        page.add(toggle_button('qscan_raw', channel, context))
-        page.add(toggle_button('qscan_whitened', channel, context))
-        page.add(toggle_button('qscan_autoscaled', channel, context))
+        page.add(toggle_button('qscan_raw', channel, channel.pranges,
+                               context))
+        page.add(toggle_button('qscan_whitened', channel, channel.pranges,
+                               context))
+        page.add(toggle_button('qscan_autoscaled', channel, channel.pranges,
+                               context))
         page.div.close()  # btn-group
         page.div.close()  # col-sm-4
         page.div(class_='col-sm-4')
         page.p('Eventgram view: ')
         page.div(class_='btn-group btn-group-sm')
-        page.add(toggle_button('eventgram_raw', channel, context))
-        page.add(toggle_button('eventgram_whitened', channel, context))
-        page.add(toggle_button('eventgram_autoscaled', channel, context))
+        page.add(toggle_button('eventgram_raw', channel, channel.pranges,
+                               context))
+        page.add(toggle_button('eventgram_whitened', channel, channel.pranges,
+                               context))
+        page.add(toggle_button('eventgram_autoscaled', channel,
+                               channel.pranges, context))
         page.div.close()  # btn-group
         page.div.close()  # col-sm-4
         page.div.close()  # row
