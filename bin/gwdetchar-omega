@@ -326,9 +326,16 @@ for i, block in enumerate(blocks):
         # filter the timeseries
         corner = c.frange[0] / 1.5
         hpseries = series.highpass(corner, gpass=.5, gstop=100, filtfilt=True)
-        asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
-        wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
-                                  asd=asd)
+        try:
+            asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
+            wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
+                                      asd=asd)
+        except UnboundLocalError:
+            warnings.warn('Channel is misbehaved, removing it from '
+                          'the analysis')
+            del series, hpseries
+            del block.channels[j]
+            continue
 
         # crop the timeseries
         wseries = wseries.crop(gps-duration/2, gps+duration/2)
@@ -349,20 +356,13 @@ for i, block in enumerate(blocks):
                            snrthresh=c.snrthresh, mismatch=c.mismatch)
 
         # compute Q-transforms
-        try:
-            fres = c.frange[0] / 5
-            qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                        tres=0.002, fres=fres, gps=gps,
-                                        search=0.25, whiten=False)
-            rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                          tres=0.002, fres=fres, gps=gps,
-                                          search=0.25, whiten=False)
-        except UnboundLocalError:
-            warnings.warn('Channel is misbehaved, removing it from '
-                          'the analysis')
-            del series, hpseries, wseries, asd, table
-            del block.channels[j]
-            continue
+        fres = c.frange[0] / 5
+        qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
+                                    tres=0.002, fres=fres, gps=gps,
+                                    search=0.25, whiten=False)
+        rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
+                                      tres=0.002, fres=fres, gps=gps,
+                                      search=0.25, whiten=False)
 
         # prepare plots
         if args.verbose:
