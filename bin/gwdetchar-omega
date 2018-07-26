@@ -356,12 +356,13 @@ for i, block in enumerate(blocks):
                            snrthresh=c.snrthresh, mismatch=c.mismatch)
 
         # compute Q-transforms
+        tres = c.pranges[0] / 500
         fres = c.frange[0] / 5
         qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                    tres=0.002, fres=fres, gps=gps,
+                                    tres=tres, fres=fres, gps=gps,
                                     search=0.25, whiten=False)
         rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                      tres=0.002, fres=fres, gps=gps,
+                                      tres=tres, fres=fres, gps=gps,
                                       search=0.25, whiten=False)
 
         # prepare plots
