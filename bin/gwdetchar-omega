@@ -349,13 +349,20 @@ for i, block in enumerate(blocks):
                            snrthresh=c.snrthresh, mismatch=c.mismatch)
 
         # compute Q-transforms
-        fres = c.frange[0] / 10
-        qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                    tres=0.002, fres=fres, gps=gps,
-                                    search=0.25, whiten=False)
-        rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                      tres=0.002, fres=fres, gps=gps,
-                                      search=0.25, whiten=False)
+        try:
+            fres = c.frange[0] / 10
+            qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
+                                        tres=0.002, fres=fres, gps=gps,
+                                        search=0.25, whiten=False)
+            rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
+                                          tres=0.002, fres=fres, gps=gps,
+                                          search=0.25, whiten=False)
+        except UnboundLocalError:
+            warnings.warn('Channel is misbehaved, removing it from '
+                          'the analysis')
+            del series, hpseries, wseries, asd, table
+            del block.channels[j]
+            continue
 
         # prepare plots
         if args.verbose:
