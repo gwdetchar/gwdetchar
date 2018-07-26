@@ -341,7 +341,7 @@ for i, block in enumerate(blocks):
         except UnboundLocalError:
             warnings.warn('Channel is misbehaved, removing it from '
                           'the analysis')
-            del series, hpseries, wseries, asd, table
+            del series, hpseries, wseries, asd
             del block.channels[j]
             continue
         if table.Z < table.engthresh and not c.always_plot:
