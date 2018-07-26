@@ -330,20 +330,21 @@ for i, block in enumerate(blocks):
             asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
             wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
                                       asd=asd)
-        except UnboundLocalError:
-            warnings.warn('Channel is misbehaved, removing it from '
-                          'the analysis')
-            del series, hpseries
-            del block.channels[j]
-            continue
 
         # crop the timeseries
         wseries = wseries.crop(gps-duration/2, gps+duration/2)
         hpseries = hpseries.crop(gps-duration/2, gps+duration/2)
 
         # compute eventgrams
-        table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange,
-                          snrthresh=c.snrthresh, mismatch=c.mismatch)
+        try:
+            table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange,
+                              snrthresh=c.snrthresh, mismatch=c.mismatch)
+        except UnboundLocalError:
+            warnings.warn('Channel is misbehaved, removing it from '
+                          'the analysis')
+            del series, hpseries, wseries, asd, table
+            del block.channels[j]
+            continue
         if table.Z < table.engthresh and not c.always_plot:
             if args.verbose:
                 gprint('Channel not significant at white noise false alarm '
