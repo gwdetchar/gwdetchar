@@ -356,7 +356,7 @@ for i, block in enumerate(blocks):
                            snrthresh=c.snrthresh, mismatch=c.mismatch)
 
         # compute Q-transforms
-        fres = c.frange[0] / 5
+        fres = max(c.frange[0]/5, 0.1)
         qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
                                     tres=0.002, fres=fres, gps=gps,
                                     search=0.25, whiten=False)
