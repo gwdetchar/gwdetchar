@@ -24,6 +24,7 @@ from __future__ import division
 import os
 import sys
 import datetime
+import warnings
 import subprocess
 from functools import wraps
 from getpass import getuser
@@ -703,6 +704,10 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
 
     # -- range over channels in this block
     for i, channel in enumerate(block.channels):
+        try:  # display channels only if they were analyzed
+            channel.energy
+        except AttributeError:
+            continue
         page.pre('%s' % cis_link(channel.name), style="font-size:14px;")
         page.div(class_="container")
         # summary information
@@ -743,8 +748,9 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.p("Properties of the most significant time-frequency tile")
         page.table(class_=tableclass, style='width: 95%;')
         header = ['GPS Time', 'Frequency', 'Q Factor', 'Energy', 'SNR']
-        entry = ['%.3f' % channel.t, '%.1f Hz' % channel.f, '%.1f' % channel.Q,
-                 '%.1f' % channel.energy, '%.1f' % channel.snr]
+        entry = ['%.3f' % channel.t, '%.1f Hz' % channel.f,
+                 '%.1f' % channel.Q, '%.1f' % channel.energy,
+                 '%.1f' % channel.snr]
         page.tbody()
         for h, ent in zip(header, entry):
             page.tr()
@@ -757,7 +763,8 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         # plots
         page.div(class_='col-md-9', style='margin-bottom: 20px;',
                  id_='%s-%s-plots' % (block.key, chanstring))
-        page.add(scaffold_plots(channel.plots['qscan_whitened'], nperrow=2))
+        page.add(scaffold_plots(channel.plots['qscan_whitened'],
+                 nperrow=len(channel.pranges)))
         page.div.close()  # col-md-9
         page.div.close()  # row
         page.div.close()  # container
