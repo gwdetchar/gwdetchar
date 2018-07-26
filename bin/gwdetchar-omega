@@ -294,7 +294,7 @@ for d in [plotdir, aboutdir]:
 blocks = [OmegaChannelList(**cp[s]) for s in cp.sections()]
 
 # range over blocks
-for block in blocks:
+for i, block in enumerate(blocks):
     gprint('Processing block %s' % block.name)
     chans = [c.name for c in block.channels]
     # read in fftlength seconds of data
@@ -305,7 +305,7 @@ for block in blocks:
                               frametype=block.frametype, nproc=args.nproc,
                               verbose=args.verbose)
     # compute qscans
-    for c in block.channels:
+    for j, c in enumerate(block.channels):
         if args.verbose:
             gprint('Computing omega scans for channel %s...' % c.name)
 
@@ -332,18 +332,20 @@ for block in blocks:
             if args.verbose:
                 gprint('Channel not significant at white noise false rate '
                        '1e-3 Hz')
-            del c, series, hpseries, wseries, asd, table
+            del series, hpseries, wseries, asd, table
+            del block.channels[j]
             continue
         Q = table.q
         rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q),
                            snrthresh=c.snrthresh, mismatch=c.mismatch)
 
         # compute Q-transforms
+        fres = c.frange[0] / 10
         qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                    tres=0.002, fres=0.1, gps=gps,
+                                    tres=0.002, fres=fres, gps=gps,
                                     search=0.25, whiten=False)
         rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                      tres=0.002, fres=0.1, gps=gps,
+                                      tres=0.002, fres=fres, gps=gps,
                                       search=0.25, whiten=False)
 
         # prepare plots
@@ -404,6 +406,10 @@ for block in blocks:
         del fig1, fig2, fig3, fig4, fig5, fig6
         del qscan, rqscan, table, rtable, series, hpseries, wseries, asd
     del data
+
+    # if the entire block is unprocessed, delete it
+    if not block.channels:
+        del blocks[i]
 
 
 # -- Prepare HTML -------------------------------------------------------------
