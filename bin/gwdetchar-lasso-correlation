@@ -146,9 +146,9 @@ psig.add_argument('-b', '--band-pass', type=float, nargs=2, default=None,
 psig.add_argument('-x', '--filter-padding', type=float, default=3.,
                   help='amount of time (seconds) to pad data for filtering')
 
-lsig = parser.add_argument_group('LASSO options')
+lsig = parser.add_argument_group('Lasso options')
 lsig.add_argument('-a', '--alpha', default=None, type=float,
-                  help='alpha parameter for LASSO fit')
+                  help='alpha parameter for lasso fit')
 lsig.add_argument('-C', '--no-cluster', action='store_true', default=False,
                   help='do not generate clustered channel plots')
 lsig.add_argument('-c', '--cluster-coefficient', default=.85, type=float,
@@ -283,7 +283,7 @@ except ValueError:
     data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 
 
-# -- perform LASSO regression -------------------------------------------------
+# -- perform lasso regression -------------------------------------------------
 
 # create model
 if args.alpha is None:
@@ -353,7 +353,7 @@ unsorted_results = sorted(unsorted_results, key=lambda x: abs(x[1]),
 sorted_results = ([[x[0] for x in unsorted_results],
                   [y[1] for y in unsorted_results]])
 resultstab = Table(data=(sorted_results[0], sorted_results[1]),
-                   names=('Channel', 'LASSO Coefficient'))
+                   names=('Channel', 'Lasso coefficient'))
 
 nonzerodata = dict()
 nonzerocoef = dict()
@@ -368,14 +368,14 @@ while(i < len(sorted_results[1]) and abs(sorted_results[1][i]) > 0):
     i += 1
 
 usefultab = Table(data=(resultstab['Channel'][0:usefulcount],
-                        resultstab['LASSO Coefficient'][0:usefulcount]),
-                  names=('Channel', 'LASSO Coefficient'))
+                        resultstab['Lasso coefficient'][0:usefulcount]),
+                  names=('Channel', 'Lasso coefficient'))
 
-zeroed = resultstab['LASSO Coefficient'] == 0
+zeroed = resultstab['Lasso coefficient'] == 0
 zeroedtab = Table(data=(resultstab[zeroed]['Channel'],), names=('Channels',))
 
 # print results
-print('Found {} channels with |LASSO Coefficient| >= {}'.format(
+print('Found {} channels with |Lasso coefficient| >= {}'.format(
     len(usefultab), args.threshold))
 print(usefultab)
 
@@ -392,7 +392,7 @@ resultstab.write(resultsfile, format='ascii', overwrite=True)
 zeroedtab.write(zerofile, format='ascii', overwrite=True)
 flattab.write(flatfile, format='ascii', overwrite=True)
 
-# generate LASSO plots
+# generate lasso plots
 modelFit = model.predict(data)
 
 re_delim = re.compile('[:_-]')
@@ -403,14 +403,14 @@ fig = plt.figure(figsize=(12, 6))
 fig.subplots_adjust(*p1)
 ax = fig.add_subplot(1, 1, 1)
 ax.plot(hour_axis, scale(primaryts.value), label=primary.replace('_', '\_'))
-ax.plot(hour_axis, modelFit, label='LASSO model')
+ax.plot(hour_axis, modelFit, label='Lasso model')
 ax.margins(x=0)
 ax.set_xlabel(auto_xlabel)
 ax.set_ylabel('Scaled arbitrary units')
 if range_is_primary:
-    ax.set_title('LASSO Model of Range')
+    ax.set_title('Lasso Model of Range')
 else:
-    ax.set_title('LASSO Model of Primary Channel')
+    ax.set_title('Lasso Model of Primary Channel')
 ax.legend(loc='best')
 fig.canvas.draw_idle()
 
@@ -952,7 +952,7 @@ def style_table(html_table):
 
 
 # write html
-title = '%s LASSO slow correlations: %d-%d' % (args.ifo, start, end)
+title = '%s Lasso slow correlations: %d-%d' % (args.ifo, start, end)
 page = html.new_bootstrap_page(title=title)
 page.div(class_='container')
 
@@ -982,7 +982,7 @@ write_param('Number of flat channels',
             '%d (%s)' % (len(flatdata),
                          "<a href= %s target='_blank'>flat channel list</a>"
                          % (flatfile)))
-write_param('LASSO coefficient threshold', '%g' % args.threshold)
+write_param('Lasso coefficient threshold', '%g' % args.threshold)
 write_param('Sigma for outlier removal', '%g' % args.remove_outliers)
 write_param('Cluster coefficient threshold: ',
             '%g' % args.cluster_coefficient)
@@ -993,7 +993,7 @@ page.div(class_='model')
 page.div(class_='model-body')
 
 page.div(class_='model-info')
-write_param('Model', 'LASSO')
+write_param('Model', 'Lasso')
 write_param('Non-zero coefficients', '%d' % numpy.count_nonzero(model.coef_))
 write_param('Alpha', '%g' % usedalpha)
 write_param('Zero coefficients',
@@ -1004,7 +1004,7 @@ page.div(class_='results-table', align='center')
 page.p('<br /><br />%s' % style_table(df.to_html(
     index=True,
     formatters={
-        'LASSO Coefficient': format_coefficients,
+        'Lasso coefficient': format_coefficients,
         'Channel': format_channels,
         '__index__': format_indices},
     escape=False)))
@@ -1096,7 +1096,7 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
         page.p('The amplitude data for this channel is flat (does not change)'
                ' for the chosen time period.')
     elif abs(lassocoef) < args.threshold:
-        page.p('LASSO coefficient below the threshold of %g.'
+        page.p('Lasso coefficient below the threshold of %g.'
                % (args.threshold))
     else:
         for p in (plot4, plot5, plot6):
