@@ -620,8 +620,9 @@ def write_summary(
            'href="https://gwpy.github.io/docs/stable/examples/timeseries/'
            'qscan.html" target="_blank">Q-transform</a>.',
            style="font-size:18px;")
+    page.p("This analysis is based on the following run arguments.",
+           style="font-size:18px;")
     page.table(class_=tableclass, style="font-size:18px;")
-    page.caption("This analysis is based on the following run arguments.")
     # make table body
     page.tbody()
     page.tr()
