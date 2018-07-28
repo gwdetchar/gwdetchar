@@ -303,7 +303,7 @@ html.write_qscan_page(ifo, gps, blocks, **htmlv)
 gprint('Launching Omega scans...')
 
 # range over blocks
-for i, block in enumerate(blocks):
+for block in blocks[:]:
     gprint('Processing block %s' % block.name)
     chans = [c.name for c in block.channels]
     # read in fftlength seconds of data
@@ -314,7 +314,7 @@ for i, block in enumerate(blocks):
                               frametype=block.frametype, nproc=args.nproc,
                               verbose=args.verbose)
     # compute qscans
-    for j, c in enumerate(block.channels):
+    for c in block.channels[:]:
         if args.verbose:
             gprint('Computing omega scans for channel %s...' % c.name)
 
@@ -339,17 +339,17 @@ for i, block in enumerate(blocks):
             table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange,
                               snrthresh=c.snrthresh, mismatch=c.mismatch)
         except UnboundLocalError:
-            warnings.warn('Channel is misbehaved, removing it from '
-                          'the analysis')
+            if args.verbose:
+                gprint('Channel is misbehaved, removing it from the analysis')
             del series, hpseries, wseries, asd
-            del block.channels[j]
+            block.channels.remove(c)
             continue
         if table.Z < table.engthresh and not c.always_plot:
             if args.verbose:
                 gprint('Channel not significant at white noise false alarm '
                        'rate %s Hz' % far)
             del series, hpseries, wseries, asd, table
-            del block.channels[j]
+            block.channels.remove(c)
             continue
         Q = table.q
         rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q),
@@ -437,7 +437,7 @@ for i, block in enumerate(blocks):
 
     # if the entire block is unprocessed, delete it
     if not block.channels:
-        del blocks[i]
+        blocks.remove(block)
 
     # update html output
     html.write_qscan_page(ifo, gps, blocks, **htmlv)
