@@ -80,13 +80,13 @@ def omega_plot(series, gps, span, channel, colormap='viridis', clim=None,
     chan = channel.replace('_', '\_')
     if (qscan or eventgram):
         ax.set_yscale('log')
-        ax.set_title('%s at %s with $Q=%.1f$' % (chan, gps, series.q),
+        ax.set_title('%s at %.3f with $Q=%.1f$' % (chan, gps, series.q),
                      fontsize=12)
         plot.add_colorbar(cmap=colormap, clim=clim,
                           label='Normalized energy')
     else:
         ax.set_yscale('linear')
-        ax.set_title('%s at %s' % (chan, gps), fontsize=12)
+        ax.set_title('%s at %.3f' % (chan, gps), fontsize=12)
     if ylabel:
         ax.set_ylabel(ylabel)
     if eventgram:
