@@ -87,9 +87,15 @@ html {
 		min-height: 100%;
 }
 body {
+		padding-top: 75px;
 		margin-bottom: 120px;
+		min-height: 100%;
 		font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
 		-webkit-font-smoothing: antialiased;
+}
+.navbar {
+		background-color: #f5f5f5;
+		padding-bottom: 12px;
 }
 .with-margin {
 		margin-bottom: 15px;
@@ -263,12 +269,12 @@ def init_page(ifo, gpstime, css=[], script=[], base=os.path.curdir,
     page.head.close()
     page.body()
     # write banner
+    page.div(class_='navbar navbar-fixed-top', role='banner')
     page.div(class_='container')
-    page.div(class_='page-header', role='banner')
     page.h2('%s Omega Scan <span style="float:right;">%s</span>'
             % (ifo, gpstime), style="text-align:left;")
-    page.div.close()
     page.div.close()  # container
+    page.div.close()  # navbar
 
     # open container
     page.div(class_='container')
