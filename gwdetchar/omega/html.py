@@ -265,8 +265,8 @@ def init_page(ifo, gpstime, css=[], script=[], base=os.path.curdir,
     # write banner
     page.div(class_='container')
     page.div(class_='page-header', role='banner')
-    page.h1("%s Omega Scan" % ifo)
-    page.h2("%s" % gpstime)
+    page.h2('%s Omega Scan <span style="float:right;">%s</span>'
+            % (ifo, gpstime), style="text-align:left;")
     page.div.close()
     page.div.close()  # container
 
