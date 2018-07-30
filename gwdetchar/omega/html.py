@@ -92,6 +92,7 @@ body {
 		margin-bottom: 120px;
 		min-height: 100%;
 		font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+		font-weight: 300;
 		-webkit-font-smoothing: antialiased;
 }
 .navbar {
