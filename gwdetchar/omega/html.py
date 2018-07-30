@@ -98,6 +98,9 @@ body {
 		color: #eee;
 		padding-top: 8px;
 		padding-bottom: 8px;
+		-moz-box-shadow:    0 1px 10px 2px #ccc;
+		-webkit-box-shadow: 0 1px 10px 2px #ccc;
+		box-shadow:         0 1px 10px 2px #ccc;
 }
 .with-margin {
 		margin-bottom: 15px;
