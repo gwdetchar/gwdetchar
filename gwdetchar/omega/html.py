@@ -32,6 +32,7 @@ from pytz import timezone
 
 from glue import markup
 from gwpy.time import tconvert
+from gwpy.plotter.colors import GW_OBSERVATORY_COLORS
 from ..io.html import (JQUERY_JS, BOOTSTRAP_CSS, BOOTSTRAP_JS)
 from .. import __version__
 
@@ -94,8 +95,9 @@ body {
 		-webkit-font-smoothing: antialiased;
 }
 .navbar {
-		background-color: #f5f5f5;
-		padding-bottom: 12px;
+		color: #eee;
+		padding-top: 8px;
+		padding-bottom: 8px;
 }
 .with-margin {
 		margin-bottom: 15px;
@@ -105,7 +107,8 @@ body {
 		bottom: 0;
 		width: 100%;
 		height: 100px;
-		background-color: #f5f5f5;
+		color: #eee;
+		background-color: #4c4c4c;
 		padding-top: 20px;
 		padding-bottom: 20px;
 }
@@ -269,9 +272,10 @@ def init_page(ifo, gpstime, css=[], script=[], base=os.path.curdir,
     page.head.close()
     page.body()
     # write banner
-    page.div(class_='navbar navbar-fixed-top', role='banner')
+    page.div(class_='navbar navbar-fixed-top', role='banner',
+             style='background-color:%s;' % GW_OBSERVATORY_COLORS[ifo])
     page.div(class_='container')
-    page.h2('%s Omega Scan <span style="float:right;">%s</span>'
+    page.h4('%s Omega Scan <span style="float:right;">%s</span>'
             % (ifo, gpstime), style="text-align:left;")
     page.div.close()  # container
     page.div.close()  # navbar
@@ -549,12 +553,12 @@ def write_footer(about=None, date=None):
     version = __version__
     url = 'https://github.com/ligovirgo/gwdetchar'
     hlink = markup.oneliner.a('GW-DetChar version %s' % version, href=url,
-                              target='_blank')
+                              target='_blank', style='color:#eee;')
     page.p('Page generated using %s by %s at %s'
            % (hlink, getuser(), date))
     # link to 'about'
     if about is not None:
-        page.a('How was this page generated?', href=about)
+        page.a('How was this page generated?', href=about, style='color:#eee;')
     page.div.close()  # container
     markup.element('footer', case=page.case, parent=page).close()
     return page
