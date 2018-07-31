@@ -54,7 +54,7 @@ install_requires = [
     'astropy>=1.2',
     'gwpy>=0.5',
     'lscsoft-glue',
-    'trigfind>=0.3',
+    'gwtrigfind',
 ]
 requires = [
     'numpy',
@@ -91,10 +91,6 @@ setup(name=DISTNAME,
       install_requires=install_requires,
       requires=requires,
       extras_require=extras_require,
-      dependency_links=[
-          'https://github.com/ligovirgo/trigfind/archive/v0.3.tar.gz'
-              '#egg=trigfind-0.3',
-      ],
       use_2to3=True,
       classifiers=[
           'Programming Language :: Python',
