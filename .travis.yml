@@ -1,47 +1,25 @@
 language: python
 
-addons:
-  apt:
-    sources:
-      - sourceline: deb http://software.ligo.org/lscsoft/debian wheezy contrib
-        key_url: http://software.ligo.org/keys/deb/lscsoft.key
-      - sourceline: deb-src http://software.ligo.org/lscsoft/debian wheezy contrib
-        key_url: http://software.ligo.org/keys/deb/lscsoft.key
-    packages:
-      # lal dependencies
-      - pkg-config
-      - zlib1g-dev
-      - libgsl0-dev
-      - swig
-      - bc
-      - libfftw3-dev
-      # other dependencies
-      - gfortran  # scipy
-      - libblas-dev  # scipy
-      - liblapack-dev  # scipy
-
 python:
   - '2.7'
   - '3.5'
   - '3.6'
 
 env:
-  global:
-    - LAL_VERSION="6.18.0"
   matrix:
     - PIP_FLAGS="--quiet --pre"
     - PIP_FLAGS="--quiet"
 
 before_install:
-  - pip install -q --upgrade pip
-  - pip install ${PIP_FLAGS} -r requirements.txt
-  - pip install ${PIP_FLAGS} coveralls unittest2 pytest
+  - python -m pip install ${PIP_FLAGS} --upgrade pip
+  - python -m pip install ${PIP_FLAGS} -r requirements.txt
+  - python -m pip install ${PIP_FLAGS} coveralls unittest2 pytest
 
 install:
-  - pip install .
+  - python -m pip install ${PIP_FLAGS} .
 
 script:
-  - coverage run ./setup.py test
+  - python -m coverage run ./setup.py test
   - .travis/test-exe.sh gwdetchar-software-saturations --help
   - .travis/test-exe.sh gwdetchar-scattering --help
   - .travis/test-exe.sh gwdetchar-overflow --help
@@ -51,7 +29,4 @@ after_success:
   - coveralls
 
 cache:
-  apt: true
   pip: true
-  directories:
-    - lal-${LAL_VERSION}
