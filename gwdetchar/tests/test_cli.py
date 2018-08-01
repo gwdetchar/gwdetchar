@@ -62,7 +62,7 @@ def test_add_version_option(parser, inv, outv):
 @pytest.mark.parametrize('ifo', (_const.IFO, None))
 def add_ifo_option(parser, const, ifo):
     const.IFO == ifo
-    act = parser.add_ifo_option()
+    parser.add_ifo_option()
     args = parser.parse_args([])
     assert args.ifo == ifo
     if ifo is None:

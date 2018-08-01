@@ -19,7 +19,6 @@
 """Test suite for `gwdetchar.const`
 """
 
-import argparse
 import os
 
 try:
@@ -29,7 +28,7 @@ except ImportError:  # python < 3
 
 import pytest
 
-from .. import (cli, const as _const)
+from .. import const as _const
 
 _DEFAULT_ENV = os.environ.copy()
 

@@ -21,15 +21,9 @@
 
 from __future__ import division
 
-import os.path
-import warnings
-
 from matplotlib import cm
 from matplotlib import rcParams
-from matplotlib.colors import LogNorm
 
-from gwpy.plotter import (SpectrogramPlot,
-                          TimeSeriesPlot, Plot)
 from gwpy.plotter.colors import GW_OBSERVATORY_COLORS
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'

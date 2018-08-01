@@ -21,8 +21,6 @@
 
 import re
 
-from gwpy.io.kerberos import which
-
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 

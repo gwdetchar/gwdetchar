@@ -115,7 +115,6 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
     """
     """
     # FIXME: write a docstring
-    from lalframe.utils import get_channels
 
     ifo = ifo or const.IFO
     if ifo is None:

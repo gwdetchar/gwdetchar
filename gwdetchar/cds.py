@@ -19,8 +19,6 @@
 """Utilities for accessing information from CDS
 """
 
-import re
-
 from six.moves.urllib import request
 
 RTDCUID_URL = (
