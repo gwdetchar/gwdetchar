@@ -20,10 +20,8 @@
 """
 
 import re
-try:
-    from urllib import request
-except ImportError:
-    import urllib2 as request
+
+from six.moves.urllib import request
 
 RTDCUID_URL = (
     'https://daqsvn.ligo-la.caltech.edu/websvn/filedetails.php?'
