@@ -20,6 +20,10 @@
 """
 
 import argparse
+try:
+    from importlib import reload
+except ImportError:  # python < 3
+    reload = reload
 
 import pytest
 
