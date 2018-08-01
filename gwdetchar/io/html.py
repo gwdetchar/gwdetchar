@@ -20,7 +20,8 @@
 """
 
 import os
-from StringIO import StringIO
+
+from six.moves import StringIO
 
 from glue import markup
 

@@ -28,7 +28,8 @@ import re
 import subprocess
 import sys
 from multiprocessing import (Pool, cpu_count)
-from StringIO import StringIO
+
+from six.moves import StringIO
 
 from matplotlib import use
 use('agg')
