@@ -21,15 +21,9 @@
 
 from __future__ import division
 
-import os.path
-import warnings
-
 from matplotlib import cm
 from matplotlib import rcParams
-from matplotlib.colors import LogNorm
 
-from gwpy.plotter import (SpectrogramPlot,
-                          TimeSeriesPlot, Plot)
 from gwpy.plotter.colors import GW_OBSERVATORY_COLORS
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -77,7 +71,7 @@ def omega_plot(series, gps, span, channel, colormap='viridis', clim=None,
     else:
         ax.set_xlabel('Time [seconds]')
     # set y-axis properties
-    chan = channel.replace('_', '\_')
+    chan = channel.replace('_', r'\_')
     if (qscan or eventgram):
         ax.set_yscale('log')
         ax.set_title('%s at %.3f with $Q=%.1f$' % (chan, gps, series.q),

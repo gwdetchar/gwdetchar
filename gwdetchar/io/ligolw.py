@@ -53,7 +53,7 @@ def new_table(tab, *args, **kwargs):
 def sngl_burst_from_times(times, **params):
     """Create a `SnglBurstTable` from an array of times
     """
-    columns = set(params.keys() + ['peak_time', 'peak_time_ns', 'event_id'])
+    columns = set(params.keys()) | {'peak_time', 'peak_time_ns', 'event_id'}
     table = new_table('sngl_burst', columns=list(columns))
     get_next_id = table.get_next_id
     RowType = table.RowType
@@ -62,7 +62,7 @@ def sngl_burst_from_times(times, **params):
         row = RowType()
         row.event_id = get_next_id()
         row.set_peak(LIGOTimeGPS(t))
-        for key, val in params.iteritems():
+        for key, val in params.items():
             setattr(row, key, val)
         append(row)
     return table
@@ -80,7 +80,7 @@ def sngl_burst_from_segments(segs, **params):
         row.event_id = next_id()
         row.set_period(seg)
         row.set_peak(LIGOTimeGPS(seg[0] + abs(seg)/2.))
-        for key, val in params.iteritems():
+        for key, val in params.items():
             setattr(row, key, val)
         append(row)
     return table

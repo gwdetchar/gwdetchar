@@ -48,6 +48,7 @@ setup_requires = [
     'pytest-runner',
 ]
 install_requires = [
+    'six',
     'numpy>=1.10',
     'scipy>=0.16',
     'matplotlib>=1.4.1',

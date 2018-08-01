@@ -65,7 +65,6 @@ def write_omega_cache(cache, fobj):
     wcache = {}
     for e in cache:
         dir_ = os.path.split(e.path)[0]
-        lfn = os.path.basename(e.path)
         if dir_ in wcache:
             l = wcache[dir_]
             if l[2] > int(e.segment[0]):

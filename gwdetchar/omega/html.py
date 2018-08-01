@@ -24,11 +24,9 @@ from __future__ import division
 import os
 import sys
 import datetime
-import warnings
 import subprocess
 from functools import wraps
 from getpass import getuser
-from pytz import timezone
 
 from glue import markup
 from gwpy.time import tconvert

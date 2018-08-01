@@ -21,8 +21,6 @@
 
 import numpy
 
-from . import const
-
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 OPTIC_MOTION_CHANNELS = {

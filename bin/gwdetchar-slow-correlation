@@ -426,4 +426,4 @@ page.div.close()  # container
 with open('index.html', 'w') as f:
     print(str(page), file=f)
 
-print ("-- Process Completed")
+print("-- Process Completed")

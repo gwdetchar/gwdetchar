@@ -20,7 +20,6 @@
 """
 
 import argparse
-import os
 
 from gwpy.time import to_gps
 
