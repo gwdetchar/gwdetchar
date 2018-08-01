@@ -51,6 +51,8 @@ ADCLIST_CONTENT = """
 
 
 def mock_request(output):
+    if isinstance(output, str):
+        output = output.encode('utf-8')
     return mock.patch('gwdetchar.cds.request.urlopen',
                       return_value=BytesIO(output))
 
