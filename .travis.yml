@@ -13,7 +13,7 @@ env:
 before_install:
   - python -m pip install ${PIP_FLAGS} --upgrade pip
   - python -m pip install ${PIP_FLAGS} -r requirements.txt
-  - python -m pip install ${PIP_FLAGS} coveralls unittest2 pytest
+  - python -m pip install ${PIP_FLAGS} pytest coverage coveralls
 
 install:
   - python -m pip install ${PIP_FLAGS} .
