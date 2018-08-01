@@ -29,9 +29,9 @@ from gwpy.timeseries import StateTimeSeries
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
-re_limit = re.compile('_LIMIT\Z')
-re_limen = re.compile('_LIMEN\Z')
-re_swstat = re.compile('_SWSTAT\Z')
+re_limit = re.compile(r'_LIMIT\Z')
+re_limen = re.compile(r'_LIMEN\Z')
+re_swstat = re.compile(r'_SWSTAT\Z')
 re_software = re.compile(
     '(%s)' % '|'.join([re_limit.pattern, re_limen.pattern, re_swstat.pattern]))
 

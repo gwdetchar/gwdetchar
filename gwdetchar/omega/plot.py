@@ -77,7 +77,7 @@ def omega_plot(series, gps, span, channel, colormap='viridis', clim=None,
     else:
         ax.set_xlabel('Time [seconds]')
     # set y-axis properties
-    chan = channel.replace('_', '\_')
+    chan = channel.replace('_', r'\_')
     if (qscan or eventgram):
         ax.set_yscale('log')
         ax.set_title('%s at %.3f with $Q=%.1f$' % (chan, gps, series.q),

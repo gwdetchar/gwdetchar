@@ -137,10 +137,10 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
         _CHANNELS[framefile] = get_channel_names(framefile)
         allchannels = _CHANNELS[framefile]
     if accum:
-        regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_ACC_\d+_\d+\Z'
+        regex = re.compile(r'%s:FEC-%d_(ADC|DAC)_OVERFLOW_ACC_\d+_\d+\Z'
                            % (ifo, dcuid))
     else:
-        regex = re.compile('%s:FEC-%d_(ADC|DAC)_OVERFLOW_\d+_\d+\Z'
+        regex = re.compile(r'%s:FEC-%d_(ADC|DAC)_OVERFLOW_\d+_\d+\Z'
                            % (ifo, dcuid))
     return natural_sort(filter(regex.match, allchannels))
 
