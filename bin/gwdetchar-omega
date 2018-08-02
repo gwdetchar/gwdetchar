@@ -294,7 +294,10 @@ for d in [plotdir, aboutdir]:
         os.makedirs(d)
 
 # determine channel blocks
-blocks = [OmegaChannelList(**cp[s]) for s in cp.sections()]
+try:  # python 3.x
+    blocks = [OmegaChannelList(**cp[s]) for s in cp.sections()]
+except:  # python 2.x
+    blocks = [OmegaChannelList(**dict(cp.items(s))) for s in cp.sections()]
 
 # set up html output
 gprint('Setting up HTML at %s/index.html...' % outdir)
