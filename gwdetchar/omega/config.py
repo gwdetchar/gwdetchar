@@ -24,7 +24,7 @@ How to write a configuration file
 =================================
 """
 
-try:
+try:  # python 3.x
     import configparser
 except ImportError:  # python 2.x
     import ConfigParser as configparser
