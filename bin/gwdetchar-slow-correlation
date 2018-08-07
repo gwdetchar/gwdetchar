@@ -305,8 +305,6 @@ def process_channel(input_,):
         # plot scatter plots
         rangeColor = 'red'
         darmblrmsColor = 'blue'
-        #plotHeight = 10
-        #plotWidth = 20
 
         tsCopy = ts.reshape(-1, 1)
         rangetsCopy = rangets.reshape(-1, 1)
@@ -320,13 +318,10 @@ def process_channel(input_,):
         rangeReg.fit(tsCopy, rangetsCopy)
         rangeFit = rangeReg.predict(tsCopy)
 
-        fig = gwplot(figsize = (12, 6))
+        fig = gwplot(figsize=(12, 6))
         fig.subplots_adjust(*p2)
         ax = fig.add_subplot(121)
-        #axes = scatPlot.gca()
-        #ax.set_xlabel(channelstub.replace('_', '\_'), labelpad=30)
         ax.set_xlabel('Channel units')
-        #ax.set_ylabel(primary.replace('_', '\_') + ' [strain]')
         ax.set_ylabel('Sensitive range [Mpc]')
         yrange = abs(max(darmblrms.value) - min(darmblrms.value))
         upperLim = max(darmblrms.value) + .1 * yrange
@@ -339,14 +334,9 @@ def process_channel(input_,):
                           edgecolor='black'))
         fig.add_scatter(ts, darmblrms, color=darmblrmsColor)
         fig.add_line(ts, darmblrmsFit, color='black')
-        #fig.set_figheight(plotHeight)
-        #fig.set_figwidth(plotWidth)
 
         ax = fig.add_subplot(122)
-        #axes = scatPlot.gca()
-        #ax.set_xlabel(channelstub.replace('_', '\_'), labelpad=30)
         ax.set_xlabel('Channel units')
-        #ax.set_ylabel(rangechannel.replace('_', '\_') + ' [Mpc]')
         ax.set_ylabel('$h(t)$ BLRMS [strain]')
         ax.text(.9, .1, 'r = ' + str('{0:.2}'.format(corr2)),
                 verticalalignment='bottom', horizontalalignment='right',
@@ -355,8 +345,6 @@ def process_channel(input_,):
                           edgecolor='black'))
         fig.add_scatter(ts, rangets, color=rangeColor)
         fig.add_line(ts, rangeFit, color='black')
-        #scatPlot.set_figheight(plotHeight)
-        #scatPlot.set_figwidth(plotWidth)
 
         plot3 = '%s_SCATTER-%s.png' % (channelstub, gpsstub)
         try:
