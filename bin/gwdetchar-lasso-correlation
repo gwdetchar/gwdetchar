@@ -75,12 +75,13 @@ def remove_outliers(ts, N):
         print("-- Found %d outliers in %s, recursively removing"
               % (len(outliers), ts.name))
         while outliers.any():
+            unit = ts.unit
             cache = outliers
             mask = numpy.ones(len(ts), dtype=bool)
             mask[outliers] = False
             spline = UnivariateSpline(ts[mask].times.value, ts[mask].value,
                                       s=0, k=3)
-            ts[outliers] = spline(ts[outliers].times.value)
+            ts[outliers] = (spline(ts[outliers].times.value) * unit)
             outliers = find_outliers(ts, N)
             print("Completed %d removal cycles" % c)
             if numpy.array_equal(outliers, cache):
