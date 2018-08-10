@@ -34,7 +34,6 @@ from gwpy.time import to_gps
 
 from gwdetchar import (cli, omega, const)
 from gwdetchar.io import datafind
-from gwdetchar.utils import which
 
 parser = cli.create_parser(description=__doc__)
 parser.add_argument('gpstime', type=str, help='GPS time of scan')
