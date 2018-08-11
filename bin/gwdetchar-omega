@@ -86,6 +86,17 @@ ifo = args.ifo
 obs = ifo[0]
 far = args.far_threshold
 
+# parse configuration file
+config_files = [os.path.abspath(f) for f in args.config_file]
+cp = config.OmegaConfigParser(ifo=ifo)
+cp.read(config_files)
+
+# prepare html variables
+htmlv = {
+    'title': '%s Qscan | %s' % (ifo, gps),
+    'config': config_files,
+}
+
 # set output directory
 outdir = args.output_directory
 if outdir is None:
@@ -94,16 +105,6 @@ if not os.path.isdir(outdir):
     os.makedirs(outdir)
 os.chdir(outdir)
 print("Output directory created as %s" % outdir)
-
-# parse configuration file
-cp = config.OmegaConfigParser(ifo=ifo)
-cp.read(args.config_file)
-
-# prepare html variables
-htmlv = {
-    'title': '%s Qscan | %s' % (ifo, gps),
-    'config': args.config_file,
-}
 
 
 # -- FIXME: Eventually move these classes to gwdetchar.omega ------------------
