@@ -30,7 +30,6 @@ import shutil
 
 from math import (isnan, isinf, log, log10)
 import numpy
-from scipy.stats import spearmanr
 from scipy.interpolate import UnivariateSpline
 import astropy.units as u
 
@@ -154,6 +153,8 @@ lsig.add_argument('-C', '--no-cluster', action='store_true', default=False,
                   help='do not generate clustered channel plots')
 lsig.add_argument('-c', '--cluster-coefficient', default=.85, type=float,
                   help='correlation coefficient threshold for clustering')
+lsig.add_argument('-L', '--line-size', default=1, type=float,
+                  help='line width of primary channel')
 
 args = parser.parse_args()
 
@@ -222,6 +223,17 @@ else:
 if args.remove_outliers:
     print("-- Removing outliers above %f sigma" % args.remove_outliers)
     remove_outliers(primaryts, args.remove_outliers)
+
+primary_mean = numpy.mean(primaryts.value)
+primary_std = numpy.std(primaryts.value)
+
+
+def descaler(l, *coef):
+    if coef:
+        return [((x * primary_std * coef[0]) + primary_mean) for x in l]
+    else:
+        return [((x * primary_std) + primary_mean) for x in l]
+
 
 hour_axis = (numpy.arange(len(primaryts.value)))/60
 for i in range(len(hour_axis)):
@@ -403,14 +415,16 @@ p1 = (.1, .15, .9, .9)  # global plot defaults for plot1, lasso model
 fig = plt.figure(figsize=(12, 6))
 fig.subplots_adjust(*p1)
 ax = fig.add_subplot(1, 1, 1)
-ax.plot(hour_axis, scale(primaryts.value), label=primary.replace('_', '\_'))
-ax.plot(hour_axis, modelFit, label='Lasso model')
+ax.plot(hour_axis, descaler(scale(primaryts.value)), color='black',
+        linewidth=args.line_size, label=primary.replace('_', '\_'))
+ax.plot(hour_axis, descaler(modelFit), label='Lasso model')
 ax.margins(x=0)
 ax.set_xlabel(auto_xlabel)
-ax.set_ylabel('Scaled arbitrary units')
 if range_is_primary:
+    ax.set_ylabel('Sensitive range [Mpc]')
     ax.set_title('Lasso Model of Range')
 else:
+    ax.set_ylabel('Primary Channel Units')
     ax.set_title('Lasso Model of Primary Channel')
 ax.legend(loc='best')
 fig.canvas.draw_idle()
@@ -437,14 +451,16 @@ firstchan = sorted_results[0][0]
 
 line1 = ax.plot(
     hour_axis,
-    scale(primaryts.value),
+    descaler(scale(primaryts.value)),
+    color='black',
+    linewidth=args.line_size,
     label=primary.replace('_', '\_'))
 colors.append(line1[0].get_color())
 labels.append(line1[0].get_label())
 
 line2 = ax.plot(
     hour_axis,
-    scale(nonzerodata[firstchan].value)*nonzerocoef[firstchan],
+    descaler(scale(nonzerodata[firstchan].value)*nonzerocoef[firstchan]),
     label='Channel 1')
 colors.append(line2[0].get_color())
 labels.append(line2[0].get_label())
@@ -455,13 +471,17 @@ for n in range(1, len(nonzerodata)):
         chan = sorted_results[0][m]
         summation = numpy.add(summation, (scale(nonzerodata[chan].value)
                                           * nonzerocoef[chan]))
-    line = ax.plot(hour_axis, summation, label='Channels 1-' + str(n+1))
+    line = ax.plot(hour_axis, descaler(summation),
+                   label='Channels 1-' + str(n+1))
     colors.append(line[0].get_color())
     labels.append(line[0].get_label())
 
 ax.margins(x=0)
 ax.set_xlabel(auto_xlabel)
-ax.set_ylabel('Scaled arbitrary units')
+if range_is_primary:
+    ax.set_ylabel('Sensitive range [Mpc]')
+else:
+    ax.set_ylabel('Primary Channel Units')
 ax.set_title('Summations of Channel Contributions to Model')
 fig.canvas.draw_idle()
 
@@ -509,8 +529,8 @@ labels = []
 fig = plt.figure(figsize=(8, 5))
 fig.subplots_adjust(*p1)
 ax = fig.add_subplot(1, 1, 1)
-line = ax.plot(hour_axis, scale(primaryts.value),
-               label=primary.replace('_', '\_'))
+line = ax.plot(hour_axis, descaler(scale(primaryts.value)), color='black',
+               linewidth=args.line_size, label=primary.replace('_', '\_'))
 colors.append(line[0].get_color())
 labels.append(line[0].get_label())
 
@@ -518,15 +538,18 @@ for n in range(0, len(nonzerodata)):
     chan = sorted_results[0][n]
     if nonzerodata[chan] is not None:
         line = ax.plot(hour_axis,
-                       (scale(nonzerodata[chan].value)
-                           * nonzerocoef[chan]),
+                       (descaler(scale(nonzerodata[chan].value)
+                           * nonzerocoef[chan])),
                        label=chan.replace('_', '\_'))
         colors.append(line[0].get_color())
         labels.append(line[0].get_label())
 
 ax.margins(x=0)
 ax.set_xlabel(auto_xlabel)
-ax.set_ylabel('Scaled arbitrary units')
+if range_is_primary:
+    ax.set_ylabel('Sensitive range [Mpc]')
+else:
+    ax.set_ylabel('Primary Channel Units')
 ax.set_title('Individual Channel Contributions to Model')
 fig.canvas.draw_idle()
 
@@ -607,28 +630,29 @@ def process_channel(input_,):
             return chan, lassocoef, plot4, plot5, plot6, ts
 
         # create time series subplots
-        fig = TimeSeriesPlot(primaryts, ts, sep=True, sharex=True,
-                             figsize=(12, 12))
+        fig, (ax1, ax2) = plt.subplots(2, sharex=True, figsize=(12, 12))
+        ax1.plot(hour_axis, primaryts, color='black', linewidth=args.line_size, label=primary.replace('_', '\_'))
+        ax2.plot(hour_axis, ts, label=chan.replace('_', '\_'))
         fig.subplots_adjust(*p4)
         if range_is_primary:
-            fig.axes[0].set_ylabel('Sensitive range [Mpc]')
+            ax1.set_ylabel('Sensitive range [Mpc]')
         else:
-            fig.axes[0].set_ylabel('Primary channel units')
-        fig.axes[1].set_ylabel('Channel units')
+            ax1.set_ylabel('Primary channel units')
+        ax2.set_ylabel('Channel units')
         for ax in fig.axes:
             ax.legend(loc='best')
-            ax.set_xlim(start, end)
-            ax.set_epoch(start)
+            ax.margins(x=0)
+        ax2.set_xlabel(auto_xlabel)
         channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
 
         plot4 = '%s_TRENDS-%s.png' % (channelstub, gpsstub)
         try:
             fig.canvas.draw_idle()
-            fig.save(plot4)
+            fig.savefig(plot4)
         except (RuntimeError, IOError, IndexError):
             try:
                 fig.canvas.draw_idle()
-                fig.save(plot4)
+                fig.savefig(plot4)
             except (RuntimeError, IOError, IndexError) as e:
                 print("Error trying to save plot4 image, %s: " % plot4)
                 print(e)
@@ -647,14 +671,18 @@ def process_channel(input_,):
         fig.subplots_adjust(*p1)
         ax = fig.add_subplot(1, 1, 1)
         ax.plot(
-            hour_axis, scale(primaryts.value),
+            hour_axis, descaler(scale(primaryts.value)),
+            color='black', linewidth=args.line_size,
             label=primary.replace('_', '\_'))
         ax.plot(
-            hour_axis, tsscaled,
+            hour_axis, descaler(tsscaled),
             label=chan.replace('_', '\_'))
         ax.margins(x=0)
         ax.set_xlabel(auto_xlabel)
-        ax.set_ylabel('Scaled amplitude [arbitrary units]')
+        if range_is_primary:
+            ax.set_ylabel('Sensitive range [Mpc]')
+        else:
+            ax.set_ylabel('Primary Channel Units')
         ax.legend(loc='best')
 
         plot5 = '%s_COMPARISON-%s.png' % (channelstub, gpsstub)
