@@ -153,8 +153,10 @@ lsig.add_argument('-C', '--no-cluster', action='store_true', default=False,
                   help='do not generate clustered channel plots')
 lsig.add_argument('-c', '--cluster-coefficient', default=.85, type=float,
                   help='correlation coefficient threshold for clustering')
-lsig.add_argument('-L', '--line-size', default=1, type=float,
+lsig.add_argument('-L', '--line-size-primary', default=1, type=float,
                   help='line width of primary channel')
+lsig.add_argument('-l', '--line-size-aux', default=0.75, type=float,
+                  help='line width of auxilary channel')
 
 args = parser.parse_args()
 
@@ -416,8 +418,9 @@ fig = plt.figure(figsize=(12, 6))
 fig.subplots_adjust(*p1)
 ax = fig.add_subplot(1, 1, 1)
 ax.plot(hour_axis, descaler(scale(primaryts.value)), color='black',
-        linewidth=args.line_size, label=primary.replace('_', '\_'))
-ax.plot(hour_axis, descaler(modelFit), label='Lasso model')
+        linewidth=args.line_size_primary, label=primary.replace('_', '\_'))
+ax.plot(hour_axis, descaler(modelFit),
+        linewidth=args.line_size_aux, label='Lasso model')
 ax.margins(x=0)
 ax.set_xlabel(auto_xlabel)
 if range_is_primary:
@@ -449,11 +452,14 @@ fig.subplots_adjust(*p1)
 ax = fig.add_subplot(1, 1, 1)
 firstchan = sorted_results[0][0]
 
+cmap = plt.get_cmap('tab20')
+colormaps = [cmap(i) for i in numpy.linspace(0, 1, len(nonzerodata)+1)]
+
 line1 = ax.plot(
     hour_axis,
     descaler(scale(primaryts.value)),
     color='black',
-    linewidth=args.line_size,
+    linewidth=args.line_size_primary,
     label=primary.replace('_', '\_'))
 colors.append(line1[0].get_color())
 labels.append(line1[0].get_label())
@@ -461,7 +467,7 @@ labels.append(line1[0].get_label())
 line2 = ax.plot(
     hour_axis,
     descaler(scale(nonzerodata[firstchan].value)*nonzerocoef[firstchan]),
-    label='Channel 1')
+    linewidth=args.line_size_aux, label='Channel 1', color=colormaps[0])
 colors.append(line2[0].get_color())
 labels.append(line2[0].get_label())
 
@@ -472,7 +478,8 @@ for n in range(1, len(nonzerodata)):
         summation = numpy.add(summation, (scale(nonzerodata[chan].value)
                                           * nonzerocoef[chan]))
     line = ax.plot(hour_axis, descaler(summation),
-                   label='Channels 1-' + str(n+1))
+                   linewidth=args.line_size_aux,
+                   label='Channels 1-' + str(n+1), color=colormaps[n])
     colors.append(line[0].get_color())
     labels.append(line[0].get_label())
 
@@ -530,7 +537,8 @@ fig = plt.figure(figsize=(8, 5))
 fig.subplots_adjust(*p1)
 ax = fig.add_subplot(1, 1, 1)
 line = ax.plot(hour_axis, descaler(scale(primaryts.value)), color='black',
-               linewidth=args.line_size, label=primary.replace('_', '\_'))
+               linewidth=args.line_size_primary,
+               label=primary.replace('_', '\_'))
 colors.append(line[0].get_color())
 labels.append(line[0].get_label())
 
@@ -539,8 +547,9 @@ for n in range(0, len(nonzerodata)):
     if nonzerodata[chan] is not None:
         line = ax.plot(hour_axis,
                        (descaler(scale(nonzerodata[chan].value)
-                           * nonzerocoef[chan])),
-                       label=chan.replace('_', '\_'))
+                                 * nonzerocoef[chan])),
+                       linewidth=args.line_size_aux,
+                       label=chan.replace('_', '\_'), color=colormaps[n])
         colors.append(line[0].get_color())
         labels.append(line[0].get_label())
 
@@ -631,8 +640,11 @@ def process_channel(input_,):
 
         # create time series subplots
         fig, (ax1, ax2) = plt.subplots(2, sharex=True, figsize=(12, 12))
-        ax1.plot(hour_axis, primaryts, color='black', linewidth=args.line_size, label=primary.replace('_', '\_'))
-        ax2.plot(hour_axis, ts, label=chan.replace('_', '\_'))
+        ax1.plot(hour_axis, primaryts, color='black',
+                 linewidth=args.line_size_primary,
+                 label=primary.replace('_', '\_'))
+        ax2.plot(hour_axis, ts,
+                 linewidth=args.line_size_aux, label=chan.replace('_', '\_'))
         fig.subplots_adjust(*p4)
         if range_is_primary:
             ax1.set_ylabel('Sensitive range [Mpc]')
@@ -672,10 +684,11 @@ def process_channel(input_,):
         ax = fig.add_subplot(1, 1, 1)
         ax.plot(
             hour_axis, descaler(scale(primaryts.value)),
-            color='black', linewidth=args.line_size,
+            color='black', linewidth=args.line_size_primary,
             label=primary.replace('_', '\_'))
         ax.plot(
             hour_axis, descaler(tsscaled),
+            linewidth=args.line_size_aux,
             label=chan.replace('_', '\_'))
         ax.margins(x=0)
         ax.set_xlabel(auto_xlabel)
@@ -815,16 +828,11 @@ def generate_cluster(input_,):
             fig = plt.figure(figsize=(8, 5))
             fig.subplots_adjust(*p7)
             ax = fig.add_subplot(1, 1, 1)
-            line = ax.plot(
-                hour_axis,
-                scale(currentts.value)*numpy.sign(input_[1][1]),
-                label=currentchan.replace('_', '\_'))
-            colors.append(line[0].get_color())
-            labels.append(line[0].get_label())
             current_cluster = sorted(current_cluster, key=lambda x: abs(x[2]),
                                      reverse=True)
 
             exceeds_max_chans = len(current_cluster) > max_correlated_channels
+            cmap = plt.get_cmap('tab20')
             if exceeds_max_chans:
                 cluster_range = max_correlated_channels
                 clustertab = (
@@ -836,15 +844,26 @@ def generate_cluster(input_,):
                             .replace('_', '-', 1),
                     gpsstub)
                 clustertab.write(plot7_list, format='ascii', overwrite=True)
+                colormaps = [cmap(i) for i in numpy.linspace(0, 1, 21)]
             else:
                 cluster_range = len(current_cluster)
-
+                colormaps = [cmap(i) for i in
+                             numpy.linspace(0, 1, cluster_range+1)]
+            line = ax.plot(
+                hour_axis,
+                scale(currentts.value)*numpy.sign(input_[1][1]),
+                linewidth=args.line_size_aux,
+                label=currentchan.replace('_', '\_'), color=colormaps[0])
+            colors.append(line[0].get_color())
+            labels.append(line[0].get_label())
             for i in range(0, cluster_range):
                 line = ax.plot(
                     hour_axis,
                     (scale(current_cluster[i][1].value)
                         * numpy.sign(input_[1][1])
                         * numpy.sign(current_cluster[i][2])),
+                    color=colormaps[i+1],
+                    linewidth=args.line_size_aux,
                     label=(current_cluster[i][3].replace('_', '\_')
                            + ', r = '
                            + str('{0:.2}'.format(current_cluster[i][2]))))
