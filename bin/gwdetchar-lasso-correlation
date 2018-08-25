@@ -835,20 +835,22 @@ def generate_cluster(input_,):
             cmap = plt.get_cmap('tab20')
             if exceeds_max_chans:
                 cluster_range = max_correlated_channels
-                clustertab = (
-                    Table(data=(zip(*current_cluster)[3],
-                                zip(*current_cluster)[2]),
-                          names=('Channel', 'Pearson Coefficient')))
-                plot7_list = '%s_CLUSTER_LIST-%s.txt' % (
-                    re_delim.sub('_', str(currentchan))
-                            .replace('_', '-', 1),
-                    gpsstub)
-                clustertab.write(plot7_list, format='ascii', overwrite=True)
                 colormaps = [cmap(i) for i in numpy.linspace(0, 1, 21)]
             else:
                 cluster_range = len(current_cluster)
                 colormaps = [cmap(i) for i in
                              numpy.linspace(0, 1, cluster_range+1)]
+
+            clustertab = (
+                Table(data=(zip(*current_cluster)[3],
+                            zip(*current_cluster)[2]),
+                      names=('Channel', 'Pearson Coefficient')))
+            plot7_list = '%s_CLUSTER_LIST-%s.txt' % (
+                re_delim.sub('_', str(currentchan))
+                        .replace('_', '-', 1),
+                gpsstub)
+            clustertab.write(plot7_list, format='ascii', overwrite=True)
+
             line = ax.plot(
                 hour_axis,
                 scale(currentts.value)*numpy.sign(input_[1][1]),
