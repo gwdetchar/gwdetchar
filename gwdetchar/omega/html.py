@@ -86,7 +86,6 @@ body {
 		margin-bottom: 120px;
 		min-height: 100%;
 		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-		font-weight: 300;
 		-webkit-font-smoothing: antialiased;
 }
 .navbar {
@@ -626,11 +625,9 @@ def write_summary(
            'channels for a given interferometer and GPS time. Time-frequency '
            'maps are computed using the <a '
            'href="https://gwpy.github.io/docs/stable/examples/timeseries/'
-           'qscan.html" target="_blank">Q-transform</a>.',
-           style="font-size:18px;")
-    page.p("This analysis is based on the following run arguments.",
-           style="font-size:18px;")
-    page.table(class_=tableclass, style="font-size:18px;")
+           'qscan.html" target="_blank">Q-transform</a>.')
+    page.p("This analysis is based on the following run arguments.")
+    page.table(class_=tableclass)
     # make table body
     page.tbody()
     page.tr()
@@ -666,8 +663,7 @@ def write_toc(blocks):
     page.ul()
     for i, block in enumerate(blocks):
         page.li()
-        page.a('%s' % block.name, href='#block-%s' % block.key,
-               style="font-size:18px;")
+        page.a('%s' % block.name, href='#block-%s' % block.key)
         page.li.close()
     page.ul.close()
     page.div.close()
@@ -708,7 +704,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.a("<small>[top]</small>", href='#', class_='text-%s' % context)
     page.div.close()  # pull-right
     # heading
-    page.h3('%s' % block.name, class_='panel-title', style="font-size:18px;")
+    page.h3('%s' % block.name, class_='panel-title')
     page.div.close()  # panel-heading
 
     # -- make body
@@ -720,7 +716,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
             channel.energy
         except AttributeError:
             continue
-        page.pre('%s' % cis_link(channel.name), style="font-size:14px;")
+        page.pre('%s' % cis_link(channel.name))
         page.div(class_="container")
         # summary information
         chanstring = channel.name.replace('-', '_').replace(':', '-')
@@ -826,7 +822,7 @@ def write_qscan_page(blocks, context):
     page.add(write_toc(blocks))
     page.h2('Results')
     page.p('The following blocks of channels were scanned for interesting '
-           'time-frequency morphology:', style="font-size:18px;")
+           'time-frequency morphology:')
     for block in blocks:
         page.add(write_block(block, context))
     return page
