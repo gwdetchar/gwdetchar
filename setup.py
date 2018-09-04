@@ -24,6 +24,7 @@ from __future__ import print_function
 
 import glob
 import os.path
+import sys
 
 from setuptools import (setup, find_packages)
 
@@ -44,9 +45,11 @@ cmdclass.update(versioneer.get_cmdclass())
 
 # -- dependencies -------------------------------------------------------------
 
+# build
 setup_requires = [
-    'pytest-runner',
 ]
+
+# run
 install_requires = [
     'six',
     'numpy>=1.10',
@@ -57,18 +60,13 @@ install_requires = [
     'lscsoft-glue',
     'gwtrigfind',
 ]
-requires = [
-    'numpy',
-    'matplotlib',
-    'astropy',
-    'gwpy',
-    'beautifulsoup4',
-    'lxml',
-]
+
+# test
+if 'test' in sys.argv:
+    setup_requires.append('pytest-runner')
 tests_require = [
     'pytest',
 ]
-extras_require = {}
 
 # -- run setup ----------------------------------------------------------------
 
@@ -90,8 +88,6 @@ setup(name=DISTNAME,
       scripts=scripts,
       setup_requires=setup_requires,
       install_requires=install_requires,
-      requires=requires,
-      extras_require=extras_require,
       use_2to3=True,
       classifiers=[
           'Programming Language :: Python',
