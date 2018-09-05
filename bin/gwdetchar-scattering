@@ -220,7 +220,7 @@ alldata = []
 for i, seg in enumerate(statea):
     alldata.append(
         TimeSeriesDict.get(allchannels, seg[0], seg[1], nproc=args.nproc,
-                           resample=128, frametype=args.frametype, **io_kw))
+                           frametype=args.frametype, **io_kw).resample(128))
     if args.verbose:
         gprint("Reading all data... %d/%d segments read"
            % (i+1, len(statea)), end='\r')
