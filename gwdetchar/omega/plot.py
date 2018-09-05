@@ -24,7 +24,7 @@ from __future__ import division
 from matplotlib import cm
 from matplotlib import rcParams
 
-from gwpy.plotter.colors import GW_OBSERVATORY_COLORS
+from gwpy.plot.colors import GW_OBSERVATORY_COLORS
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -51,12 +51,11 @@ def omega_plot(series, gps, span, channel, output, colormap='viridis',
     # construct plot
     if qscan:
         # plot Q-transform
-        plot = series.crop(gps-span/2, gps+span/2).plot(figsize=figsize)
+        plot = series.crop(gps-span/2, gps+span/2).imshow(figsize=figsize)
     elif eventgram:
         # plot eventgram
-        plot = series.plot('central_time', 'central_freq', 'duration',
-                           'bandwidth', color='energy',
-                           figsize=figsize)
+        plot = series.tile('central_time', 'central_freq', 'duration',
+                           'bandwidth', color='energy', figsize=figsize)
     else:
         # set color by IFO
         ifo = channel[:2]
@@ -72,8 +71,7 @@ def omega_plot(series, gps, span, channel, output, colormap='viridis',
     if (qscan or eventgram):
         ax.set_yscale('log')
         ax.set_title('%s at %.3f with $Q=%.1f$' % (chan, gps, series.q))
-        plot.add_colorbar(cmap=colormap, clim=clim,
-                          label='Normalized energy')
+        ax.colorbar(cmap=colormap, clim=clim, label='Normalized energy')
     else:
         ax.set_yscale('linear')
         ax.set_title('%s at %.3f' % (chan, gps))

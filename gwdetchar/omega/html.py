@@ -35,7 +35,7 @@ from pkg_resources import resource_filename
 
 from glue import markup
 from gwpy.time import tconvert
-from gwpy.plotter.colors import GW_OBSERVATORY_COLORS
+from gwpy.plot.colors import GW_OBSERVATORY_COLORS
 from ..io.html import (JQUERY_JS, BOOTSTRAP_CSS, BOOTSTRAP_JS)
 from .. import __version__
 
