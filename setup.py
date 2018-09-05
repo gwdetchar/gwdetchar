@@ -58,7 +58,7 @@ install_requires = [
     'scipy>=0.16',
     'matplotlib>=2.0.0',
     'astropy>=1.2',
-    'gwpy>=0.5',
+    'gwpy>=0.12.0',
     'lscsoft-glue',
     'gwtrigfind',
 ]
