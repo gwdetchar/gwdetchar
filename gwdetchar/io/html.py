@@ -82,6 +82,7 @@ def write_flag_html(flag, span, id=0, parent='accordion', context='warning',
             plotdir, '%s-%d-%d.png' % (flagr, span[0], abs(span)))
         plot = plot_func(flag, span)
         plot.save(png)
+        plot.close()
         page.a(href=png, target='_blank')
         page.img(style="width: 100%;", src=png)
         page.a.close()
