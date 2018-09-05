@@ -1,3 +1,8 @@
+# build
+setuptools
+jsmin
+libsass
+# run
 six
 numpy >= 1.10
 scipy >= 0.16
