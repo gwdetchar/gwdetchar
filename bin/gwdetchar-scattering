@@ -41,6 +41,7 @@ from glue.lal import Cache
 from gwpy.plotter import (figure, HistogramPlot)
 from gwpy.utils import gprint
 from gwpy.table import EventTable
+from gwpy.table.filters import in_segmentlist
 from gwpy.timeseries import TimeSeriesDict
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
@@ -150,11 +151,8 @@ if args.verbose:
     gprint("Loading Omicron triggers for %s..." % args.main_channel, end=' ')
 
 names = ['peak', 'peak_frequency', 'snr']
-llwcols = ['peak_time', 'peak_time_ns', 'peak_frequency', 'snr']
 if args.plot_main_tiles:
     names.extend(['start', 'duration', 'central_freq', 'bandwidth'])
-    llwcols.extend(['start_time', 'start_time_ns', 'duration', 'central_freq',
-                    'bandwidth'])
 
 fullcache = Cache()
 for seg in statea:
@@ -169,12 +167,10 @@ for seg in statea:
 # read triggers
 if fullcache:
     trigs = EventTable.read(
-        fullcache, columns=names,
-        ligolw_columns=llwcols, get_as_columns=True,
-        selection='peak_frequency < %s' % (args.frequency_threshold * 2),
-        format='ligolw.sngl_burst', nproc=args.nproc)
-    # restrict to requested times (easier to do once here than in .read())
-    trigs = trigs[trigs['peak'].in_segmentlist(statea)]
+        fullcache, columns=names, use_numpy_dtypes=True,
+        selection=['peak_frequency < %s' % (args.frequency_threshold * 2),
+                   ('peak', in_segmentlist, statea)],
+        format='ligolw', tablename='sngl_burst', nproc=args.nproc)
 else:  # no files (no livetime?)
     trigs = EventTable(names=names)
 
@@ -302,8 +298,8 @@ for i, channel in enumerate(sorted(allchannels)):
         deadtimepc = 0.
     if args.verbose:
         gprint("Deadtime: %.2f%% (%.2f/%ds)" % (deadtimepc, deadtime, livetime))
-    efficiency = highsnrtrigs['peak'].in_segmentlist(
-        scatter_segments[channel].active).sum()
+    efficiency = in_segmentlist(highsnrtrigs['peak'],
+                                scatter_segments[channel].active).sum()
     try:
         efficiencypc = efficiency / len(highsnrtrigs) * 100
     except ZeroDivisionError:
