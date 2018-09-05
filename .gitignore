@@ -25,6 +25,9 @@ Portfile
 /.eggs/
 /.cache/
 
+# static files build
+/gwdetchar/_static
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt

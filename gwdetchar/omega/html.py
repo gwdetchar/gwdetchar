@@ -27,6 +27,11 @@ import datetime
 import subprocess
 from functools import wraps
 from getpass import getuser
+from shutil import copyfile
+
+from six.moves.urllib.parse import urlparse
+
+from pkg_resources import resource_filename
 
 from glue import markup
 from gwpy.time import tconvert
@@ -73,68 +78,11 @@ FANCYBOX_CSS = (
 FANCYBOX_JS = (
     "//cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js")
 
-CSS_FILES = [BOOTSTRAP_CSS, FANCYBOX_CSS]
-JS_FILES = [JQUERY_JS, BOOTSTRAP_JS, FANCYBOX_JS]
+OMEGA_CSS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.css')
+OMEGA_JS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.js')
 
-OMEGA_CSS = """
-html {
-		position: relative;
-		min-height: 100%;
-}
-body {
-		padding-top: 75px;
-		margin-bottom: 120px;
-		min-height: 100%;
-		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-		-webkit-font-smoothing: antialiased;
-}
-.navbar {
-		color: #eee;
-		padding-top: 8px;
-		padding-bottom: 8px;
-		-moz-box-shadow:    0 1px 10px 2px #ccc;
-		-webkit-box-shadow: 0 1px 10px 2px #ccc;
-		box-shadow:         0 1px 10px 2px #ccc;
-}
-.with-margin {
-		margin-bottom: 15px;
-}
-.footer {
-		position: absolute;
-		bottom: 0;
-		width: 100%;
-		height: 100px;
-		color: #eee;
-		background-color: #4c4c4c;
-		padding-top: 20px;
-		padding-bottom: 20px;
-}
-.fancybox-skin {
-		background: white;
-}
-"""  # nopep8
-
-OMEGA_JS = """
-$(document).ready(function() {
-	$(\".fancybox\").fancybox({
-		nextEffect: 'none',
-		prevEffect: 'none',
-		helpers: {title: {type: 'inside'}}
-	});
-});
-function showImage(channelName, tRanges, imageType, captions) {
-	for (var tIndex in tRanges) {
-		var idBase = channelName + "_" + tRanges[tIndex];
-		var fileBase = channelName + "-" + imageType + "-" + tRanges[tIndex];
-		document.getElementById("a_" + idBase).href =
-			"plots/" + fileBase + ".png";
-		document.getElementById("a_" + idBase).title = captions[tIndex];
-		document.getElementById("img_" + idBase).src =
-			"plots/" + fileBase + ".png";
-		document.getElementById("img_" + idBase).alt = fileBase + ".png";
-	};
-};
-"""  # nopep8
+CSS_FILES = [BOOTSTRAP_CSS, FANCYBOX_CSS, OMEGA_CSS]
+JS_FILES = [JQUERY_JS, BOOTSTRAP_JS, FANCYBOX_JS, OMEGA_JS]
 
 
 # -- Plot construction --------------------------------------------------------
@@ -163,8 +111,12 @@ class FancyPlot(object):
 
 # -- HTML construction --------------------------------------------------------
 
-def write_static_files(static):
-    """Write static CSS and javascript files into the given directory
+def finalize_static_urls(static, cssfiles, jsfiles):
+    """Finalise the necessary CSS and javascript files as URLS.
+
+    The method parses the lists of files given, copying any local files into
+    ``static`` as necessary to create resolvable URLs to include in the HTML
+    ``<head>``.
 
     Parameters
     ----------
@@ -172,35 +124,59 @@ def write_static_files(static):
         the target directory for the static files, will be created if
         necessary
 
+    cssfiles : `list` of `str`
+        the list of CSS files to include
+
+    jsfiles : `list` of `str`
+        the (complete) list of javascript files to include
+
     Returns
     -------
-    `<statc>/omega.css`
-    `<static>/omega.js`
-        the paths of the two files written by this method, which will be
-        `omega.css` and `omega.js` inside `static`
-
-    Notes
-    -----
-    This method modifies the module-level variables ``CSS_FILES`` and
-    ``JS_FILES`` to guarantee that the static files are actually only
-    written once per process.
+    cssurls : `list` of `str`
+        the finalised list of CSS files
+    jsurls : `list` of `str`
+        the finalised list of javascript files
     """
-    if not os.path.isdir(static):
-        os.makedirs(static)
-    omegacss = os.path.join(static, 'omega.css')
-    if omegacss not in CSS_FILES:
-        with open(omegacss, 'w') as f:
-            f.write(OMEGA_CSS)
-        CSS_FILES.append(omegacss)
-    omegajs = os.path.join(static, 'omega.js')
-    if omegajs not in JS_FILES:
-        with open(omegajs, 'w') as f:
-            f.write(OMEGA_JS)
-        JS_FILES.append(omegajs)
-    return omegacss, omegajs
+    static = os.path.abspath(static)
+
+    def _mkstatic():
+        """Create the static files directory.
+
+        This function is only called if files are going to be written into
+        the directory, to prevent creating empty directories.
+        """
+        if not os.path.isdir(static):
+            os.makedirs(static)
+
+    def _local_url(path):
+        """Copy a filepath into the static dir if required
+        """
+        path = os.path.abspath(path)
+        # if file is already below static in the hierarchy, don't do anything
+        if static in path:
+            local = path
+        # otherwise copy the file into static
+        else:
+            base = os.path.basename(path)
+            local = os.path.join(static, os.path.basename(path))
+            _mkstatic()
+            copyfile(fn, local)
+        return os.path.relpath(local, os.path.dirname(static))
+
+    # copy lists so that we can modify
+    cssfiles = list(CSS_FILES)
+    jsfiles = list(JS_FILES)
+
+    for flist in (cssfiles, jsfiles):
+        for i, fn in enumerate(flist):
+            url = urlparse(fn)
+            if not url.netloc:
+                flist[i] = _local_url(fn)
+
+    return cssfiles, jsfiles
 
 
-def init_page(ifo, gpstime, css=[], script=[], base=os.path.curdir,
+def init_page(ifo, gpstime, css=None, script=None, base=os.path.curdir,
               **kwargs):
     """Initialise a new `markup.page`
     This method constructs an HTML page with the following structure
@@ -236,9 +212,16 @@ def init_page(ifo, gpstime, css=[], script=[], base=os.path.curdir,
     page : `markup.page`
         the structured markup to open an HTML document
     """
+    if not css:
+        css = CSS_FILES
+    if not script:
+        script = JS_FILES
+
     # write CSS to static dir
     staticdir = os.path.join(os.path.curdir, 'static')
-    write_static_files(staticdir)
+    css, script = finalize_static_urls(os.path.join(os.path.curdir, 'static'),
+                                       css, script)
+
     # create page
     page = markup.page()
     page.header.append('<!DOCTYPE HTML>')
@@ -246,22 +229,13 @@ def init_page(ifo, gpstime, css=[], script=[], base=os.path.curdir,
     page.head()
     page.base(href=base)
     page._full = True
-    # link stylesheets (appending bootstrap if needed)
-    css = css[:]
-    for cssf in CSS_FILES[::-1]:
-        b = os.path.basename(cssf)
-        if not any(f.endswith(b) for f in css):
-            css.insert(0, cssf)
+
+    # link files
     for f in css:
         page.link(href=f, rel='stylesheet', type='text/css', media='all')
-    # link javascript
-    script = script[:]
-    for jsf in JS_FILES[::-1]:
-        b = os.path.basename(jsf)
-        if not any(f.endswith(b) for f in script):
-            script.insert(0, jsf)
     for f in script:
         page.script('', src=f, type='text/javascript')
+
     # add other attributes
     for key in kwargs:
         getattr(page, key)(kwargs[key])

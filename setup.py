@@ -28,6 +28,9 @@ import sys
 
 from setuptools import (setup, find_packages)
 
+# local setup utilities
+from _setup_utils import CMDCLASS as cmdclass
+
 # set basic metadata
 PACKAGENAME = 'gwdetchar'
 DISTNAME = 'gwdetchar'
@@ -35,18 +38,17 @@ AUTHOR = 'Duncan Macleod'
 AUTHOR_EMAIL = 'duncan.macleod@ligo.org'
 LICENSE = 'GPLv3'
 
-cmdclass = {}
-
 # -- versioning ---------------------------------------------------------------
 
 import versioneer
 __version__ = versioneer.get_version()
-cmdclass.update(versioneer.get_cmdclass())
 
 # -- dependencies -------------------------------------------------------------
 
 # build
 setup_requires = [
+    'libsass',
+    'jsmin',
 ]
 
 # run

@@ -1,3 +1,4 @@
 include README.me LICENSE MANIFEST.in
 include versioneer.py
 include gwdetchar/_version.py
+recursive-include gwdetchar/_static *.min.css *.min.js
