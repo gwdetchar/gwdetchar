@@ -51,7 +51,7 @@ from gwpy.plotter import Plot as gwplot
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
-from gwdetchar import cli
+from gwdetchar import (cli, lasso as gwlasso)
 from gwdetchar.io import html
 
 try:
@@ -262,100 +262,35 @@ auxdata = TimeSeriesDict.get(
     observatory=args.ifo[0], pad=0, **io_kw)
 
 # -- removes flat data to be re-introdused later
-flatdata = dict()
-gooddata = dict()
 
-for k, ts in auxdata.items():
-    flat = ts.value.min() == ts.value.max()
-    if flat:
-        flatdata[k] = ts
-    else:
-        gooddata[k] = ts
-auxdata = gooddata
-flattab = Table(data=(numpy.asarray(flatdata.keys()),), names=('Channels',))
+print('-- Pre-processing auxiliary channel data')
 
-# -- removes NaN data
-nandata = dict()
-gooddata = dict()
+gwlasso.remove_flat(auxdata)
+flattab = Table(data=(list(set(channels) - set(auxdata.keys())),),
+                names=('Channels',))
+print('Removed {0} channels with flat data'.format(len(flattab)))
+print('{0} channels remaining'.format(len(auxdata)))
+
+# -- remove bad data
 
 try:
     data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 except ValueError:
     print("Nan or Inf found in data, removing bad channels...")
-    for k, v in auxdata.items():
-        hasnan = 0
-        for x in range(len(v.value)):
-            if isnan(v.value[x]) or isinf(v.value[x]):
-                hasnan += 1
-        if hasnan > 0:
-            nandata[k] = v
-        else:
-            gooddata[k] = v
-    print("Nan and Inf channels removed.")
-    auxdata = gooddata
+    nbefore = len(auxdata)
+    gwlasso.remove_bad(auxdata)
+    nafter = len(auxdata)
+    print('Removed {0} channels with bad data'.format(nbefore - nafter))
+    print('{0} channels remaining'.format(nafter))
     data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
-
 
 # -- perform lasso regression -------------------------------------------------
 
 # create model
-if args.alpha is None:
-    alphas = numpy.logspace(-1, 0, 100, endpoint=True)
-    primary_scaled = scale(primaryts.value)
-    nchans = numpy.zeros(len(alphas))
-    coef_path = numpy.zeros((len(data[0, :]), len(alphas)))
-    for i in range(0, len(alphas)):
-        model = linear_model.Lasso(alpha=alphas[i])
-        model.fit(data, primary_scaled)
-        nchans[i] = len(numpy.nonzero(model.coef_)[0])
-        coef_path[:, i] = model.coef_
-    if 0 in nchans:
-        badalphas = list()
-        for i in range(0, len(alphas)):
-            if nchans[i] == 0:
-                badalphas.append(i)
-        badalphas = badalphas[::-1]
-        for i in range(0, len(badalphas)):
-            alphas = numpy.delete(alphas, badalphas[i])
-            nchans = numpy.delete(nchans, badalphas[i])
-            coef_path = numpy.delete(coef_path, badalphas[i], 1)
-
-    X = data
-    y = primary_scaled
-    n_samples = X.shape[0]
-    K_A = 2
-    K_B = log(n_samples)
-
-    R = y[:, numpy.newaxis] - numpy.dot(X, coef_path)  # residuals
-    mean_squared_error = numpy.mean(R ** 2, axis=0)
-    sigma2 = numpy.var(y)
-
-    df = nchans
-    eps64 = numpy.finfo('float64').eps
-    criterion_A = (n_samples * mean_squared_error / (sigma2 + eps64)
-                   + K_A * df)  # Eqns. 2.15--16 in (Zou et al, 2007)
-    criterion_B = (n_samples * mean_squared_error / (sigma2 + eps64)
-                   + K_B * df)  # Eqns. 2.15--16 in (Zou et al, 2007)
-    n_best = numpy.argmin(criterion_B)
-    n_best_A = numpy.argmin(criterion_A)
-
-    alpha_ = alphas[n_best]
-    coef_ = coef_path[:, n_best]
-
-    alpha_A = alphas[n_best_A]
-    coef_A = coef_path[:, n_best_A]
-    model = linear_model.Lasso(alpha_)
-    model.fit(data, primary_scaled)
-else:
-    model = linear_model.Lasso(args.alpha)
-    model.fit(data, scale(primaryts.value))
-
-# pulls out alphas
-usedalpha = 0
-if args.alpha is None:
-    usedalpha = model.alpha
-else:
-    usedalpha = args.alpha
+print('-- Fitting data to target')
+target = scale(primaryts.value)
+model = gwlasso.fit(data, target, alpha=args.alpha)
+print('Alpha:', model.alpha)
 
 # restructure results for convenience
 unsorted_results = []
@@ -1027,7 +962,7 @@ write_param('Channels searched',
             '%d (%s)' % (nchan, "<a href= %s target='_blank'>channel list</a>"
                          % channelsfile))
 write_param('Number of flat channels',
-            '%d (%s)' % (len(flatdata),
+            '%d (%s)' % (len(flattab),
                          "<a href= %s target='_blank'>flat channel list</a>"
                          % (flatfile)))
 write_param('Lasso coefficient threshold', '%g' % args.threshold)
@@ -1043,7 +978,7 @@ page.div(class_='model-body')
 page.div(class_='model-info')
 write_param('Model', 'Lasso')
 write_param('Non-zero coefficients', '%d' % numpy.count_nonzero(model.coef_))
-write_param('Alpha', '%g' % usedalpha)
+write_param('Alpha', '%g' % model.alpha)
 write_param('Zero coefficients',
             '%d (%s)' % (len(zeroedtab),
                          "<a href= %s target='_blank'>zeroed channel list</a>"
