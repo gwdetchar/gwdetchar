@@ -187,12 +187,10 @@ if args.band_pass:
     print("-- Loading primary channel data")
     bandts = TimeSeries.get(primary, start-pad, end+pad, verbose=True,
                             nproc=args.nproc)
-    if(flower < 0 or fupper >= float(bandts.sample_rate/(1.*u.Hz))*.5):
-        print("\tError with band pass: frequency is"
-              " out of range for this channel.")
-        print("\tBand (Hz): " + str(args.band_pass)
-              + ", Channel sample rate (Hz): " + str(bandts.sample_rate))
-        quit()
+    if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
+        raise ValueError("bandpass frequency is out of range for this "
+                         "channel, band (Hz): {0}, sample rate: {1}".format(
+                             args.band_pass, bandts.sample_rate))
 
     # get darm BLRMS
     print("-- Filtering data")
