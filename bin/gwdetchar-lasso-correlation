@@ -350,10 +350,10 @@ p1 = (.1, .15, .9, .9)  # global plot defaults for plot1, lasso model
 fig = plt.figure(figsize=(12, 6))
 fig.subplots_adjust(*p1)
 ax = fig.add_subplot(1, 1, 1)
-ax.plot(hour_axis, descaler(scale(primaryts.value)), color='black',
-        linewidth=args.line_size_primary, label=primary.replace('_', '\_'))
-ax.plot(hour_axis, descaler(modelFit),
-        linewidth=args.line_size_aux, label='Lasso model')
+ax.plot(hour_axis, descaler(target), label=primary.replace('_', '\_'),
+        color='black', linewidth=args.line_size_primary)
+ax.plot(hour_axis, descaler(modelFit), label='Lasso model',
+        linewidth=args.line_size_aux)
 ax.margins(x=0)
 ax.set_xlabel(auto_xlabel)
 if range_is_primary:
@@ -390,7 +390,7 @@ colormaps = [cmap(i) for i in numpy.linspace(0, 1, len(nonzerodata)+1)]
 
 line1 = ax.plot(
     hour_axis,
-    descaler(scale(primaryts.value)),
+    descaler(target),
     color='black',
     linewidth=args.line_size_primary,
     label=primary.replace('_', '\_'))
@@ -469,7 +469,7 @@ labels = []
 fig = plt.figure(figsize=(8, 5))
 fig.subplots_adjust(*p1)
 ax = fig.add_subplot(1, 1, 1)
-line = ax.plot(hour_axis, descaler(scale(primaryts.value)), color='black',
+line = ax.plot(hour_axis, descaler(target), color='black',
                linewidth=args.line_size_primary,
                label=primary.replace('_', '\_'))
 colors.append(line[0].get_color())
@@ -616,7 +616,7 @@ def process_channel(input_,):
         fig.subplots_adjust(*p1)
         ax = fig.add_subplot(1, 1, 1)
         ax.plot(
-            hour_axis, descaler(scale(primaryts.value)),
+            hour_axis, descaler(target),
             color='black', linewidth=args.line_size_primary,
             label=primary.replace('_', '\_'))
         ax.plot(
