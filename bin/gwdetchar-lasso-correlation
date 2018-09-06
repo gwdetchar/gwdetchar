@@ -247,7 +247,7 @@ if args.channel_file is None:
                                       type='m-trend')
 else:
     with open(args.channel_file, 'r') as f:
-        channels = f.read().rstrip('\n').split('\n')
+        channels = [name.rstrip('\n') for name in f]
 nchan = len(channels)
 print("Identified %d channels" % nchan)
 
@@ -257,7 +257,7 @@ else:
     frametype = '%s_T' % args.ifo  # for second trends
 
 auxdata = TimeSeriesDict.get(
-    map(str, channels), start, end, verbose=True,
+    channels, start, end, verbose=True,
     frametype=frametype, nproc=args.nproc,
     observatory=args.ifo[0], pad=0, **io_kw)
 
