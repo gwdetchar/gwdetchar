@@ -241,8 +241,8 @@ for i in range(len(hour_axis)):
 
 # get aux data
 print("-- Loading auxiliary channel data")
-host, port = io_nds2.host_resolution_order(args.ifo)[0]
 if args.channel_file is None:
+    host, port = io_nds2.host_resolution_order(args.ifo)[0]
     channels = ChannelList.query_nds2('*.mean', host=host, port=port,
                                       type='m-trend')
 else:
