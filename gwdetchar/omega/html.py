@@ -369,7 +369,7 @@ def html_link(href, txt, target="_blank", **params):
     return markup.oneliner.a(txt, href=href, **params)
 
 
-def toggle_button(plottype, channel, pranges, context):
+def toggle_link(plottype, channel, pranges):
     """Create a Bootstrap button object that toggles between plot types.
 
     Parameters
@@ -388,16 +388,14 @@ def toggle_button(plottype, channel, pranges, context):
     page : `page`
         a markup page object
     """
-    page = markup.page()
     text = plottype.split('_')[1]
     pstrings = ["'%s'" % p for p in pranges]
     chanstring = channel.name.replace('-', '_').replace(':', '-')
     captions = [p.caption for p in channel.plots[plottype]]
-    page.button('<b>%s</b>' % text, type_='button',
-                class_='btn btn-%s' % context, style='opacity:0.6;',
-                onclick=u"showImage('%s', [%s], '%s', %s);"
-                        % (chanstring, ','.join(pstrings), plottype, captions))
-    return page()
+    return markup.oneliner.a(
+        '<b>%s</b>' % text, class_='dropdown-item',
+        onclick="showImage('{0}', [{1}], '{2}', {3});".format(
+            chanstring, ','.join(pstrings), plottype, captions))
 
 
 def cis_link(channel, **params):
@@ -693,50 +691,11 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.li(class_='list-group-item')
         page.div(class_="container")
         page.h4(cis_link(channel.name))
-        # summary information
-        chanstring = channel.name.replace('-', '_').replace(':', '-')
-        page.div(class_='clearfix', id_='%s-%s-summary'
-                                        % (block.key, chanstring))
-        # arrange plots
-        page.div(class_='row', style='margin-bottom: 15px; width: 97%;')
-        page.div(class_='col-sm-4')
-        page.p('Timeseries view: ')
-        page.div(class_='btn-group btn-group-sm')
-        page.add(toggle_button('timeseries_raw', channel, channel.pranges,
-                               context))
-        page.add(toggle_button('timeseries_highpassed', channel,
-                               channel.pranges, context))
-        page.add(toggle_button('timeseries_whitened', channel, channel.pranges,
-                               context))
-        page.div.close()  # btn-group
-        page.div.close()  # col-sm-4
-        page.div(class_='col-sm-4')
-        page.p('Q-transform view: ')
-        page.div(class_='btn-group btn-group-sm')
-        page.add(toggle_button('qscan_raw', channel, channel.pranges,
-                               context))
-        page.add(toggle_button('qscan_whitened', channel, channel.pranges,
-                               context))
-        page.add(toggle_button('qscan_autoscaled', channel, channel.pranges,
-                               context))
-        page.div.close()  # btn-group
-        page.div.close()  # col-sm-4
-        page.div(class_='col-sm-4')
-        page.p('Eventgram view: ')
-        page.div(class_='btn-group btn-group-sm')
-        page.add(toggle_button('eventgram_raw', channel, channel.pranges,
-                               context))
-        page.add(toggle_button('eventgram_whitened', channel, channel.pranges,
-                               context))
-        page.add(toggle_button('eventgram_autoscaled', channel,
-                               channel.pranges, context))
-        page.div.close()  # btn-group
-        page.div.close()  # col-sm-4
-        page.div.close()  # row
-        page.div.close()  # clearfix
+
         page.div(class_='row')
+
         # summary table
-        page.div(class_='col-md-3', style='margin-bottom: 20px;')
+        page.div(class_='col-md-3')
         page.p("Properties of the most significant time-frequency tile")
         page.table(class_=tableclass, style='width: 95%;')
         header = ['GPS Time', 'Frequency', 'Q Factor', 'Energy', 'SNR']
@@ -752,11 +711,37 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.tbody.close()
         page.table.close()
         page.div.close()  # col-md-3
+
         # plots
-        page.div(class_='col-md-9', style='margin-bottom: 20px;',
-                 id_='%s-%s-plots' % (block.key, chanstring))
+        page.div(class_='col-md-9')
+
+        # buttons first
+        page.div(class_='btn-group', role='group')
+        for ptitle, pclass, ptypes in [
+            ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
+            ('Q-transform', 'qscan', ('raw', 'whitened', 'autoscaled')),
+            ('Eventgram', 'eventgram', ('raw', 'whitened', 'autoscaled')),
+        ]:
+            _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
+            page.div(class_='btn-group', role='group')
+            page.button(id_=_id, type='button',
+                        class_='btn btn-info dropdown-toggle',
+                        **{'data-toggle': 'dropdown'})
+            page.add('{0} view <span class="caret"></span>'.format(ptitle))
+            page.button.close()
+            page.ul(class_='dropdown-menu', role='menu',
+                    **{'aria-labelledby': _id})
+            for ptype in ptypes:
+                page.li(toggle_link('{0}_{1}'.format(pclass, ptype), channel,
+                                    channel.pranges))
+            page.ul.close()  # dropdown-menu
+            page.div.close()  # btn-group
+        page.div.close()  # btn-group
+
+        # plots
         page.add(scaffold_plots(channel.plots['qscan_whitened'],
                  nperrow=min(len(channel.pranges), 2)))
+
         page.div.close()  # col-md-9
         page.div.close()  # row
         page.div.close()  # container
