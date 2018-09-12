@@ -1,0 +1,59 @@
+/*
+ * Copyright (C) Alexander Urban (2018)
+ *
+ * This file is part of GWDetChar
+ *
+ * GWDetChar is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * GWDetChar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GWDetChar.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+html {
+		position: relative;
+		min-height: 100%;
+}
+
+body {
+		padding-top: 75px;
+		margin-bottom: 120px;
+		min-height: 100%;
+		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.navbar {
+		color: #eee;
+		padding-top: 8px;
+		padding-bottom: 8px;
+		-moz-box-shadow:    0 1px 10px 2px #ccc;
+		-webkit-box-shadow: 0 1px 10px 2px #ccc;
+		box-shadow:         0 1px 10px 2px #ccc;
+}
+
+.with-margin {
+		margin-bottom: 15px;
+}
+
+.footer {
+		position: absolute;
+		bottom: 0;
+		width: 100%;
+		height: 100px;
+		color: #eee;
+		background-color: #4c4c4c;
+		padding-top: 20px;
+		padding-bottom: 20px;
+}
+
+.fancybox-skin {
+		background: white;
+}
+
