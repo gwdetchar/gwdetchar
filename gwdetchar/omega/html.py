@@ -682,7 +682,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
     page.div.close()  # panel-heading
 
     # -- make body
-    page.div(class_='panel-body')
+    page.ul(class_='list-group')
 
     # -- range over channels in this block
     for i, channel in enumerate(block.channels):
@@ -690,8 +690,9 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
             channel.energy
         except AttributeError:
             continue
-        page.pre('%s' % cis_link(channel.name))
+        page.li(class_='list-group-item')
         page.div(class_="container")
+        page.h4(cis_link(channel.name))
         # summary information
         chanstring = channel.name.replace('-', '_').replace(':', '-')
         page.div(class_='clearfix', id_='%s-%s-summary'
@@ -759,9 +760,10 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div.close()  # col-md-9
         page.div.close()  # row
         page.div.close()  # container
+        page.li.close()
 
     # close and return
-    page.div.close()  # panel-body
+    page.ul.close()
     page.div.close()  # panel
     return page()
 
