@@ -54,6 +54,7 @@ setup_requires = [
 # run
 install_requires = [
     'six',
+    'scikit-learn',
     'numpy>=1.10',
     'scipy>=0.16',
     'matplotlib>=2.0.0',
