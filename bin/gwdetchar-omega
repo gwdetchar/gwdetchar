@@ -191,7 +191,7 @@ def get_widths(x0, xdata):
         yield width
 
 
-def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
+def eventgram(time, data, search=0.25, frange=(0, numpy.inf),
               qrange=(4, 96), snrthresh=5.5, mismatch=0.2):
     """Create an eventgram with the Q-plane that has the most significant
     tile.
@@ -325,62 +325,54 @@ for block in blocks[:]:
         if block.resample:
             series = series.resample(block.resample)
 
-        # filter the timeseries
+        # highpass and whiten the timeseries
         corner = c.frange[0] / 1.5
         wn = 2 * corner * series.dt.decompose().value
         hpfilt = butter(12, wn, btype='highpass', analog=False, output='sos')
-        hpseries = series.filter(hpfilt, filtfilt=True)
-        asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
-        wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
-                                  asd=asd, detrend='linear')
+        series = series.filter(hpfilt, filtfilt=True)
+        series = series.whiten(fftlength=fftlength, overlap=fftlength/2,
+                               window='hann', method='lal_median_mean')
 
-        # crop the timeseries
-        wseries = wseries.crop(gps-duration/2, gps+duration/2)
-        hpseries = hpseries.crop(gps-duration/2, gps+duration/2)
+        # crop filter-corrupted boundaries
+        series = series.crop(gps-duration/2, gps+duration/2)
 
-        # compute eventgrams
+        # compute eventgram
         try:
-            table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange,
+            table = eventgram(gps, series, frange=c.frange, qrange=c.qrange,
                               snrthresh=c.snrthresh, mismatch=c.mismatch)
         except UnboundLocalError:
             if args.verbose:
                 gprint('Channel is misbehaved, removing it from the analysis')
-            del series, hpseries, wseries, asd
+            del series
             block.channels.remove(c)
             continue
+
+        # if insignificant, skip this analysis
         if table.Z < table.engthresh and not c.always_plot:
             if args.verbose:
                 gprint('Channel not significant at white noise false alarm '
                        'rate %s Hz' % far)
-            del series, hpseries, wseries, asd, table
+            del series
             block.channels.remove(c)
             continue
         Q = table.q
-        rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q),
-                           snrthresh=c.snrthresh, mismatch=c.mismatch)
 
         # compute Q-transform spectrograms
         outseg = Segment(gps - max(c.pranges)/2., gps + max(c.pranges)/2.)
         tres = min(c.pranges) / 500
         fres = c.frange[0] / 20
-        qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange, tres=tres,
-                                    fres=fres, gps=gps, search=0.25,
-                                    whiten=False, outseg=outseg)
-        rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                      tres=tres, fres=fres, gps=gps,
-                                      search=0.25, whiten=False, outseg=outseg)
+        qscan = series.q_transform(qrange=(Q, Q), frange=c.frange, tres=tres,
+                                   fres=fres, gps=gps, search=0.25,
+                                   whiten=False, outseg=outseg)
 
         # prepare plots
         if args.verbose:
-            gprint('Plotting omega scans for channel %s...' % c.name)
-        # work out figure size
+            gprint('Plotting omega scans for whitened channel %s...' % c.name)
         figsize = [8, 5]
-        for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
-            c.pranges, c.plots['qscan_whitened'],
-            c.plots['qscan_autoscaled'], c.plots['qscan_raw'],
-            c.plots['timeseries_raw'], c.plots['timeseries_highpassed'],
-            c.plots['timeseries_whitened'], c.plots['eventgram_raw'],
-            c.plots['eventgram_whitened'], c.plots['eventgram_autoscaled']
+        for span, png1, png2, png3, png4, png5 in zip(
+            c.pranges, c.plots['qscan_whitened'], c.plots['qscan_autoscaled'],
+            c.plots['timeseries_whitened'], c.plots['eventgram_whitened'],
+            c.plots['eventgram_autoscaled']
         ):
             # plot whitened qscan
             plot.omega_plot(qscan, gps, span, c.name, str(png1), qscan=True,
@@ -389,29 +381,15 @@ for block in blocks[:]:
             # plot autoscaled, whitened qscan
             plot.omega_plot(qscan, gps, span, c.name, str(png2), qscan=True,
                             colormap=args.colormap, figsize=figsize)
-            # plot raw qscan
-            plot.omega_plot(rqscan, gps, span, c.name, str(png3), qscan=True,
-                            clim=(0, 25), colormap=args.colormap,
-                            figsize=figsize)
-            # plot raw timeseries
-            plot.omega_plot(series, gps, span, c.name, str(png4),
-                            ylabel='Amplitude', figsize=figsize)
-            # plot highpassed timeseries
-            plot.omega_plot(hpseries, gps, span, c.name, str(png5),
-                            ylabel='Highpassed Amplitude', figsize=figsize)
             # plot whitened timeseries
-            plot.omega_plot(wseries, gps, span, c.name, str(png6),
+            plot.omega_plot(series, gps, span, c.name, str(png3),
                             ylabel='Whitened Amplitude', figsize=figsize)
-            # plot raw eventgram
-            plot.omega_plot(rtable, gps, span, c.name, str(png7),
-                            eventgram=True, clim=(0, 25),
-                            colormap=args.colormap, figsize=figsize)
             # plot whitened eventgram
-            plot.omega_plot(table, gps, span, c.name, str(png8),
+            plot.omega_plot(table, gps, span, c.name, str(png4),
                             eventgram=True, clim=(0, 25),
                             colormap=args.colormap, figsize=figsize)
             # plot autoscaled whitened eventgram
-            plot.omega_plot(table, gps, span, c.name, str(png9),
+            plot.omega_plot(table, gps, span, c.name, str(png5),
                             eventgram=True, colormap=args.colormap,
                             figsize=figsize)
 
@@ -422,11 +400,44 @@ for block in blocks[:]:
         c.t = table.tc
         c.f = table.fc
 
+        # repeat the analysis with highpassed data
+        if args.verbose:
+            gprint('Repeating for raw data from channel %s...' % c.name)
+        series = data[c.name].astype('float64')
+        if block.resample:
+            series = series.resample(block.resample)
+        for span, png in zip(c.pranges, c.plots['timeseries_raw']):
+            plot.omega_plot(series, gps, span, c.name, str(png),
+                            ylabel='Amplitude', figsize=figsize)
+        series = series.filter(hpfilt, filtfilt=True).crop(gps-duration/2,
+                                                           gps+duration/2)
+        table = eventgram(gps, series, frange=table.frange, qrange=(Q, Q),
+                          snrthresh=c.snrthresh, mismatch=c.mismatch)
+        qscan = series.q_transform(qrange=(Q, Q), frange=c.frange, tres=tres,
+                                   fres=fres, gps=gps, search=0.25,
+                                   whiten=False, outseg=outseg)
+        for span, png1, png2, png3 in zip(
+            c.pranges, c.plots['qscan_raw'], c.plots['timeseries_highpassed'],
+            c.plots['eventgram_raw']
+        ):
+            # plot raw qscan
+            plot.omega_plot(qscan, gps, span, c.name, str(png1), qscan=True,
+                            clim=(0, 25), colormap=args.colormap,
+                            figsize=figsize)
+            # plot highpassed timeseries
+            plot.omega_plot(series, gps, span, c.name, str(png2),
+                            ylabel='Highpassed Amplitude', figsize=figsize)
+            # plot raw eventgram
+            plot.omega_plot(table, gps, span, c.name, str(png3),
+                            eventgram=True, clim=(0, 25),
+                            colormap=args.colormap, figsize=figsize)
+
         # update HTML output
         html.write_qscan_page(ifo, gps, blocks, **htmlv)
 
         # delete intermediate data products
-        del qscan, rqscan, table, rtable, series, hpseries, wseries, asd
+        del data[c.name]
+        del (qscan, table, series)
 
     # delete data
     del data
