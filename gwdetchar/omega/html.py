@@ -380,8 +380,6 @@ def toggle_link(plottype, channel, pranges):
         the channel object corresponding to the plots shown
     pranges : `list` of `int`s
         a list of ranges for the time axis of each plot
-    context : `str`
-        the Bootstrap context that controls color-coding
 
     Returns
     -------
@@ -393,7 +391,7 @@ def toggle_link(plottype, channel, pranges):
     chanstring = channel.name.replace('-', '_').replace(':', '-')
     captions = [p.caption for p in channel.plots[plottype]]
     return markup.oneliner.a(
-        '<b>%s</b>' % text, class_='dropdown-item',
+        '%s' % text, class_='dropdown-item',
         onclick="showImage('{0}', [{1}], '{2}', {3});".format(
             chanstring, ','.join(pstrings), plottype, captions))
 
@@ -725,8 +723,8 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
             _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
             page.div(class_='btn-group', role='group')
             page.button(id_=_id, type='button',
-                        class_='btn btn-info dropdown-toggle',
-                        **{'data-toggle': 'dropdown'})
+                        class_='btn btn-%s dropdown-toggle' % context,
+                        style='opacity:0.6;', **{'data-toggle': 'dropdown'})
             page.add('{0} view <span class="caret"></span>'.format(ptitle))
             page.button.close()
             page.ul(class_='dropdown-menu', role='menu',
