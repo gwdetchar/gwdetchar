@@ -688,7 +688,40 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
             continue
         page.li(class_='list-group-item')
         page.div(class_="container")
+
+        page.div(class_='row', style='margin-top:6pt; width:98%')
+
+        # channel name
+        page.div(class_='col-md-7')
         page.h4(cis_link(channel.name))
+        page.div.close()  # col-md-7
+
+        # plot toggle buttons
+        page.div(class_='col-md-5')
+        page.div(class_='btn-group', role='group')
+        for ptitle, pclass, ptypes in [
+            ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
+            ('Q-transform', 'qscan', ('raw', 'whitened', 'autoscaled')),
+            ('Eventgram', 'eventgram', ('raw', 'whitened', 'autoscaled')),
+        ]:
+            _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
+            page.div(class_='btn-group', role='group')
+            page.button(id_=_id, type='button',
+                        class_='btn btn-%s dropdown-toggle' % context,
+                        style='opacity:0.8;', **{'data-toggle': 'dropdown'})
+            page.add('{0} view <span class="caret"></span>'.format(ptitle))
+            page.button.close()
+            page.ul(class_='dropdown-menu', role='menu',
+                    **{'aria-labelledby': _id})
+            for ptype in ptypes:
+                page.li(toggle_link('{0}_{1}'.format(pclass, ptype), channel,
+                                    channel.pranges))
+            page.ul.close()  # dropdown-menu
+            page.div.close()  # btn-group
+        page.div.close()  # btn-group
+        page.div.close()  # col-md-5
+
+        page.div.close()  # row
 
         page.div(class_='row')
 
@@ -712,35 +745,10 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
 
         # plots
         page.div(class_='col-md-9')
-
-        # buttons first
-        page.div(class_='btn-group', role='group')
-        for ptitle, pclass, ptypes in [
-            ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
-            ('Q-transform', 'qscan', ('raw', 'whitened', 'autoscaled')),
-            ('Eventgram', 'eventgram', ('raw', 'whitened', 'autoscaled')),
-        ]:
-            _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
-            page.div(class_='btn-group', role='group')
-            page.button(id_=_id, type='button',
-                        class_='btn btn-%s dropdown-toggle' % context,
-                        style='opacity:0.6;', **{'data-toggle': 'dropdown'})
-            page.add('{0} view <span class="caret"></span>'.format(ptitle))
-            page.button.close()
-            page.ul(class_='dropdown-menu', role='menu',
-                    **{'aria-labelledby': _id})
-            for ptype in ptypes:
-                page.li(toggle_link('{0}_{1}'.format(pclass, ptype), channel,
-                                    channel.pranges))
-            page.ul.close()  # dropdown-menu
-            page.div.close()  # btn-group
-        page.div.close()  # btn-group
-
-        # plots
         page.add(scaffold_plots(channel.plots['qscan_whitened'],
                  nperrow=min(len(channel.pranges), 2)))
-
         page.div.close()  # col-md-9
+
         page.div.close()  # row
         page.div.close()  # container
         page.li.close()
