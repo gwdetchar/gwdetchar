@@ -374,8 +374,7 @@ for block in blocks[:]:
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
         # work out figure size
-        width = min(16 / len(c.pranges), 8)
-        figsize = [width, 5]
+        figsize = [8, 5]
         for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
             c.pranges, c.plots['qscan_whitened'],
             c.plots['qscan_autoscaled'], c.plots['qscan_raw'],

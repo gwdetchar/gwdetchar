@@ -463,7 +463,7 @@ def fancybox_img(img, linkparams=dict(), **params):
     return str(page)
 
 
-def scaffold_plots(plots, nperrow=2):
+def scaffold_plots(plots, nperrow=3):
     """Embed a `list` of images in a bootstrap scaffold
 
     Parameters
@@ -692,8 +692,32 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div(class_='row')
 
         # channel name
-        page.div(class_='col-md-7')
         page.h4(cis_link(channel.name))
+
+        page.div(class_='row')
+
+        # summary table
+        page.div(class_='col-md-7')
+        page.p("Properties of the most significant time-frequency tile")
+        page.table(class_=tableclass)
+        columns = ['GPS Time', 'Frequency', 'Q Factor', 'Normalized Energy',
+                   'SNR']
+        entries = ['%.3f' % channel.t, '%.1f Hz' % channel.f,
+                   '%.1f' % channel.Q, '%.1f' % channel.energy,
+                   '%.1f' % channel.snr]
+        page.thead()
+        page.tr()
+        for column in columns:
+            page.th(column, scope='col')
+        page.tr.close()
+        page.thead.close()
+        page.tbody()
+        page.tr()
+        for entry in entries:
+            page.td(entry)
+        page.tr.close()
+        page.tbody.close()
+        page.table.close()
         page.div.close()  # col-md-7
 
         # plot toggle buttons
@@ -723,33 +747,12 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
 
         page.div.close()  # row
 
-        page.div(class_='row')
-
-        # summary table
-        page.div(class_='col-md-3')
-        page.p("Properties of the most significant time-frequency tile")
-        page.table(class_=tableclass)
-        header = ['GPS Time', 'Frequency', 'Q Factor', 'Energy', 'SNR']
-        entry = ['%.3f' % channel.t, '%.1f Hz' % channel.f,
-                 '%.1f' % channel.Q, '%.1f' % channel.energy,
-                 '%.1f' % channel.snr]
-        page.tbody()
-        for h, ent in zip(header, entry):
-            page.tr()
-            page.td('<b>%s</b>' % h)
-            page.td(ent)
-            page.tr.close()
-        page.tbody.close()
-        page.table.close()
-        page.div.close()  # col-md-3
-
         # plots
-        page.div(class_='col-md-9')
+        page.div(class_='row')
         page.add(scaffold_plots(channel.plots['qscan_whitened'],
-                 nperrow=min(len(channel.pranges), 2)))
-        page.div.close()  # col-md-9
-
+                 nperrow=min(len(channel.pranges), 3)))
         page.div.close()  # row
+
         page.div.close()  # container
         page.li.close()
 

@@ -30,13 +30,13 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 rcParams.update({
-    'axes.labelsize': 20,
     'figure.subplot.bottom': 0.17,
     'figure.subplot.left': 0.1,
     'figure.subplot.right': 0.9,
     'figure.subplot.top': 0.90,
-    'axes.labelsize': 24,
-    'axes.labelpad': 2,
+    'axes.labelsize': 20,
+    'axes.labelpad': 10,
+    'axes.titlesize': 14,
     'grid.color': 'gray',
 })
 
@@ -75,13 +75,12 @@ def omega_plot(series, gps, span, channel, output, colormap='viridis',
     chan = channel.replace('_', r'\_')
     if (qscan or eventgram):
         ax.set_yscale('log')
-        ax.set_title('%s at %.3f with $Q=%.1f$' % (chan, gps, series.q),
-                     fontsize=12)
+        ax.set_title('%s at %.3f with $Q=%.1f$' % (chan, gps, series.q))
         plot.add_colorbar(cmap=colormap, clim=clim,
                           label='Normalized energy')
     else:
         ax.set_yscale('linear')
-        ax.set_title('%s at %.3f' % (chan, gps), fontsize=12)
+        ax.set_title('%s at %.3f' % (chan, gps))
     if ylabel:
         ax.set_ylabel(ylabel)
     if eventgram:
