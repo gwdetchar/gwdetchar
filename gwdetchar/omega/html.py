@@ -391,7 +391,7 @@ def toggle_link(plottype, channel, pranges):
     chanstring = channel.name.replace('-', '_').replace(':', '-')
     captions = [p.caption for p in channel.plots[plottype]]
     return markup.oneliner.a(
-        '%s' % text, class_='dropdown-item',
+        text, class_='dropdown-item',
         onclick="showImage('{0}', [{1}], '{2}', {3});".format(
             chanstring, ','.join(pstrings), plottype, captions))
 
@@ -633,7 +633,7 @@ def write_toc(blocks):
     page.ul()
     for i, block in enumerate(blocks):
         page.li()
-        page.a('%s' % block.name, href='#block-%s' % block.key)
+        page.a(block.name, href='#block-%s' % block.key)
         page.li.close()
     page.ul.close()
     page.div.close()
@@ -674,8 +674,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.a("<small>[top]</small>", href='#', class_='text-%s' % context)
     page.div.close()  # pull-right
     # heading
-    page.h3('%s' % block.name, class_='panel-title',
-            style='font-weight:normal;')
+    page.h3(block.name, class_='panel-title', style='font-weight:normal;')
     page.div.close()  # panel-heading
 
     # -- make body
