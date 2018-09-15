@@ -568,7 +568,7 @@ def write_config_html(filepath, format='ini'):
 # -- Qscan HTML ---------------------------------------------------------------
 
 def write_summary(
-        ifo, gpstime, header='Analysis Summary',
+        ifo, gpstime, header='Summary',
         tableclass='table table-condensed table-hover table-responsive'):
     """Write the Qscan analysis summary HTML
 
@@ -591,21 +591,16 @@ def write_summary(
     utc = tconvert(gpstime)
     page = markup.page()
     page.h2(header)
-    page.p('This page shows time-frequency maps of a user-configured list of '
-           'channels for a given interferometer and GPS time. Time-frequency '
-           'maps are computed using the <a '
-           'href="https://gwpy.github.io/docs/stable/examples/timeseries/'
-           'qscan.html" target="_blank">Q-transform</a>.')
     page.p("This analysis is based on the following run arguments.")
-    page.table(class_=tableclass)
+    page.table(class_=tableclass, style='width:40%;')
     # make table body
     page.tbody()
     page.tr()
-    page.td("<b>Interferometer</b>")
+    page.td("<b>Interferometer</b>", scope='row')
     page.td("%s (%s)" % (OBSERVATORY_MAP[ifo]['name'], ifo))
     page.tr.close()
     page.tr()
-    page.td("<b>UTC Time</b>")
+    page.td("<b>UTC Time</b>", scope='row')
     page.td("%s" % utc)
     page.tr.close()
     page.tbody.close()
@@ -641,7 +636,7 @@ def write_toc(blocks):
 
 
 def write_block(block, context, tableclass='table table-condensed table-hover '
-                                           'table-responsive'):
+                                           'table-bordered table-responsive'):
     """Write the HTML summary for a specific block of channels
 
     Parameters
@@ -700,8 +695,8 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div(class_='col-md-7')
         page.p("Properties of the most significant time-frequency tile")
         page.table(class_=tableclass)
-        columns = ['GPS Time', 'Frequency', 'Q Factor', 'Normalized Energy',
-                   'SNR']
+        columns = ['GPS Time', 'Frequency', 'Quality Factor',
+                   'Normalized Energy', 'SNR']
         entries = ['%.3f' % channel.t, '%.1f Hz' % channel.f,
                    '%.1f' % channel.Q, '%.1f' % channel.energy,
                    '%.1f' % channel.snr]
@@ -790,9 +785,7 @@ def write_qscan_page(blocks, context):
     """
     page = markup.page()
     page.add(write_toc(blocks))
-    page.h2('Results')
-    page.p('The following blocks of channels were scanned for interesting '
-           'time-frequency morphology:')
+    page.h2('Channel details')
     for block in blocks:
         page.add(write_block(block, context))
     return page
