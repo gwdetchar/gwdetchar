@@ -247,7 +247,7 @@ def init_page(ifo, gpstime, css=None, script=None, base=os.path.curdir,
              style='background-color:%s;' % GW_OBSERVATORY_COLORS[ifo])
     page.div(class_='container')
     page.h4('%s Omega Scan <span style="float:right;">%s</span>'
-            % (ifo, gpstime), style="text-align:left; font-weight:normal;")
+            % (ifo, gpstime), style="text-align:left;")
     page.div.close()  # container
     page.div.close()  # navbar
 
@@ -483,7 +483,7 @@ def scaffold_plots(plots, nperrow=2):
     # scaffold plots
     for i, p in enumerate(plots):
         if i % nperrow == 0:
-            page.div(class_='row', style="width:96%;")
+            page.div(class_='row')
         page.div(class_='col-sm-%d' % x)
         page.add(fancybox_img(p))
         page.div.close()  # col
@@ -590,7 +590,7 @@ def write_summary(
     """
     utc = tconvert(gpstime)
     page = markup.page()
-    page.h2(header, style='font-weight:normal;')
+    page.h2(header)
     page.p('This page shows time-frequency maps of a user-configured list of '
            'channels for a given interferometer and GPS time. Time-frequency '
            'maps are computed using the <a '
@@ -629,7 +629,7 @@ def write_toc(blocks):
     """
     page = markup.page()
     page.div(class_="container")
-    page.h2('Table of Contents', style='font-weight:normal;')
+    page.h2('Table of Contents')
     page.ul()
     for i, block in enumerate(blocks):
         page.li()
@@ -674,7 +674,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.a("<small>[top]</small>", href='#', class_='text-%s' % context)
     page.div.close()  # pull-right
     # heading
-    page.h3(block.name, class_='panel-title', style='font-weight:normal;')
+    page.h3(block.name, class_='panel-title')
     page.div.close()  # panel-heading
 
     # -- make body
@@ -689,11 +689,11 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.li(class_='list-group-item')
         page.div(class_="container")
 
-        page.div(class_='row', style='margin-top:6pt; width:98%')
+        page.div(class_='row')
 
         # channel name
         page.div(class_='col-md-7')
-        page.h4(cis_link(channel.name), style='font-weight:normal;')
+        page.h4(cis_link(channel.name))
         page.div.close()  # col-md-7
 
         # plot toggle buttons
@@ -708,7 +708,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
             page.div(class_='btn-group', role='group')
             page.button(id_=_id, type='button',
                         class_='btn btn-%s dropdown-toggle' % context,
-                        style='opacity:0.8;', **{'data-toggle': 'dropdown'})
+                        **{'data-toggle': 'dropdown'})
             page.add('{0} view <span class="caret"></span>'.format(ptitle))
             page.button.close()
             page.ul(class_='dropdown-menu', role='menu',
@@ -728,7 +728,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         # summary table
         page.div(class_='col-md-3')
         page.p("Properties of the most significant time-frequency tile")
-        page.table(class_=tableclass, style='width: 95%;')
+        page.table(class_=tableclass)
         header = ['GPS Time', 'Frequency', 'Q Factor', 'Energy', 'SNR']
         entry = ['%.3f' % channel.t, '%.1f Hz' % channel.f,
                  '%.1f' % channel.Q, '%.1f' % channel.energy,
@@ -787,7 +787,7 @@ def write_qscan_page(blocks, context):
     """
     page = markup.page()
     page.add(write_toc(blocks))
-    page.h2('Results', style='font-weight:normal;')
+    page.h2('Results')
     page.p('The following blocks of channels were scanned for interesting '
            'time-frequency morphology:')
     for block in blocks:
@@ -847,10 +847,10 @@ def write_about_page(configfiles):
         the path of the HTML written for this analysis
     """
     page = markup.page()
-    page.h2('On the command line', style='font-weight:normal;')
+    page.h2('On the command line')
     page.p('This page was generated with the command line call shown below.')
     page.pre(' '.join(sys.argv))
-    page.h2('Configuration file', style='font-weight:normal;')
+    page.h2('Configuration file')
     page.p('Omega scans are configured through INI-format files. The files '
            'used for this analysis are reproduced below in full.')
     for configfile in configfiles:
