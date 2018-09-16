@@ -591,7 +591,6 @@ def write_summary(
     utc = tconvert(gpstime)
     page = markup.page()
     page.h2(header)
-    page.p("This analysis is based on the following run arguments.")
     page.table(class_=tableclass, style='width:40%;')
     # make table body
     page.tbody()
@@ -720,7 +719,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.div(class_='btn-group', role='group')
         for ptitle, pclass, ptypes in [
             ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
-            ('Q-transform', 'qscan', ('raw', 'whitened', 'autoscaled')),
+            ('Spectrogram', 'qscan', ('raw', 'whitened', 'autoscaled')),
             ('Eventgram', 'eventgram', ('raw', 'whitened', 'autoscaled')),
         ]:
             _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
