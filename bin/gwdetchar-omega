@@ -324,7 +324,7 @@ for block in blocks[:]:
             gprint('Computing omega scans for channel %s...' % c.name)
 
         # get raw timeseries
-        series = data[c.name]
+        series = data[c.name].astype('float64')
         if block.resample:
             series = series.resample(block.resample)
 
@@ -333,7 +333,7 @@ for block in blocks[:]:
         hpseries = series.highpass(corner, gpass=.5, gstop=100, filtfilt=True)
         asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
         wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
-                                  asd=asd)
+                                  asd=asd, detrend='linear')
 
         # crop the timeseries
         wseries = wseries.crop(gps-duration/2, gps+duration/2)
