@@ -424,7 +424,6 @@ for block in blocks[:]:
         c.f = table.fc
 
         # delete intermediate data products
-        del fig1, fig2, fig3, fig4, fig5, fig6
         del qscan, rqscan, table, rtable, series, hpseries, wseries, asd
 
     # delete data
