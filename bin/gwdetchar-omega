@@ -384,56 +384,37 @@ for block in blocks[:]:
             c.plots['eventgram_whitened'], c.plots['eventgram_autoscaled']
         ):
             # plot whitened qscan
-            fig1 = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
-                                   clim=(0, 25), colormap=args.colormap,
-                                   figsize=figsize)
-            fig1.savefig(str(png1))
-            fig1.close()
+            plot.omega_plot(qscan, gps, span, c.name, str(png1), qscan=True,
+                            clim=(0, 25), colormap=args.colormap,
+                            figsize=figsize)
             # plot autoscaled, whitened qscan
-            fig2 = plot.omega_plot(qscan, gps, span, c.name, qscan=True,
-                                   colormap=args.colormap, figsize=figsize)
-            fig2.savefig(str(png2))
-            fig2.close()
+            plot.omega_plot(qscan, gps, span, c.name, str(png2), qscan=True,
+                            colormap=args.colormap, figsize=figsize)
             # plot raw qscan
-            fig3 = plot.omega_plot(rqscan, gps, span, c.name, qscan=True,
-                                   clim=(0, 25), colormap=args.colormap,
-                                   figsize=figsize)
-            fig3.savefig(str(png3))
-            fig3.close()
+            plot.omega_plot(rqscan, gps, span, c.name, str(png3), qscan=True,
+                            clim=(0, 25), colormap=args.colormap,
+                            figsize=figsize)
             # plot raw timeseries
-            fig4 = plot.omega_plot(series, gps, span, c.name,
-                                   ylabel='Amplitude', figsize=figsize)
-            fig4.savefig(str(png4))
-            fig4.close()
+            plot.omega_plot(series, gps, span, c.name, str(png4),
+                            ylabel='Amplitude', figsize=figsize)
             # plot highpassed timeseries
-            fig5 = plot.omega_plot(hpseries, gps, span, c.name,
-                                   ylabel='Highpassed Amplitude',
-                                   figsize=figsize)
-            fig5.savefig(str(png5))
-            fig5.close()
+            plot.omega_plot(hpseries, gps, span, c.name, str(png5),
+                            ylabel='Highpassed Amplitude', figsize=figsize)
             # plot whitened timeseries
-            fig6 = plot.omega_plot(wseries, gps, span, c.name,
-                                   ylabel='Whitened Amplitude',
-                                   figsize=figsize)
-            fig6.savefig(str(png6))
-            fig6.close()
+            plot.omega_plot(wseries, gps, span, c.name, str(png6),
+                            ylabel='Whitened Amplitude', figsize=figsize)
             # plot raw eventgram
-            fig7 = plot.omega_plot(rtable, gps, span, c.name, eventgram=True,
-                                   clim=(0, 25), colormap=args.colormap,
-                                   figsize=figsize)
-            fig7.savefig(str(png7))
-            fig7.close()
+            plot.omega_plot(rtable, gps, span, c.name, str(png7),
+                            eventgram=True, clim=(0, 25),
+                            colormap=args.colormap, figsize=figsize)
             # plot whitened eventgram
-            fig8 = plot.omega_plot(table, gps, span, c.name, eventgram=True,
-                                   clim=(0, 25), colormap=args.colormap,
-                                   figsize=figsize)
-            fig8.savefig(str(png8))
-            fig8.close()
+            plot.omega_plot(table, gps, span, c.name, str(png8),
+                            eventgram=True, clim=(0, 25),
+                            colormap=args.colormap, figsize=figsize)
             # plot autoscaled whitened eventgram
-            fig9 = plot.omega_plot(table, gps, span, c.name, eventgram=True,
-                                   colormap=args.colormap, figsize=figsize)
-            fig9.savefig(str(png9))
-            fig9.close()
+            plot.omega_plot(table, gps, span, c.name, str(png9),
+                            eventgram=True, colormap=args.colormap,
+                            figsize=figsize)
 
         # save parameters
         c.Q = Q
