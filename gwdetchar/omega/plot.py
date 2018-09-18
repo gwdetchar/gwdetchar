@@ -43,8 +43,9 @@ rcParams.update({
 
 # -- Utilities ----------------------------------------------------------------
 
-def omega_plot(series, gps, span, channel, colormap='viridis', clim=None,
-               qscan=False, eventgram=False, ylabel=None, figsize=[12, 6]):
+def omega_plot(series, gps, span, channel, output, colormap='viridis',
+               clim=None, qscan=False, eventgram=False, ylabel=None,
+               figsize=[12, 6]):
     """Plot any GWPy Series object with a time axis
     """
     # construct plot
@@ -91,5 +92,6 @@ def omega_plot(series, gps, span, channel, colormap='viridis', clim=None,
         ax.set_yscale('log')
         ax.set_ylabel('Frequency [Hz]')
     ax.grid(True, axis='y', which='both')
-    plot.tight_layout()
-    return plot
+    # save plot and close
+    plot.savefig(output, bbox_inches='tight')
+    plot.close()
