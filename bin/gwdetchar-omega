@@ -323,7 +323,9 @@ for block in blocks[:]:
 
         # filter the timeseries
         corner = c.frange[0] / 1.5
-        hpseries = series.highpass(corner, gpass=.5, gstop=100, filtfilt=True)
+        wn = 2 * corner * series.dt.decompose().value
+        hpfilt = butter(12, wn, btype='highpass', analog=False, output='sos')
+        hpseries = series.filter(hpfilt, filtfilt=True)
         asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
         wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
                                   asd=asd, detrend='linear')
