@@ -65,12 +65,8 @@ def omega_plot(series, gps, span, channel, output, colormap='viridis',
                            figsize=figsize)
     ax = plot.gca()
     # set time axis units
-    ax.set_epoch(gps)
-    ax.set_xscale('auto-gps')
-    if span <= 1.:
-        ax.set_xlabel('Time [milliseconds]')
-    else:
-        ax.set_xlabel('Time [seconds]')
+    ax.set_xscale('seconds', epoch=gps)
+    ax.set_xlabel('Time [seconds]')
     # set y-axis properties
     chan = channel.replace('_', r'\_')
     if (qscan or eventgram):
