@@ -33,6 +33,7 @@ use('agg')  # nopep8
 from gwpy.utils import gprint
 from gwpy.time import tconvert
 from gwpy.table import EventTable
+from gwpy.segments import Segment
 from gwpy.timeseries import TimeSeriesDict
 from gwpy.detector import (Channel, ChannelList)
 from gwpy.signal.qtransform import QTiling
@@ -356,14 +357,15 @@ for block in blocks[:]:
                            snrthresh=c.snrthresh, mismatch=c.mismatch)
 
         # compute Q-transforms
+        outseg = Segment(gps - max(c.pranges)/2., gps + max(c.pranges)/2.)
         tres = min(c.pranges) / 500
         fres = c.frange[0] / 5
-        qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                    tres=tres, fres=fres, gps=gps,
-                                    search=0.25, whiten=False)
+        qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange, tres=tres,
+                                    fres=fres, gps=gps, search=0.25,
+                                    whiten=False, outseg=outseg)
         rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
                                       tres=tres, fres=fres, gps=gps,
-                                      search=0.25, whiten=False)
+                                      search=0.25, whiten=False, outseg=outseg)
 
         # prepare plots
         if args.verbose:
