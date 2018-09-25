@@ -356,10 +356,10 @@ for block in blocks[:]:
         rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q),
                            snrthresh=c.snrthresh, mismatch=c.mismatch)
 
-        # compute Q-transforms
+        # compute Q-transform spectrograms
         outseg = Segment(gps - max(c.pranges)/2., gps + max(c.pranges)/2.)
         tres = min(c.pranges) / 500
-        fres = c.frange[0] / 5
+        fres = c.frange[0] / 20
         qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange, tres=tres,
                                     fres=fres, gps=gps, search=0.25,
                                     whiten=False, outseg=outseg)
