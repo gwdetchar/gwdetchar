@@ -23,15 +23,8 @@
 from __future__ import division
 
 import os
-import re
-import sys
 import ast
-import warnings
-
-from six.moves import StringIO
-
 import numpy
-from numpy import fft as npfft
 from scipy.signal import butter
 
 from matplotlib import (use, rcParams)
