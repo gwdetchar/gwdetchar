@@ -380,8 +380,6 @@ def toggle_link(plottype, channel, pranges):
         the channel object corresponding to the plots shown
     pranges : `list` of `int`s
         a list of ranges for the time axis of each plot
-    context : `str`
-        the Bootstrap context that controls color-coding
 
     Returns
     -------
@@ -393,7 +391,7 @@ def toggle_link(plottype, channel, pranges):
     chanstring = channel.name.replace('-', '_').replace(':', '-')
     captions = [p.caption for p in channel.plots[plottype]]
     return markup.oneliner.a(
-        '<b>%s</b>' % text, class_='dropdown-item',
+        text, class_='dropdown-item',
         onclick="showImage('{0}', [{1}], '{2}', {3});".format(
             chanstring, ','.join(pstrings), plottype, captions))
 
@@ -465,7 +463,7 @@ def fancybox_img(img, linkparams=dict(), **params):
     return str(page)
 
 
-def scaffold_plots(plots, nperrow=2):
+def scaffold_plots(plots, nperrow=3):
     """Embed a `list` of images in a bootstrap scaffold
 
     Parameters
@@ -485,7 +483,7 @@ def scaffold_plots(plots, nperrow=2):
     # scaffold plots
     for i, p in enumerate(plots):
         if i % nperrow == 0:
-            page.div(class_='row', style="width:96%;")
+            page.div(class_='row')
         page.div(class_='col-sm-%d' % x)
         page.add(fancybox_img(p))
         page.div.close()  # col
@@ -570,7 +568,7 @@ def write_config_html(filepath, format='ini'):
 # -- Qscan HTML ---------------------------------------------------------------
 
 def write_summary(
-        ifo, gpstime, header='Analysis Summary',
+        ifo, gpstime, header='Summary',
         tableclass='table table-condensed table-hover table-responsive'):
     """Write the Qscan analysis summary HTML
 
@@ -593,21 +591,15 @@ def write_summary(
     utc = tconvert(gpstime)
     page = markup.page()
     page.h2(header)
-    page.p('This page shows time-frequency maps of a user-configured list of '
-           'channels for a given interferometer and GPS time. Time-frequency '
-           'maps are computed using the <a '
-           'href="https://gwpy.github.io/docs/stable/examples/timeseries/'
-           'qscan.html" target="_blank">Q-transform</a>.')
-    page.p("This analysis is based on the following run arguments.")
-    page.table(class_=tableclass)
+    page.table(class_=tableclass, style='width:40%;')
     # make table body
     page.tbody()
     page.tr()
-    page.td("<b>Interferometer</b>")
+    page.td("<b>Interferometer</b>", scope='row')
     page.td("%s (%s)" % (OBSERVATORY_MAP[ifo]['name'], ifo))
     page.tr.close()
     page.tr()
-    page.td("<b>UTC Time</b>")
+    page.td("<b>UTC Time</b>", scope='row')
     page.td("%s" % utc)
     page.tr.close()
     page.tbody.close()
@@ -635,7 +627,7 @@ def write_toc(blocks):
     page.ul()
     for i, block in enumerate(blocks):
         page.li()
-        page.a('%s' % block.name, href='#block-%s' % block.key)
+        page.a(block.name, href='#block-%s' % block.key)
         page.li.close()
     page.ul.close()
     page.div.close()
@@ -643,7 +635,7 @@ def write_toc(blocks):
 
 
 def write_block(block, context, tableclass='table table-condensed table-hover '
-                                           'table-responsive'):
+                                           'table-bordered table-responsive'):
     """Write the HTML summary for a specific block of channels
 
     Parameters
@@ -676,7 +668,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.a("<small>[top]</small>", href='#', class_='text-%s' % context)
     page.div.close()  # pull-right
     # heading
-    page.h3('%s' % block.name, class_='panel-title')
+    page.h3(block.name, class_='panel-title')
     page.div.close()  # panel-heading
 
     # -- make body
@@ -690,42 +682,50 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
             continue
         page.li(class_='list-group-item')
         page.div(class_="container")
+
+        page.div(class_='row')
+
+        # channel name
         page.h4(cis_link(channel.name))
 
         page.div(class_='row')
 
         # summary table
-        page.div(class_='col-md-3')
+        page.div(class_='col-md-7')
         page.p("Properties of the most significant time-frequency tile")
-        page.table(class_=tableclass, style='width: 95%;')
-        header = ['GPS Time', 'Frequency', 'Q Factor', 'Energy', 'SNR']
-        entry = ['%.3f' % channel.t, '%.1f Hz' % channel.f,
-                 '%.1f' % channel.Q, '%.1f' % channel.energy,
-                 '%.1f' % channel.snr]
+        page.table(class_=tableclass)
+        columns = ['GPS Time', 'Frequency', 'Quality Factor',
+                   'Normalized Energy', 'SNR']
+        entries = ['%.3f' % channel.t, '%.1f Hz' % channel.f,
+                   '%.1f' % channel.Q, '%.1f' % channel.energy,
+                   '%.1f' % channel.snr]
+        page.thead()
+        page.tr()
+        for column in columns:
+            page.th(column, scope='col')
+        page.tr.close()
+        page.thead.close()
         page.tbody()
-        for h, ent in zip(header, entry):
-            page.tr()
-            page.td('<b>%s</b>' % h)
-            page.td(ent)
-            page.tr.close()
+        page.tr()
+        for entry in entries:
+            page.td(entry)
+        page.tr.close()
         page.tbody.close()
         page.table.close()
-        page.div.close()  # col-md-3
+        page.div.close()  # col-md-7
 
-        # plots
-        page.div(class_='col-md-9')
-
-        # buttons first
+        # plot toggle buttons
+        page.div(class_='col-md-5')
         page.div(class_='btn-group', role='group')
         for ptitle, pclass, ptypes in [
             ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
-            ('Q-transform', 'qscan', ('raw', 'whitened', 'autoscaled')),
+            ('Spectrogram', 'qscan', ('raw', 'whitened', 'autoscaled')),
             ('Eventgram', 'eventgram', ('raw', 'whitened', 'autoscaled')),
         ]:
             _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
             page.div(class_='btn-group', role='group')
             page.button(id_=_id, type='button',
-                        class_='btn btn-info dropdown-toggle',
+                        class_='btn btn-%s dropdown-toggle' % context,
                         **{'data-toggle': 'dropdown'})
             page.add('{0} view <span class="caret"></span>'.format(ptitle))
             page.button.close()
@@ -737,13 +737,16 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
             page.ul.close()  # dropdown-menu
             page.div.close()  # btn-group
         page.div.close()  # btn-group
+        page.div.close()  # col-md-5
+
+        page.div.close()  # row
 
         # plots
+        page.div(class_='row')
         page.add(scaffold_plots(channel.plots['qscan_whitened'],
-                 nperrow=min(len(channel.pranges), 2)))
-
-        page.div.close()  # col-md-9
+                 nperrow=min(len(channel.pranges), 3)))
         page.div.close()  # row
+
         page.div.close()  # container
         page.li.close()
 
@@ -781,9 +784,7 @@ def write_qscan_page(blocks, context):
     """
     page = markup.page()
     page.add(write_toc(blocks))
-    page.h2('Results')
-    page.p('The following blocks of channels were scanned for interesting '
-           'time-frequency morphology:')
+    page.h2('Channel details')
     for block in blocks:
         page.add(write_block(block, context))
     return page
