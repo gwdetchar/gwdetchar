@@ -48,8 +48,9 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 # -- parse command line -------------------------------------------------------
 
 parser = cli.create_parser(description=__doc__)
-parser.add_argument('ifo', type=str, help='IFO prefix for this analysis')
 parser.add_argument('gpstime', type=str, help='GPS time of scan')
+parser.add_argument('-i', '--ifo', type=str,
+                    help='IFO prefix for this analysis, default: None')
 parser.add_argument('-o', '--output-directory',
                     help='output directory for the omega scan, '
                          'default: ~/public_html/wdq/{IFO}_{gpstime}')
@@ -71,14 +72,16 @@ cli.add_nproc_option(parser)
 
 args = parser.parse_args()
 
-print("----------------------------------------------\n"
-      "Creating %s omega scan at GPS second %s..." % (args.ifo, args.gpstime))
-
-gpstime = args.gpstime
-gps = float(gpstime)
-ifo = args.ifo
-obs = ifo[0]
+# get run parameters
+if args.ifo:
+    ifo = args.ifo
+else:
+    ifo = 'Network'
+gps = float(args.gpstime)
 far = args.far_threshold
+
+print("----------------------------------------------\n"
+      "Creating %s omega scan at GPS second %s..." % (ifo, gps))
 
 # parse configuration file
 config_files = [os.path.abspath(f) for f in args.config_file]
