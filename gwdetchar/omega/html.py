@@ -67,9 +67,15 @@ OBSERVATORY_MAP = {
     },
     'V1': {
         'name': 'Virgo',
-        'context': 'primary'
+        'context': 'default'
+    },
+    'Network': {
+        'name': 'Multi-IFO',
+        'context': 'default'
     }
 }
+
+GW_OBSERVATORY_COLORS['Network'] = '#668888'
 
 # -- set up default JS and CSS files
 
