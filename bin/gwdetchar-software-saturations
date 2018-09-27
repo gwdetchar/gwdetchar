@@ -102,6 +102,7 @@ def write_flag_html(flag, id=0, parent='accordion', context='warning',
             plotdir, '%s-%d-%d.png' % (flagr, span[0], abs(span)))
         plot = plot_saturations(flag, span)
         plot.save(png)
+        plot.close()
         page.a(href=png, target='_blank')
         page.img(style="width: 100%;", src=png)
         page.a.close()
@@ -115,12 +116,13 @@ def plot_saturations(flag, span, facecolor='red', edgecolor='darkred',
                             'edgecolor': 'gray'}):
     """Plot the saturation segments contained within this flag
     """
-    plot = flag.plot(figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
-                     known=known, label=' ')
+    plot = flag.plot(
+        figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
+        known=known, label=' ',
+        xlim=span, epoch=span[0],
+        title='%s software saturations' % flag.name.replace('_', r'\_'),
+    )
     plot.subplots_adjust(bottom=0.4, top=0.8)
-    plot.set_title('%s software saturations' % flag.name.replace('_', r'\_'))
-    plot.set_xlim(*span)
-    plot.set_epoch(span[0])
     return plot
 
 

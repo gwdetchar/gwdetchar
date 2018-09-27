@@ -38,9 +38,10 @@ import gwtrigfind
 
 from glue.lal import Cache
 
-from gwpy.plotter import (figure, HistogramPlot)
+from gwpy.plot import Plot
 from gwpy.utils import gprint
 from gwpy.table import EventTable
+from gwpy.table.filters import in_segmentlist
 from gwpy.timeseries import TimeSeriesDict
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
@@ -150,11 +151,8 @@ if args.verbose:
     gprint("Loading Omicron triggers for %s..." % args.main_channel, end=' ')
 
 names = ['peak', 'peak_frequency', 'snr']
-llwcols = ['peak_time', 'peak_time_ns', 'peak_frequency', 'snr']
 if args.plot_main_tiles:
     names.extend(['start', 'duration', 'central_freq', 'bandwidth'])
-    llwcols.extend(['start_time', 'start_time_ns', 'duration', 'central_freq',
-                    'bandwidth'])
 
 fullcache = Cache()
 for seg in statea:
@@ -169,12 +167,10 @@ for seg in statea:
 # read triggers
 if fullcache:
     trigs = EventTable.read(
-        fullcache, columns=names,
-        ligolw_columns=llwcols, get_as_columns=True,
-        selection='peak_frequency < %s' % (args.frequency_threshold * 2),
-        format='ligolw.sngl_burst', nproc=args.nproc)
-    # restrict to requested times (easier to do once here than in .read())
-    trigs = trigs[trigs['peak'].in_segmentlist(statea)]
+        fullcache, columns=names, use_numpy_dtypes=True,
+        selection=['peak_frequency < %s' % (args.frequency_threshold * 2),
+                   ('peak', in_segmentlist, statea)],
+        format='ligolw', tablename='sngl_burst', nproc=args.nproc)
 else:  # no files (no livetime?)
     trigs = EventTable(names=names)
 
@@ -224,7 +220,7 @@ alldata = []
 for i, seg in enumerate(statea):
     alldata.append(
         TimeSeriesDict.get(allchannels, seg[0], seg[1], nproc=args.nproc,
-                           resample=128, frametype=args.frametype, **io_kw))
+                           frametype=args.frametype, **io_kw).resample(128))
     if args.verbose:
         gprint("Reading all data... %d/%d segments read"
            % (i+1, len(statea)), end='\r')
@@ -241,13 +237,12 @@ for i, channel in enumerate(sorted(allchannels)):
     flag = '%s:DCH-%s_SCATTERING_GE_%s_HZ:1' % (args.ifo, optic, tstr)
     scatter_segments[channel] = DataQualityFlag(flag)
     # set up plot(s)
-    plot = figure(figsize=[12, 12])
+    plot = Plot(figsize=[12, 12])
     axes = {}
-    axes['position'] = plot.add_subplot(411, projection='timeseries')
-    axes['fringef'] = plot.add_subplot(412, projection='timeseries',
-                                       sharex=axes['position'])
-    axes['triggers'] = plot.add_subplot(413, projection='triggers',
-                                        sharex=axes['position'])
+    axes['position'] = plot.add_subplot(411, xscale='auto-gps', xlabel='')
+    axes['fringef'] = plot.add_subplot(412, sharex=axes['position'], xlabel='')
+    axes['triggers'] = plot.add_subplot(413, sharex=axes['position'],
+                                        xlabel='')
     axes['segments'] = plot.add_subplot(414, projection='segments',
                                         sharex=axes['position'])
     plot.subplots_adjust(bottom=.07, top=.95)
@@ -302,8 +297,8 @@ for i, channel in enumerate(sorted(allchannels)):
         deadtimepc = 0.
     if args.verbose:
         gprint("Deadtime: %.2f%% (%.2f/%ds)" % (deadtimepc, deadtime, livetime))
-    efficiency = highsnrtrigs['peak'].in_segmentlist(
-        scatter_segments[channel].active).sum()
+    efficiency = in_segmentlist(highsnrtrigs['peak'],
+                                scatter_segments[channel].active).sum()
     try:
         efficiencypc = efficiency / len(highsnrtrigs) * 100
     except ZeroDivisionError:
@@ -345,12 +340,12 @@ for i, channel in enumerate(sorted(allchannels)):
                            borderaxespad=0, bbox_to_anchor=(-0.01, 1.),
                            handlelength=1)
     if args.plot_main_tiles:
-        axes['triggers'].plot_tiles(trigs, 'start', 'flow', 'duration',
-                                    'bandwidth', 'snr', edgecolor='face',
-                                    linewidth=.1, anchor='ll')
+        axes['triggers'].tile(trigs['start'], trigs['flow'], trigs['duration'],
+                              trigs['bandwidth'], trigs['snr'],
+                              edgecolors='face', linewidth=.1, anchor='ll')
     else:
-        axes['triggers'].plot(trigs, 'peak', 'peak_frequency', color='snr',
-                              edgecolor='none')
+        axes['triggers'].scatter(trigs['peak'], trigs['peak_frequency'],
+                                 c=trigs['snr'], edgecolor='none')
     axes['triggers'].text(
         0.01, 0.95,
         '%s event triggers (Omicron)' % args.main_channel.replace('_', r'\_'),
@@ -358,8 +353,8 @@ for i, channel in enumerate(sorted(allchannels)):
         bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
     axes['triggers'].set_ylabel('Frequency [Hz]')
     axes['triggers'].set_ylim(0, 2 * args.frequency_threshold)
-    plot.add_colorbar(ax=axes['triggers'], cmap='YlGnBu', clim=[3, 100],
-                      log=True, label='Signal-to-noise ratio')
+    axes['triggers'].colorbar(cmap='YlGnBu', clim=(3, 100), norm='log',
+                              label='Signal-to-noise ratio')
     axes['segments'].set_ylim(-.55, .55)
     axes['segments'].text(
         0.01, 0.95,
@@ -369,8 +364,6 @@ for i, channel in enumerate(sorted(allchannels)):
     for ax in axes.values():
         ax.set_epoch(int(args.gpsstart))
         ax.set_xlim(*span)
-        if ax is not axes['triggers']:
-            plot.add_colorbar(ax=ax, visible=False)
     png = '%s_SCATTERING_%s_HZ-%s.png' % (chanstr, tstr, gpsstr)
     try:
         plot.save(png)
@@ -384,7 +377,7 @@ for i, channel in enumerate(sorted(allchannels)):
         gprint("%s written." % png)
 
     # make histogram
-    histogram = HistogramPlot(figsize=[12, 6])
+    histogram = Plot(figsize=[12, 6])
     ax = histogram.gca()
     hrange = (0, 2 * args.frequency_threshold)
     for m, color in zip(histdata, fringecolors)[::-1]:

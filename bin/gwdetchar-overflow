@@ -57,11 +57,10 @@ def plot_overflows(flag, span, facecolor='red', edgecolor='darkred',
     """Plot the overflow segments contained within this flag
     """
     plot = flag.plot(figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
-                     known=known, label=' ')
+                     known=known, label=' ',
+                     xlim=span, xscale='auto-gps', epoch=span[0],
+                     title='%s segments' % flag.name.replace('_', r'\_'))
     plot.subplots_adjust(bottom=0.4, top=0.8)
-    plot.set_title('%s segments' % flag.name.replace('_', r'\_'))
-    plot.set_xlim(*span)
-    plot.set_epoch(span[0])
     return plot
 
 
