@@ -23,20 +23,17 @@ import os
 import re
 import multiprocessing
 import sys
-from subprocess import call
 import tempfile
 import atexit
 import shutil
+import warnings
 
-from math import (isnan, isinf, log, log10)
 import numpy
 from scipy.interpolate import UnivariateSpline
-import astropy.units as u
 
 from matplotlib import use
-use('agg')
-import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
+use('agg')  # nopep8
+from matplotlib import cm as mcm
 
 from sklearn import linear_model
 from sklearn.preprocessing import scale
@@ -44,14 +41,13 @@ from sklearn.preprocessing import scale
 from gwpy.table import Table
 from pandas import set_option
 
+from gwpy.plot import Plot
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.time import (Time, from_gps)
-from gwpy.plotter import TimeSeriesPlot
-from gwpy.plotter import Plot as gwplot
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
-from gwdetchar import cli
+from gwdetchar import (cli, lasso as gwlasso)
 from gwdetchar.io import html
 
 try:
@@ -101,7 +97,6 @@ def configure_mpl():
 
     import matplotlib
     matplotlib.use('agg')
-    import matplotlib.pyplot as plt
 
     class TexManager(matplotlib.texmanager.TexManager):
         texcache = os.path.join(mpldir, 'tex.cache')
@@ -110,6 +105,32 @@ def configure_mpl():
     matplotlib.rcParams['ps.useafm'] = True
     matplotlib.rcParams['pdf.use14corefonts'] = True
     matplotlib.rcParams['text.usetex'] = True
+
+
+def save_figure(fig, pngfile, **kwargs):
+    try:
+        fig.save(pngfile, **kwargs)
+    except (RuntimeError, IOError, IndexError):
+        try:
+            fig.save(pngfile, **kwargs)
+        except (RuntimeError, IOError, IndexError) as e:
+            warnings.warn('Error saving {0}: {1}'.format(pngfile, str(e)))
+            return
+    fig.close()
+    return pngfile
+
+
+def save_legend(axes, pngfile, loc='center', frameon=False, fontsize='small',
+                **kwargs):
+    fig = Plot()
+    leg = fig.legend(*axes.get_legend_handles_labels(), loc=loc,
+                     frameon=frameon, fontsize=fontsize, **kwargs)
+    for line in leg.get_lines():
+        line.set_linewidth(8)
+    fig.canvas.draw_idle()
+    return save_figure(fig, pngfile,
+                       bbox_inches=(leg.get_window_extent().transformed(
+                           fig.dpi_scale_trans.inverted())))
 
 
 # -- parse command line -------------------------------------------------------
@@ -187,12 +208,10 @@ if args.band_pass:
     print("-- Loading primary channel data")
     bandts = TimeSeries.get(primary, start-pad, end+pad, verbose=True,
                             nproc=args.nproc)
-    if(flower < 0 or fupper >= float(bandts.sample_rate/(1.*u.Hz))*.5):
-        print("\tError with band pass: frequency is"
-              " out of range for this channel.")
-        print("\tBand (Hz): " + str(args.band_pass)
-              + ", Channel sample rate (Hz): " + str(bandts.sample_rate))
-        quit()
+    if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
+        raise ValueError("bandpass frequency is out of range for this "
+                         "channel, band (Hz): {0}, sample rate: {1}".format(
+                             args.band_pass, bandts.sample_rate))
 
     # get darm BLRMS
     print("-- Filtering data")
@@ -237,19 +256,15 @@ def descaler(l, *coef):
         return [((x * primary_std) + primary_mean) for x in l]
 
 
-hour_axis = (numpy.arange(len(primaryts.value)))/60
-for i in range(len(hour_axis)):
-    hour_axis[i] = round(hour_axis[i], 2)
-
 # get aux data
 print("-- Loading auxiliary channel data")
-host, port = io_nds2.host_resolution_order(args.ifo)[0]
 if args.channel_file is None:
+    host, port = io_nds2.host_resolution_order(args.ifo)[0]
     channels = ChannelList.query_nds2('*.mean', host=host, port=port,
                                       type='m-trend')
 else:
     with open(args.channel_file, 'r') as f:
-        channels = f.read().rstrip('\n').split('\n')
+        channels = [name.rstrip('\n') for name in f]
 nchan = len(channels)
 print("Identified %d channels" % nchan)
 
@@ -259,170 +274,94 @@ else:
     frametype = '%s_T' % args.ifo  # for second trends
 
 auxdata = TimeSeriesDict.get(
-    map(str, channels), start, end, verbose=True,
+    channels, start, end, verbose=True,
     frametype=frametype, nproc=args.nproc,
     observatory=args.ifo[0], pad=0, **io_kw)
 
 # -- removes flat data to be re-introdused later
-flatdata = dict()
-gooddata = dict()
 
-for k, ts in auxdata.items():
-    flat = ts.value.min() == ts.value.max()
-    if flat:
-        flatdata[k] = ts
-    else:
-        gooddata[k] = ts
-auxdata = gooddata
-flattab = Table(data=(numpy.asarray(flatdata.keys()),), names=('Channels',))
+print('-- Pre-processing auxiliary channel data')
 
-# -- removes NaN data
-nandata = dict()
-gooddata = dict()
+gwlasso.remove_flat(auxdata)
+flattab = Table(data=(list(set(channels) - set(auxdata.keys())),),
+                names=('Channels',))
+print('Removed {0} channels with flat data'.format(len(flattab)))
+print('{0} channels remaining'.format(len(auxdata)))
+
+# -- remove bad data
 
 try:
     data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 except ValueError:
     print("Nan or Inf found in data, removing bad channels...")
-    for k, v in auxdata.items():
-        hasnan = 0
-        for x in range(len(v.value)):
-            if isnan(v.value[x]) or isinf(v.value[x]):
-                hasnan += 1
-        if hasnan > 0:
-            nandata[k] = v
-        else:
-            gooddata[k] = v
-    print("Nan and Inf channels removed.")
-    auxdata = gooddata
+    nbefore = len(auxdata)
+    gwlasso.remove_bad(auxdata)
+    nafter = len(auxdata)
+    print('Removed {0} channels with bad data'.format(nbefore - nafter))
+    print('{0} channels remaining'.format(nafter))
     data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
-
 
 # -- perform lasso regression -------------------------------------------------
 
 # create model
-if args.alpha is None:
-    alphas = numpy.logspace(-1, 0, 100, endpoint=True)
-    primary_scaled = scale(primaryts.value)
-    nchans = numpy.zeros(len(alphas))
-    coef_path = numpy.zeros((len(data[0, :]), len(alphas)))
-    for i in range(0, len(alphas)):
-        model = linear_model.Lasso(alpha=alphas[i])
-        model.fit(data, primary_scaled)
-        nchans[i] = len(numpy.nonzero(model.coef_)[0])
-        coef_path[:, i] = model.coef_
-    if 0 in nchans:
-        badalphas = list()
-        for i in range(0, len(alphas)):
-            if nchans[i] == 0:
-                badalphas.append(i)
-        badalphas = badalphas[::-1]
-        for i in range(0, len(badalphas)):
-            alphas = numpy.delete(alphas, badalphas[i])
-            nchans = numpy.delete(nchans, badalphas[i])
-            coef_path = numpy.delete(coef_path, badalphas[i], 1)
-
-    X = data
-    y = primary_scaled
-    n_samples = X.shape[0]
-    K_A = 2
-    K_B = log(n_samples)
-
-    R = y[:, numpy.newaxis] - numpy.dot(X, coef_path)  # residuals
-    mean_squared_error = numpy.mean(R ** 2, axis=0)
-    sigma2 = numpy.var(y)
-
-    df = nchans
-    eps64 = numpy.finfo('float64').eps
-    criterion_A = (n_samples * mean_squared_error / (sigma2 + eps64)
-                   + K_A * df)  # Eqns. 2.15--16 in (Zou et al, 2007)
-    criterion_B = (n_samples * mean_squared_error / (sigma2 + eps64)
-                   + K_B * df)  # Eqns. 2.15--16 in (Zou et al, 2007)
-    n_best = numpy.argmin(criterion_B)
-    n_best_A = numpy.argmin(criterion_A)
-
-    alpha_ = alphas[n_best]
-    coef_ = coef_path[:, n_best]
-
-    alpha_A = alphas[n_best_A]
-    coef_A = coef_path[:, n_best_A]
-    model = linear_model.Lasso(alpha_)
-    model.fit(data, primary_scaled)
-else:
-    model = linear_model.Lasso(args.alpha)
-    model.fit(data, scale(primaryts.value))
-
-# pulls out alphas
-usedalpha = 0
-if args.alpha is None:
-    usedalpha = model.alpha
-else:
-    usedalpha = args.alpha
+print('-- Fitting data to target')
+target = scale(primaryts.value)
+model = gwlasso.fit(data, target, alpha=args.alpha)
+print('Alpha:', model.alpha)
 
 # restructure results for convenience
-unsorted_results = []
-for n, k in enumerate(auxdata.keys()):
-    unsorted_results.append([k, model.coef_[n]])
-unsorted_results = sorted(unsorted_results, key=lambda x: abs(x[1]),
-                          reverse=True)
-sorted_results = ([[x[0] for x in unsorted_results],
-                  [y[1] for y in unsorted_results]])
-resultstab = Table(data=(sorted_results[0], sorted_results[1]),
-                   names=('Channel', 'Lasso coefficient'))
+allresults = Table(data=(auxdata.keys(), model.coef_, numpy.abs(model.coef_)),
+                   names=('Channel', 'Lasso coefficient', 'rank'))
+allresults.sort('rank')
+allresults.reverse()
+useful = allresults['rank'] > 0
+allresults.remove_column('rank')
+results = allresults[useful]  # non-zero coefficient
+zeroed = allresults[numpy.invert(useful)]  # zero coefficient
 
-nonzerodata = dict()
-nonzerocoef = dict()
-usefulcount = 0
-i = 0
-
-while(i < len(sorted_results[1]) and abs(sorted_results[1][i]) > 0):
-    nonzerodata[sorted_results[0][i]] = auxdata[sorted_results[0][i]]
-    nonzerocoef[sorted_results[0][i]] = sorted_results[1][i]
-    if abs(sorted_results[1][i]) >= args.threshold:
-        usefulcount += 1
-    i += 1
-
-usefultab = Table(data=(resultstab['Channel'][0:usefulcount],
-                        resultstab['Lasso coefficient'][0:usefulcount]),
-                  names=('Channel', 'Lasso coefficient'))
-
-zeroed = resultstab['Lasso coefficient'] == 0
-zeroedtab = Table(data=(resultstab[zeroed]['Channel'],), names=('Channels',))
+# extract data for useful channels
+nonzerodata = {name: auxdata[name] for name in results['Channel']}
+nonzerocoef = {name: coeff for name, coeff in results.as_array()}
 
 # print results
 print('Found {} channels with |Lasso coefficient| >= {}'.format(
-    len(usefultab), args.threshold))
-print(usefultab)
+    len(results), args.threshold))
+print(results)
 
+# convert to pandas
 set_option('max_colwidth', 200)
-df = usefultab.to_pandas()
+df = results.to_pandas()
 df.index += 1
 
+# write results to files
 gpsstub = '%d-%d' % (start, end-start)
 resultsfile = '%s-LASSO_RESULTS-%s.txt' % (args.ifo, gpsstub)
+results.write(resultsfile, format='ascii', overwrite=True)
 zerofile = '%s-ZERO_COEFFICIENT_CHANNELS-%s.txt' % (args.ifo, gpsstub)
+zeroed.write(zerofile, format='ascii', overwrite=True)
 flatfile = '%s-FLAT_CHANNELS-%s.txt' % (args.ifo, gpsstub)
-
-resultstab.write(resultsfile, format='ascii', overwrite=True)
-zeroedtab.write(zerofile, format='ascii', overwrite=True)
 flattab.write(flatfile, format='ascii', overwrite=True)
 
-# generate lasso plots
+# -- generate lasso plots
+
 modelFit = model.predict(data)
 
 re_delim = re.compile('[:_-]')
 form = '%%.%dd' % len(str(nchan))
 p1 = (.1, .15, .9, .9)  # global plot defaults for plot1, lasso model
 
-fig = plt.figure(figsize=(12, 6))
-fig.subplots_adjust(*p1)
-ax = fig.add_subplot(1, 1, 1)
-ax.plot(hour_axis, descaler(scale(primaryts.value)), color='black',
-        linewidth=args.line_size_primary, label=primary.replace('_', '\_'))
-ax.plot(hour_axis, descaler(modelFit),
-        linewidth=args.line_size_aux, label='Lasso model')
-ax.margins(x=0)
-ax.set_xlabel(auto_xlabel)
+times = primaryts.times.value
+xlim = primaryts.span
+cmap = mcm.get_cmap('tab20')
+colors = [cmap(i) for i in numpy.linspace(0, 1, len(nonzerodata)+1)]
+
+plot = Plot(figsize=(12, 6))
+plot.subplots_adjust(*p1)
+ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
+ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),
+        color='black', linewidth=args.line_size_primary)
+ax.plot(times, descaler(modelFit), label='Lasso model',
+        linewidth=args.line_size_aux)
 if range_is_primary:
     ax.set_ylabel('Sensitive range [Mpc]')
     ax.set_title('Lasso Model of Range')
@@ -430,178 +369,68 @@ else:
     ax.set_ylabel('Primary Channel Units')
     ax.set_title('Lasso Model of Primary Channel')
 ax.legend(loc='best')
-fig.canvas.draw_idle()
+plot1 = save_figure(plot, '%s-LASSO_MODEL-%s.png' % (args.ifo, gpsstub))
 
-plot1 = '%s-LASSO_MODEL-%s.png' % (args.ifo, gpsstub)
-try:
-    fig.savefig(plot1)
-except (RuntimeError, IOError, IndexError):
-    try:
-        fig.savefig(plot1)
-    except (RuntimeError, IOError, IndexError) as e:
-        print("Error trying to save plot1 image, %s: " % plot1)
-        print(e)
-        plot1 = None
-plt.close(fig)
-
-# generate plots for channel contribution to model
-colors = []
-labels = []
-fig = plt.figure(figsize=(8, 5))
-fig.subplots_adjust(*p1)
-ax = fig.add_subplot(1, 1, 1)
-firstchan = sorted_results[0][0]
-
-cmap = plt.get_cmap('tab20')
-colormaps = [cmap(i) for i in numpy.linspace(0, 1, len(nonzerodata)+1)]
-
-line1 = ax.plot(
-    hour_axis,
-    descaler(scale(primaryts.value)),
-    color='black',
-    linewidth=args.line_size_primary,
-    label=primary.replace('_', '\_'))
-colors.append(line1[0].get_color())
-labels.append(line1[0].get_label())
-
-line2 = ax.plot(
-    hour_axis,
-    descaler(scale(nonzerodata[firstchan].value)*nonzerocoef[firstchan]),
-    linewidth=args.line_size_aux, label='Channel 1', color=colormaps[0])
-colors.append(line2[0].get_color())
-labels.append(line2[0].get_label())
-
-for n in range(1, len(nonzerodata)):
-    summation = scale(nonzerodata[firstchan].value)*nonzerocoef[firstchan]
-    for m in range(n, 0, -1):
-        chan = sorted_results[0][m]
-        summation = numpy.add(summation, (scale(nonzerodata[chan].value)
-                                          * nonzerocoef[chan]))
-    line = ax.plot(hour_axis, descaler(summation),
-                   linewidth=args.line_size_aux,
-                   label='Channels 1-' + str(n+1), color=colormaps[n])
-    colors.append(line[0].get_color())
-    labels.append(line[0].get_label())
-
-ax.margins(x=0)
-ax.set_xlabel(auto_xlabel)
+# summed contributions
+plot = Plot(figsize=(8, 5))
+plot.subplots_adjust(*p1)
+ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
+ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),  # primary
+        color='black', linewidth=args.line_size_primary)
+summed = 0
+for i, name in enumerate(results['Channel']):
+    summed += scale(nonzerodata[name].value) * nonzerocoef[name]
+    if i:
+        label = 'Channels 1-{0}'.format(i+1)
+    else:
+        label = 'Channel 1'
+    ax.plot(times, descaler(summed), label=label, color=colors[i],
+            linewidth=args.line_size_aux)
 if range_is_primary:
     ax.set_ylabel('Sensitive range [Mpc]')
 else:
     ax.set_ylabel('Primary Channel Units')
 ax.set_title('Summations of Channel Contributions to Model')
-fig.canvas.draw_idle()
 
-plot2 = '%s-LASSO_CHANNEL_SUMMATION-%s.png' % (args.ifo, gpsstub)
-try:
-    fig.savefig(plot2)
-except (RuntimeError, IOError, IndexError):
-    try:
-        fig.savefig(plot2)
-    except (RuntimeError, IOError, IndexError) as e:
-        print("Error trying to save plot2 image, %s: " % plot2)
-        print(e)
-        plot2 = None
-plt.close(fig)
+# save legend as a separate figure
+#     we save the legend first because save_figure() calls fig.close()
+#     which clears the axes
+plot2_legend = save_legend(
+    ax, '%s-LASSO_CHANNEL_SUMMATION_LEGEND-%s.png' % (args.ifo, gpsstub),
+)
 
-legend_fig = plt.figure()
-patches = [
-    Patch(color=color, label=label)
-    for label, color in zip(labels, colors)]
-legend = legend_fig.legend(patches, labels, loc='center',
-                           frameon=False, fontsize='small')
-legend_fig.canvas.draw_idle()
+# save figure
+plot2 = save_figure(plot,
+                    '%s-LASSO_CHANNEL_SUMMATION-%s.png' % (args.ifo, gpsstub))
 
-plot2_legend = ('%s-LASSO_CHANNEL_SUMMATION_LEGEND-%s.png'
-                % (args.ifo, gpsstub))
-try:
-    legend_fig.savefig(
-        plot2_legend,
-        bbox_inches=(legend.get_window_extent()
-                     .transformed(legend_fig.dpi_scale_trans.inverted())))
-except (RuntimeError, IOError, IndexError):
-    try:
-        legend_fig.savefig(
-            plot2_legend,
-            bbox_inches=(legend.get_window_extent()
-                         .transformed(legend_fig.dpi_scale_trans.inverted())))
-    except (RuntimeError, IOError, IndexError) as e:
-        print("Error trying to save plot2_legend image, %s: " % plot2_legend)
-        print(e)
-        plot2_legend = None
-plt.close(legend_fig)
 
-colors = []
-labels = []
-fig = plt.figure(figsize=(8, 5))
-fig.subplots_adjust(*p1)
-ax = fig.add_subplot(1, 1, 1)
-line = ax.plot(hour_axis, descaler(scale(primaryts.value)), color='black',
-               linewidth=args.line_size_primary,
-               label=primary.replace('_', '\_'))
-colors.append(line[0].get_color())
-labels.append(line[0].get_label())
-
-for n in range(0, len(nonzerodata)):
-    chan = sorted_results[0][n]
-    if nonzerodata[chan] is not None:
-        line = ax.plot(hour_axis,
-                       (descaler(scale(nonzerodata[chan].value)
-                                 * nonzerocoef[chan])),
-                       linewidth=args.line_size_aux,
-                       label=chan.replace('_', '\_'), color=colormaps[n])
-        colors.append(line[0].get_color())
-        labels.append(line[0].get_label())
-
-ax.margins(x=0)
-ax.set_xlabel(auto_xlabel)
+# individual contributions
+plot = Plot(figsize=(8, 5))
+plot.subplots_adjust(*p1)
+ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
+ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),  # primary
+        color='black', linewidth=args.line_size_primary)
+for i, name in enumerate(results['Channel']):
+    this = descaler(scale(nonzerodata[name].value) * nonzerocoef[name])
+    if i:
+        label = 'Channels 1-{0}'.format(i+1)
+    else:
+        label = 'Channel 1'
+    ax.plot(times, this, label=name.replace('_', r'\_'), color=colors[i],
+            linewidth=args.line_size_aux)
 if range_is_primary:
     ax.set_ylabel('Sensitive range [Mpc]')
 else:
     ax.set_ylabel('Primary Channel Units')
 ax.set_title('Individual Channel Contributions to Model')
-fig.canvas.draw_idle()
 
-plot3 = '%s-LASSO_CHANNEL_CONTRIBUTIONS-%s.png' % (args.ifo, gpsstub)
-try:
-    fig.savefig(plot3)
-except (RuntimeError, IOError, IndexError):
-    try:
-        fig.savefig(plot3)
-    except (RuntimeError, IOError, IndexError) as e:
-        print("Error trying to save plot3 image, %s: " % plot3)
-        print(e)
-        plot3 = None
-plt.close(fig)
+plot3_legend = save_legend(
+    ax, '%s-LASSO_CHANNEL_CONTRIBUTIONS_LEGEND-%s.png' % (args.ifo, gpsstub))
+plot3 = save_figure(
+    plot, '%s-LASSO_CHANNEL_CONTRIBUTIONS-%s.png' % (args.ifo, gpsstub))
 
-legend_fig = plt.figure()
-patches = [
-    Patch(color=color, label=label)
-    for label, color in zip(labels, colors)]
-legend = legend_fig.legend(patches, labels, loc='center',
-                           frameon=False, fontsize='small')
-legend_fig.canvas.draw_idle()
+# -- process aux channels, making plots
 
-plot3_legend = ('%s-LASSO_CHANNEL_CONTRIBUTIONS_LEGEND-%s.png'
-                % (args.ifo, gpsstub))
-try:
-    legend_fig.savefig(
-        plot3_legend,
-        bbox_inches=(legend.get_window_extent()
-                     .transformed(legend_fig.dpi_scale_trans.inverted())))
-except (RuntimeError, IOError, IndexError):
-    try:
-        legend_fig.savefig(
-            plot3_legend,
-            bbox_inches=(legend.get_window_extent()
-                         .transformed(legend_fig.dpi_scale_trans.inverted())))
-    except (RuntimeError, IOError, IndexError) as e:
-        print("Error trying to save plot3_legend image, %s: " % plot3_legend)
-        print(e)
-        plot3_legend = None
-plt.close(legend_fig)
-
-# process aux channels, making plots
 print("-- Processing channels")
 counter = multiprocessing.Value('i', 0)
 p4 = (.1, .1, .9, .95)  # global plot defaults for plot4, timeseries subplots
@@ -627,25 +456,26 @@ def process_channel(input_,):
             pcorr = numpy.corrcoef(ts.value, primaryts.value)[0, 1]
         else:
             pcorr = 0.0
-        if(abs(lassocoef) < args.threshold):
+        if abs(lassocoef) < args.threshold:
             with counter.get_lock():
                 counter.value += 1
-                pc = 100 * counter.value / len(nonzerodata)
-                print("Completed [%d/%d] %3d%% %-50s"
-                      % (counter.value, len(nonzerodata), pc,
-                         '(%s)' % str(chan)),
-                      end='\r')
-                sys.stdout.flush()
+            pc = 100 * counter.value / len(nonzerodata)
+            print("Completed [%d/%d] %3d%% %-50s"
+                  % (counter.value, len(nonzerodata), pc,
+                     '(%s)' % str(chan)),
+                  end='\r')
+            sys.stdout.flush()
             return chan, lassocoef, plot4, plot5, plot6, ts
 
         # create time series subplots
-        fig, (ax1, ax2) = plt.subplots(2, sharex=True, figsize=(12, 12))
-        ax1.plot(hour_axis, primaryts, color='black',
-                 linewidth=args.line_size_primary,
-                 label=primary.replace('_', '\_'))
-        ax2.plot(hour_axis, ts,
-                 linewidth=args.line_size_aux, label=chan.replace('_', '\_'))
+        fig = Plot(figsize=(12, 12))
         fig.subplots_adjust(*p4)
+        ax1 = fig.add_subplot(2, 1, 1, xscale='auto-gps', epoch=start)
+        ax1.plot(primaryts, label=primary.replace('_', r'\_'),
+                 color='black', linewidth=args.line_size_primary)
+        ax2 = fig.add_subplot(2, 1, 2, sharex=ax1, xlim=xlim)
+        ax2.plot(ts, label=chan.replace('_', r'\_'),
+                 linewidth=args.line_size_aux)
         if range_is_primary:
             ax1.set_ylabel('Sensitive range [Mpc]')
         else:
@@ -653,119 +483,51 @@ def process_channel(input_,):
         ax2.set_ylabel('Channel units')
         for ax in fig.axes:
             ax.legend(loc='best')
-            ax.margins(x=0)
-        ax2.set_xlabel(auto_xlabel)
         channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
-
-        plot4 = '%s_TRENDS-%s.png' % (channelstub, gpsstub)
-        try:
-            fig.canvas.draw_idle()
-            fig.savefig(plot4)
-        except (RuntimeError, IOError, IndexError):
-            try:
-                fig.canvas.draw_idle()
-                fig.savefig(plot4)
-            except (RuntimeError, IOError, IndexError) as e:
-                print("Error trying to save plot4 image, %s: " % plot4)
-                print(e)
-                plot4 = None
-        except ValueError as e:
-            print("Error trying to save plot4 image, %s: " % plot4)
-            print(e)
-            plot4 = None
-        plt.close(fig)
+        plot4 = save_figure(fig, '%s_TRENDS-%s.png' % (channelstub, gpsstub))
 
         # create scaled, sign-corrected, and overlayed timeseries
         tsscaled = scale(ts.value)
         if lassocoef < 0:
             tsscaled = numpy.negative(tsscaled)
-        fig = plt.figure(figsize=(12, 6))
+        fig = Plot(figsize=(12, 6))
         fig.subplots_adjust(*p1)
-        ax = fig.add_subplot(1, 1, 1)
-        ax.plot(
-            hour_axis, descaler(scale(primaryts.value)),
-            color='black', linewidth=args.line_size_primary,
-            label=primary.replace('_', '\_'))
-        ax.plot(
-            hour_axis, descaler(tsscaled),
-            linewidth=args.line_size_aux,
-            label=chan.replace('_', '\_'))
-        ax.margins(x=0)
-        ax.set_xlabel(auto_xlabel)
+        ax = fig.gca(xscale='auto-gps', epoch=start, xlim=xlim)
+        ax.plot(times, descaler(target), label=primary.replace('_', '\_'),
+                color='black', linewidth=args.line_size_primary)
+        ax.plot(times, descaler(tsscaled), label=chan.replace('_', '\_'),
+                linewidth=args.line_size_aux)
         if range_is_primary:
             ax.set_ylabel('Sensitive range [Mpc]')
         else:
             ax.set_ylabel('Primary Channel Units')
         ax.legend(loc='best')
-
-        plot5 = '%s_COMPARISON-%s.png' % (channelstub, gpsstub)
-        try:
-            fig.canvas.draw_idle()
-            fig.savefig(plot5)
-        except (RuntimeError, IOError, IndexError):
-            try:
-                fig.canvas.draw_idle()
-                fig.savefig(plot5)
-            except (RuntimeError, IOError, IndexError) as e:
-                print("Error trying to save plot5 image, %s: " % plot5)
-                print(e)
-                plot5 = None
-        except ValueError as e:
-            print("Error trying to save plot5 image, %s: " % plot5)
-            print(e)
-            plot5 = None
-        plt.close(fig)
+        plot5 = save_figure(fig,
+                            '%s_COMPARISON-%s.png' % (channelstub, gpsstub))
 
         # scatter plot
-        primaryColor = 'red'
-        plotHeight = 6
-        plotWidth = 12
-
-        tsCopy = ts.reshape(-1, 1)
-        primarytsCopy = primaryts.reshape(-1, 1)
+        tsCopy = ts.value.reshape(-1, 1)
+        primarytsCopy = primaryts.value.reshape(-1, 1)
         primaryReg = linear_model.LinearRegression()
         primaryReg.fit(tsCopy, primarytsCopy)
         primaryFit = primaryReg.predict(tsCopy)
-
-        fig = gwplot()
+        fig = Plot(figsize=(12, 6))
         fig.subplots_adjust(*p1)
-        ax = fig.add_subplot(1, 1, 1)
+        ax = fig.gca()
         ax.set_xlabel(chan.replace('_', '\_') + ' [Channel units]')
         if range_is_primary:
             ax.set_ylabel('Sensitive range [Mpc]')
         else:
             ax.set_ylabel('Primary channel units')
-        yrange = abs(max(primaryts.value) - min(primaryts.value))
-        yupper = max(primaryts.value) + .1 * yrange
-        ylower = min(primaryts.value) - .1 * yrange
-        ax.set_ylim(ylower, yupper)
         ax.text(.9, .1, 'r = ' + str('{0:.2}'.format(pcorr)),
                 verticalalignment='bottom', horizontalalignment='right',
                 transform=ax.transAxes, color='black', size=20,
                 bbox=dict(boxstyle='square', facecolor='white', alpha=.75,
                 edgecolor='black'))
-        fig.add_scatter(ts, primaryts, color=primaryColor)
-        fig.add_line(ts, primaryFit, color='black')
-        fig.set_figheight(plotHeight)
-        fig.set_figwidth(plotWidth)
-
-        plot6 = '%s_SCATTER-%s.png' % (channelstub, gpsstub)
-        try:
-            fig.canvas.draw_idle()
-            fig.save(plot6)
-        except (RuntimeError, IOError, IndexError):
-            try:
-                fig.canvas.draw_idle()
-                fig.save(plot6)
-            except (RuntimeError, IOError, IndexError) as e:
-                print("Error trying to save plot6 image, %s: " % plot6)
-                print(e)
-                plot6 = None
-        except ValueError as e:
-            print("Error trying to save plot6 image, %s: " % plot6)
-            print(e)
-            plot6 = None
-        plt.close(fig)
+        ax.scatter(ts.value, primaryts.value, color='red')
+        ax.plot(ts.value, primaryFit, color='black')
+        ax.autoscale_view(tight=False, scalex=True, scaley=True)
+        plot6 = save_figure(fig, '%s_SCATTER-%s.png' % (channelstub, gpsstub))
 
     # increment counter and print status
     with counter.get_lock():
@@ -801,139 +563,61 @@ def generate_cluster(input_,):
     plot7_list = None
 
     if current < len(nonzerodata):
-        current_cluster = []
-        for other, otheritem in enumerate(auxdata.iteritems()):
-            otherchan = otheritem[0]
-            otherts = otheritem[1]
-            if otherchan != currentchan:
-                pcorr = numpy.corrcoef(currentts.value, otherts.value)[0, 1]
-                if(abs(pcorr) >= cluster_threshold):
-                    otherchannelstub = (re_delim.sub('_', otherchan)
-                                        .replace('_', '-', 1))
-                    current_cluster.append([other, otherts, pcorr,
-                                            otherchan, otherchannelstub])
-        if len(current_cluster) == 0:
-            with counter.get_lock():
-                counter.value += 1
-                pc = 100 * counter.value / len(nonzerodata)
-                print("Completed [%d/%d] %3d%% %-50s"
-                      % (counter.value, len(nonzerodata), pc,
-                         '(%s)' % str(currentchan)),
-                      end='\r')
-                sys.stdout.flush()
-            return plot7, plot7_legend, plot7_list
-        else:
-            colors = []
-            labels = []
-            fig = plt.figure(figsize=(8, 5))
-            fig.subplots_adjust(*p7)
-            ax = fig.add_subplot(1, 1, 1)
-            current_cluster = sorted(current_cluster, key=lambda x: abs(x[2]),
-                                     reverse=True)
+        cluster = []
+        for i, otheritem in enumerate(auxdata.iteritems()):
+            chan_, ts_ = otheritem
+            if chan_ != currentchan:
+                pcorr = numpy.corrcoef(currentts.value, ts_.value)[0, 1]
+                if abs(pcorr) >= cluster_threshold:
+                    stub = re_delim.sub('_', chan_).replace('_', '-', 1)
+                    cluster.append([i, ts_, pcorr, chan_, stub])
 
-            exceeds_max_chans = len(current_cluster) > max_correlated_channels
-            cmap = plt.get_cmap('tab20')
-            if exceeds_max_chans:
-                cluster_range = max_correlated_channels
-                colormaps = [cmap(i) for i in numpy.linspace(0, 1, 21)]
-            else:
-                cluster_range = len(current_cluster)
-                colormaps = [cmap(i) for i in
-                             numpy.linspace(0, 1, cluster_range+1)]
-
-            clustertab = (
-                Table(data=(zip(*current_cluster)[3],
-                            zip(*current_cluster)[2]),
-                      names=('Channel', 'Pearson Coefficient')))
+        if cluster:
+            # write cluster table to file
+            cluster = sorted(cluster, key=lambda x: abs(x[2]), reverse=True)
+            clustertab = Table(data=zip(*cluster)[2:4],
+                               names=('Channel', 'Pearson Coefficient'))
             plot7_list = '%s_CLUSTER_LIST-%s.txt' % (
-                re_delim.sub('_', str(currentchan))
-                        .replace('_', '-', 1),
+                re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
                 gpsstub)
             clustertab.write(plot7_list, format='ascii', overwrite=True)
 
-            line = ax.plot(
-                hour_axis,
-                scale(currentts.value)*numpy.sign(input_[1][1]),
-                linewidth=args.line_size_aux,
-                label=currentchan.replace('_', '\_'), color=colormaps[0])
-            colors.append(line[0].get_color())
-            labels.append(line[0].get_label())
-            for i in range(0, cluster_range):
-                line = ax.plot(
-                    hour_axis,
-                    (scale(current_cluster[i][1].value)
-                        * numpy.sign(input_[1][1])
-                        * numpy.sign(current_cluster[i][2])),
-                    color=colormaps[i+1],
+            ncluster = min(len(cluster), max_correlated_channels)
+            colors2 = [cmap(i) for i in numpy.linspace(0, 1, ncluster+1)]
+
+            # plot
+            fig = Plot(figsize=(8, 5))
+            fig.subplots_adjust(*p7)
+            ax = fig.gca(xscale='auto-gps')
+            ax.plot(
+                times, scale(currentts.value)*numpy.sign(input_[1][1]),
+                label=currentchan.replace('_', '\_'),
+                linewidth=args.line_size_aux, color=colors[0])
+
+            for i in range(0, ncluster):
+                this = cluster[i]
+                ax.plot(
+                    times,
+                    scale(this[1].value) * numpy.sign(input_[1][1]) *
+                        numpy.sign(this[2]),
+                    color=colors2[i+1],
                     linewidth=args.line_size_aux,
-                    label=(current_cluster[i][3].replace('_', '\_')
-                           + ', r = '
-                           + str('{0:.2}'.format(current_cluster[i][2]))))
-                colors.append(line[0].get_color())
-                labels.append(line[0].get_label())
+                    label=('{0}, r = {1:.2}'.format(
+                        cluster[i][3].replace('_', '\_'), cluster[i][2])),
+                )
 
             ax.margins(x=0)
-            ax.set_xlabel(auto_xlabel)
             ax.set_ylabel('Scaled amplitude [arbitrary units]')
             ax.set_title('Highly Correlated Channels')
 
-            plot7 = '%s_CLUSTER-%s.png' % (
+            plot7_legend = save_legend(
+                ax, '%s_CLUSTER_LEGEND-%s.png' % (
+                    re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
+                    gpsstub))
+            plot7 = save_figure(fig, '%s_CLUSTER-%s.png' % (
                 re_delim.sub('_', str(currentchan))
                         .replace('_', '-', 1),
-                gpsstub)
-            try:
-                fig.canvas.draw_idle()
-                fig.savefig(plot7)
-            except (RuntimeError, IOError, IndexError):
-                try:
-                    fig.canvas.draw_idle()
-                    fig.savefig(plot7)
-                except (RuntimeError, IOError, IndexError) as e:
-                    print("Error trying to save plot7 image, %s: " % plot7)
-                    print(e)
-                    plot7 = None
-            except ValueError as e:
-                print("Error trying to save plot7 image, %s: " % plot7)
-                print(e)
-                plot7 = None
-            plt.close(fig)
-
-            legend_fig = plt.figure()
-            patches = [
-                Patch(color=color, label=label)
-                for label, color in zip(labels, colors)]
-            legend = legend_fig.legend(patches, labels, loc='center',
-                                       frameon=False, fontsize='small')
-
-            plot7_legend = '%s_CLUSTER_LEGEND-%s.png' % (
-                re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
-                gpsstub)
-            try:
-                legend_fig.canvas.draw_idle()
-                legend_fig.savefig(
-                    plot7_legend,
-                    bbox_inches=(legend.get_window_extent()
-                                 .transformed(legend_fig.dpi_scale_trans
-                                              .inverted())))
-            except (RuntimeError, IOError, IndexError):
-                try:
-                    legend_fig.canvas.draw_idle()
-                    legend_fig.savefig(
-                        plot7_legend,
-                        bbox_inches=(legend.get_window_extent()
-                                     .transformed(legend_fig.dpi_scale_trans
-                                                  .inverted())))
-                except (RuntimeError, IOError, IndexError) as e:
-                    print("Error trying to save plot7_legend image, %s: "
-                          % plot7_legend)
-                    print(e)
-                    plot7_legend = None
-            except ValueError as e:
-                print("Error trying to save plot7_legend image, %s: "
-                      % plot7_legend)
-                print(e)
-                plot7_legend = None
-            plt.close(legend_fig)
+                gpsstub))
 
     with counter.get_lock():
         counter.value += 1
@@ -1029,7 +713,7 @@ write_param('Channels searched',
             '%d (%s)' % (nchan, "<a href= %s target='_blank'>channel list</a>"
                          % channelsfile))
 write_param('Number of flat channels',
-            '%d (%s)' % (len(flatdata),
+            '%d (%s)' % (len(flattab),
                          "<a href= %s target='_blank'>flat channel list</a>"
                          % (flatfile)))
 write_param('Lasso coefficient threshold', '%g' % args.threshold)
@@ -1045,9 +729,9 @@ page.div(class_='model-body')
 page.div(class_='model-info')
 write_param('Model', 'Lasso')
 write_param('Non-zero coefficients', '%d' % numpy.count_nonzero(model.coef_))
-write_param('Alpha', '%g' % usedalpha)
+write_param('Alpha', '%g' % model.alpha)
 write_param('Zero coefficients',
-            '%d (%s)' % (len(zeroedtab),
+            '%d (%s)' % (len(zeroed),
                          "<a href= %s target='_blank'>zeroed channel list</a>"
                          % (zerofile)))
 page.div(class_='results-table', align='center')
