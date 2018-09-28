@@ -34,6 +34,7 @@ from six.moves.urllib.parse import urlparse
 from pkg_resources import resource_filename
 
 from glue import markup
+from gwpy.table import Table
 from gwpy.time import tconvert
 from gwpy.plot.colors import GW_OBSERVATORY_COLORS
 from ..io.html import (JQUERY_JS, BOOTSTRAP_CSS, BOOTSTRAP_JS)
@@ -334,7 +335,8 @@ def wrap_html(func):
         # write analysis summary
         # (but only on the main results page)
         if about:
-            page.add(write_summary(ifo, gpstime))
+            page.add(write_summary(ifo, gpstime,
+                     context=OBSERVATORY_MAP[ifo]['context']))
             kwargs['context'] = OBSERVATORY_MAP[ifo]['context']
         # write content
         contentf = os.path.join(outdir, '_inner.html')
@@ -500,6 +502,44 @@ def scaffold_plots(plots, nperrow=3):
     return page()
 
 
+def write_summary_table(blocks, base=os.path.curdir):
+    """Write a summary table in variou formats for users to download
+
+    Parameters
+    ----------
+    blocks : `list` of `OmegaChannelList`
+        the channel blocks scanned in the analysis
+    base : `str`
+        the path for the `<base>` tag to link in the `<head>`
+    """
+    # record summary data for each channel
+    channel, time, freq, Q, energy, snr = ([], [], [], [], [], [])
+    for block in blocks:
+        for chan in block.channels:
+            try:  # record channels only if they were analyzed
+                chan.energy
+            except AttributeError:
+                continue
+            channel.append(chan.name)
+            time.append(chan.t)
+            freq.append(chan.f)
+            Q.append(chan.Q)
+            energy.append(chan.energy)
+            snr.append(chan.snr)
+    # store in a table
+    data = Table([channel, time, freq, Q, energy, snr],
+                 names=('Channel', 'Central Time', 'Central Frequency (Hz)',
+                        'Quality Factor', 'Normalized Energy', 'SNR'))
+    # write in several formats
+    datadir = os.path.join(base, 'data')
+    if not os.path.exists(datadir):
+        os.makedirs(datadir)
+    fname = os.path.join(datadir, 'summary')
+    data.write(fname + '.txt', format='ascii')
+    data.write(fname + '.csv', format='csv')
+    data.write(fname + '.tex', format='latex')
+
+
 def write_footer(about=None, date=None):
     """Write a <footer> for a Qscan page
 
@@ -574,7 +614,7 @@ def write_config_html(filepath, format='ini'):
 # -- Qscan HTML ---------------------------------------------------------------
 
 def write_summary(
-        ifo, gpstime, header='Summary',
+        ifo, gpstime, context='default', header='Summary',
         tableclass='table table-condensed table-hover table-responsive'):
     """Write the Qscan analysis summary HTML
 
@@ -584,6 +624,9 @@ def write_summary(
         the interferometer prefix
     gpstime : `float`
         the central GPS time of the analysis
+    context : `str`, optional
+        the bootstrap context class for this result, see the bootstrap
+        docs for more details
     header : `str`, optional
         the text for the section header (``<h2``>)
     tableclass : `str`, optional
@@ -597,7 +640,10 @@ def write_summary(
     utc = tconvert(gpstime)
     page = markup.page()
     page.h2(header)
-    page.table(class_=tableclass, style='width:40%;')
+    page.div(class_='row')
+
+    page.div(class_='col-md-5')
+    page.table(class_=tableclass)
     # make table body
     page.tbody()
     page.tr()
@@ -611,6 +657,25 @@ def write_summary(
     page.tbody.close()
     # close table
     page.table.close()
+    page.div.close()  # col-md-5
+
+    # make summary table download button
+    page.div(class_='col-md-7')
+    page.div(class_='btn-group', role='group', style='margin-top:0px;')
+    page.button(id_='summary_table_download', type='button',
+                class_='btn btn-%s dropdown-toggle' % context,
+                **{'data-toggle': 'dropdown'})
+    page.add('Download summary <span class="caret"></span>')
+    page.button.close()
+    page.ul(class_='dropdown-menu', role='menu',
+            **{'aria-labelledby': 'summary_table_download'})
+    for ext in ['txt', 'csv', 'tex']:
+        page.li('<a href="data/summary.%s" download="%s_%s_summary.%s">%s</a>'
+                % (ext, ifo, gpstime, ext, ext))
+    page.ul.close()
+    page.div.close()  # btn-group
+    page.div.close()  # col-md-7
+    page.div.close()  # row
     return page()
 
 
@@ -793,11 +858,12 @@ def write_qscan_page(blocks, context):
     page.h2('Channel details')
     for block in blocks:
         page.add(write_block(block, context))
+    write_summary_table(blocks)
     return page
 
 
 @wrap_html
-def write_null_page(reason, context='info'):
+def write_null_page(reason, context='default'):
     """Write the Qscan results to HTML
 
     Parameters
