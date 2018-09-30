@@ -28,6 +28,7 @@ import subprocess
 from functools import wraps
 from getpass import getuser
 from shutil import copyfile
+from collections import OrderedDict
 
 from six.moves.urllib.parse import urlparse
 
@@ -36,7 +37,6 @@ from pkg_resources import resource_filename
 from glue import markup
 from gwpy.table import Table
 from gwpy.time import tconvert
-from gwpy.plot.colors import GW_OBSERVATORY_COLORS
 from ..io.html import (JQUERY_JS, BOOTSTRAP_CSS, BOOTSTRAP_JS)
 from .. import __version__
 
@@ -48,48 +48,88 @@ __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 OBSERVATORY_MAP = {
     'G1': {
         'name': 'GEO',
-        'context': 'default'
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/')
+        ])
     },
     'H1': {
         'name': 'LIGO Hanford',
-        'context': 'danger'
+        'context': 'danger',
+        'links': OrderedDict([
+            ('LHO Summary Pages', 'https://ldas-jobs.ligo-wa.caltech.edu/'
+                                  '~detchar/summary/day/'),
+            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/')
+        ])
     },
     'I1': {
         'name': 'LIGO India',
-        'context': 'success'
+        'context': 'success',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/')
+        ])
     },
     'K1': {
         'name': 'KAGRA',
-        'context': 'warning'
+        'context': 'warning',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/'),
+            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
+        ])
     },
     'L1': {
         'name': 'LIGO Livingston',
-        'context': 'info'
+        'context': 'info',
+        'links': OrderedDict([
+            ('LLO Summary Pages', 'https://ldas-jobs.ligo-la.caltech.edu/'
+                                  '~detchar/summary/day/'),
+            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/')
+        ])
     },
     'V1': {
         'name': 'Virgo',
-        'context': 'default'
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/'),
+            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/')
+        ])
     },
     'Network': {
         'name': 'Multi-IFO',
-        'context': 'default'
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/'),
+            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/'),
+            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/'),
+            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/'),
+            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
+        ])
     }
 }
-
-GW_OBSERVATORY_COLORS['Network'] = '#668888'
 
 # -- set up default JS and CSS files
 
 FANCYBOX_CSS = (
     "//cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css")
+JQUERY_JS = (
+    "//code.jquery.com/jquery-1.12.3.min.js")
+MOMENT_JS = (
+    "//cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js")
 FANCYBOX_JS = (
     "//cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js")
 
 OMEGA_CSS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.css')
+LIGO_CSS = resource_filename('gwdetchar', '_static/bootstrap-ligo.min.css')
 OMEGA_JS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.js')
+LIGO_JS = resource_filename('gwdetchar', '_static/bootstrap-ligo.min.js')
 
-CSS_FILES = [BOOTSTRAP_CSS, FANCYBOX_CSS, OMEGA_CSS]
-JS_FILES = [JQUERY_JS, BOOTSTRAP_JS, FANCYBOX_JS, OMEGA_JS]
+CSS_FILES = [BOOTSTRAP_CSS, FANCYBOX_CSS, LIGO_CSS, OMEGA_CSS]
+JS_FILES = [JQUERY_JS, MOMENT_JS, BOOTSTRAP_JS, FANCYBOX_JS, LIGO_JS, OMEGA_JS]
 
 
 # -- Plot construction --------------------------------------------------------
@@ -183,7 +223,7 @@ def finalize_static_urls(static, cssfiles, jsfiles):
     return cssfiles, jsfiles
 
 
-def init_page(ifo, gpstime, refresh=False, css=None, script=None,
+def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
               base=os.path.curdir, **kwargs):
     """Initialise a new `markup.page`
     This method constructs an HTML page with the following structure
@@ -207,6 +247,8 @@ def init_page(ifo, gpstime, refresh=False, css=None, script=None,
         the interferometer prefix
     gpstime : `float`
         the central GPS time of the analysis
+    toc : `dict`
+        metadata dictionary for navbar table of contents
     refresh : `bool`
         Boolean switch to enable periodic page refresh
     css : `list`, optional
@@ -255,21 +297,59 @@ def init_page(ifo, gpstime, refresh=False, css=None, script=None,
     # finalize header
     page.head.close()
     page.body()
-    page.div(id_='wrap')
     # write banner
-    page.div(class_='navbar navbar-fixed-top', role='banner',
-             style='background-color:%s;' % GW_OBSERVATORY_COLORS[ifo])
+    page.add('<header class="navbar navbar-fixed-top navbar-%s">'
+             % ifo.lower())
     page.div(class_='container')
-    page.div(class_='row')
-    page.div(class_='col-xs-6')
-    page.h4('%s Scan' % ifo, style='font-size:15px;')
-    page.div.close()  # col-xs-6
-    page.div(class_='col-xs-6')
-    page.h4(gpstime, style='font-size:15px; text-align:right;')
-    page.div.close()  # col-xs-6
-    page.div.close()  # row
+    page.div(class_='navbar-header')
+    page.add('<button class="navbar-toggle" data-toggle="collapse" '
+             'type="button" data-target=".navbar-collapse">')
+    page.add('<span class="icon-bar"></span>')
+    page.add('<span class="icon-bar"></span>')
+    page.add('<span class="icon-bar"></span>')
+    page.add('</button>')
+    page.div(ifo, class_='navbar-brand')
+    page.div(gpstime, class_='navbar-brand')
+    page.div.close()  # navbar-header
+    page.add('<nav class="collapse navbar-collapse">')
+    page.ul(class_='nav navbar-nav')
+    page.li('<a href="#">Summary</a>')
+    for key, block in toc.items():
+        page.li(class_='dropdown')
+        page.add('<a class="dropdown-toggle" data-toggle="dropdown">')
+        page.add('%s <b class="caret"></b>' % key)
+        page.add('</a>')
+        page.ul(class_='dropdown-menu', style='max-height: 700px; '
+                                              'overflow-y: scroll;')
+        for chan in block['channels']:
+            page.li()
+            chanid = chan.name.lower().replace(':', '-')
+            page.a(chan.name, href='#%s' % chanid)
+            page.li.close()
+        page.ul.close()
+        page.li.close()
+    page.li(class_='dropdown')
+    page.add('<a class="dropdown-toggle" data-toggle="dropdown">')
+    page.add('Links <b class="caret"></b>')
+    page.add('</a>')
+    page.ul(class_='dropdown-menu')
+    page.li('Internal', class_='dropdown-header')
+    page.li('<a href="about" target="_blank">About this scan</a>')
+    page.li('', class_='divider')
+    page.li('External', class_='dropdown-header')
+    for name, link in OBSERVATORY_MAP[ifo]['links'].items():
+        page.li()
+        if 'Summary' in name:
+            day = str(tconvert(gpstime).date()).replace('-', '')
+            link = '/'.join([link, day])
+        page.a(name, href=link, target='_blank')
+        page.li.close()
+    page.ul.close()
+    page.li.close()
+    page.ul.close()
+    page.add('</nav>')
     page.div.close()  # container
-    page.div.close()  # navbar
+    page.add('</header>')  # navbar
 
     # open container
     page.div(class_='container')
@@ -303,7 +383,6 @@ def close_page(page, target, about=None, date=None):
     page.div.close()  # container
     page.add(str(write_footer(about=about, date=date)))
     if not page._full:
-        page.div.close()  # wrap
         page.body.close()
         page.html.close()
     with open(target, 'w') as f:
@@ -330,7 +409,8 @@ def wrap_html(func):
         outdir = kwargs.pop('outdir', initargs['base'])
         if not os.path.isdir(outdir):
             os.makedirs(outdir)
-        # determine refresh option
+        # determine table of contents and refresh options
+        toc = kwargs.pop('toc', {})
         refresh = kwargs.pop('refresh', False)
         # write about page
         try:
@@ -342,12 +422,13 @@ def wrap_html(func):
             aboutdir = os.path.join(outdir, 'about')
             if iargs['base'] == os.path.curdir:
                 iargs['base'] = os.path.pardir
+            iargs['toc'] = toc
             about = write_about_page(ifo, gpstime, config, outdir=aboutdir,
                                      **iargs)
             if os.path.basename(about) == 'index.html':
                 about = about[:-10]
         # open page
-        page = init_page(ifo, gpstime, refresh=refresh, **initargs)
+        page = init_page(ifo, gpstime, toc=toc, refresh=refresh, **initargs)
         # write analysis summary
         # (but only on the main results page)
         if about:
@@ -697,35 +778,6 @@ def write_summary(
     return page()
 
 
-def write_toc(blocks):
-    """Write the HTML table of contents for ease of navigation
-
-    Parameters
-    ----------
-    blocks : `dict` of `OmegaChannel`
-        the channel blocks scanned in the analysis
-
-    Returns
-    -------
-    page : `~glue.markup.page`
-        the formatted HTML for a table of contents
-    """
-    page = markup.page()
-    page.div(class_='banner')
-    page.div(class_="container")
-    page.h2('Table of Contents')
-    page.ul()
-    for block in blocks.values():
-        page.li()
-        link = block['name'].lower().replace(' ', '-')
-        page.a(block['name'], href='#block-%s' % link)
-        page.li.close()
-    page.ul.close()
-    page.div.close()  # container
-    page.div.close()  # banner
-    return page()
-
-
 def write_block(block, context, tableclass='table table-condensed table-hover '
                                            'table-bordered table-responsive '
                                            'desktop-only'):
@@ -748,8 +800,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         the formatted HTML for this block
     """
     page = markup.page()
-    link = block['name'].lower().replace(' ', '-')
-    page.div(class_='panel panel-%s' % context, id_='block-%s' % link)
+    page.div(class_='panel panel-%s' % context)
     # -- make heading
     page.div(class_='panel-heading clearfix')
     # link to top of page
@@ -770,8 +821,9 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
 
     # -- range over channels in this block
     for i, channel in enumerate(block['channels']):
-        page.li(class_='list-group-item')
-        page.div(class_="container")
+        chanid = channel.name.lower().replace(':', '-')
+        page.li(class_='list-group-item anchor', id_=chanid)
+        page.div(class_='container')
 
         page.div(class_='row')
 
@@ -834,7 +886,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.add(scaffold_plots(channel.plots['qscan_whitened'],
                  nperrow=min(len(channel.pranges), 3)))
 
-        page.div.close()  # container
+        page.div.close()  # container anchor
         page.li.close()
 
     # close and return
@@ -870,7 +922,6 @@ def write_qscan_page(blocks, context):
         the path of the HTML written for this analysis
     """
     page = markup.page()
-    page.add(write_toc(blocks))
     page.div(class_='banner')
     page.h2('Channel details')
     page.div.close()  # banner

@@ -34,9 +34,12 @@ import versioneer
 CMDCLASS = versioneer.get_cmdclass()
 
 # specify HTML source files
-JS_FILES = [f for f in glob.glob(os.path.join('share', 'js', '*.js')) if
-            not f.endswith('.min.js')]
-SASS_FILES = glob.glob(os.path.join('share', 'sass', '[!_]*.scss'))
+JS_FILES = [
+    f for f in glob.glob(os.path.join('share', 'js', '*.js')) + (
+               glob.glob(os.path.join('bootstrap-ligo', 'js', '*.js')))
+    if not f.endswith('.min.js')]
+SASS_FILES = glob.glob(os.path.join('share', 'sass', '[!_]*.scss')) + (
+    glob.glob(os.path.join('bootstrap-ligo', 'css', '[!_]*.scss')))
 
 
 # -- custom commands ----------------------------------------------------------
