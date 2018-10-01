@@ -308,11 +308,11 @@ gprint('Launching Omega scans...')
 for block in blocks[:]:
     gprint('Processing block %s' % block.name)
     chans = [c.name for c in block.channels]
-    # read in fftlength seconds of data
-    # centered on gps
+    # read in `duration` seconds of data centered on gps
     duration = block.duration
     fftlength = block.fftlength
-    data = TimeSeriesDict.get(chans, gps-256-fftlength/4, gps+256+fftlength/4,
+    pad = max(1, fftlength/4.)
+    data = TimeSeriesDict.get(chans, gps-duration-pad, gps+duration+pad,
                               frametype=block.frametype, nproc=args.nproc,
                               verbose=args.verbose)
     # compute qscans
