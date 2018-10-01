@@ -535,9 +535,9 @@ def write_summary_table(blocks, base=os.path.curdir):
     if not os.path.exists(datadir):
         os.makedirs(datadir)
     fname = os.path.join(datadir, 'summary')
-    data.write(fname + '.txt', format='ascii')
-    data.write(fname + '.csv', format='csv')
-    data.write(fname + '.tex', format='latex')
+    data.write(fname + '.txt', format='ascii', overwrite=True)
+    data.write(fname + '.csv', format='csv', overwrite=True)
+    data.write(fname + '.tex', format='latex', overwrite=True)
 
 
 def write_footer(about=None, date=None):
