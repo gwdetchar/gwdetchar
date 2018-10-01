@@ -312,7 +312,7 @@ for block in blocks[:]:
     duration = block.duration
     fftlength = block.fftlength
     pad = max(1, fftlength/4.)
-    data = TimeSeriesDict.get(chans, gps-duration-pad, gps+duration+pad,
+    data = TimeSeriesDict.get(chans, gps-duration/2.-pad, gps+duration/2.+pad,
                               frametype=block.frametype, nproc=args.nproc,
                               verbose=args.verbose)
     # compute qscans
