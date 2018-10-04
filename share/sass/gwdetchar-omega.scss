@@ -23,8 +23,8 @@ html {
 }
 
 body {
-		padding-top: 75px;
-		margin-bottom: 120px;
+		padding-top: 50px;
+		margin-bottom: 166px;
 		min-height: 100%;
 		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 		font-weight: 300;
@@ -35,6 +35,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .container {
+		@media (max-width: 991px) {
+				width: 97%;
+				max-width: 991px;
+		}
 		@media (min-width: 992px) {
 				width: 97%;
 				max-width: 1100px;
@@ -48,11 +52,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .navbar {
 		color: #eee;
-		padding-top: 8px;
-		padding-bottom: 8px;
-		-moz-box-shadow:    0 1px 10px 2px #ccc;
-		-webkit-box-shadow: 0 1px 10px 2px #ccc;
-		box-shadow:         0 1px 10px 2px #ccc;
+		padding-top: 6px;
+		padding-bottom: 6px;
+		box-shadow: 0 1px 10px rgba(0, 0, 0, 0.23), 0 1px 10px rgba(0, 0, 0, 0.16);
 }
 
 .with-margin {
@@ -63,7 +65,7 @@ h1, h2, h3, h4, h5, h6 {
 		position: absolute;
 		bottom: 0;
 		width: 100%;
-		height: 100px;
+		height: 148px;
 		color: #eee;
 		background-color: #4c4c4c;
 		padding-top: 20px;
@@ -85,7 +87,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-group {
-		margin-top: 15px;
-		margin-bottom: 5px;
-		float: right;
+		margin-top: 0px;
+		margin-bottom: 6px;
+		@media(max-width:991px) {
+				float: left;
+		}
+		@media(min-width:992px) {
+				float: right;
+		}
+}
+
+.desktop-only {
+		@media(max-width:991px) {
+				display:none;
+		}
 }
