@@ -145,6 +145,7 @@ class OmegaChannelList(object):
         self.duration = int(params.get('duration', 32))
         self.fftlength = int(params.get('fftlength', 2))
         self.resample = int(params.get('resample', 0))
+        self.source = params.get('source', None)
         self.frametype = params.get('frametype', None)
         chans = params.get('channels', None).split('\n')
         self.channels = [OmegaChannel(c, self.name, **params) for c in chans]
@@ -152,6 +153,49 @@ class OmegaChannelList(object):
 
 
 # -- Utilities ----------------------------------------------------------------
+
+def get_data(channels, time, duration, pad, frametype=None, source=None,
+             nproc=1, verbose=False):
+    """Retrieve data for multiple channels, centered at a given time
+
+    Parameters
+    ----------
+    channels : `list`
+        required data channels
+    time : `float`
+        GPS time of required data
+    duration : `float`
+        duration (in seconds) of required data
+    pad : `float`
+        amount of extra data to read in at the start and end for filtering
+    frametype : `str`, optional
+        name of frametype in which this channel is stored, by default will
+        search for all required frame types
+    source : `str`, `list`, optional
+        `str` path of a LAL-format cache file or single data file, will
+        supercede `frametype` if given, defaults to `None`
+    nproc : `int`, optional
+        number of parallel processes to use, uses serial process by default
+    verbose : `bool`, optional
+        print verbose output about NDS progress, default: False
+
+    See Also
+    --------
+    gwpy.timeseries.TimeSeriesDict.get
+        for the underlying method to read from frames or NDS
+    gwpy.timeseries.TimeSeriesDict.read
+        for the underlying method to read from a local file cache
+    """
+    # set GPS start and end time
+    start = time - duration/2. - pad
+    end = time + duration/2. + pad
+    # read from cache if requested
+    if source:
+        return TimeSeriesDict.read(source, channels, start=start, end=end,
+                                   nproc=nproc)
+    # else read from frames or NDS
+    return TimeSeriesDict.get(channels, start, end, frametype=frametype,
+                              nproc=nproc, verbose=verbose)
 
 def get_fancyplots(channel, plottype, duration, caption=None):
     """Construct FancyPlot objects for output HTML pages
@@ -312,9 +356,9 @@ for block in blocks[:]:
     duration = block.duration
     fftlength = block.fftlength
     pad = max(1, fftlength/4.)
-    data = TimeSeriesDict.get(chans, gps-duration/2.-pad, gps+duration/2.+pad,
-                              frametype=block.frametype, nproc=args.nproc,
-                              verbose=args.verbose)
+    data = get_data(chans, gps, duration, pad, frametype=block.frametype,
+                    source=block.source, nproc=args.nproc,
+                    verbose=args.verbose)
     # compute qscans
     for c in block.channels[:]:
         if args.verbose:
