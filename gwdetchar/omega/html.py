@@ -183,8 +183,8 @@ def finalize_static_urls(static, cssfiles, jsfiles):
     return cssfiles, jsfiles
 
 
-def init_page(ifo, gpstime, css=None, script=None, base=os.path.curdir,
-              **kwargs):
+def init_page(ifo, gpstime, refresh=False, css=None, script=None,
+              base=os.path.curdir, **kwargs):
     """Initialise a new `markup.page`
     This method constructs an HTML page with the following structure
     .. code-block:: html
@@ -207,6 +207,8 @@ def init_page(ifo, gpstime, css=None, script=None, base=os.path.curdir,
         the interferometer prefix
     gpstime : `float`
         the central GPS time of the analysis
+    refresh : `bool`
+        Boolean switch to enable periodic page refresh
     css : `list`, optional
         the list of stylesheets to link in the `<head>`
     script : `list`, optional
@@ -234,6 +236,8 @@ def init_page(ifo, gpstime, css=None, script=None, base=os.path.curdir,
     page.header.append('<!DOCTYPE HTML>')
     page.html(lang='en')
     page.head()
+    if refresh:
+        page.add('<meta http-equiv="refresh" content="60">')
     page.base(href=base)
     page._full = True
 
@@ -316,6 +320,8 @@ def wrap_html(func):
         outdir = kwargs.pop('outdir', initargs['base'])
         if not os.path.isdir(outdir):
             os.makedirs(outdir)
+        # determine refresh option
+        refresh = kwargs.pop('refresh', False)
         # write about page
         try:
             config = kwargs.pop('config')
@@ -331,7 +337,7 @@ def wrap_html(func):
             if os.path.basename(about) == 'index.html':
                 about = about[:-10]
         # open page
-        page = init_page(ifo, gpstime, **initargs)
+        page = init_page(ifo, gpstime, refresh=refresh, **initargs)
         # write analysis summary
         # (but only on the main results page)
         if about:

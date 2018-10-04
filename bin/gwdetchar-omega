@@ -92,6 +92,7 @@ cp.read(config_files)
 htmlv = {
     'title': '%s Qscan | %s' % (ifo, gps),
     'config': config_files,
+    'refresh': True,
 }
 
 # set output directory
@@ -487,5 +488,6 @@ for block in blocks[:]:
 
 # write HTML page and finish
 gprint('Finalizing HTML at %s/index.html...' % outdir)
+htmlv['refresh'] = False  # turn off auto-refresh
 html.write_qscan_page(ifo, gps, blocks, **htmlv)
 gprint("-- index.html written, all done --")
