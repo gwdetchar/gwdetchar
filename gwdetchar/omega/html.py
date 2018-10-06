@@ -238,6 +238,8 @@ def init_page(ifo, gpstime, refresh=False, css=None, script=None,
     page.head()
     if refresh:
         page.add('<meta http-equiv="refresh" content="60">')
+    page.add('<meta content="width=device-width, initial-scale=1.0" '
+             'name="viewport">')
     page.base(href=base)
     page._full = True
 
@@ -253,12 +255,19 @@ def init_page(ifo, gpstime, refresh=False, css=None, script=None,
     # finalize header
     page.head.close()
     page.body()
+    page.div(id_='wrap')
     # write banner
     page.div(class_='navbar navbar-fixed-top', role='banner',
              style='background-color:%s;' % GW_OBSERVATORY_COLORS[ifo])
     page.div(class_='container')
-    page.h4('%s Omega Scan <span style="float:right;">%s</span>'
-            % (ifo, gpstime), style="text-align:left;")
+    page.div(class_='row')
+    page.div(class_='col-xs-6')
+    page.h4('%s Scan' % ifo, style='font-size:15px;')
+    page.div.close()  # col-xs-6
+    page.div(class_='col-xs-6')
+    page.h4(gpstime, style='font-size:15px; text-align:right;')
+    page.div.close()  # col-xs-6
+    page.div.close()  # row
     page.div.close()  # container
     page.div.close()  # navbar
 
@@ -294,6 +303,7 @@ def close_page(page, target, about=None, date=None):
     page.div.close()  # container
     page.add(str(write_footer(about=about, date=date)))
     if not page._full:
+        page.div.close()  # wrap
         page.body.close()
         page.html.close()
     with open(target, 'w') as f:
@@ -349,8 +359,10 @@ def wrap_html(func):
         with open(contentf, 'w') as f:
             f.write(str(func(*args, **kwargs)))
         # embed content
+        page.div(id_='main')
         page.div('', id_='content')
         page.script("$('#content').load('%s');" % contentf)
+        page.div.close()  # main
         # close page
         index = os.path.join(outdir, 'index.html')
         close_page(page, index, about=about)
@@ -573,11 +585,15 @@ def write_footer(about=None, date=None):
     url = 'https://github.com/ligovirgo/gwdetchar'
     hlink = markup.oneliner.a('GW-DetChar version %s' % version, href=url,
                               target='_blank', style='color:#eee;')
+    page.div(class_='row')
+    page.div(class_='col-md-12')
     page.p('Page generated using %s by %s at %s'
            % (hlink, getuser(), date))
     # link to 'about'
     if about is not None:
         page.a('How was this page generated?', href=about, style='color:#eee;')
+    page.div.close()  # col-md-12
+    page.div.close()  # row
     page.div.close()  # container
     markup.element('footer', case=page.case, parent=page).close()
     return page
@@ -645,7 +661,9 @@ def write_summary(
     """
     utc = tconvert(gpstime)
     page = markup.page()
+    page.div(class_='banner')
     page.h2(header)
+    page.div.close()  # banner
     page.div(class_='row')
 
     page.div(class_='col-md-5')
@@ -666,8 +684,8 @@ def write_summary(
     page.div.close()  # col-md-5
 
     # make summary table download button
-    page.div(class_='col-md-7')
-    page.div(class_='btn-group', role='group', style='margin-top:0px;')
+    page.div(class_='col-xs-12 col-md-7')
+    page.div(class_='btn-group', role='group')
     page.button(id_='summary_table_download', type='button',
                 class_='btn btn-%s dropdown-toggle' % context,
                 **{'data-toggle': 'dropdown'})
@@ -699,6 +717,7 @@ def write_toc(blocks):
         the formatted HTML for a table of contents
     """
     page = markup.page()
+    page.div(class_='banner')
     page.div(class_="container")
     page.h2('Table of Contents')
     page.ul()
@@ -707,12 +726,14 @@ def write_toc(blocks):
         page.a(block.name, href='#block-%s' % block.key)
         page.li.close()
     page.ul.close()
-    page.div.close()
+    page.div.close()  # container
+    page.div.close()  # banner
     return page()
 
 
 def write_block(block, context, tableclass='table table-condensed table-hover '
-                                           'table-bordered table-responsive'):
+                                           'table-bordered table-responsive '
+                                           'desktop-only'):
     """Write the HTML summary for a specific block of channels
 
     Parameters
@@ -769,7 +790,6 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
 
         # summary table
         page.div(class_='col-md-7')
-        page.p("Properties of the most significant time-frequency tile")
         page.table(class_=tableclass)
         columns = ['GPS Time', 'Frequency', 'Quality Factor',
                    'Normalized Energy', 'SNR']
@@ -789,10 +809,10 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.tr.close()
         page.tbody.close()
         page.table.close()
-        page.div.close()  # col-md-7
+        page.div.close()  # col-sm-7
 
         # plot toggle buttons
-        page.div(class_='col-md-5')
+        page.div(class_='col-xs-12 col-md-5')
         page.div(class_='btn-group', role='group')
         for ptitle, pclass, ptypes in [
             ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
@@ -814,15 +834,13 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
             page.ul.close()  # dropdown-menu
             page.div.close()  # btn-group
         page.div.close()  # btn-group
-        page.div.close()  # col-md-5
+        page.div.close()  # col-sm-5
 
         page.div.close()  # row
 
         # plots
-        page.div(class_='row')
         page.add(scaffold_plots(channel.plots['qscan_whitened'],
                  nperrow=min(len(channel.pranges), 3)))
-        page.div.close()  # row
 
         page.div.close()  # container
         page.li.close()
@@ -861,7 +879,9 @@ def write_qscan_page(blocks, context):
     """
     page = markup.page()
     page.add(write_toc(blocks))
+    page.div(class_='banner')
     page.h2('Channel details')
+    page.div.close()  # banner
     for block in blocks:
         page.add(write_block(block, context))
     write_summary_table(blocks)
