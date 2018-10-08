@@ -184,10 +184,17 @@ args = parser.parse_args()
 start = int(args.gpsstart)
 end = int(args.gpsend)
 pad = args.filter_padding
-auto_xlabel = ('Time [hours] from '
-               + re.sub(r'\.0+', '',
-                        Time(start, format='gps', scale='utc').iso)
-               + ' UTC (%d)' % start)
+
+if args.trend_type == 'minute':
+    auto_xlabel = ('Time [hours] from '
+                   + re.sub(r'\.0+', '',
+                            Time(start, format='gps', scale='utc').iso)
+                   + ' UTC (%d)' % start)
+else:
+    auto_xlabel = ('Time [minute] from '
+                   + re.sub(r'\.0+', '',
+                            Time(start, format='gps', scale='utc').iso)
+                   + ' UTC (%d)' % start)
 
 if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
     args.primary_frametype = '%s_HOFT_C00' % args.ifo
