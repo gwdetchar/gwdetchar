@@ -354,7 +354,7 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
         while cset[-1] is None:
             cset.pop(-1)
         for seg in segs:
-            cache2 = cache.sieve(segmentlist=SegmentList([seg]))
+            cache2 = cache.sieve(segment=seg)
             if not len(cache2):
                 continue
             saturated = is_saturated(cset, cache2, seg[0], seg[1],

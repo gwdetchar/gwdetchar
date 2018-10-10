@@ -10,7 +10,7 @@ matplotlib >= 2.0.0
 astropy >= 1.2
 gwpy >= 0.12.0
 lalsuite
-lscsoft-glue
+lscsoft-glue >= 1.60.0
 dqsegdb
 beautifulsoup4
 lxml
