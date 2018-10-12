@@ -525,19 +525,15 @@ def write_summary_table(blocks, base=os.path.curdir):
 
     Parameters
     ----------
-    blocks : `list` of `OmegaChannelList`
+    blocks : `dict` of `OmegaChannel`
         the channel blocks scanned in the analysis
     base : `str`
         the path for the `<base>` tag to link in the `<head>`
     """
     # record summary data for each channel
     channel, time, freq, Q, energy, snr = ([], [], [], [], [], [])
-    for block in blocks:
-        for chan in block.channels:
-            try:  # record channels only if they were analyzed
-                chan.energy
-            except AttributeError:
-                continue
+    for block in blocks.values():
+        for chan in block['channels']:
             channel.append(chan.name)
             time.append(chan.t)
             freq.append(chan.f)
@@ -550,8 +546,6 @@ def write_summary_table(blocks, base=os.path.curdir):
                         'Quality Factor', 'Normalized Energy', 'SNR'))
     # write in several formats
     datadir = os.path.join(base, 'data')
-    if not os.path.exists(datadir):
-        os.makedirs(datadir)
     fname = os.path.join(datadir, 'summary')
     data.write(fname + '.txt', format='ascii', overwrite=True)
     data.write(fname + '.csv', format='csv', overwrite=True)
@@ -708,7 +702,7 @@ def write_toc(blocks):
 
     Parameters
     ----------
-    blocks : `list` of `OmegaChannelList`
+    blocks : `dict` of `OmegaChannel`
         the channel blocks scanned in the analysis
 
     Returns
@@ -721,9 +715,10 @@ def write_toc(blocks):
     page.div(class_="container")
     page.h2('Table of Contents')
     page.ul()
-    for i, block in enumerate(blocks):
+    for block in blocks.values():
         page.li()
-        page.a(block.name, href='#block-%s' % block.key)
+        link = block['name'].lower().replace(' ', '-')
+        page.a(block['name'], href='#block-%s' % link)
         page.li.close()
     page.ul.close()
     page.div.close()  # container
@@ -738,7 +733,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
 
     Parameters
     ----------
-    block : `OmegaChannelList`
+    block : `dict` of `OmegaChannel`
         a list of channels and their analysis attributes
     context : `str`
         the type of Bootstrap ``<panel>`` object to use, color-coded by GWO
@@ -753,7 +748,8 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         the formatted HTML for this block
     """
     page = markup.page()
-    page.div(class_='panel panel-%s' % context, id_='block-%s' % block.key)
+    link = block['name'].lower().replace(' ', '-')
+    page.div(class_='panel panel-%s' % context, id_='block-%s' % link)
     # -- make heading
     page.div(class_='panel-heading clearfix')
     # link to top of page
@@ -766,18 +762,14 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.a("<small>[top]</small>", href='#', class_='text-%s' % context)
     page.div.close()  # pull-right
     # heading
-    page.h3(block.name, class_='panel-title')
+    page.h3(block['name'], class_='panel-title')
     page.div.close()  # panel-heading
 
     # -- make body
     page.ul(class_='list-group')
 
     # -- range over channels in this block
-    for i, channel in enumerate(block.channels):
-        try:  # display channels only if they were analyzed
-            channel.energy
-        except AttributeError:
-            continue
+    for i, channel in enumerate(block['channels']):
         page.li(class_='list-group-item')
         page.div(class_="container")
 
@@ -866,7 +858,7 @@ def write_qscan_page(blocks, context):
         the prefix of the interferometer used in this analysis
     gpstime  : `float`
         the central GPS time of the analysis
-    blocks : `list` of `OmegaChannelList`
+    blocks : `dict` of `OmegaChannel`
         the channel blocks scanned in the analysis
     context : `str`, optional
         the type of Bootstrap ``<panel>`` object to use, color-coded by
@@ -882,7 +874,7 @@ def write_qscan_page(blocks, context):
     page.div(class_='banner')
     page.h2('Channel details')
     page.div.close()  # banner
-    for block in blocks:
+    for block in blocks.values():
         page.add(write_block(block, context))
     write_summary_table(blocks)
     return page
