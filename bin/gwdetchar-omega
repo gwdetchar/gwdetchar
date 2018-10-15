@@ -201,6 +201,7 @@ def get_data(channels, time, duration, pad, frametype=None, source=None,
     return TimeSeriesDict.get(channels, start, end, frametype=frametype,
                               nproc=nproc, verbose=verbose)
 
+
 def get_fancyplots(channel, plottype, duration, caption=None):
     """Construct FancyPlot objects for output HTML pages
 
@@ -340,17 +341,18 @@ for d in [plotdir, aboutdir, datadir]:
     if not os.path.isdir(d):
         os.makedirs(d)
 
-# determine channel blocks
-try:  # python 3.x
-    blocks = [OmegaChannelList(s, **cp[s]) for s in cp.sections()]
-except:  # python 2.x
-    blocks = [OmegaChannelList(s, **dict(cp.items(s))) for s in cp.sections()]
-
 # set up analyzed channel dict
 if sys.version_info >= (3, 7):  # python 3.7+
+    blocks = {s: OmegaChannelList(s, **cp[s]) for s in cp.sections()}
     analyzed = {}
 else:
     from collections import OrderedDict
+    try:  # python 3.x
+        blocks = OrderedDict([(s, OmegaChannelList(s, **cp[s]))
+                              for s in cp.sections()])
+    except:  # python 2.x
+        blocks = OrderedDict([(s, OmegaChannelList(s, **dict(cp.items(s))))
+                              for s in cp.sections()])
     analyzed = OrderedDict()
 
 # set up html output
@@ -361,7 +363,7 @@ html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 gprint('Launching Omega scans...')
 
 # range over blocks
-for block in blocks:
+for block in blocks.values():
     gprint('Processing block %s' % block.key)
     chans = [c.name for c in block.channels]
     # read in `duration` seconds of data centered on gps
@@ -480,7 +482,9 @@ for block in blocks:
         try:
             analyzed[c.section]['channels'].append(c)
         except KeyError:
-            analyzed[c.section] = {'name': block.name, 'channels': [c]}
+            analyzed[c.section] = {'name': blocks[c.section].name,
+                                   'channels': [c]}
+        htmlv['toc'] = analyzed
 
         # update HTML output
         html.write_qscan_page(ifo, gps, analyzed, **htmlv)
@@ -490,9 +494,6 @@ for block in blocks:
 
     # delete data
     del data
-
-    # update HTML output
-    html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 
 
 # -- Prepare HTML -------------------------------------------------------------
