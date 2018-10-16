@@ -821,14 +821,14 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
 
     # -- range over channels in this block
     for i, channel in enumerate(block['channels']):
-        chanid = channel.name.lower().replace(':', '-')
-        page.li(class_='list-group-item anchor', id_=chanid)
+        page.li(class_='list-group-item')
         page.div(class_='container')
 
         page.div(class_='row')
 
         # channel name
-        page.h4(cis_link(channel.name))
+        chanid = channel.name.lower().replace(':', '-')
+        page.h4(cis_link(channel.name), id_=chanid)
 
         page.div(class_='row')
 
