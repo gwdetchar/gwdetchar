@@ -436,13 +436,9 @@ def wrap_html(func):
                      context=OBSERVATORY_MAP[ifo]['context']))
             kwargs['context'] = OBSERVATORY_MAP[ifo]['context']
         # write content
-        contentf = os.path.join(outdir, '_inner.html')
-        with open(contentf, 'w') as f:
-            f.write(str(func(*args, **kwargs)))
-        # embed content
         page.div(id_='main')
-        page.div('', id_='content')
-        page.script("$('#content').load('%s');" % contentf)
+        # insert inner html directly
+        page.add(str(func(*args, **kwargs)))
         page.div.close()  # main
         # close page
         index = os.path.join(outdir, 'index.html')
@@ -821,14 +817,14 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
 
     # -- range over channels in this block
     for i, channel in enumerate(block['channels']):
-        chanid = channel.name.lower().replace(':', '-')
-        page.li(class_='list-group-item anchor', id_=chanid)
+        page.li(class_='list-group-item')
         page.div(class_='container')
 
         page.div(class_='row')
 
         # channel name
-        page.h4(cis_link(channel.name))
+        chanid = channel.name.lower().replace(':', '-')
+        page.h4(cis_link(channel.name), id_=chanid)
 
         page.div(class_='row')
 
