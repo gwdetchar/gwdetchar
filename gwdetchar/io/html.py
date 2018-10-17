@@ -27,12 +27,12 @@ from glue import markup
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
-JQUERY_JS = "//code.jquery.com/jquery-1.11.2.min.js"
+JQUERY_JS = "https://code.jquery.com/jquery-1.11.2.min.js"
 
 BOOTSTRAP_CSS = (
-    "//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css")
+    "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css")
 BOOTSTRAP_JS = (
-    "//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js")
+    "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js")
 
 
 def new_bootstrap_page(*args, **kwargs):
