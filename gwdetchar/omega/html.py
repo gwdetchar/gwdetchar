@@ -320,6 +320,7 @@ def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
         page.add('</a>')
         page.ul(class_='dropdown-menu', style='max-height: 700px; '
                                               'overflow-y: scroll;')
+        page.li(block['name'], class_='dropdown-header')
         for chan in block['channels']:
             page.li()
             chanid = chan.name.lower().replace(':', '-')
@@ -333,7 +334,7 @@ def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
     page.add('</a>')
     page.ul(class_='dropdown-menu')
     page.li('Internal', class_='dropdown-header')
-    page.li('<a href="about" target="_blank">About this scan</a>')
+    page.li('<a href="about">About this scan</a>')
     page.li('', class_='divider')
     page.li('External', class_='dropdown-header')
     for name, link in OBSERVATORY_MAP[ifo]['links'].items():
