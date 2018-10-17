@@ -114,14 +114,13 @@ OBSERVATORY_MAP = {
 
 # -- set up default JS and CSS files
 
-FANCYBOX_CSS = (
-    "//cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css")
-JQUERY_JS = (
-    "//code.jquery.com/jquery-1.12.3.min.js")
+_FANCYBOX_CDN = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5"
+
+FANCYBOX_CSS = "{0}/jquery.fancybox.min.css".format(_FANCYBOX_CDN)
+JQUERY_JS = "https://code.jquery.com/jquery-1.12.3.min.js"
 MOMENT_JS = (
-    "//cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js")
-FANCYBOX_JS = (
-    "//cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js")
+    "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js")
+FANCYBOX_JS = "{0}/jquery.fancybox.min.js".format(_FANCYBOX_CDN)
 
 OMEGA_CSS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.css')
 LIGO_CSS = resource_filename('gwdetchar', '_static/bootstrap-ligo.min.css')
