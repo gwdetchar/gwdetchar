@@ -49,6 +49,11 @@ except ImportError:
 else:
     readkwargs = {'type': 'adc', 'format': 'gwf.framecpp'}
 
+SITE_MAP = {
+    'K1': 'KAGRA',
+    'V1': 'Virgo',
+}
+
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
@@ -274,8 +279,8 @@ if args.html:
     page.h1('%s ADC/DAC Overflows: %d-%d'
             % (args.ifo, int(args.gpsstart), int(args.gpsend)))
     page.p("This analysis searched for digital-to-analogue (DAC) or "
-           "analogue-to-digital (ADC) conversion overflows in the LIGO "
-           "real-time controls system.")
+           "analogue-to-digital (ADC) conversion overflows in the {0} "
+           "real-time controls system.".format(SITE_MAP.get(args.ifo, 'LIGO')))
     if args.deep:
         page.p("A hierarchichal search was performed, with a single "
                "cumulative overflow counter checked per front-end controller "
