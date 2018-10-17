@@ -26,6 +26,8 @@ import numpy
 import os.path
 import sys
 
+import tqdm
+
 from matplotlib import use
 use('agg')
 
@@ -210,13 +212,12 @@ for dcuid in args.dcuid:
         gprint("%d overflows found" % len(osegs))
         if args.deep:
             if go_deep:
-                gprint("    Going deep...", end=' ')
-                for s, e in osegs.coalesce():
+                for s, e in tqdm.tqdm(osegs.coalesce(), unit='ovfl',
+                                      desc='    Going deep'):
                     data = TimeSeriesDict.read(c, channels, nproc=args.nproc,
                                                start=s, end=e, **readkwargs)
                     for ch in channels:
                         find_overflows(data[ch], ch, seg)
-                gprint("Done")
             elif use_segments:
                 for ch in channels:
                     try:
