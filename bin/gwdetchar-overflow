@@ -75,7 +75,7 @@ def get_data(channels, start, end, cache=None, ndsconnection=None, **kwargs):
                                   connection=ndsconnection, **kwargs)
     kwargs.update(readkwargs)
     cache = cache.sieve(segment=Segment(start, end))
-    return series_class.read(cache, channels, start, end, **kwargs)
+    return series_class.read(cache, channels, start=start, end=end, **kwargs)
 
 
 def plot_overflows(flag, span, facecolor='red', edgecolor='darkred',
