@@ -19,12 +19,14 @@
 """Utilities for analysing ADC or DAC overflows
 """
 
+import os
 import re
+from operator import attrgetter
 
 import numpy
 
 from gwpy.io.gwf import get_channel_names
-from gwpy.time import tconvert
+from gwpy.time import to_gps
 from gwpy.timeseries import StateTimeSeries
 
 from . import const
@@ -111,30 +113,53 @@ def ligo_accum_overflow_channel(dcuid, ifo=None):
 
 
 def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
-                                 accum=True):
-    """
-    """
-    # FIXME: write a docstring
+                                 accum=True, nds=None):
+    """Find the CDS overflow channel names for a given DCUID
 
+    Parameters
+    ----------
+    dcuid : `int`
+        the ID of the front-end controller to search
+
+    ifo : `str`, optional
+        the prefix of the interferometer to use
+
+    frametype : `str`, optional
+        the frametype to use, defaults to ``{ifo}_R``
+
+    gpstime : `int`, optional
+        the GPS time at which to search
+
+    accum : `bool`, optional
+        whether to retun the accumulated overflow channels (`True`) or not
+        (`False`)
+
+    nds : `str`, optional
+        the ``'host:port'`` to use for accessing data via NDS, or `None`
+        to use direct GWF file access
+
+    Returns
+    -------
+    names : `list` of `str`
+        the list of channel names found
+
+    """
     ifo = ifo or const.IFO
     if ifo is None:
         raise ValueError("Cannot format channel without an IFO, "
                          "please specify")
-    if frametype is None:
-        frametype = '%s_R' % ifo
+    frametype = '{0}_R'.format(ifo)
+
     if gpstime is None:
-        gpstime = int(tconvert()) - 1000
-    try:
-        framefile = find_frames(ifo[0], frametype, gpstime, gpstime)[0].path
-    except IndexError as e:
-        e.args = ('No %s-%s frames found at GPS %d'
-                  % (ifo[0], frametype, gpstime),)
-        raise
-    try:
-        allchannels = _CHANNELS[framefile]
-    except KeyError:
-        _CHANNELS[framefile] = get_channel_names(framefile)
-        allchannels = _CHANNELS[framefile]
+        gpstime = int(to_gps('now')) - 1000
+
+    if nds:
+        allchannels = _ligo_model_overflow_channels_nds(dcuid, ifo, gpstime,
+                                                        nds)
+    else:
+        allchannels = _ligo_model_overflow_channels_gwf(dcuid, ifo, frametype,
+                                                        gpstime)
+
     if accum:
         regex = re.compile(r'%s:FEC-%d_(ADC|DAC)_OVERFLOW_ACC_\d+_\d+\Z'
                            % (ifo, dcuid))
@@ -142,6 +167,45 @@ def ligo_model_overflow_channels(dcuid, ifo=None, frametype=None, gpstime=None,
         regex = re.compile(r'%s:FEC-%d_(ADC|DAC)_OVERFLOW_\d+_\d+\Z'
                            % (ifo, dcuid))
     return natural_sort(filter(regex.match, allchannels))
+
+
+def _ligo_model_overflow_channels_nds(dcuid, ifo, gpstime, host):
+    import nds2
+
+    if host is True:
+        try:
+            host = os.getenv('NDSSERVER', '').split(',', 1)[0]
+        except KeyError:
+            raise ValueError("Cannot determine default NDSSERVER, please pass "
+                             "nds=<host:port> or set NDSSERVER environment "
+                             "variable")
+    try:
+        host, port = host.rsplit(':', 1)
+    except ValueError:
+        connection = nds2.connection(host)
+    else:
+        connection = nds2.connection(host, int(port))
+
+    if connection.get_protocol() > 1:
+        connection.set_epoch(gpstime, gpstime + 1)
+
+    # NOTE: the `3` here is the channel type mask for 'ONLINE | RAW'
+    return map(attrgetter('name'), connection.find_channels(
+        '{ifo}:FEC-{dcuid}_*_OVERFLOW_*'.format(ifo=ifo, dcuid=dcuid), 3))
+
+
+def _ligo_model_overflow_channels_gwf(dcuid, ifo, frametype, gpstime):
+    try:
+        framefile = find_frames(ifo[0], frametype, gpstime, gpstime)[0].path
+    except IndexError as e:
+        e.args = ('No %s-%s frames found at GPS %d'
+                  % (ifo[0], frametype, gpstime),)
+        raise
+    try:
+        return _CHANNELS[framefile]
+    except KeyError:
+        _CHANNELS[framefile] = get_channel_names(framefile)
+        return _CHANNELS[framefile]
 
 
 def find_crossings(timeseries, threshold):

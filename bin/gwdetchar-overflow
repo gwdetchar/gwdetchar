@@ -26,6 +26,8 @@ import numpy
 import os.path
 import sys
 
+import tqdm
+
 from matplotlib import use
 use('agg')
 
@@ -33,6 +35,7 @@ from glue.ligolw.utils import write_fileobj
 
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
+from gwpy.time import to_gps
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.io.cache import cache_segments
 from gwpy.utils import gprint
@@ -47,8 +50,32 @@ except ImportError:
 else:
     readkwargs = {'type': 'adc', 'format': 'gwf.framecpp'}
 
+SITE_MAP = {
+    'K1': 'KAGRA',
+    'V1': 'Virgo',
+}
+
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+
+
+def get_data(channels, start, end, cache=None, ndsconnection=None, **kwargs):
+    if isinstance(channels, (list, tuple)):
+        series_class = TimeSeriesDict
+    else:
+        series_class = TimeSeries
+    if cache is None and isinstance(channels, (list, tuple)):
+        data = series_class()
+        for group in [channels[i:i + 60] for i in range(0, len(channels), 60)]:
+            data.append(series_class.fetch(group, start, end,
+                                           connection=ndsconnection, **kwargs))
+        return data
+    if cache is None:
+        return series_class.fetch(channels, start, end,
+                                  connection=ndsconnection, **kwargs)
+    kwargs.update(readkwargs)
+    cache = cache.sieve(segment=Segment(start, end))
+    return series_class.read(cache, channels, start=start, end=end, **kwargs)
 
 
 def plot_overflows(flag, span, facecolor='red', edgecolor='darkred',
@@ -92,6 +119,9 @@ parser.add_argument('--deep', action='store_true', default=False,
                     help='perform deep scan, default: %(default)s')
 parser.add_argument('-a', '--state-flag', metavar='FLAG',
                     help='restrict search to times when FLAG was active')
+parser.add_argument('--nds', metavar='HOST:PORT',
+                    help='use the given NDS host:port to access data, '
+                         'default: use datafind')
 parser.add_argument('-o', '--output-file',
                     help='path to output xml file, default name will be '
                          'automatically generated based on IFO and GPS times')
@@ -152,11 +182,6 @@ if not args.output_file:
         % (args.ifo, int(args.gpsstart), duration))
     gprint("Set default output file as %s" % args.output_file)
 
-# get frame cache
-cache = datafind.find_frames(args.ifo[0], args.frametype,
-                             int(args.gpsstart), int(args.gpsend))
-cachesegs = statea & cache_segments(cache)
-
 # set up container
 if args.output_format.endswith('segments'):
     use_segments = True
@@ -180,6 +205,24 @@ else:
                       (times < float(segment[1]))]
         overflows.extend(table_from_times(times, channel))
 
+# prepare data access
+if args.nds:
+    from gwpy.io import nds2 as io_nds2
+    host, port = args.nds.rsplit(':', 1)
+    ndsconnection = io_nds2.connect(host, port=int(port))
+    if ndsconnection.get_protocol() == 1:
+        cachesegs = SegmentList([Segment(int(args.gpsstart),
+                                         int(args.gpsend))])
+    else:
+        cachesegs = io_nds2.get_availability(
+            ['{0}:FEC-1_DAC_OVERFLOW_ACC_0_0'.format(args.ifo)],
+            int(args.gpsstart), int(args.gpsend),
+        )
+else:  # get frame cache
+    cache = datafind.find_frames(args.ifo[0], args.frametype,
+                                 int(args.gpsstart), int(args.gpsend))
+    cachesegs = statea & cache_segments(cache)
+
 # get channel and find overflows
 for dcuid in args.dcuid:
     gprint("Processing DCUID %d" % dcuid)
@@ -188,16 +231,18 @@ for dcuid in args.dcuid:
         gprint("    Getting list of overflow channels...", end=' ')
         try:
             channels = daq.ligo_model_overflow_channels(
-                dcuid, args.ifo, args.frametype, gpstime=span[0])
+                dcuid, args.ifo, args.frametype, gpstime=span[0], nds=args.nds)
         except IndexError:  # no frame found for GPS start, try GPS end
             channels = daq.ligo_model_overflow_channels(
                 dcuid, args.ifo, args.frametype, gpstime=span[-1])
         gprint("    %d channels found" % len(channel))
     for seg in cachesegs:
-        c = cache.sieve(segmentlist=SegmentList([seg]))
         gprint("    Reading ACCUM_OVERFLOW data for %d-%d..." % seg, end=' ')
-        data = TimeSeries.read(c, channel, nproc=args.nproc,
-                               start=seg[0], end=seg[1], **readkwargs)
+        if args.nds:
+            read_kw = dict(ndsconnection=ndsconnection)
+        else:
+            read_kw = dict(cache=cache, nproc=args.nproc)
+        data = get_data(channel, seg[0], seg[1], pad=0., **read_kw)
         if use_segments:
             new = daq.find_overflow_segments(data)
             osegs = type(new.active)([type(s)(s[0]-2, s[0]+2) for
@@ -210,13 +255,11 @@ for dcuid in args.dcuid:
         gprint("%d overflows found" % len(osegs))
         if args.deep:
             if go_deep:
-                gprint("    Going deep...", end=' ')
-                for s, e in osegs.coalesce():
-                    data = TimeSeriesDict.read(c, channels, nproc=args.nproc,
-                                               start=s, end=e, **readkwargs)
+                for s, e in tqdm.tqdm(osegs.coalesce(), unit='ovfl',
+                                      desc='    Going deep'):
+                    data = get_data(channels, s, e, **read_kw)
                     for ch in channels:
                         find_overflows(data[ch], ch, seg)
-                gprint("Done")
             elif use_segments:
                 for ch in channels:
                     try:
@@ -273,8 +316,8 @@ if args.html:
     page.h1('%s ADC/DAC Overflows: %d-%d'
             % (args.ifo, int(args.gpsstart), int(args.gpsend)))
     page.p("This analysis searched for digital-to-analogue (DAC) or "
-           "analogue-to-digital (ADC) conversion overflows in the LIGO "
-           "real-time controls system.")
+           "analogue-to-digital (ADC) conversion overflows in the {0} "
+           "real-time controls system.".format(SITE_MAP.get(args.ifo, 'LIGO')))
     if args.deep:
         page.p("A hierarchichal search was performed, with a single "
                "cumulative overflow counter checked per front-end controller "
