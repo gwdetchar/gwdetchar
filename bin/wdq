@@ -25,7 +25,8 @@ from __future__ import print_function
 import os.path
 import shutil
 import sys
-from subprocess import (Popen, PIPE, CalledProcessError)
+import subprocess
+import warnings
 
 from glue.lal import Cache
 
@@ -36,7 +37,8 @@ from gwdetchar import (cli, omega, const)
 from gwdetchar.io import datafind
 
 parser = cli.create_parser(description=__doc__)
-parser.add_argument('gpstime', type=str, help='GPS time of scan')
+parser.add_argument('gpstime', type=to_gps,
+                    help='GPS time or datestring to scan')
 cli.add_ifo_option(parser)
 parser.add_argument('-o', '--output-directory',
                     help='output directory for scan, '
@@ -44,32 +46,80 @@ parser.add_argument('-o', '--output-directory',
 parser.add_argument(
     '-f', '--config-file',
     help='path to configuration file to use, default: '
-         '~detchar/etc/omega/{epoch}/{OBS}-{IFO}_R-selected.txt')
-parser.add_argument(
+         'choose based on observatory, epoch, and pipeline')
+parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
+                    required=omega.WPIPELINE is None,
+                    help='path to Matlab wpipeline binary, can also choose '
+                         'the Python version with string "gwdetchar-omega", '
+                         'default: %(default)s')
+parser.add_argument('--colormap', default=None,
+                    help='name of colormap to use (supported either in Python '
+                         'or in Matlab omega > r3449), default: choose based '
+                         'on wpipeline')
+
+margs = parser.add_argument_group('Matlab options')
+margs.add_argument('--condor', action='store_true', default=False,
+                   help='indicates this job is running under condor, '
+                        'only use when running as part of a workflow')
+margs.add_argument(
     '-c', '--cache-file',
     help='path to data cache file, if not given, data locations '
          'are found using the datafind server, must be in LAL cache format')
-parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
-                    required=omega.WPIPELINE is None,
-                    help='path to wpipeline binary, default: %(default)s')
-parser.add_argument('--condor', action='store_true', default=False,
-                    help='indicates this job is running under condor, '
-                         'only use when running as part of a workflow')
 
-oargs = parser.add_argument_group('Omega options')
-oargs.add_argument('--colormap', default='parula',
-                   help='name of colormap to use (only supported for '
-                        'omega > r3449)')
+pargs = parser.add_argument_group('Python options')
+pargs.add_argument('-t', '--far-threshold', type=float, default=1e-10,
+                   help='white noise false alarm rate threshold for '
+                        'processing channels, default: %(default)s Hz')
+pargs.add_argument('-s', '--ignore-state-flags', action='store_true',
+                   default=False, help='ignore state flag definitions in '
+                                       'the configuration, default: False')
+cli.add_nproc_option(pargs)
+pargs.add_argument('-v', '--verbose', action='store_true', default=False,
+                   help='print verbose output, default: False')
 
 args = parser.parse_args()
-
-print("----------------------------------------------\n"
-      "Creating omega scan for %s..." % args.gpstime)
 
 gps = args.gpstime
 gpstime = float(gps)
 ifo = args.ifo
 obs = args.ifo[0]
+
+# set colormap default
+if args.colormap is None:
+    if args.wpipeline.endswith('wpipeline'):
+        args.colormap = 'parula'  # matlab
+    else:
+        args.colormap = 'viridis'  # python
+
+# if requested, wrap around gwdetchar-omega
+if 'gwdetchar-omega' in args.wpipeline:
+    wpipeline = os.path.join(os.path.dirname(__file__), 'gwdetchar-omega')
+    cmd = [wpipeline, '-t', str(args.far_threshold), '-j', str(args.nproc),
+           '-c', args.colormap, '-i', ifo, str(gps)]
+    if args.output_directory is not None:
+        cmd.extend(['-o', args.output_directory])
+    if args.config_file is not None:
+        cmd.extend(['-f', args.config_file])
+    if args.ignore_state_flags:
+        cmd.extend(['-s'])
+    if args.verbose:
+        cmd.extend(['-v'])
+    process = subprocess.check_call(cmd)
+    sys.exit(0)
+
+# else, wrap around the Matlab code and throw a deprecation warning
+warnings.simplefilter('always', DeprecationWarning)
+warnings.warn('Since the Matlab omega scan code is reaching end-of-life, '
+              '`wdq` will soon be deprecated in favor of `gwdetchar-omega`. '
+              'We are in the first stage of this process, where `wdq` '
+              'supports `gwdetchar-omega` but still runs the Matlab code '
+              'by default. A future version will set `gwdetchar-omega` as '
+              'default, and before O3, `wdq` will be removed entirely and '
+              '`wdq-batch` will become `gwdetchar-omega-batch`.',
+              DeprecationWarning)
+
+print("----------------------------------------------\n"
+      "Creating omega scan for %s..." % args.gpstime)
 
 # set output directory
 outdir = args.output_directory
@@ -87,7 +137,7 @@ if args.config_file is None:
     # find and parse configuration file
     args.config_file = os.path.expanduser(
         '~detchar/etc/omega/{epoch}/{obs}-{ifo}_R-selected.txt'.format(
-        epoch=epoch, obs=obs, ifo=ifo))
+            epoch=epoch, obs=obs, ifo=ifo))
 config = omega.OmegaChannelList.read(args.config_file)
 print("Successfully parsed config file %s" % args.config_file)
 
