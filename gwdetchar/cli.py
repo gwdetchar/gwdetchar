@@ -88,7 +88,8 @@ def add_frametype_option(parser, **kwargs):
 
 def add_nproc_option(
         parser, default=8, type=int,
-        help='the number of processes to use when reading data',
+        help='the number of processes to use when reading data, '
+             'default: %(default)s',
         **kwargs):
     return parser.add_argument('-j', '--nproc', default=default, help=help,
                                type=type, **kwargs)

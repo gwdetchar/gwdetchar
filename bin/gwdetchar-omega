@@ -32,7 +32,7 @@ from matplotlib import (use, rcParams)
 use('agg')  # nopep8
 
 from gwpy.utils import gprint
-from gwpy.time import tconvert
+from gwpy.time import to_gps
 from gwpy.table import EventTable
 from gwpy.segments import Segment
 from gwpy.timeseries import TimeSeriesDict
@@ -49,9 +49,9 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 # -- parse command line -------------------------------------------------------
 
 parser = cli.create_parser(description=__doc__)
-parser.add_argument('gpstime', type=str, help='GPS time of scan')
-parser.add_argument('-i', '--ifo', type=str,
-                    help='IFO prefix for this analysis, default: None')
+parser.add_argument('gpstime', type=to_gps,
+                    help='GPS time or datestring to scan')
+cli.add_ifo_option(parser, required=False)
 parser.add_argument('-o', '--output-directory',
                     help='output directory for the omega scan, '
                          'default: ~/public_html/wdq/{IFO}_{gpstime}')
@@ -61,15 +61,12 @@ parser.add_argument('-f', '--config-file', action='append', default=None,
                          'None')
 parser.add_argument('-t', '--far-threshold', type=float, default=1e-10,
                     help='White noise false alarm rate threshold for '
-                         'processing channels; default: %(default)s')
-parser.add_argument('--condor', action='store_true', default=False,
-                    help='indicates this job is running under condor, '
-                         'only use when running as part of a workflow')
-parser.add_argument('--colormap', default='viridis',
+                         'processing channels; default: %(default)s Hz')
+parser.add_argument('-c', '--colormap', default='viridis',
                     help='name of colormap to use, default: %(default)s')
-parser.add_argument('-v', '--verbose', action='store_true', default='False',
-                    help='print verbose output, default: %(default)s')
 cli.add_nproc_option(parser)
+parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                    help='print verbose output, default: False')
 
 args = parser.parse_args()
 
