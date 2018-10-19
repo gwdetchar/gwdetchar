@@ -147,7 +147,7 @@ class OmegaChannelList(object):
         self.resample = int(params.get('resample', 0))
         self.source = params.get('source', None)
         self.frametype = params.get('frametype', None)
-        chans = params.get('channels', None).split('\n')
+        chans = params.get('channels', None).strip().split('\n')
         section = self.parent if self.parent else self.key
         self.channels = [OmegaChannel(c, section, **params) for c in chans]
         self.params = params.copy()
