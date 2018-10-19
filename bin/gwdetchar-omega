@@ -34,9 +34,9 @@ use('agg')  # nopep8
 from gwpy.utils import gprint
 from gwpy.time import to_gps
 from gwpy.table import EventTable
-from gwpy.segments import Segment
 from gwpy.timeseries import TimeSeriesDict
 from gwpy.detector import (Channel, ChannelList)
+from gwpy.segments import (Segment, DataQualityFlag)
 from gwpy.signal.qtransform import QTiling
 
 from gwdetchar import (cli, __version__)
@@ -59,6 +59,9 @@ parser.add_argument('-f', '--config-file', action='append', default=None,
                     help='path to configuration file to use, can be given '
                          'multiple times (files read in order), default: '
                          'None')
+parser.add_argument('-s', '--ignore-state-flags', action='store_true',
+                    default=False, help='ignore state flag definitions in '
+                                        'the configuration, default: False')
 parser.add_argument('-t', '--far-threshold', type=float, default=1e-10,
                     help='White noise false alarm rate threshold for '
                          'processing channels; default: %(default)s Hz')
@@ -147,6 +150,7 @@ class OmegaChannelList(object):
         self.resample = int(params.get('resample', 0))
         self.source = params.get('source', None)
         self.frametype = params.get('frametype', None)
+        self.flag = params.get('state-flag', None)
         chans = params.get('channels', None).strip().split('\n')
         section = self.parent if self.parent else self.key
         self.channels = [OmegaChannel(c, section, **params) for c in chans]
@@ -154,6 +158,38 @@ class OmegaChannelList(object):
 
 
 # -- Utilities ----------------------------------------------------------------
+
+def check_flag(flag, time, duration, pad):
+    """Check that a state flag is active during an analysis segment
+
+    Parameters
+    ----------
+    flag : `str`
+        state flag to check
+    time : `float`
+        GPS time of required data
+    duration : `float`
+        duration (in seconds) of required data
+    pad : `float`
+        amount of extra data to read in at the start and end for filtering
+
+    Returns
+    -------
+    check : `bool`
+        Boolean switch to pass (`True`) or fail (`False`) depending on whether
+        the given flag is active
+    """
+    # set GPS start and end time
+    start = time - duration/2. - pad
+    end = time + duration/2. + pad
+    seg = Segment(start, end)
+    # query for state segments
+    active = DataQualityFlag.query(flag, start, end).active
+    # check that state flag is active during the entire analysis
+    if (not active.intersects_segment(seg)) or (abs(active[0]) < abs(seg)):
+        return False
+    return True
+
 
 def get_data(channels, time, duration, pad, frametype=None, source=None,
              nproc=1, verbose=False):
@@ -363,10 +399,18 @@ gprint('Launching Omega scans...')
 for block in blocks.values():
     gprint('Processing block %s' % block.key)
     chans = [c.name for c in block.channels]
-    # read in `duration` seconds of data centered on gps
+    # get configuration
     duration = block.duration
     fftlength = block.fftlength
     pad = max(1, fftlength/4.)
+    # check that analysis flag is active for all of `duration`
+    if block.flag and not args.ignore_state_flags:
+        if args.verbose:
+            gprint('Querying state flag %s...' % block.flag)
+        if not check_flag(block.flag, gps, duration, pad):
+            gprint('%s not active, skipping block' % block.flag)
+            continue
+    # read in `duration` seconds of data centered on gps
     data = get_data(chans, gps, duration, pad, frametype=block.frametype,
                     source=block.source, nproc=args.nproc,
                     verbose=args.verbose)
@@ -498,5 +542,9 @@ for block in blocks.values():
 # write HTML page and finish
 gprint('Finalizing HTML at %s/index.html...' % outdir)
 htmlv['refresh'] = False  # turn off auto-refresh
-html.write_qscan_page(ifo, gps, analyzed, **htmlv)
+if analyzed:
+    html.write_qscan_page(ifo, gps, analyzed, **htmlv)
+else:
+    reason = 'No significant channels found during active analysis segments'
+    html.write_null_page(ifo, gps, reason, **htmlv)
 gprint("-- index.html written, all done --")

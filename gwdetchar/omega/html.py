@@ -942,8 +942,6 @@ def write_null_page(reason, context='default'):
     context : `str`, optional
         the bootstrap context class for this result, see the bootstrap
         docs for more details
-    outdir : `str`, optional
-        the output directory for the HTML
 
     Returns
     -------
