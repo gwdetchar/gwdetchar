@@ -774,13 +774,15 @@ def write_summary(
     return page()
 
 
-def write_block(block, context, tableclass='table table-condensed table-hover '
-                                           'table-bordered table-responsive '
-                                           'desktop-only'):
+def write_block(blockkey, block, context,
+                tableclass='table table-condensed table-hover table-bordered '
+                           'table-responsive desktop-only'):
     """Write the HTML summary for a specific block of channels
 
     Parameters
     ----------
+    blockkey: `str`
+        the key labeling the channel block
     block : `dict` of `OmegaChannel`
         a list of channels and their analysis attributes
     context : `str`
@@ -809,7 +811,7 @@ def write_block(block, context, tableclass='table table-condensed table-hover '
         page.a("<small>[top]</small>", href='#', class_='text-%s' % context)
     page.div.close()  # pull-right
     # heading
-    page.h3(block['name'], class_='panel-title')
+    page.h3(': '.join([blockkey, block['name']]), class_='panel-title')
     page.div.close()  # panel-heading
 
     # -- make body
@@ -921,8 +923,8 @@ def write_qscan_page(blocks, context):
     page.div(class_='banner')
     page.h2('Channel details')
     page.div.close()  # banner
-    for block in blocks.values():
-        page.add(write_block(block, context))
+    for key, block in blocks.items():
+        page.add(write_block(key, block, context))
     write_summary_table(blocks)
     return page
 
