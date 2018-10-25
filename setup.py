@@ -61,6 +61,7 @@ install_requires = [
     'gwpy>=0.12.0',
     'lscsoft-glue',
     'gwtrigfind',
+    'sklearn',
 ]
 
 # test
