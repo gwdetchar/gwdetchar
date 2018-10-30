@@ -149,15 +149,11 @@ def find_limit_channels(channels, skip=None):
         useful = sorted(x for x in channels if re_software.search(x))
 
     # map limits to limen or swstat
-    limens = []
-    swstats = []
-    for i, x in enumerate(useful):
-        if not re_limit.search(x):
-            continue
-        if re_limen.search(useful[i-1]):
-            limens.append(x[:-6])
-        elif re_swstat.search(useful[i+1]):
-            swstats.append(x[:-6])
+    limits = sorted(x[:-6] for x in useful if re_limit.search(x))
+    limens = sorted(x[:-6] for x in useful if re_limen.search(x)
+                    and x[:-6] in limits)
+    swstats = sorted(x[:-7] for x in useful if re_swstat.search(x)
+                     and x[:-7] in limits)
     return limens, swstats
 
 
