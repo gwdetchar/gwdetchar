@@ -27,10 +27,10 @@ import pytest
 
 from .. import (condor, const)
 
-LAST_CONDOR_EPOCH = filter(
+LAST_CONDOR_EPOCH = list(filter(
     condor.OBS_RUN_REGEX.match,
     list(zip(*sorted(const.EPOCH.items(), key=lambda x: x[1].start)))[0],
-)[-1]
+))[-1]
 
 
 @pytest.mark.parametrize('gps, epoch', [
