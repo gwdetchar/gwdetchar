@@ -46,3 +46,50 @@ EPOCH = OrderedDict([
     ('O2', Segment(1164499217, 1187733618)),
     ('O3', Segment(1187733618, 2000000000)),
 ])
+
+
+def latest_epoch():
+    """Returns the name of the latest known epoch
+    """
+    epochs = sorted(EPOCH.items(), key=lambda x: x[1][0])
+    return epochs[-1][0]
+
+
+def gps_epoch(gpstime, default=None):
+    """Returns the epoch name containing the given GPS time
+
+    Parameters
+    ----------
+    gpstime : `float`, `int`
+        the GPS time to match
+
+    default : `str`, optional
+        the epoch to return if ``gpstime`` doesn't match any
+        known epoch, default is to raise `ValueError`
+
+    Returns
+    -------
+    epoch : `str`
+        the name of the containing epoch, or ``default`` if given
+
+    Raises
+    ------
+    ValueError
+        if ``gpstime`` doesn't match any known epoch, and ``default``
+        was not given
+
+    Examples
+    --------
+    >>> from gwdetchar.const import gps_epoch
+    >>> print(gps_epoch(1126259462))
+    'O1'
+    >>> print(gps_epoch(0, default='ER0')
+    'ER0'
+    """
+    for epoch in EPOCH:
+        if float(gpstime) in EPOCH[epoch]:
+            return epoch
+    if default:
+        return default
+    raise ValueError("failed to match GPS time {0} to any "
+                     "known epoch".format(gpstime))
