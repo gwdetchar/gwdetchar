@@ -54,3 +54,25 @@ def test_const(const, env):
         assert const.IFO is None
         assert const.ifo is None
     assert const.site is None
+
+
+@pytest.mark.parametrize('gps, default, epoch', [
+    (1126259462, None, 'ER8'),
+    (1187008882.43, None, 'O2'),
+    (-1, 'test', 'test'),
+])
+def test_gps_epoch(gps, default, epoch):
+    assert _const.gps_epoch(gps, default=default) == epoch
+
+
+def test_gps_epoch_valueerror():
+    with pytest.raises(ValueError):
+        _const.gps_epoch(-1, default=None)
+
+
+def test_latest_epoch(const):
+    const.EPOCH = {
+        'test1': (0, 10),
+        'test2': (10, 20),
+    }
+    assert const.latest_epoch() == 'test2'

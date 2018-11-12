@@ -35,7 +35,7 @@ from getpass import getuser
 
 from glue import pipeline
 
-from gwdetchar import (omega, cli)
+from gwdetchar import (omega, cli, condor)
 
 # attempt to get WDQ path
 WDQ = os.path.join(os.path.dirname(__file__), 'wdq')
@@ -44,7 +44,7 @@ if not os.path.isfile(WDQ):
 
 # set default accounting information
 CONDOR_ACCOUNTING_GROUP = os.getenv(
-    '_CONDOR_ACCOUNTING_GROUP', 'ligo.dev.o2.detchar.user_req.omegascan')
+    '_CONDOR_ACCOUNTING_GROUP', 'ligo.dev.{epoch}.detchar.user_req.omegascan')
 CONDOR_ACCOUNTING_USER = os.getenv(
     '_CONDOR_ACCOUNTING_USER', getuser())
 
@@ -88,7 +88,9 @@ cargs.add_argument('-u', '--universe', default='vanilla', type=str,
 cargs.add_argument('--condor-accounting-group',
                    default=CONDOR_ACCOUNTING_GROUP,
                    help='accounting_group for condor submission on the LIGO '
-                        'Data Grid')
+                        'Data Grid, include \'{epoch}\' (with curly brackets) '
+                        'to auto-substitute the appropriate epoch based on '
+                        'the GPS times')
 cargs.add_argument('--condor-accounting-group-user',
                    default=CONDOR_ACCOUNTING_USER,
                    help='accounting_group_user for condor submission on the '
@@ -109,6 +111,24 @@ if len(times) == 1:
         times = numpy.loadtxt(times[0], dtype=float)
 else:
     times = map(float, times)
+
+# finalise accounting tag based on run
+if '{epoch}' in args.condor_accounting_group:
+    gpsepoch = max(times)
+    epoch = condor.accounting_epoch(gpsepoch)
+    args.condor_accounting_group = args.condor_accounting_group.format(
+        epoch=epoch.lower())
+
+# valid the accounting tag up-front
+try:
+    valid = condor.validate_accounting_tag(args.condor_accounting_group)
+except EnvironmentError:
+    valid = True  # failed to load condor tags, not important
+if not valid:
+    listtags = 'cat {0} | json_pp | less'.format(condor.ACCOUNTING_GROUPS_FILE)
+    raise ValueError("condor accounting tag {0!r} recognised, to see the list "
+                     "of valid groups, run `{1}`".format(
+                         args.condor_accounting_group, listtags))
 
 # -- generate workflow --------------------------------------------------------
 
