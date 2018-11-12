@@ -95,6 +95,13 @@ cargs.add_argument('--condor-accounting-group-user',
                    default=CONDOR_ACCOUNTING_USER,
                    help='accounting_group_user for condor submission on the '
                         'LIGO Data Grid')
+cargs.add_argument('--condor-timeout', type=float, default=None, metavar='T',
+                   help='configure condor to terminate jobs after T hours '
+                        'to prevent idling, default: %(default)s')
+cargs.add_argument('--condor-command', action='append', default=[],
+                   help="Extra condor submit commands to add to "
+                        "gw_summary submit file. Can be given "
+                        "multiple times in the form \"key=value\"")
 
 args = parser.parse_args()
 
@@ -153,11 +160,23 @@ logstub = os.path.join(logdir, '%s-$(cluster)-$(process)' % tag)
 job.set_log_file('%s.log' % logstub)
 job.set_stdout_file('%s.out' % logstub)
 job.set_stderr_file('%s.err' % logstub)
-job.add_condor_cmd('getenv', 'True')
-job.add_condor_cmd('accounting_group', args.condor_accounting_group)
-job.add_condor_cmd('accounting_group_user', args.condor_accounting_group_user)
+
+# add custom condor commands, using defaults
+condorcmds = {
+    'getenv': True,
+    'accounting_group': args.condor_accounting_group,
+    'accounting_group_user': args.condor_accounting_group_user,
+}
 if args.universe != 'local':
-    job.add_condor_cmd('request_memory', 4096)
+    condorcmds['request_memory'] = 4096
+if args.condor_timeout:
+    condorcmds['periodic_remove'] = (
+        'CurrentTime-EnteredCurrentStatus > %d' % (3600 * args.condor_timeout))
+for cmd_ in args.condor_command:
+    key, value = cmd_.split('=', 1)
+    condorcmds[key.rstrip().lower()] = value.strip()
+for key, val in condorcmds.items():
+    job.add_condor_cmd(key, val)
 
 # add common wdq options
 job.add_opt('wpipeline', args.wpipeline)
