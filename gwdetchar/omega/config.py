@@ -31,7 +31,7 @@ runtime, which must include processing options for individual blocks. In a
 given block, the following keywords are supported:
 
 [blockkey]
--------
+----------
 
 =======================  ======================================================
 ``name``                 The full name of this channel block, which will
@@ -103,6 +103,7 @@ given block, the following keywords are supported:
   channels = L1:CAL-DELTAL_EXTERNAL_DQ
 
   .. note::
+
   The `blockkey` will appear in the navbar to identify channel blocks on the
   output page, with a scrollable dropdown list of channels in that block for
   ease of navigation.

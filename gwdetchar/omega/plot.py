@@ -65,6 +65,7 @@ def omega_plot(series, gps, span, channel, output, colormap='viridis',
     ax = plot.gca()
     # set time axis units
     ax.set_xscale('seconds', epoch=gps)
+    ax.set_xlim(gps-span/2, gps+span/2)
     ax.set_xlabel('Time [seconds]')
     # set y-axis properties
     chan = channel.replace('_', r'\_')
@@ -81,7 +82,6 @@ def omega_plot(series, gps, span, channel, output, colormap='viridis',
         cmap = cm.get_cmap(colormap)
         rgba = cmap(0)
         ax.set_facecolor(rgba)
-        ax.set_xlim(gps-span/2, gps+span/2)
         ax.set_yscale('log')
         ax.set_ylabel('Frequency [Hz]')
     ax.grid(True, axis='y', which='both')
