@@ -81,23 +81,8 @@ print("Ouput directory created as %s" % outdir)
 
 if args.config_file is None:
     # find epoch
-    epoch = None
-    epochs = sorted(const.EPOCH.items(), key=lambda x: x[1].start)
-    for i, (epoch_, segment) in enumerate(epochs):
-        if gpstime in segment:
-            epoch = epoch_
-            break
-        elif (i == 0 and gpstime < segment.start):
-            epoch = epoch_
-            break
-        elif gpstime < segment.start:
-            epoch = epochs[i-1][0]
-            break
-    if epoch is None:
-        epoch = epochs[-1]
-        print("GPS time not identified in any epoch, defaulting to %r" % epoch)
-    else:
-        print("Identified epoch as %r" % epoch)
+    epoch = const.gps_epoch(gpstime, default=const.latest_epoch())
+    print("Identified epoch as %r" % epoch)
 
     # find and parse configuration file
     args.config_file = os.path.expanduser(
