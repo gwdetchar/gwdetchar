@@ -29,7 +29,7 @@ from .. import (condor, const)
 
 LAST_CONDOR_EPOCH = filter(
     condor.OBS_RUN_REGEX.match,
-    zip(*sorted(const.EPOCH.items(), key=lambda x: x[1].start))[0],
+    list(zip(*sorted(const.EPOCH.items(), key=lambda x: x[1].start)))[0],
 )[-1]
 
 
