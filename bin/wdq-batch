@@ -149,11 +149,10 @@ if not valid:
                          args.condor_accounting_group, listtags))
 
 # set colormap default
-if args.colormap is None:
-    if args.wpipeline.endswith('wpipeline'):
-        args.colormap = 'parula'  # matlab
-    else:
-        args.colormap = 'viridis'  # python
+if not args.colormap and args.wpipeline.endswith('wpipeline'):
+    args.colormap = 'parula'  # matlab
+elif not args.colormap:
+    args.colormap = 'viridis'  # python
 
 # -- generate workflow --------------------------------------------------------
 
