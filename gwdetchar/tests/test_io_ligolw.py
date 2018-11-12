@@ -43,6 +43,7 @@ def test_new_table():
 
 
 def test_sngl_burst_from_times():
+    numpy.random.seed(0)
     times = numpy.random.random(4) * 100.
     tab = io_ligolw.sngl_burst_from_times(times)
     assert isinstance(tab, lsctables.SnglBurstTable)
