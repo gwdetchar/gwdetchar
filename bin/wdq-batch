@@ -51,10 +51,7 @@ CONDOR_ACCOUNTING_USER = os.getenv(
 
 # -- parse command line -------------------------------------------------------
 
-parser = cli.create_parser(
-    description=__doc__,
-    formatter_class=cli.argparse.ArgumentDefaultsHelpFormatter,
-)
+parser = cli.create_parser(description=__doc__)
 
 parser.add_argument('gps-time', nargs='+',
                     help='GPS time(s) to scan, or path to a file '
@@ -66,21 +63,35 @@ parser.add_argument('-o', '--output-dir', default=os.getcwd(),
 parser.add_argument(
     '-f', '--config-file',
     help='path to configuration file to use, default: '
-         '~detchar/etc/omega/{epoch}/{OBS}-{IFO}_R-selected.txt')
-parser.add_argument(
-    '-c', '--cache-file',
-    help='path to data cache file, if not given, data locations '
-         'are found using the datafind server, must be in LAL cache format')
+         'choose based on observatory, epoch, and pipeline')
 parser.add_argument('-q', '--wdq', default=WDQ, required=WDQ is None,
                     help='path to wdq executable')
 parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
                     required=omega.WPIPELINE is None,
-                    help='path to wpipeline binary')
+                    help='path to Matlab wpipeline binary, can also choose '
+                         'the Python version with string "gwdetchar-omega", '
+                         'default: %(default)s')
+parser.add_argument('--colormap', default=None,
+                    help='name of colormap to use (supported either in Python '
+                         'or in Matlab omega > r3449), default: choose based '
+                         'on wpipeline')
 
-oargs = parser.add_argument_group('Omega options')
-oargs.add_argument('--colormap', default='parula',
-                   help='name of colormap to use (only supported for '
-                        'omega > r3449)')
+margs = parser.add_argument_group('Matlab options')
+margs.add_argument(
+    '-c', '--cache-file',
+    help='path to data cache file, if not given, data locations '
+         'are found using the datafind server, must be in LAL cache format')
+
+pargs = parser.add_argument_group('Python options')
+pargs.add_argument('-t', '--far-threshold', type=float, default=1e-10,
+                   help='white noise false alarm rate threshold for '
+                        'processing channels, default: %(default)s Hz')
+pargs.add_argument('-s', '--ignore-state-flags', action='store_true',
+                   default=False, help='ignore state flag definitions in '
+                                       'the configuration, default: False')
+cli.add_nproc_option(pargs)
+pargs.add_argument('-v', '--verbose', action='store_true', default=False,
+                   help='print verbose output, default: False')
 
 cargs = parser.add_argument_group('Condor options')
 cargs.add_argument('-u', '--universe', default='vanilla', type=str,
@@ -137,6 +148,12 @@ if not valid:
                      "of valid groups, run `{1}`".format(
                          args.condor_accounting_group, listtags))
 
+# set colormap default
+if not args.colormap and args.wpipeline.endswith('wpipeline'):
+    args.colormap = 'parula'  # matlab
+elif not args.colormap:
+    args.colormap = 'viridis'  # python
+
 # -- generate workflow --------------------------------------------------------
 
 tag = 'wdq-batch'
@@ -172,6 +189,10 @@ if args.universe != 'local':
 if args.condor_timeout:
     condorcmds['periodic_remove'] = (
         'CurrentTime-EnteredCurrentStatus > %d' % (3600 * args.condor_timeout))
+if args.universe != 'local' and args.wpipeline.endswith('wpipeline'):
+    condorcmds['request_memory'] = 4096
+elif args.universe != 'local':
+    condorcmds['request_memory'] = 32768
 for cmd_ in args.condor_command:
     key, value = cmd_.split('=', 1)
     condorcmds[key.rstrip().lower()] = value.strip()
@@ -182,11 +203,19 @@ for key, val in condorcmds.items():
 job.add_opt('wpipeline', args.wpipeline)
 job.add_opt('colormap', args.colormap)
 job.add_opt('ifo', args.ifo)
-job.add_opt('condor', '')
 if args.config_file is not None:
     job.add_opt('config-file', args.config_file)
-if args.cache_file is not None:
-    job.add_opt('cache-file', args.cache_file)
+if args.wpipeline.endswith('wpipeline'):
+    job.add_opt('condor', '')
+    if args.cache_file is not None:
+        job.add_opt('cache-file', args.cache_file)
+else:
+    job.add_opt('far-threshold', str(args.far_threshold))
+    job.add_opt('nproc', str(args.nproc))
+    if args.ignore_state_flags:
+        job.add_opt('ignore-state-flags', '')
+    if args.verbose:
+        job.add_opt('verbose', '')
 
 # make node in workflow for each time
 for t in times:
