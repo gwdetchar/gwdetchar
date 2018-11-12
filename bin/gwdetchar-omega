@@ -102,7 +102,7 @@ if args.ifo:
     ifo = args.ifo
 else:
     ifo = 'Network'
-gps = float(args.gpstime)
+gps = numpy.around(float(args.gpstime), 3)
 far = args.far_threshold
 
 print("----------------------------------------------\n"
@@ -422,12 +422,8 @@ if sys.version_info >= (3, 7):  # python 3.7+
     analyzed = {}
 else:
     from collections import OrderedDict
-    try:  # python 3.x
-        blocks = OrderedDict([(s, OmegaChannelList(s, **cp[s]))
-                              for s in cp.sections()])
-    except:  # python 2.x
-        blocks = OrderedDict([(s, OmegaChannelList(s, **dict(cp.items(s))))
-                              for s in cp.sections()])
+    blocks = OrderedDict([(s, OmegaChannelList(s, **dict(cp.items(s))))
+                          for s in cp.sections()])
     analyzed = OrderedDict()
 
 # set up html output
@@ -555,11 +551,11 @@ for block in blocks.values():
                             figsize=figsize)
 
         # save parameters
-        c.Q = Q
-        c.energy = table.Z
-        c.snr = table.snr
-        c.t = table.tc
-        c.f = table.fc
+        c.Q = numpy.around(Q, 1)
+        c.energy = numpy.around(table.Z, 1)
+        c.snr = numpy.around(table.snr, 1)
+        c.t = numpy.around(table.tc, 3)
+        c.f = numpy.around(table.fc, 1)
 
         # update analyzed dict
         try:

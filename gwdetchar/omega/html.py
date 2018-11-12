@@ -515,7 +515,8 @@ def cis_link(channel, **params):
     """
     kwargs = {
         'title': "CIS entry for %s" % channel,
-        'style': "font-family: Monaco, \"Courier New\", monospace;",
+        'style': "font-family: Monaco, \"Courier New\", monospace; "
+                 "color: black;",
     }
     kwargs.update(params)
     return html_link("https://cis.ligo.org/channel/byname/%s" % channel,
