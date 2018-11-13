@@ -69,7 +69,7 @@ def sngl_burst_from_times(times, **params):
 
 
 def sngl_burst_from_segments(segs, **params):
-    """Create a `SnglBurstTable from a `~glue.segments.segmentlist`
+    """Create a `SnglBurstTable from a `~ligo.segments.segmentlist`
     """
     table = new_table('sngl_burst', columns=params.keys())
     next_id = table.next_id
