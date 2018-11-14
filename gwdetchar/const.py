@@ -34,7 +34,7 @@ site = os.getenv('site', SITE.lower() if SITE else None)
 DEFAULT_SEGMENT_SERVER = os.getenv('DEFAULT_SEGMENT_SERVER',
                                    'https://segments.ligo.org')
 S6_SEGMENT_SERVER = os.getenv('S6_SEGMENT_SERVER',
-                              'https://segdb.ligo.caltech.edu')
+                              'https://segments-s6.ligo.org')
 
 # -- Run epochs ---------------------------------------------------------------
 
