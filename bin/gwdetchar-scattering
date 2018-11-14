@@ -133,7 +133,8 @@ span = Segment(args.gpsstart, args.gpsend)
 # get segments
 if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
-                                  int(args.gpsend), url=const.O1_SEGMENT_SERVER)
+                                  int(args.gpsend),
+                                  url=const.DEFAULT_SEGMENT_SERVER)
     for i, seg in enumerate(state.active):
         state.active[i] = type(seg)(seg[0], seg[1]-args.segment_end_pad)
     state.coalesce()

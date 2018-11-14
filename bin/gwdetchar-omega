@@ -226,7 +226,8 @@ def check_flag(flag, time, duration, pad):
     end = time + duration/2. + pad
     seg = Segment(start, end)
     # query for state segments
-    active = DataQualityFlag.query(flag, start, end).active
+    active = DataQualityFlag.query(flag, start, end,
+                                   url=const.DEFAULT_SEGMENT_SERVER).active
     # check that state flag is active during the entire analysis
     if (not active.intersects_segment(seg)) or (abs(active[0]) < abs(seg)):
         return False

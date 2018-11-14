@@ -76,7 +76,7 @@ gprint('Processing channel %s over span %d - %d' % (args.channel,args.gpsstart,a
 if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
                                  int(args.gpsend),
-                                 url=const.O1_SEGMENT_SERVER)
+                                 url=const.DEFAULT_SEGMENT_SERVER)
     statea = state.active
 else:
     statea = SegmentList([span])
