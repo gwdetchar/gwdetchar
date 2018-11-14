@@ -164,7 +164,7 @@ span = Segment(args.gpsstart, args.gpsend)
 if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
                                   int(args.gpsend),
-                                  url=const.O1_SEGMENT_SERVER)
+                                  url=const.DEFAULT_SEGMENT_SERVER)
     tmp = type(state.active)()
     for i, seg in enumerate(state.active):
         if abs(seg) < args.segment_end_pad:
