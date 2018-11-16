@@ -84,6 +84,10 @@ gpstime = float(gps)
 ifo = args.ifo
 obs = args.ifo[0]
 
+# get absolute path to config
+if args.config_file is not None:
+    args.config_file = os.path.abspath(args.config_file)
+
 # set colormap default
 if not args.colormap and args.wpipeline.endswith('wpipeline'):
     args.colormap = 'parula'  # matlab
@@ -124,6 +128,7 @@ print("----------------------------------------------\n"
 outdir = args.output_directory
 if outdir is None:
     outdir = os.path.expanduser('~/public_html/wdq/%s_%s' % (ifo, gps))
+outdir = os.path.abspath(outdir)
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
 print("Ouput directory created as %s" % outdir)

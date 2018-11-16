@@ -204,7 +204,7 @@ job.add_opt('wpipeline', args.wpipeline)
 job.add_opt('colormap', args.colormap)
 job.add_opt('ifo', args.ifo)
 if args.config_file is not None:
-    job.add_opt('config-file', args.config_file)
+    job.add_opt('config-file', os.path.abspath(args.config_file))
 if args.wpipeline.endswith('wpipeline'):
     job.add_opt('condor', '')
     if args.cache_file is not None:
