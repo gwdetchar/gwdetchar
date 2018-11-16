@@ -198,7 +198,7 @@ else:
     use_segments = False
     overflows = ligolw.new_table(
         'sngl_burst',
-        columns=['peak_time', 'peak_time_ns', 'event_id', 'channel', 'snr'])
+        columns=['peak_time', 'peak_time_ns', 'peak_frequency', 'event_id', 'channel', 'snr'])
     def find_overflows(timeseries, channel, segment):
         times = daq.find_overflows(timeseries)
         times = times[(times >= float(segment[0])) &
