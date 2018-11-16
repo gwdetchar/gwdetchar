@@ -58,13 +58,13 @@ use('agg')  # nopep8
 from gwpy.utils import gprint
 from gwpy.time import to_gps
 from gwpy.table import EventTable
-from gwpy.timeseries import TimeSeriesDict
 from gwpy.detector import (Channel, ChannelList)
-from gwpy.segments import (Segment, DataQualityFlag)
+from gwpy.segments import Segment
 from gwpy.signal.qtransform import QTiling
 
 from gwdetchar import (cli, const, __version__)
 from gwdetchar.omega import (config, plot, html)
+from gwdetchar.io.datafind import (check_flag, get_data)
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -202,83 +202,6 @@ class OmegaChannelList(object):
 
 
 # -- Utilities ----------------------------------------------------------------
-
-def check_flag(flag, time, duration, pad):
-    """Check that a state flag is active during an analysis segment
-
-    Parameters
-    ----------
-    flag : `str`
-        state flag to check
-    time : `float`
-        GPS time of required data
-    duration : `float`
-        duration (in seconds) of required data
-    pad : `float`
-        amount of extra data to read in at the start and end for filtering
-
-    Returns
-    -------
-    check : `bool`
-        Boolean switch to pass (`True`) or fail (`False`) depending on whether
-        the given flag is active
-    """
-    # set GPS start and end time
-    start = time - duration/2. - pad
-    end = time + duration/2. + pad
-    seg = Segment(start, end)
-    # query for state segments
-    active = DataQualityFlag.query(flag, start, end,
-                                   url=const.DEFAULT_SEGMENT_SERVER).active
-    # check that state flag is active during the entire analysis
-    if (not active.intersects_segment(seg)) or (abs(active[0]) < abs(seg)):
-        return False
-    return True
-
-
-def get_data(channels, time, duration, pad, frametype=None, source=None,
-             nproc=1, verbose=False):
-    """Retrieve data for multiple channels, centered at a given time
-
-    Parameters
-    ----------
-    channels : `list`
-        required data channels
-    time : `float`
-        GPS time of required data
-    duration : `float`
-        duration (in seconds) of required data
-    pad : `float`
-        amount of extra data to read in at the start and end for filtering
-    frametype : `str`, optional
-        name of frametype in which this channel is stored, by default will
-        search for all required frame types
-    source : `str`, `list`, optional
-        `str` path of a LAL-format cache file or single data file, will
-        supercede `frametype` if given, defaults to `None`
-    nproc : `int`, optional
-        number of parallel processes to use, uses serial process by default
-    verbose : `bool`, optional
-        print verbose output about NDS progress, default: False
-
-    See Also
-    --------
-    gwpy.timeseries.TimeSeriesDict.get
-        for the underlying method to read from frames or NDS
-    gwpy.timeseries.TimeSeriesDict.read
-        for the underlying method to read from a local file cache
-    """
-    # set GPS start and end time
-    start = time - duration/2. - pad
-    end = time + duration/2. + pad
-    # read from cache if requested
-    if source:
-        return TimeSeriesDict.read(source, channels, start=start, end=end,
-                                   nproc=nproc)
-    # else read from frames or NDS
-    return TimeSeriesDict.get(channels, start, end, frametype=frametype,
-                              nproc=nproc, verbose=verbose)
-
 
 def get_fancyplots(channel, plottype, duration, caption=None):
     """Construct FancyPlot objects for output HTML pages
@@ -461,7 +384,7 @@ for block in blocks.values():
             gprint('Computing omega scans for channel %s...' % c.name)
 
         # get raw timeseries
-        series = data[c.name].astype('float64')
+        series = data[c.name]
         if block.resample:
             series = series.resample(block.resample)
 
