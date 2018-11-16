@@ -141,7 +141,9 @@ htmlv = {
 # set output directory
 outdir = args.output_directory
 if outdir is None:
-    outdir = os.path.expanduser('~/public_html/wdq/%s_%s' % (ifo, gps))
+    outdir = os.path.expanduser('~/public_html/wdq/{ifo}_{gps}'.format(
+        ifo=ifo, gps=gps))
+outdir = os.path.abspath(outdir)
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
 os.chdir(outdir)
