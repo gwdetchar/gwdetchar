@@ -27,7 +27,13 @@ from six import string_types
 
 from glue import datafind
 
+from ..const import DEFAULT_SEGMENT_SERVER
+
+from gwpy.segments import (Segment, DataQualityFlag)
+from gwpy.timeseries import TimeSeriesDict
+
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+__credits__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 
 def find_frames(site, frametype, gpsstart, gpsend, **kwargs):
@@ -79,3 +85,86 @@ def write_omega_cache(cache, fobj):
     # write to file
     for item in wcache:
         print(' '.join(map(str, wcache[item])), file=fobj)
+
+
+def check_flag(flag, gpstime, duration, pad):
+    """Check that a state flag is active during an entire analysis segment
+
+    Parameters
+    ----------
+    flag : `str`
+        state flag to check
+    gpstime : `float`
+        GPS time of required data
+    duration : `float`
+        duration (in seconds) of required data
+    pad : `float`
+        amount of extra data to read in at the start and end for filtering
+
+    Returns
+    -------
+    check : `bool`
+        Boolean switch to pass (`True`) or fail (`False`) depending on whether
+        the given flag is active
+    """
+    # set GPS start and end time
+    start = gpstime - duration/2. - pad
+    end = gpstime + duration/2. + pad
+    seg = Segment(start, end)
+    # query for state segments
+    active = DataQualityFlag.query(flag, start, end,
+                                   url=DEFAULT_SEGMENT_SERVER).active
+    # check that state flag is active during the entire analysis
+    if (not active.intersects_segment(seg)) or (abs(active[0]) < abs(seg)):
+        return False
+    return True
+
+
+def get_data(channels, gpstime, duration, pad, frametype=None, source=None,
+             dtype='float64', nproc=1, verbose=False):
+    """Retrieve data for a given channel, centered at a given time
+
+    Parameters
+    ----------
+    channels : `list`
+        required data channels
+    gpstime : `float`
+        GPS time of required data
+    duration : `float`
+        duration (in seconds) of required data
+    pad : `float`
+        amount of extra data to read in at the start and end for filtering
+    frametype : `str`, optional
+        name of frametype in which this channel is stored, by default will
+        search for all required frame types
+    source : `str`, `list`, optional
+        `str` path of a LAL-format cache file or single data file, will
+        supercede `frametype` if given, defaults to `None`
+    dtype : `str` or `dtype`, optional
+        typecode or data-type to which the output `TimeSeries` is cast
+    nproc : `int`, optional
+        number of parallel processes to use, uses serial process by default
+    verbose : `bool`, optional
+        print verbose output about NDS progress, default: False
+
+    See Also
+    --------
+    gwpy.timeseries.TimeSeries.get
+        for the underlying method to read from frames or NDS
+    gwpy.timeseries.TimeSeries.read
+        for the underlying method to read from a local file cache
+    """
+    # set GPS start and end time
+    start = gpstime - duration/2. - pad
+    end = gpstime + duration/2. + pad
+    # construct file cache if none is given
+    if source is None:
+        source = find_frames(frametype[0], frametype, start, end)
+    # read from frames or NDS
+    if source:
+        return TimeSeriesDict.read(
+            source, channels, start=start, end=end, nproc=nproc,
+            verbose=verbose, dtype=dtype)
+    else:
+        return TimeSeriesDict.fetch(channels, start, end, verbose=verbose,
+                                    dtype=dtype)
