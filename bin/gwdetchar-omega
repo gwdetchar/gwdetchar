@@ -48,7 +48,6 @@ from __future__ import division
 
 import os
 import sys
-import ast
 import numpy
 from scipy.signal import butter
 
@@ -58,11 +57,10 @@ use('agg')  # nopep8
 from gwpy.utils import gprint
 from gwpy.time import to_gps
 from gwpy.table import EventTable
-from gwpy.detector import (Channel, ChannelList)
 from gwpy.segments import Segment
 from gwpy.signal.qtransform import QTiling
 
-from gwdetchar import (cli, const, __version__)
+from gwdetchar import (cli, __version__)
 from gwdetchar.omega import (config, plot, html)
 from gwdetchar.io.datafind import (check_flag, get_data)
 
@@ -108,19 +106,9 @@ far = args.far_threshold
 print("----------------------------------------------\n"
       "Creating %s omega scan at GPS second %s..." % (ifo, gps))
 
+# get default configuration
 if args.config_file is None:
-    # find epoch
-    epoch = const.gps_epoch(gps, default=const.latest_epoch())
-    gprint('Identified epoch as %r' % epoch)
-
-    # find and parse configuration file
-    if ifo == 'Network':
-        args.config_file = [os.path.expanduser(
-            '~detchar/etc/omega/{epoch}/Network.ini'.format(epoch=epoch))]
-    else:
-        args.config_file = [os.path.expanduser(
-            '~detchar/etc/omega/{epoch}/{obs}-{ifo}_R-selected.ini'.format(
-                epoch=epoch, obs=ifo[0], ifo=ifo))]
+    args.config_file = config.get_default_configuration(ifo, gps)
 
 # parse configuration files
 args.config_file = [os.path.abspath(f) for f in args.config_file]
@@ -130,6 +118,16 @@ if args.verbose:
         gprint(''.join(['\t', fname]))
 cp = config.OmegaConfigParser(ifo=ifo)
 cp.read(args.config_file)
+
+# get contextual channel blocks
+blocks = cp.get_channel_blocks()
+
+# set up analyzed channel dict
+if sys.version_info >= (3, 7):  # python 3.7+
+    analyzed = {}
+else:
+    from collections import OrderedDict
+    analyzed = OrderedDict()
 
 # prepare html variables
 htmlv = {
@@ -150,80 +148,7 @@ os.chdir(outdir)
 print("Output directory created as %s" % outdir)
 
 
-# -- FIXME: Eventually move these classes to gwdetchar.omega ------------------
-
-class OmegaChannel(Channel):
-    def __init__(self, channelname, section, **params):
-        self.name = channelname
-        frametype = params.get('frametype', None)
-        frange = tuple(
-            [float(s) for s in params.get('frequency-range', None).split(',')]
-        )
-        qrange = tuple(
-            [float(s) for s in params.get('q-range', None).split(',')]
-        )
-        mismatch = float(params.get('max-mismatch', 0.2))
-        snrthresh = float(params.get('snr-threshold', 5.5))
-        pranges = [int(t) for t in params.get('plot-time-durations',
-                                              None).split(',')]
-        always_plot = ast.literal_eval(params.get('always-plot', 'False'))
-        super(OmegaChannel, self).__init__(
-            channelname, frametype=frametype, frange=frange, qrange=qrange,
-            mismatch=mismatch, pranges=pranges, snrthresh=snrthresh,
-            always_plot=always_plot
-        )
-        self.plots = {}
-        for plottype in ['timeseries_raw', 'timeseries_highpassed',
-                         'timeseries_whitened', 'qscan_raw',
-                         'qscan_whitened', 'qscan_autoscaled',
-                         'eventgram_raw', 'eventgram_whitened',
-                         'eventgram_autoscaled']:
-            self.plots[plottype] = [get_fancyplots(self.name, plottype, t)
-                                    for t in pranges]
-        self.section = section
-        self.params = params.copy()
-
-
-class OmegaChannelList(object):
-    def __init__(self, key, **params):
-        self.key = key
-        self.parent = params.get('parent', None)
-        self.name = params.get('name', None)
-        self.duration = int(params.get('duration', 32))
-        self.fftlength = int(params.get('fftlength', 2))
-        self.resample = int(params.get('resample', 0))
-        self.source = params.get('source', None)
-        self.frametype = params.get('frametype', None)
-        self.flag = params.get('state-flag', None)
-        chans = params.get('channels', None).strip().split('\n')
-        section = self.parent if self.parent else self.key
-        self.channels = [OmegaChannel(c, section, **params) for c in chans]
-        self.params = params.copy()
-
-
 # -- Utilities ----------------------------------------------------------------
-
-def get_fancyplots(channel, plottype, duration, caption=None):
-    """Construct FancyPlot objects for output HTML pages
-
-    Parameters
-    ----------
-    channel : `str`
-        the name of the channel
-    plottype : `str`
-        the type of plot, e.g. 'raw_timeseries'
-    duration : `str`
-        duration of the plot, in seconds
-    caption : `str`, optional
-        a caption to render in the fancybox
-    """
-    plotdir = 'plots'
-    chan = channel.replace('-', '_').replace(':', '-')
-    filename = '%s/%s-%s-%s.png' % (plotdir, chan, plottype, duration)
-    if not caption:
-        caption = os.path.basename(filename)
-    return html.FancyPlot(filename, caption)
-
 
 def get_widths(x0, xdata):
     """Generator to get the width of 1-D rectangular tiles
@@ -341,16 +266,6 @@ datadir = 'data'
 for d in [plotdir, aboutdir, datadir]:
     if not os.path.isdir(d):
         os.makedirs(d)
-
-# set up analyzed channel dict
-if sys.version_info >= (3, 7):  # python 3.7+
-    blocks = {s: OmegaChannelList(s, **cp[s]) for s in cp.sections()}
-    analyzed = {}
-else:
-    from collections import OrderedDict
-    blocks = OrderedDict([(s, OmegaChannelList(s, **dict(cp.items(s))))
-                          for s in cp.sections()])
-    analyzed = OrderedDict()
 
 # set up html output
 gprint('Setting up HTML at %s/index.html...' % outdir)
