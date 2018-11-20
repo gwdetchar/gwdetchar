@@ -21,8 +21,8 @@
 
 from __future__ import division
 
-from matplotlib import cm
-from matplotlib import rcParams
+from matplotlib import (use, cm, rcParams)
+use('agg')  # nopep8
 
 from gwpy.plot.colors import GW_OBSERVATORY_COLORS
 
