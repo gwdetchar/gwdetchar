@@ -112,6 +112,17 @@ given block, the following keywords are supported:
   the `~detchar` account houses default configurations organized by subsystem.
 """
 
+from __future__ import print_function
+
+import sys
+import ast
+import os.path
+
+from gwpy.detector import (Channel, ChannelList)
+
+from . import html
+from .. import const
+
 try:  # python 3.x
     import configparser
 except ImportError:  # python 2.x
@@ -173,6 +184,131 @@ class OmegaConfigParser(configparser.ConfigParser):
                     pass
         return params
 
+    def get_channel_blocks(self):
+        # retrieve an ordered dictionary of contextual channel blocks
+        if sys.version_info >= (3, 7):  # python 3.7+
+            return {s: OmegaChannelList(s, **self[s]) for s in self.sections()}
+        else:
+            from collections import OrderedDict
+            return OrderedDict([(s, OmegaChannelList(s, **dict(self.items(s))))
+                                for s in self.sections()])
+
+
+# -- utilities ----------------------------------------------------------------
 
 def comma_separated_floats(string):
     return map(float, string.split(','))
+
+
+def get_default_configuration(ifo, gpstime):
+    """Retrieve a default configuration file stored locally
+
+    Parameters
+    ----------
+    ifo : `str`
+        interferometer ID string, e.g. `'L1'`
+    gpstime : `float`
+        time of analysis in GPS second format
+    """
+    # find epoch
+    epoch = const.gps_epoch(gpstime, default=const.latest_epoch())
+    print('Identified epoch as %r' % epoch)
+    # find and parse configuration file
+    if ifo == 'Network':
+        return [os.path.expanduser(
+            '~detchar/etc/omega/{epoch}/Network.ini'.format(epoch=epoch))]
+    else:
+        return [os.path.expanduser(
+            '~detchar/etc/omega/{epoch}/{obs}-{ifo}_R-selected.ini'.format(
+                epoch=epoch, obs=ifo[0], ifo=ifo))]
+
+
+def get_fancyplots(channel, plottype, duration, caption=None):
+    """Construct FancyPlot objects for output HTML pages
+
+    Parameters
+    ----------
+    channel : `str`
+        the name of the channel
+    plottype : `str`
+        the type of plot, e.g. 'raw_timeseries'
+    duration : `str`
+        duration of the plot, in seconds
+    caption : `str`, optional
+        a caption to render in the fancybox
+    """
+    plotdir = 'plots'
+    chan = channel.replace('-', '_').replace(':', '-')
+    filename = '%s/%s-%s-%s.png' % (plotdir, chan, plottype, duration)
+    if not caption:
+        caption = os.path.basename(filename)
+    return html.FancyPlot(filename, caption)
+
+
+# -- channel list objects -----------------------------------------------------
+
+class OmegaChannel(Channel):
+    """Customized `Channel` object for Omega scan analyses
+
+    Parameters
+    ----------
+    channelname : `str`
+        name of this channel, e.g. `L1:GDS-CALIB_STRAIN`
+    section : `str`
+        configuration section to which this channel belongs
+    params : `dict`
+        parameters set in a configuration file
+    """
+    def __init__(self, channelname, section, **params):
+        self.name = channelname
+        frametype = params.get('frametype', None)
+        frange = tuple(
+            [float(s) for s in params.get('frequency-range', None).split(',')])
+        super(OmegaChannel, self).__init__(
+            channelname, frametype=frametype, frange=frange)
+        self.qrange = tuple(
+            [float(s) for s in params.get('q-range', None).split(',')])
+        self.mismatch = float(params.get('max-mismatch', 0.2))
+        self.snrthresh = float(params.get('snr-threshold', 5.5))
+        self.always_plot = ast.literal_eval(
+            params.get('always-plot', 'False'))
+        self.pranges = [int(t) for t in params.get('plot-time-durations',
+                                                   None).split(',')]
+        self.plots = {}
+        for plottype in ['timeseries_raw', 'timeseries_highpassed',
+                         'timeseries_whitened', 'qscan_raw',
+                         'qscan_whitened', 'qscan_autoscaled',
+                         'eventgram_raw', 'eventgram_whitened',
+                         'eventgram_autoscaled']:
+            self.plots[plottype] = [get_fancyplots(self.name, plottype, t)
+                                    for t in self.pranges]
+        self.section = section
+        self.params = params.copy()
+
+
+class OmegaChannelList(object):
+    """A conceptual list of `OmegaChannel` objects with common signal
+    processing settings
+
+    Parameters
+    ----------
+    key : `str`
+        the unique identifier for this list, e.g. `'CAL'` for calibration
+        channels
+    params : `dict`
+        parameters set in a configuration file
+    """
+    def __init__(self, key, **params):
+        self.key = key
+        self.parent = params.get('parent', None)
+        self.name = params.get('name', None)
+        self.duration = int(params.get('duration', 32))
+        self.fftlength = int(params.get('fftlength', 2))
+        self.resample = int(params.get('resample', 0))
+        self.source = params.get('source', None)
+        self.frametype = params.get('frametype', None)
+        self.flag = params.get('state-flag', None)
+        section = self.parent if self.parent else self.key
+        chans = params.get('channels', None).strip().split('\n')
+        self.channels = [OmegaChannel(c, section, **params) for c in chans]
+        self.params = params.copy()
