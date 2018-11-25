@@ -73,7 +73,7 @@ def omega_plot(series, gps, span, channel, output, colormap='viridis',
     # set y-axis properties
     if (qscan or eventgram):
         ax.set_yscale('log')
-        title = '%s at %.3f with $Q=%.1f$' % (channel, gps, series.q)
+        title = '%s at %.3f with $Q$ of %.1f' % (channel, gps, series.q)
         ax.colorbar(cmap=colormap, clim=clim, label='Normalized energy')
     else:
         ax.set_yscale('linear')
