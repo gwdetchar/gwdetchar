@@ -48,15 +48,19 @@ rcParams.update({
 
 def omega_plot(series, gps, span, channel, output, colormap='viridis',
                clim=None, qscan=False, eventgram=False, ylabel=None,
-               figsize=[12, 6]):
+               figsize=[12, 6], nx=500):
     """Plot any GWPy Series object with a time axis
     """
     # construct plot
     if qscan:
         # plot Q-transform
-        plot = series.crop(gps-span/2, gps+span/2).imshow(figsize=figsize)
+        Q = series.q
+        series = series.crop(gps-span/2, gps+span/2)
+        nslice = int(series.shape[0] / nx)
+        plot = series[::nslice].imshow(figsize=figsize)
     elif eventgram:
         # plot eventgram
+        Q = series.q
         plot = series.tile('central_time', 'central_freq', 'duration',
                            'bandwidth', color='energy', figsize=figsize)
     else:
@@ -66,14 +70,16 @@ def omega_plot(series, gps, span, channel, output, colormap='viridis',
         plot = series.plot(color=GW_OBSERVATORY_COLORS[ifo],
                            figsize=figsize)
     ax = plot.gca()
+
     # set time axis units
     ax.set_xscale('seconds', epoch=gps)
     ax.set_xlim(gps-span/2, gps+span/2)
     ax.set_xlabel('Time [seconds]')
+
     # set y-axis properties
     if (qscan or eventgram):
         ax.set_yscale('log')
-        title = '%s at %.3f with $Q$ of %.1f' % (channel, gps, series.q)
+        title = '%s at %.3f with $Q$ of %.1f' % (channel, gps, Q)
         ax.colorbar(cmap=colormap, clim=clim, label='Normalized energy')
     else:
         ax.set_yscale('linear')
@@ -88,6 +94,7 @@ def omega_plot(series, gps, span, channel, output, colormap='viridis',
         ax.set_yscale('log')
         ax.set_ylabel('Frequency [Hz]')
     ax.grid(True, axis='y', which='both')
+
     # save plot and close
     plot.savefig(output, bbox_inches='tight')
     plot.close()

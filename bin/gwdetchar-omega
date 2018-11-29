@@ -320,13 +320,11 @@ for block in blocks.values():
         except UnboundLocalError:
             if args.verbose:
                 gprint('Channel is misbehaved, removing it from the analysis')
-            del series, hpseries, wseries, asd
             continue
         if table.Z < table.engthresh and not c.always_plot:
             if args.verbose:
                 gprint('Channel not significant at white noise false alarm '
                        'rate %s Hz' % far)
-            del series, hpseries, wseries, asd, table
             continue
         Q = table.q
         rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q),
@@ -405,12 +403,6 @@ for block in blocks.values():
 
         # update HTML output
         html.write_qscan_page(ifo, gps, analyzed, **htmlv)
-
-        # delete intermediate data products
-        del qscan, rqscan, table, rtable, series, hpseries, wseries, asd
-
-    # delete data
-    del data
 
 
 # -- Prepare HTML -------------------------------------------------------------
