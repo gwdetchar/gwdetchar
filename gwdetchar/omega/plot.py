@@ -80,19 +80,22 @@ def omega_plot(series, gps, span, channel, output, colormap='viridis',
     if (qscan or eventgram):
         ax.set_yscale('log')
         title = '%s at %.3f with $Q$ of %.1f' % (channel, gps, Q)
+        cmap = cm.get_cmap(colormap)
+        ax.set_facecolor(cmap(0))
+        if clim is not None:  # linear colorbar with the requested limits
+            ax.colorbar(cmap=colormap, clim=clim, label='Normalized energy')
+        else:  # log colorbar with autoscaled limits
+            ax.colorbar(cmap=colormap, norm='log', vmin=0.5,
+                        label='Normalized energy')
         ax.colorbar(cmap=colormap, clim=clim, label='Normalized energy')
+        ax.set_yscale('log')
+        ax.set_ylabel('Frequency [Hz]')
     else:
         ax.set_yscale('linear')
         title = '%s at %.3f' % (channel, gps)
     ax.set_title(title, y=1.05)
     if ylabel:
         ax.set_ylabel(ylabel)
-    if eventgram:
-        cmap = cm.get_cmap(colormap)
-        rgba = cmap(0)
-        ax.set_facecolor(rgba)
-        ax.set_yscale('log')
-        ax.set_ylabel('Frequency [Hz]')
     ax.grid(True, axis='y', which='both')
 
     # save plot and close
