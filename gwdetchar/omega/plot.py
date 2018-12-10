@@ -44,60 +44,251 @@ rcParams.update({
 })
 
 
-# -- Utilities ----------------------------------------------------------------
+# -- internal formatting tools ------------------------------------------------
 
-def omega_plot(series, gps, span, channel, output, colormap='viridis',
-               clim=None, qscan=False, eventgram=False, ylabel=None,
-               figsize=[12, 6], nx=500):
-    """Plot any GWPy Series object with a time axis
+def _format_time_axis(ax, gps, span):
+    """Format the time axis of an Omega scan plot
+
+    Parameters
+    ----------
+    ax : `~matplotlib.axis.Axis`
+        the `Axis` object to format
+
+    gps : `float`
+        reference GPS time (in seconds) to serve as the origin
+
+    span : `float`
+        total duration (in seconds) of the time axis
     """
-    # construct plot
-    if qscan:
-        # plot Q-transform
-        Q = series.q
-        series = series.crop(gps-span/2, gps+span/2)
-        nslice = int(series.shape[0] / nx)
-        plot = series[::nslice].imshow(figsize=figsize)
-    elif eventgram:
-        # plot eventgram
-        Q = series.q
-        plot = series.tile('central_time', 'central_freq', 'duration',
-                           'bandwidth', color='energy', figsize=figsize)
-    else:
-        # set color by IFO
-        ifo = channel[:2]
-        series = series.crop(gps-span/2, gps+span/2)
-        plot = series.plot(color=GW_OBSERVATORY_COLORS[ifo],
-                           figsize=figsize)
-    ax = plot.gca()
-
     # set time axis units
     ax.set_xscale('seconds', epoch=gps)
     ax.set_xlim(gps-span/2, gps+span/2)
     ax.set_xlabel('Time [seconds]')
+    ax.grid(True, axis='x', which='major')
 
-    # set y-axis properties
-    if (qscan or eventgram):
-        ax.set_yscale('log')
-        title = '%s at %.3f with $Q$ of %.1f' % (channel, gps, Q)
-        cmap = cm.get_cmap(colormap)
-        ax.set_facecolor(cmap(0))
-        if clim is not None:  # linear colorbar with the requested limits
-            ax.colorbar(cmap=colormap, clim=clim, label='Normalized energy')
-        else:  # log colorbar with autoscaled limits
-            ax.colorbar(cmap=colormap, norm='log', vmin=0.5,
-                        label='Normalized energy')
-        ax.colorbar(cmap=colormap, clim=clim, label='Normalized energy')
+
+def _format_frequency_axis(ax, axis='y'):
+    """Format the frequency axis of an Omega scan plot
+
+    Parameters
+    ----------
+    ax : `~matplotlib.axis.Axis`
+        the `Axis` object to format
+
+    axis : `str`
+        a string identifiying the axis to format, must be either `'x'` or `'y'`
+    """
+    ax.grid(True, axis=axis, which='both')
+    if axis == 'x':
+        ax.set_xscale('log')
+        ax.set_xlabel('Frequency [Hz]')
+    else:
         ax.set_yscale('log')
         ax.set_ylabel('Frequency [Hz]')
-    else:
-        ax.set_yscale('linear')
-        title = '%s at %.3f' % (channel, gps)
-    ax.set_title(title, y=1.05)
-    if ylabel:
-        ax.set_ylabel(ylabel)
-    ax.grid(True, axis='y', which='both')
 
+
+def _format_color_axis(ax, colormap='viridis', clim=None, norm='linear'):
+    """Format the color axis of an Omega scan spectral plot
+
+    Parameters
+    ----------
+    ax : `~matplotlib.axis.Axis`
+        the `Axis` object to format
+
+    colormap : `str`
+        Matplotlib colorbar to use, default: viridis
+
+    clim : `tuple` or `None`
+        limits of the color axis, default: autoscale with log scaling
+
+    norm : `str`
+        scaling of the color axis, only used if `clim` is given,
+        default: linear
+    """
+    cmap = cm.get_cmap(colormap)
+    ax.set_facecolor(cmap(0))
+    # set colorbar format
+    if clim is None:  # force a log colorbar with autoscaled limits
+        ax.colorbar(cmap=colormap, norm='log', vmin=0.5,
+                    label='Normalized energy')
+    else:
+        ax.colorbar(cmap=colormap, norm=norm, clim=clim,
+                    label='Normalized energy')
+
+
+def _format_title(ax, title, y=1.05):
+    """Format the title of an Omega scan plot
+
+    Parameters
+    ----------
+    ax : `~matplotlib.axis.Axis`
+        the `Axis` object to format
+
+    title : `str`
+        the title of the plot
+
+    y : `float`
+        desired height above the body of the plot
+    """
+    ax.set_title(title, y=y)
+
+
+# -- utilities ----------------------------------------------------------------
+
+def timeseries_plot(data, gps, span, channel, output, ylabel=None,
+                    figsize=(12, 6)):
+    """Custom plot for a GWPy TimeSeries object
+
+    Parameters
+    ----------
+    data : `~gwpy.timeseries.TimeSeries`
+        the series to plot
+
+    gps : `float`
+        reference GPS time (in seconds) to serve as the origin
+
+    span : `float`
+        total duration (in seconds) of the time axis
+
+    channel : `str`
+        name of the channel corresponding to this data
+
+    output : `str`
+        name of the output file
+
+    ylabel : `str` or `None`
+        label for the y-axis
+
+    figsize : `tuple`
+        size (width x height) of the final figure, default: `(12, 6)`
+    """
+    # set color by IFO
+    ifo = channel[:2]
+    data = data.crop(gps-span/2, gps+span/2)
+    plot = data.plot(color=GW_OBSERVATORY_COLORS[ifo], figsize=figsize)
+    # set axis properties
+    ax = plot.gca()
+    _format_time_axis(ax, gps=gps, span=span)
+    ax.set_yscale('linear')
+    ax.set_ylabel(ylabel)
+    # set title
+    title = '%s at %.3f' % (channel, gps)
+    _format_title(ax, title=title)
     # save plot and close
     plot.savefig(output, bbox_inches='tight')
     plot.close()
+
+
+def spectral_plot(data, gps, span, channel, output, ylabel=None,
+                  colormap='viridis', clim=None, nx=500, norm='linear',
+                  figsize=(12, 6)):
+    """Custom plot for a GWPy spectrogram or Q-gram
+
+    Parameters
+    ----------
+    data : `~gwpy.timeseries.TimeSeries`
+        the series to plot
+
+    gps : `float`
+        reference GPS time (in seconds) to serve as the origin
+
+    span : `float`
+        total duration (in seconds) of the time axis
+
+    channel : `str`
+        name of the channel corresponding to this data
+
+    output : `str`
+        name of the output file
+
+    ylabel : `str` or `None`
+        label for the y-axis
+
+    colormap : `str`
+        Matplotlib colorbar to use, default: viridis
+
+    clim : `tuple` or `None`
+        limits of the color axis, default: autoscale with log scaling
+
+    norm : `str`
+        scaling of the color axis, only used if `clim` is given,
+        default: linear
+
+    nx : `int`
+        number of points along the time axis, default: 500
+
+    figsize : `tuple`
+        size (width x height) of the final figure, default: `(12, 6)`
+    """
+    import numpy
+    from gwpy.spectrogram import Spectrogram
+    Q = data.q
+    # construct plot
+    if isinstance(data, Spectrogram):
+        # plot interpolated spectrogram
+        data = data.crop(gps-span/2, gps+span/2)
+        nslice = max(1, int(data.shape[0] / nx))
+        plot = data[::nslice].imshow(figsize=figsize)
+    else:
+        # plot eventgram
+        cmap = cm.get_cmap(colormap)
+        plot = data.tile('central_time', 'central_freq', 'duration',
+                         'bandwidth', color='energy', figsize=figsize,
+                         edgecolors=numpy.array(cmap(0))/4, linewidth=0.2)
+    # set axis properties
+    ax = plot.gca()
+    _format_time_axis(ax, gps=gps, span=span)
+    _format_frequency_axis(ax)
+    # set colorbar properties
+    _format_color_axis(ax, colormap=colormap, clim=clim, norm=norm)
+    # set title
+    title = '%s at %.3f with $Q$ of %.1f' % (channel, gps, Q)
+    _format_title(ax, title=title)
+    # save plot and close
+    plot.savefig(output, bbox_inches='tight')
+    plot.close()
+
+
+def omega_plot(data, gps, span, channel, output, ylabel=None,
+               colormap='viridis', clim=None, nx=500, figsize=(12, 6)):
+    """Plot any Omega scan data object
+
+    Parameters
+    ----------
+    data : `~gwpy.timeseries.TimeSeries`
+        the series to plot
+
+    gps : `float`
+        reference GPS time (in seconds) to serve as the origin
+
+    span : `float`
+        total duration (in seconds) of the time axis
+
+    channel : `str`
+        name of the channel corresponding to this data
+
+    output : `str`
+        name of the output file
+
+    ylabel : `str` or `None`
+        label for the y-axis
+
+    colormap : `str`
+        Matplotlib colorbar to use, default: viridis
+
+    clim : `tuple` or `None`
+        limits of the color axis, default: autoscale with log scaling
+
+    nx : `int`
+        number of points along the time axis, default: 500
+
+    figsize : `tuple`
+        size (width x height) of the final figure, default: `(12, 6)`
+    """
+    from gwpy.timeseries import TimeSeries
+    if isinstance(data, TimeSeries):
+        timeseries_plot(data, gps, span, channel, output, ylabel=ylabel,
+                        figsize=figsize)
+    else:
+        spectral_plot(data, gps, span, channel, output, ylabel=ylabel,
+                      colormap=colormap, clim=clim, nx=nx, figsize=figsize)
