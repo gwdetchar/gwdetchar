@@ -432,7 +432,7 @@ def wrap_html(func):
         # write analysis summary
         # (but only on the main results page)
         if about:
-            page.add(write_summary(ifo, gpstime,
+            page.add(write_summary(ifo, gpstime, incomplete=refresh,
                      context=OBSERVATORY_MAP[ifo]['context']))
             kwargs['context'] = OBSERVATORY_MAP[ifo]['context']
         # write content
@@ -708,7 +708,7 @@ def write_config_html(filepath, format='ini'):
 # -- Qscan HTML ---------------------------------------------------------------
 
 def write_summary(
-        ifo, gpstime, context='default', header='Summary',
+        ifo, gpstime, incomplete=False, context='default', header='Summary',
         tableclass='table table-condensed table-hover table-responsive'):
     """Write the Qscan analysis summary HTML
 
@@ -718,6 +718,8 @@ def write_summary(
         the interferometer prefix
     gpstime : `float`
         the central GPS time of the analysis
+    incomplete : `bool`
+        boolean switch to determine whether the scan is still in progress
     context : `str`, optional
         the bootstrap context class for this result, see the bootstrap
         docs for more details
@@ -772,6 +774,15 @@ def write_summary(
     page.div.close()  # btn-group
     page.div.close()  # col-md-7
     page.div.close()  # row
+
+    # write alert
+    if incomplete:
+        page.div(class_='row')
+        page.div(class_='alert alert-%s' % context)
+        page.p('<strong>Note</strong>: This scan is in progress, and will '
+               'auto-refresh every 60 seconds until completion.')
+        page.div.close()  # alert
+        page.div.close()  # row
     return page()
 
 
