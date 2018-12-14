@@ -116,23 +116,6 @@ def _format_color_axis(ax, colormap='viridis', clim=None, norm='linear'):
                     label='Normalized energy')
 
 
-def _format_title(ax, title, y=1.05):
-    """Format the title of an Omega scan plot
-
-    Parameters
-    ----------
-    ax : `~matplotlib.axis.Axis`
-        the `Axis` object to format
-
-    title : `str`
-        the title of the plot
-
-    y : `float`
-        desired height above the body of the plot
-    """
-    ax.set_title(title, y=y)
-
-
 # -- utilities ----------------------------------------------------------------
 
 def timeseries_plot(data, gps, span, channel, output, ylabel=None,
@@ -173,7 +156,7 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
     ax.set_ylabel(ylabel)
     # set title
     title = '%s at %.3f' % (channel, gps)
-    _format_title(ax, title=title)
+    ax.set_title(title, y=1.05)
     # save plot and close
     plot.savefig(output, bbox_inches='tight')
     plot.close()
@@ -234,7 +217,7 @@ def spectral_plot(data, gps, span, channel, output, ylabel=None,
         cmap = cm.get_cmap(colormap)
         plot = data.tile('central_time', 'central_freq', 'duration',
                          'bandwidth', color='energy', figsize=figsize,
-                         edgecolors=numpy.array(cmap(0))/4, linewidth=0.2)
+                         edgecolors=cmap(0), linewidth=0.1, antialiased=True)
     # set axis properties
     ax = plot.gca()
     _format_time_axis(ax, gps=gps, span=span)
@@ -243,7 +226,7 @@ def spectral_plot(data, gps, span, channel, output, ylabel=None,
     _format_color_axis(ax, colormap=colormap, clim=clim, norm=norm)
     # set title
     title = '%s at %.3f with $Q$ of %.1f' % (channel, gps, Q)
-    _format_title(ax, title=title)
+    ax.set_title(title, y=1.05)
     # save plot and close
     plot.savefig(output, bbox_inches='tight')
     plot.close()
