@@ -355,33 +355,33 @@ for block in blocks.values():
         ):
             # plot whitened qscan
             plot.omega_plot(qscan, gps, span, c.name, str(png1), clim=(0, 25),
-                            colormap=args.colormap, figsize=figsize)
+                            colormap=args.colormap, figsize=(8, 4.35))
             # plot autoscaled, whitened qscan
             plot.omega_plot(qscan, gps, span, c.name, str(png2),
-                            colormap=args.colormap, figsize=figsize)
+                            colormap=args.colormap, figsize=(8, 4.35))
             # plot raw qscan
             plot.omega_plot(rqscan, gps, span, c.name, str(png3), clim=(0, 25),
-                            colormap=args.colormap, figsize=figsize)
+                            colormap=args.colormap, figsize=(8, 4.35))
             # plot raw timeseries
             plot.omega_plot(series, gps, span, c.name, str(png4),
-                            ylabel='Amplitude', figsize=figsize)
+                            ylabel='Amplitude', figsize=(9, 4.5))
             # plot highpassed timeseries
             plot.omega_plot(hpseries, gps, span, c.name, str(png5),
-                            ylabel='Highpassed Amplitude', figsize=figsize)
+                            ylabel='Highpassed Amplitude', figsize=(9, 4.5))
             # plot whitened timeseries
             plot.omega_plot(wseries, gps, span, c.name, str(png6),
-                            ylabel='Whitened Amplitude', figsize=figsize)
+                            ylabel='Whitened Amplitude', figsize=(9, 4.5))
             # plot raw eventgram
             plot.omega_plot(rtable, gps, span, c.name, str(png7),
                             clim=(0, 25), colormap=args.colormap,
-                            figsize=figsize)
+                            figsize=(8, 4.35))
             # plot whitened eventgram
             plot.omega_plot(table, gps, span, c.name, str(png8),
                             clim=(0, 25), colormap=args.colormap,
-                            figsize=figsize)
+                            figsize=(8, 4.35))
             # plot autoscaled whitened eventgram
             plot.omega_plot(table, gps, span, c.name, str(png9),
-                            colormap=args.colormap, figsize=figsize)
+                            colormap=args.colormap, figsize=(8, 4.35))
 
         # save parameters
         c.Q = numpy.around(Q, 1)

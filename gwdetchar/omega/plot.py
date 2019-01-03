@@ -33,14 +33,12 @@ rcParams.update({
     'text.usetex': 'false',
     'font.family': 'sans-serif',
     'font.sans-serif': 'Arial',
-    'figure.subplot.bottom': 0.17,
-    'figure.subplot.left': 0.1,
-    'figure.subplot.right': 0.9,
-    'figure.subplot.top': 0.90,
+    'xtick.labelsize': 16,
+    'ytick.labelsize': 16,
     'axes.labelsize': 20,
-    'axes.labelpad': 10,
-    'axes.titlesize': 14,
-    'grid.color': 'gray',
+    'axes.labelpad': 12,
+    'axes.titlesize': 15,
+    'grid.alpha': 0.6,
 })
 
 
@@ -156,7 +154,7 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
     ax.set_ylabel(ylabel)
     # set title
     title = '%s at %.3f' % (channel, gps)
-    ax.set_title(title, y=1.05)
+    ax.set_title(title, y=1.1)
     # save plot and close
     plot.savefig(output, bbox_inches='tight')
     plot.close()
@@ -214,10 +212,9 @@ def spectral_plot(data, gps, span, channel, output, ylabel=None,
         plot = data[::nslice].imshow(figsize=figsize)
     else:
         # plot eventgram
-        cmap = cm.get_cmap(colormap)
         plot = data.tile('central_time', 'central_freq', 'duration',
                          'bandwidth', color='energy', figsize=figsize,
-                         edgecolors=cmap(0), linewidth=0.1, antialiased=True)
+                         antialiased=True)
     # set axis properties
     ax = plot.gca()
     _format_time_axis(ax, gps=gps, span=span)
