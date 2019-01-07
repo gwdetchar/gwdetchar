@@ -290,16 +290,13 @@ print('{0} channels remaining'.format(len(auxdata)))
 
 # -- remove bad data
 
-try:
-    data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
-except ValueError:
-    print("Nan or Inf found in data, removing bad channels...")
-    nbefore = len(auxdata)
-    gwlasso.remove_bad(auxdata)
-    nafter = len(auxdata)
-    print('Removed {0} channels with bad data'.format(nbefore - nafter))
-    print('{0} channels remaining'.format(nafter))
-    data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
+print("Removing any channels with bad data...")
+nbefore = len(auxdata)
+gwlasso.remove_bad(auxdata)
+nafter = len(auxdata)
+print('Removed {0} channels with bad data'.format(nbefore - nafter))
+print('{0} channels remaining'.format(nafter))
+data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 
 # -- perform lasso regression -------------------------------------------------
 
