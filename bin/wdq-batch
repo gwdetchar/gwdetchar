@@ -126,7 +126,7 @@ if len(times) == 1:
         times = [float(times[0])]
     except (TypeError, ValueError):  # otherwise read as file
         import numpy
-        times = numpy.loadtxt(times[0], dtype=float)
+        times = numpy.loadtxt(times[0], dtype=float, ndmin=1)
 else:
     times = map(float, times)
 
