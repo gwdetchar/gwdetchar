@@ -31,7 +31,7 @@ from numpy.testing import assert_array_equal
 
 from gwpy.segments import (Segment, SegmentList)
 from gwpy.timeseries import TimeSeries
-from gwpy.tests.utils import assert_segmentlist_equal
+from gwpy.testing.utils import assert_segmentlist_equal
 
 from .. import daq
 

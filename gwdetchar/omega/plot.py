@@ -30,9 +30,6 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 rcParams.update({
-    'text.usetex': 'false',
-    'font.family': 'sans-serif',
-    'font.sans-serif': 'Arial',
     'xtick.labelsize': 16,
     'ytick.labelsize': 16,
     'axes.labelsize': 20,
@@ -161,7 +158,7 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
 
 
 def spectral_plot(data, gps, span, channel, output, ylabel=None,
-                  colormap='viridis', clim=None, nx=500, norm='linear',
+                  colormap='viridis', clim=None, nx=1400, norm='linear',
                   figsize=(12, 6)):
     """Custom plot for a GWPy spectrogram or Q-gram
 
@@ -203,18 +200,18 @@ def spectral_plot(data, gps, span, channel, output, ylabel=None,
     """
     import numpy
     from gwpy.spectrogram import Spectrogram
-    Q = data.q
     # construct plot
     if isinstance(data, Spectrogram):
         # plot interpolated spectrogram
+        Q = data.q
         data = data.crop(gps-span/2, gps+span/2)
         nslice = max(1, int(data.shape[0] / nx))
-        plot = data[::nslice].imshow(figsize=figsize)
+        plot = data[::nslice].pcolormesh(figsize=figsize)
     else:
         # plot eventgram
-        plot = data.tile('central_time', 'central_freq', 'duration',
-                         'bandwidth', color='energy', figsize=figsize,
-                         antialiased=True)
+        Q = data.meta['q']
+        plot = data.tile('time', 'frequency', 'duration', 'bandwidth',
+                         color='energy', figsize=figsize, antialiased=True)
     # set axis properties
     ax = plot.gca()
     _format_time_axis(ax, gps=gps, span=span)
@@ -231,7 +228,7 @@ def spectral_plot(data, gps, span, channel, output, ylabel=None,
 
 
 def omega_plot(data, gps, span, channel, output, ylabel=None,
-               colormap='viridis', clim=None, nx=500, figsize=(12, 6)):
+               colormap='viridis', clim=None, nx=1400, figsize=(12, 6)):
     """Plot any Omega scan data object
 
     Parameters
