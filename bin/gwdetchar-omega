@@ -53,9 +53,8 @@ from scipy.signal import butter
 
 from gwpy.utils import gprint
 from gwpy.time import to_gps
-from gwpy.table import EventTable
 from gwpy.segments import Segment
-from gwpy.signal.qtransform import QTiling
+from gwpy.signal.qtransform import q_scan
 
 from gwdetchar import (cli, __version__)
 from gwdetchar.omega import (config, plot, html)
@@ -98,7 +97,6 @@ if args.ifo:
 else:
     ifo = 'Network'
 gps = numpy.around(float(args.gpstime), 3)
-far = args.far_threshold
 
 print("----------------------------------------------\n"
       "Creating %s omega scan at GPS second %s..." % (ifo, gps))
@@ -133,6 +131,9 @@ htmlv = {
     'refresh': True,
 }
 
+# set search window
+search = Segment(gps - 0.25, gps + 0.25)
+
 # set output directory
 outdir = args.output_directory
 if outdir is None:
@@ -143,115 +144,6 @@ if not os.path.isdir(outdir):
     os.makedirs(outdir)
 os.chdir(outdir)
 print("Output directory created as %s" % outdir)
-
-
-# -- Utilities ----------------------------------------------------------------
-
-def get_widths(x0, xdata):
-    """Generator to get the width of 1-D rectangular tiles
-
-    Parameters
-    ----------
-    x0 : `float`
-        starting point of the first tile
-    xdata : `array`
-        center points of all tiles
-    """
-    for x in xdata:
-        width = 2 * (x - x0)
-        x0 = x + width/2
-        yield width
-
-
-def eventgram(time, data, search=0.5, frange=(0, numpy.inf),
-              qrange=(4, 96), snrthresh=5.5, mismatch=0.2):
-    """Create an eventgram with the Q-plane that has the most significant
-    tile.
-
-    Parameters
-    ----------
-    time : `float` or `int`
-        central GPS time of the search, in seconds
-    data : `TimeSeries`
-        timeseries data to analyze
-    search : `float`, optional
-        search analysis window, will be centered at `time`
-    frange : `tuple` of `float`, optional
-        `(low, high)` range of frequencies to scan
-    qrange : `tuple` of `float`, optional
-        `(low, high)` range of Qs to scan
-    snrthresh : `float`
-        threshold on tile SNR, tiles quieter than this will not be included
-    mismatch : `float`
-        the maximum fractional mismatch between neighboring tiles
-
-    Returns
-    -------
-    table : `gwpy.table.EventTable`
-        an `EventTable` object containing all tiles louder than `snrthresh` on
-        the Q plane with the loudest tile
-    """
-    # generate tilings
-    planes = QTiling(abs(data.span), data.sample_rate.value, qrange=qrange,
-                     frange=frange, mismatch=mismatch)
-
-    # get frequency domain data
-    fdata = data.fft().value
-
-    # set up results
-    Z = 0  # max normalized tile energy
-    N = 0  # no. of independent tiles
-    numplanes = 0
-    qmax, qmin = qrange[1], qrange[0]
-    pweight = (1 + numpy.log10(qmax/qmin)/numpy.sqrt(2))
-
-    # Q-transform data for each `(Q, frequency)` tile
-    for plane in planes:
-        n_ind = 0
-        numplanes += 1
-        freqs, normenergies = plane.transform(fdata, epoch=data.x0)
-        # find peak energy in this plane and record if loudest
-        for freq, ts in zip(freqs, normenergies):
-            n_ind += 1 + 2 * numpy.pi * abs(data.span) * freq / plane.q
-            peak = ts.crop(time-search/2, time+search/2).value.max()
-            if peak > Z:
-                Z = peak
-                snr = numpy.sqrt(2*Z)
-                fc = freq
-                ts_cropped = ts.crop(time-search/2, time+search/2)
-                tc = ts_cropped.times.value[ts_cropped.value.argmax()]
-                del ts_cropped
-                peakplane = plane
-        N += n_ind * pweight / numplanes
-
-    # create an eventgram for the plane with the loudest tile
-    energies = []
-    central_times, central_freqs, durations, bandwidths = [], [], [], []
-    freqs, normenergies = peakplane.transform(fdata, epoch=data.x0)
-    bws = get_widths(peakplane.frange[0], freqs)
-    for f, b, ts in zip(freqs, bws, normenergies):
-        durs = get_widths(data.x0.value, ts.times.value)
-        for t, dur, E in zip(ts.times.value, durs, ts.value):
-            if E >= snrthresh**2/2:
-                central_freqs.append(f)
-                bandwidths.append(b)
-                central_times.append(t)
-                durations.append(dur)
-                energies.append(E)
-    table = EventTable([central_times, central_freqs, durations,
-                       bandwidths, energies],
-                       names=('central_time', 'central_freq', 'duration',
-                              'bandwidth', 'energy'))
-
-    # get parameters and return
-    table.q = peakplane.q
-    table.Z = Z
-    table.snr = snr
-    table.tc = tc
-    table.fc = fc
-    table.frange = peakplane.frange
-    table.engthresh = -numpy.log(far * abs(data.span) / (1.5 * N))
-    return table
 
 
 # -- Compute Qscan ------------------------------------------------------------
@@ -315,37 +207,34 @@ for block in blocks.values():
 
         # compute eventgrams
         try:
-            table = eventgram(gps, wseries, frange=c.frange, qrange=c.qrange,
-                              snrthresh=c.snrthresh, mismatch=c.mismatch)
-        except UnboundLocalError:
+            qgram, far = q_scan(wseries, mismatch=c.mismatch, qrange=c.qrange,
+                                frange=c.frange, search=search)
+        except:
             if args.verbose:
                 gprint('Channel is misbehaved, removing it from the analysis')
             continue
-        if table.Z < table.engthresh and not c.always_plot:
+        if (far > args.far_threshold) and (not c.always_plot):
             if args.verbose:
                 gprint('Channel not significant at white noise false alarm '
-                       'rate %s Hz' % far)
+                       'rate %s Hz' % args.far_threshold)
             continue
-        Q = table.q
-        rtable = eventgram(gps, hpseries, frange=table.frange, qrange=(Q, Q),
-                           snrthresh=c.snrthresh, mismatch=c.mismatch)
+        Q = qgram.plane.q
+        rqgram, _ = q_scan(hpseries, mismatch=c.mismatch, qrange=(Q, Q),
+                           frange=qgram.plane.frange, search=search)
 
         # compute Q-transform spectrograms
-        outseg = Segment(gps - max(c.pranges)/2., gps + max(c.pranges)/2.)
-        tres = min(c.pranges) / 500
-        fres = c.frange[0] / 20
-        qscan = wseries.q_transform(qrange=(Q, Q), frange=c.frange, tres=tres,
-                                    fres=fres, gps=gps, search=0.25,
-                                    whiten=False, outseg=outseg)
-        rqscan = hpseries.q_transform(qrange=(Q, Q), frange=c.frange,
-                                      tres=tres, fres=fres, gps=gps,
-                                      search=0.25, whiten=False, outseg=outseg)
+        outseg = Segment(gps - max(c.pranges)/2, gps + max(c.pranges)/2)
+        tres = min(c.pranges) / 1400
+        fres = 700
+        qspec = qgram.interpolate(tres=tres, fres=fres, logf=True,
+                                  outseg=outseg)
+        rqspec = rqgram.interpolate(tres=tres, fres=fres, logf=True,
+                                    outseg=outseg)
 
         # prepare plots
         if args.verbose:
             gprint('Plotting omega scans for channel %s...' % c.name)
         # work out figure size
-        figsize = [8, 5]
         for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
             c.pranges, c.plots['qscan_whitened'],
             c.plots['qscan_autoscaled'], c.plots['qscan_raw'],
@@ -354,13 +243,13 @@ for block in blocks.values():
             c.plots['eventgram_whitened'], c.plots['eventgram_autoscaled']
         ):
             # plot whitened qscan
-            plot.omega_plot(qscan, gps, span, c.name, str(png1), clim=(0, 25),
+            plot.omega_plot(qspec, gps, span, c.name, str(png1), clim=(0, 25),
                             colormap=args.colormap, figsize=(8, 4.35))
             # plot autoscaled, whitened qscan
-            plot.omega_plot(qscan, gps, span, c.name, str(png2),
+            plot.omega_plot(qspec, gps, span, c.name, str(png2),
                             colormap=args.colormap, figsize=(8, 4.35))
             # plot raw qscan
-            plot.omega_plot(rqscan, gps, span, c.name, str(png3), clim=(0, 25),
+            plot.omega_plot(rqspec, gps, span, c.name, str(png3), clim=(0, 25),
                             colormap=args.colormap, figsize=(8, 4.35))
             # plot raw timeseries
             plot.omega_plot(series, gps, span, c.name, str(png4),
@@ -372,23 +261,23 @@ for block in blocks.values():
             plot.omega_plot(wseries, gps, span, c.name, str(png6),
                             ylabel='Whitened Amplitude', figsize=(9, 4.5))
             # plot raw eventgram
-            plot.omega_plot(rtable, gps, span, c.name, str(png7),
-                            clim=(0, 25), colormap=args.colormap,
-                            figsize=(8, 4.35))
+            rtable = rqgram.table(snrthresh=c.snrthresh)
+            plot.omega_plot(rtable, gps, span, c.name, str(png7), clim=(0, 25),
+                            colormap=args.colormap, figsize=(8, 4.35))
             # plot whitened eventgram
-            plot.omega_plot(table, gps, span, c.name, str(png8),
-                            clim=(0, 25), colormap=args.colormap,
-                            figsize=(8, 4.35))
+            table = qgram.table(snrthresh=c.snrthresh)
+            plot.omega_plot(table, gps, span, c.name, str(png8), clim=(0, 25),
+                            colormap=args.colormap, figsize=(8, 4.35))
             # plot autoscaled whitened eventgram
             plot.omega_plot(table, gps, span, c.name, str(png9),
                             colormap=args.colormap, figsize=(8, 4.35))
 
         # save parameters
         c.Q = numpy.around(Q, 1)
-        c.energy = numpy.around(table.Z, 1)
-        c.snr = numpy.around(table.snr, 1)
-        c.t = numpy.around(table.tc, 3)
-        c.f = numpy.around(table.fc, 1)
+        c.energy = numpy.around(qgram.peak['energy'], 1)
+        c.snr = numpy.around(qgram.peak['snr'], 1)
+        c.t = numpy.around(qgram.peak['time'], 3)
+        c.f = numpy.around(qgram.peak['frequency'], 1)
 
         # update analyzed dict
         try:

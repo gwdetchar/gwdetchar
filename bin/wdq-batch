@@ -189,10 +189,6 @@ if args.universe != 'local':
 if args.condor_timeout:
     condorcmds['periodic_remove'] = (
         'CurrentTime-EnteredCurrentStatus > %d' % (3600 * args.condor_timeout))
-if args.universe != 'local' and args.wpipeline.endswith('wpipeline'):
-    condorcmds['request_memory'] = 4096
-elif args.universe != 'local':
-    condorcmds['request_memory'] = 32768
 for cmd_ in args.condor_command:
     key, value = cmd_.split('=', 1)
     condorcmds[key.rstrip().lower()] = value.strip()

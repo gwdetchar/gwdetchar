@@ -26,7 +26,7 @@ from glue.ligolw import lsctables
 from glue.ligolw.ligolw import Document
 
 from gwpy.segments import (Segment, SegmentList)
-from gwpy.tests.utils import assert_segmentlist_equal
+from gwpy.testing.utils import assert_segmentlist_equal
 
 from ..io import ligolw as io_ligolw
 
