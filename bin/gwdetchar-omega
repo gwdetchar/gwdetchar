@@ -56,6 +56,9 @@ from gwpy.time import to_gps
 from gwpy.segments import Segment
 from gwpy.signal.qtransform import q_scan
 
+from matplotlib import use
+use('agg')  # nopep8
+
 from gwdetchar import (cli, __version__)
 from gwdetchar.omega import (config, plot, html)
 from gwdetchar.io.datafind import (check_flag, get_data)
