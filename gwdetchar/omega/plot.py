@@ -21,9 +21,7 @@
 
 from __future__ import division
 
-from matplotlib import (use, cm, rcParams)
-use('agg')  # nopep8
-
+from matplotlib import (cm, rcParams)
 from gwpy.plot.colors import GW_OBSERVATORY_COLORS
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -35,7 +33,7 @@ rcParams.update({
     'axes.labelsize': 20,
     'axes.labelpad': 12,
     'axes.titlesize': 15,
-    'grid.alpha': 0.6,
+    'grid.alpha': 0.5,
 })
 
 
