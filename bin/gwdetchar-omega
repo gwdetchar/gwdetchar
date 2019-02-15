@@ -80,6 +80,9 @@ parser.add_argument('-f', '--config-file', action='append', default=None,
                     help='path to configuration file to use, can be given '
                          'multiple times (files read in order), default: '
                          'choose a standard one based on IFO and GPS time')
+parser.add_argument('-d', '--disable-correlation', action='store_true',
+                    default=False, help='disable cross-correlation of aux '
+                                        'channels, default: False')
 parser.add_argument('-s', '--ignore-state-flags', action='store_true',
                     default=False, help='ignore state flag definitions in '
                                         'the configuration, default: False')
@@ -116,6 +119,16 @@ if args.verbose:
         gprint(''.join(['\t', fname]))
 cp = config.OmegaConfigParser(ifo=ifo)
 cp.read(args.config_file)
+
+# parse primary channel
+if not args.disable_correlation:
+    try:
+        primary = config.OmegaChannelList('primary',
+                                          **dict(cp.items('primary')))
+        cp.remove_section('primary')
+    except:
+        gprint('No primary channel configured, disabling correlation')
+        args.disable_correlation = True
 
 # get contextual channel blocks
 blocks = cp.get_channel_blocks()
@@ -166,6 +179,49 @@ html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 # launch omega scans
 gprint('Launching Omega scans...')
 
+# construct matched-filter from primary channel
+if not args.disable_correlation:
+    gprint('Constructing a matched-filter from the primary channel...')
+    duration = primary.duration
+    fftlength = primary.fftlength
+    pad = max(1, fftlength/4.)
+    # check that analysis flag is active for all of `duration`
+    if primary.flag and not args.ignore_state_flags:
+        if args.verbose:
+            gprint('Querying state flag %s...' % primary.flag)
+        active = check_flag(primary.flag, gps, duration, pad)
+    else:
+        active = True
+    # construct a matched-filter
+    if not active:
+        gprint('%s not active, disabling correlation' % primary.flag)
+        args.disable_correlation = True
+    else:
+        # read in `duration` seconds of data centered on gps
+        data = get_data([primary.channel.name], gps, duration, pad,
+                        frametype=primary.frametype, source=primary.source,
+                        nproc=args.nproc, verbose=args.verbose)
+        hoft = data[primary.channel.name].astype('float64')
+        if primary.resample:
+            hoft = hoft.resample(primary.resample)
+        asd = hoft.asd(fftlength, fftlength/2, method='lal_median_mean')
+        corner = primary.channel.frange[0] / 1.5
+        wn = 2 * corner * hoft.dt.decompose().value
+        hpfilt = butter(12, wn, btype='highpass', analog=False, output='sos')
+        hoft = hoft.filter(hpfilt, filtfilt=True)
+        hoft = hoft.whiten(window='hann', asd=asd).detrend('linear')
+        # plot the primary channel
+        if args.verbose:
+            gprint('Plotting a timeseries of the primary channel...')
+        plot.omega_plot(hoft, gps, primary.length, primary.channel.name,
+                        'plots/primary.png', ylabel='Whitened Amplitude',
+                        figsize=[8, 5])
+        hoft = hoft.crop(
+            gps - primary.length/2, gps + primary.length/2).taper()
+    # prepare HTML output
+    htmlv['correlated'] = active
+    htmlv['primary'] = primary.channel.name
+
 # range over blocks
 for block in blocks.values():
     gprint('Processing block %s' % block.key)
@@ -201,8 +257,7 @@ for block in blocks.values():
         hpfilt = butter(12, wn, btype='highpass', analog=False, output='sos')
         hpseries = series.filter(hpfilt, filtfilt=True)
         asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
-        wseries = hpseries.whiten(fftlength, fftlength/2, window='hann',
-                                  asd=asd, detrend='linear')
+        wseries = hpseries.whiten(window='hann', asd=asd).detrend('linear')
 
         # crop the timeseries
         wseries = wseries.crop(gps-duration/2, gps+duration/2)
@@ -274,6 +329,23 @@ for block in blocks.values():
             # plot autoscaled whitened eventgram
             plot.omega_plot(table, gps, span, c.name, str(png9),
                             colormap=args.colormap, figsize=(8, 4.35))
+
+        # matched-filter with the primary channel
+        if not args.disable_correlation:
+            template = hoft.taper()
+            if template.sample_rate.value < wseries.sample_rate.value:
+                wseries = wseries.resample(template.sample_rate.value)
+            if template.sample_rate.value > wseries.sample_rate.value:
+                template = template.resample(wseries.sample_rate.value)
+            corr = wseries.correlate(template, window='hann')
+            corr_stdev = corr.std().value
+            # crop and store parameters
+            corr = corr.abs().crop(
+                gps - 0.1, gps + 0.1)
+            c.corr = numpy.around(corr.max().value, 1)
+            c.corr_stdev = corr_stdev  # used to reject high glitch rates
+            delay = (corr.t0 + corr.argmax() * corr.dt).value - gps
+            c.delay = int(delay * 1000)  # convert to ms
 
         # save parameters
         c.Q = numpy.around(Q, 1)

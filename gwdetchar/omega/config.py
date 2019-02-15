@@ -67,7 +67,23 @@ given block, the following keywords are supported:
                          (required)
 =======================  ======================================================
 
+If cross-correlation will be implemented, the user will also need to specify
+a block whose blockkey is ``primary`` that includes only one ``channel``
+and an option for ``matched-filter-length``.
+
+An example using many of the above options would look something like this:
+
 .. code-block:: ini
+
+  [primary]
+  ; the primary channel, which will be used as a matched-filter
+  frequency-range = 4.0,2048
+  resample = 4096
+  frametype = L1_HOFT_C00
+  duration = 64
+  fftlength = 8
+  matched-filter-length = 2
+  channel = L1:GDS-CALIB_STRAIN
 
   [GW]
   ; name of this block, which contains h(t)
@@ -108,8 +124,12 @@ given block, the following keywords are supported:
   output page, with a scrollable dropdown list of channels in that block for
   ease of navigation.
 
-  If running on a LIGO Data Grid (LDG) computer cluster,
-  the `~detchar` account houses default configurations organized by subsystem.
+  The `primary` block will only be used to design a matched-filter. To process
+  this channel during the Omega scan, it must be included again in a subsequent
+  block.
+
+  If running on a LIGO Data Grid (LDG) computer cluster, the `~detchar`
+  account houses default configurations organized by subsystem.
 """
 
 from __future__ import print_function
@@ -266,22 +286,23 @@ class OmegaChannel(Channel):
             [float(s) for s in params.get('frequency-range', None).split(',')])
         super(OmegaChannel, self).__init__(
             channelname, frametype=frametype, frange=frange)
-        self.qrange = tuple(
-            [float(s) for s in params.get('q-range', None).split(',')])
-        self.mismatch = float(params.get('max-mismatch', 0.2))
-        self.snrthresh = float(params.get('snr-threshold', 5.5))
-        self.always_plot = ast.literal_eval(
-            params.get('always-plot', 'False'))
-        self.pranges = [int(t) for t in params.get('plot-time-durations',
-                                                   None).split(',')]
-        self.plots = {}
-        for plottype in ['timeseries_raw', 'timeseries_highpassed',
-                         'timeseries_whitened', 'qscan_raw',
-                         'qscan_whitened', 'qscan_autoscaled',
-                         'eventgram_raw', 'eventgram_whitened',
-                         'eventgram_autoscaled']:
-            self.plots[plottype] = [get_fancyplots(self.name, plottype, t)
-                                    for t in self.pranges]
+        if section != 'primary':
+            self.qrange = tuple(
+                [float(s) for s in params.get('q-range', None).split(',')])
+            self.mismatch = float(params.get('max-mismatch', 0.2))
+            self.snrthresh = float(params.get('snr-threshold', 5.5))
+            self.always_plot = ast.literal_eval(
+                params.get('always-plot', 'False'))
+            self.pranges = [int(t) for t in params.get('plot-time-durations',
+                                                       None).split(',')]
+            self.plots = {}
+            for plottype in ['timeseries_raw', 'timeseries_highpassed',
+                             'timeseries_whitened', 'qscan_raw',
+                             'qscan_whitened', 'qscan_autoscaled',
+                             'eventgram_raw', 'eventgram_whitened',
+                             'eventgram_autoscaled']:
+                self.plots[plottype] = [get_fancyplots(self.name, plottype, t)
+                                        for t in self.pranges]
         self.section = section
         self.params = params.copy()
 
@@ -309,6 +330,11 @@ class OmegaChannelList(object):
         self.frametype = params.get('frametype', None)
         self.flag = params.get('state-flag', None)
         section = self.parent if self.parent else self.key
-        chans = params.get('channels', None).strip().split('\n')
-        self.channels = [OmegaChannel(c, section, **params) for c in chans]
+        if key == 'primary':
+            self.length = float(params.get('matched-filter-length'))
+            channelname = params.get('channel').strip()
+            self.channel = OmegaChannel(channelname, section, **params)
+        else:
+            chans = params.get('channels', None).strip().split('\n')
+            self.channels = [OmegaChannel(c, section, **params) for c in chans]
         self.params = params.copy()

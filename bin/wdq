@@ -67,6 +67,9 @@ margs.add_argument(
          'are found using the datafind server, must be in LAL cache format')
 
 pargs = parser.add_argument_group('Python options')
+pargs.add_argument('-d', '--disable-correlation', action='store_true',
+                   default=False, help='disable cross-correlation of aux '
+                                       'channels, default: False')
 pargs.add_argument('-t', '--far-threshold', type=float, default=1e-10,
                    help='white noise false alarm rate threshold for '
                         'processing channels, default: %(default)s Hz')
@@ -103,6 +106,8 @@ if 'gwdetchar-omega' in args.wpipeline:
         cmd.extend(['-o', args.output_directory])
     if args.config_file is not None:
         cmd.extend(['-f', args.config_file])
+    if args.disable_correlation:
+        cmd.extend(['-d'])
     if args.ignore_state_flags:
         cmd.extend(['-s'])
     if args.verbose:
