@@ -846,16 +846,16 @@ def write_ranking(toc, primary, thresh=6.5,
         ('Delay', numpy.array([c.delay for b in toc.values()
                                for c in b['channels']]))
     ])
-    std = numpy.array([c.corr_stdev for b in toc.values()
+    std = numpy.array([c.stdev for b in toc.values()
                        for c in b['channels']])
 
     # identify the primary channel
-    pind, = numpy.nonzero(entries['Channel'] == primary)[0]
+    pind = numpy.nonzero(entries['Channel'] == primary)
     # sort by matched-filter correlation
     ind_sorted = numpy.argsort(entries['Correlation'])[::-1]
     if ind_sorted[0] != pind:
         # prepend the primary channel
-        dind, = numpy.nonzero(ind_sorted == pind)[0]
+        dind = numpy.nonzero(ind_sorted == pind)
         ind_sorted = numpy.delete(ind_sorted, dind)
         ind_sorted = numpy.insert(ind_sorted, 0, pind)
 
@@ -883,11 +883,12 @@ def write_ranking(toc, primary, thresh=6.5,
     page.thead.close()
     page.tbody()
     # range over channels
-    for k, i in enumerate(ind_sorted):
+    k = 0
+    for i in ind_sorted:
         if k > 5:
             break
         # reject channels with too high a glitch rate
-        if (std[i] > 5) and (entries['Channel'][i] != primary):
+        if (std[i] > 2) and (entries['Channel'][i] != primary):
             continue
         params = {
             'title': entries['Channel'][i],
@@ -909,6 +910,8 @@ def write_ranking(toc, primary, thresh=6.5,
             page.td(str(entries['Correlation'][i]))
             page.td('%s ms' % entries['Delay'][i])
         page.tr.close()
+        # increment counter
+        k += 1
     page.tbody.close()
     page.table.close()
     page.div.close()  # col-md-12
@@ -1006,7 +1009,8 @@ def write_block(blockkey, block, context,
         for ptitle, pclass, ptypes in [
             ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
             ('Spectrogram', 'qscan', ('raw', 'whitened', 'autoscaled')),
-            ('Eventgram', 'eventgram', ('raw', 'whitened', 'autoscaled')),
+            ('Eventgram', 'eventgram', (
+                'raw', 'whitened', 'autoscaled')),
         ]:
             _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
             page.div(class_='btn-group', role='group')
@@ -1129,8 +1133,8 @@ def write_about_page(configfiles):
     page.p('This page was generated with the command line call shown below.')
     page.pre(' '.join(sys.argv))
     page.h2('Configuration file')
-    page.p('Omega scans are configured through INI-format files. The files '
-           'used for this analysis are reproduced below in full.')
+    page.p('Omega scans are configured with INI-format files. The '
+           'configuration files for this analysis are shown below in full.')
     for configfile in configfiles:
         page.pre(write_config_html(configfile))
     return page

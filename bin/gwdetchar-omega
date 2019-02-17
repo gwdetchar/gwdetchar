@@ -44,23 +44,20 @@ channels = H1:GDS-CALIB_STRAIN
 For more information, see gwdetchar.omega.config.
 """
 
-from __future__ import division
+from __future__ import (division, print_function)
 
 import os
 import sys
+import traceback
 import numpy
-from scipy.signal import butter
 
-from gwpy.utils import gprint
 from gwpy.time import to_gps
-from gwpy.segments import Segment
-from gwpy.signal.qtransform import q_scan
 
 from matplotlib import use
 use('agg')  # nopep8
 
-from gwdetchar import (cli, __version__)
-from gwdetchar.omega import (config, plot, html)
+from gwdetchar import (cli, omega, __version__)
+from gwdetchar.omega import (config, html, plot)
 from gwdetchar.io.datafind import (check_flag, get_data)
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -105,7 +102,7 @@ else:
 gps = numpy.around(float(args.gpstime), 3)
 
 print("----------------------------------------------\n"
-      "Creating %s omega scan at GPS second %s..." % (ifo, gps))
+      "Creating %s omega scan at GPS second %s" % (ifo, gps))
 
 # get default configuration
 if args.config_file is None:
@@ -114,21 +111,16 @@ if args.config_file is None:
 # parse configuration files
 args.config_file = [os.path.abspath(f) for f in args.config_file]
 if args.verbose:
-    gprint('Parsing the following configuration files:')
+    print('Parsing the following configuration files:')
     for fname in args.config_file:
-        gprint(''.join(['\t', fname]))
+        print(''.join(['\t', fname]))
 cp = config.OmegaConfigParser(ifo=ifo)
 cp.read(args.config_file)
 
 # parse primary channel
 if not args.disable_correlation:
-    try:
-        primary = config.OmegaChannelList('primary',
-                                          **dict(cp.items('primary')))
-        cp.remove_section('primary')
-    except:
-        gprint('No primary channel configured, disabling correlation')
-        args.disable_correlation = True
+    primary = config.OmegaChannelList('primary', **dict(cp.items('primary')))
+cp.remove_section('primary')
 
 # get contextual channel blocks
 blocks = cp.get_channel_blocks()
@@ -146,9 +138,6 @@ htmlv = {
     'config': args.config_file,
     'refresh': True,
 }
-
-# set search window
-search = Segment(gps - 0.25, gps + 0.25)
 
 # set output directory
 outdir = args.output_directory
@@ -173,207 +162,97 @@ for d in [plotdir, aboutdir, datadir]:
         os.makedirs(d)
 
 # set up html output
-gprint('Setting up HTML at %s/index.html...' % outdir)
+print('Setting up HTML at %s/index.html' % outdir)
 html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 
 # launch omega scans
-gprint('Launching Omega scans...')
+print('Launching Omega scans')
 
-# construct matched-filter from primary channel
+# construct a matched-filter from primary channel
 if not args.disable_correlation:
-    gprint('Constructing a matched-filter from the primary channel...')
+    print('Processing primary channel')
     duration = primary.duration
     fftlength = primary.fftlength
     pad = max(1, fftlength/4.)
-    # check that analysis flag is active for all of `duration`
-    if primary.flag and not args.ignore_state_flags:
-        if args.verbose:
-            gprint('Querying state flag %s...' % primary.flag)
-        active = check_flag(primary.flag, gps, duration, pad)
-    else:
-        active = True
-    # construct a matched-filter
-    if not active:
-        gprint('%s not active, disabling correlation' % primary.flag)
-        args.disable_correlation = True
-    else:
-        # read in `duration` seconds of data centered on gps
-        data = get_data([primary.channel.name], gps, duration, pad,
-                        frametype=primary.frametype, source=primary.source,
-                        nproc=args.nproc, verbose=args.verbose)
-        hoft = data[primary.channel.name].astype('float64')
-        if primary.resample:
-            hoft = hoft.resample(primary.resample)
-        asd = hoft.asd(fftlength, fftlength/2, method='lal_median_mean')
-        corner = primary.channel.frange[0] / 1.5
-        wn = 2 * corner * hoft.dt.decompose().value
-        hpfilt = butter(12, wn, btype='highpass', analog=False, output='sos')
-        hoft = hoft.filter(hpfilt, filtfilt=True)
-        hoft = hoft.whiten(window='hann', asd=asd).detrend('linear')
-        # plot the primary channel
-        if args.verbose:
-            gprint('Plotting a timeseries of the primary channel...')
-        plot.omega_plot(hoft, gps, primary.length, primary.channel.name,
-                        'plots/primary.png', ylabel='Whitened Amplitude',
-                        figsize=[8, 5])
-        hoft = hoft.crop(
-            gps - primary.length/2, gps + primary.length/2).taper()
+    # process `duration` seconds of data centered on gps
+    name = primary.channel.name
+    correlate = get_data(
+        [name], gps, duration, pad, frametype=primary.frametype,
+        source=primary.source, nproc=args.nproc,
+        verbose=args.verbose)[name].astype('float64')
+    correlate = omega.primary(
+        gps, primary.length, correlate, fftlength, resample=primary.resample,
+        f_low=primary.channel.frange[0], name=name)
+    plot.timeseries_plot(correlate, gps, primary.length, name,
+                         'plots/primary.png', ylabel='Whitened Amplitude')
     # prepare HTML output
-    htmlv['correlated'] = active
-    htmlv['primary'] = primary.channel.name
+    htmlv['correlated'] = True
+    htmlv['primary'] = name
+else:
+    correlate = None
 
-# range over blocks
+# range over channel blocks
 for block in blocks.values():
-    gprint('Processing block %s' % block.key)
+    print('Processing block %s' % block.key)
     chans = [c.name for c in block.channels]
     # get configuration
     duration = block.duration
     fftlength = block.fftlength
     pad = max(1, fftlength/4.)
     # check that analysis flag is active for all of `duration`
-    if block.flag and not args.ignore_state_flags:
+    if block.flag and (not args.ignore_state_flags):
         if args.verbose:
-            gprint('Querying state flag %s...' % block.flag)
+            print('Querying state flag %s' % block.flag)
         if not check_flag(block.flag, gps, duration, pad):
-            gprint('%s not active, skipping block' % block.flag)
+            print('%s not active, skipping block' % block.flag)
             continue
     # read in `duration` seconds of data centered on gps
     data = get_data(chans, gps, duration, pad, frametype=block.frametype,
                     source=block.source, nproc=args.nproc,
                     verbose=args.verbose)
-    # compute qscans
-    for c in block.channels:
-        if args.verbose:
-            gprint('Computing omega scans for channel %s...' % c.name)
 
-        # get raw timeseries
-        series = data[c.name]
-        if block.resample:
-            series = series.resample(block.resample)
-
-        # filter the timeseries
-        corner = c.frange[0] / 1.5
-        wn = 2 * corner * series.dt.decompose().value
-        hpfilt = butter(12, wn, btype='highpass', analog=False, output='sos')
-        hpseries = series.filter(hpfilt, filtfilt=True)
-        asd = series.asd(fftlength, fftlength/2, method='lal_median_mean')
-        wseries = hpseries.whiten(window='hann', asd=asd).detrend('linear')
-
-        # crop the timeseries
-        wseries = wseries.crop(gps-duration/2, gps+duration/2)
-        hpseries = hpseries.crop(gps-duration/2, gps+duration/2)
-
-        # compute eventgrams
+    # scan individual channels
+    for channel in block.channels:
         try:
-            qgram, far = q_scan(wseries, mismatch=c.mismatch, qrange=c.qrange,
-                                frange=c.frange, search=search)
-        except:
-            if args.verbose:
-                gprint('Channel is misbehaved, removing it from the analysis')
+            print('Scanning channel %s' % channel.name)
+            series = omega.scan(
+                gps, channel, data[channel.name], fftlength,
+                resample=block.resample, fthresh=args.far_threshold)
+        except Exception:
+            traceback.print_exc()
+            print('Problem encountered, skipping channel %s' % channel.name)
             continue
-        if (far > args.far_threshold) and (not c.always_plot):
-            if args.verbose:
-                gprint('Channel not significant at white noise false alarm '
-                       'rate %s Hz' % args.far_threshold)
-            continue
-        Q = qgram.plane.q
-        rqgram, _ = q_scan(hpseries, mismatch=c.mismatch, qrange=(Q, Q),
-                           frange=qgram.plane.frange, search=search)
 
-        # compute Q-transform spectrograms
-        outseg = Segment(gps - max(c.pranges)/2, gps + max(c.pranges)/2)
-        tres = min(c.pranges) / 1400
-        fres = 700
-        qspec = qgram.interpolate(tres=tres, fres=fres, logf=True,
-                                  outseg=outseg)
-        rqspec = rqgram.interpolate(tres=tres, fres=fres, logf=True,
-                                    outseg=outseg)
+        if series is None:
+            continue  # channel is insignificant, skip it
 
-        # prepare plots
-        if args.verbose:
-            gprint('Plotting omega scans for channel %s...' % c.name)
-        # work out figure size
-        for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
-            c.pranges, c.plots['qscan_whitened'],
-            c.plots['qscan_autoscaled'], c.plots['qscan_raw'],
-            c.plots['timeseries_raw'], c.plots['timeseries_highpassed'],
-            c.plots['timeseries_whitened'], c.plots['eventgram_raw'],
-            c.plots['eventgram_whitened'], c.plots['eventgram_autoscaled']
-        ):
-            # plot whitened qscan
-            plot.omega_plot(qspec, gps, span, c.name, str(png1), clim=(0, 25),
-                            colormap=args.colormap, figsize=(8, 4.35))
-            # plot autoscaled, whitened qscan
-            plot.omega_plot(qspec, gps, span, c.name, str(png2),
-                            colormap=args.colormap, figsize=(8, 4.35))
-            # plot raw qscan
-            plot.omega_plot(rqspec, gps, span, c.name, str(png3), clim=(0, 25),
-                            colormap=args.colormap, figsize=(8, 4.35))
-            # plot raw timeseries
-            plot.omega_plot(series, gps, span, c.name, str(png4),
-                            ylabel='Amplitude', figsize=(9, 4.5))
-            # plot highpassed timeseries
-            plot.omega_plot(hpseries, gps, span, c.name, str(png5),
-                            ylabel='Highpassed Amplitude', figsize=(9, 4.5))
-            # plot whitened timeseries
-            plot.omega_plot(wseries, gps, span, c.name, str(png6),
-                            ylabel='Whitened Amplitude', figsize=(9, 4.5))
-            # plot raw eventgram
-            rtable = rqgram.table(snrthresh=c.snrthresh)
-            plot.omega_plot(rtable, gps, span, c.name, str(png7), clim=(0, 25),
-                            colormap=args.colormap, figsize=(8, 4.35))
-            # plot whitened eventgram
-            table = qgram.table(snrthresh=c.snrthresh)
-            plot.omega_plot(table, gps, span, c.name, str(png8), clim=(0, 25),
-                            colormap=args.colormap, figsize=(8, 4.35))
-            # plot autoscaled whitened eventgram
-            plot.omega_plot(table, gps, span, c.name, str(png9),
-                            colormap=args.colormap, figsize=(8, 4.35))
+        print('Plotting Omega scan products for channel %s' % channel.name)
+        plot.write_qscan_plots(gps, channel, series, colormap=args.colormap)
 
-        # matched-filter with the primary channel
-        if not args.disable_correlation:
-            template = hoft.taper()
-            if template.sample_rate.value < wseries.sample_rate.value:
-                wseries = wseries.resample(template.sample_rate.value)
-            if template.sample_rate.value > wseries.sample_rate.value:
-                template = template.resample(wseries.sample_rate.value)
-            corr = wseries.correlate(template, window='hann')
-            corr_stdev = corr.std().value
-            # crop and store parameters
-            corr = corr.abs().crop(
-                gps - 0.1, gps + 0.1)
-            c.corr = numpy.around(corr.max().value, 1)
-            c.corr_stdev = corr_stdev  # used to reject high glitch rates
-            delay = (corr.t0 + corr.argmax() * corr.dt).value - gps
-            c.delay = int(delay * 1000)  # convert to ms
+        if correlate is not None:
+            print('Cross-correlating channel %s' % channel.name)
+            correlation = omega.cross_correlate(series[2], correlate)
+            channel.save_loudest_tile_features(series[3], correlation, gps)
+        else:
+            channel.save_loudest_tile_features(series[3])
 
-        # save parameters
-        c.Q = numpy.around(Q, 1)
-        c.energy = numpy.around(qgram.peak['energy'], 1)
-        c.snr = numpy.around(qgram.peak['snr'], 1)
-        c.t = numpy.around(qgram.peak['time'], 3)
-        c.f = numpy.around(qgram.peak['frequency'], 1)
-
-        # update analyzed dict
-        try:
-            analyzed[c.section]['channels'].append(c)
+        try:  # update analyzed dict
+            analyzed[channel.section]['channels'].append(channel)
         except KeyError:
-            analyzed[c.section] = {'name': blocks[c.section].name,
-                                   'channels': [c]}
+            analyzed[channel.section] = {'name': blocks[channel.section].name,
+                                         'channels': [channel]}
         htmlv['toc'] = analyzed
-
-        # update HTML output
         html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 
 
 # -- Prepare HTML -------------------------------------------------------------
 
 # write HTML page and finish
-gprint('Finalizing HTML at %s/index.html...' % outdir)
+print('Finalizing HTML at %s/index.html' % outdir)
 htmlv['refresh'] = False  # turn off auto-refresh
 if analyzed:
     html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 else:
     reason = 'No significant channels found during active analysis segments'
     html.write_null_page(ifo, gps, reason, **htmlv)
-gprint("-- index.html written, all done --")
+print("-- index.html written, all done --")

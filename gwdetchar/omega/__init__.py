@@ -42,4 +42,8 @@ else:
 
 # -- imports ------------------------------------------------------------------
 
-from .scan import *
+# import Matlab utils
+from .matlab import *
+
+# import pyomega utils
+from .core import *
