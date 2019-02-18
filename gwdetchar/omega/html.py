@@ -1008,9 +1008,9 @@ def write_block(blockkey, block, context,
         page.div(class_='btn-group', role='group')
         for ptitle, pclass, ptypes in [
             ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
-            ('Spectrogram', 'qscan', ('raw', 'whitened', 'autoscaled')),
+            ('Spectrogram', 'qscan', ('highpassed', 'whitened', 'autoscaled')),
             ('Eventgram', 'eventgram', (
-                'raw', 'whitened', 'autoscaled')),
+                'highpassed', 'whitened', 'autoscaled')),
         ]:
             _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
             page.div(class_='btn-group', role='group')

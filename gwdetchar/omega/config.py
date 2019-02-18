@@ -56,9 +56,12 @@ given block, the following keywords are supported:
                          (required)
 ``fftlength``            The FFT length to use in computing an ASD for
                          whitening with an overlap of `fftlength/2` (required)
+``search``               Duration (seconds) of search time window (optional)
 ``max-mismatch``         The maximum mismatch in time-frequency tiles
                          (optional)
 ``snr-threshold``        Threshold on SNR for plotting eventgrams (optional)
+``dt``                   Maximum acceptable time delay from the primary
+                         channel (optional)
 ``always-plot``          Always analyze this block regardless of channel
                          significance (optional; will be superceded by
                          `state-flag` unless `--ignore-state-flags` is passed)
@@ -69,8 +72,8 @@ given block, the following keywords are supported:
 
 If cross-correlation will be implemented, the user will also need to specify
 a block whose blockkey is ``primary`` that includes only one ``channel``
-and an option for ``matched-filter-length``. State flags are always ignored
-for the primary.
+and options for ``f-low`` (a high-pass corner frequency) and
+``matched-filter-length``. State flags are always ignored for the primary.
 
 An example using many of the above options would look something like this:
 
@@ -78,7 +81,7 @@ An example using many of the above options would look something like this:
 
   [primary]
   ; the primary channel, which will be used as a matched-filter
-  frequency-range = 4.0,2048
+  f-low = 4.0
   resample = 4096
   frametype = L1_HOFT_C00
   duration = 64
@@ -284,13 +287,13 @@ class OmegaChannel(Channel):
     def __init__(self, channelname, section, **params):
         self.name = channelname
         frametype = params.get('frametype', None)
-        frange = tuple(
-            [float(s) for s in params.get('frequency-range', None).split(',')])
         super(OmegaChannel, self).__init__(
-            channelname, frametype=frametype, frange=frange)
+            channelname, frametype=frametype)
         if section != 'primary':
             self.qrange = tuple(
-                [float(s) for s in params.get('q-range', None).split(',')])
+                [float(s) for s in params.get('q-range').split(',')])
+            self.frange = tuple(
+                [float(s) for s in params.get('frequency-range').split(',')])
             self.mismatch = float(params.get('max-mismatch', 0.2))
             self.snrthresh = float(params.get('snr-threshold', 5.5))
             self.always_plot = ast.literal_eval(
@@ -299,9 +302,9 @@ class OmegaChannel(Channel):
                                                        None).split(',')]
             self.plots = {}
             for plottype in ['timeseries_raw', 'timeseries_highpassed',
-                             'timeseries_whitened', 'qscan_raw',
+                             'timeseries_whitened', 'qscan_highpassed',
                              'qscan_whitened', 'qscan_autoscaled',
-                             'eventgram_raw', 'eventgram_whitened',
+                             'eventgram_highpassed', 'eventgram_whitened',
                              'eventgram_autoscaled']:
                 self.plots[plottype] = [get_fancyplots(self.name, plottype, t)
                                         for t in self.pranges]
@@ -379,10 +382,13 @@ class OmegaChannelList(object):
         section = self.parent if self.parent else self.key
         if key == 'primary':
             self.length = float(params.get('matched-filter-length'))
+            self.flow = float(params.get('f-low', 4))
             channelname = params.get('channel').strip()
             self.channel = OmegaChannel(channelname, section, **params)
         else:
             self.flag = params.get('state-flag', None)
+            self.search = float(params.get('search', 0.5))
+            self.dt = float(params.get('dt', 0.1))
             chans = params.get('channels', None).strip().split('\n')
             self.channels = [OmegaChannel(c, section, **params) for c in chans]
         self.params = params.copy()

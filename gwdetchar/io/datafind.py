@@ -150,7 +150,7 @@ def get_data(channels, gpstime, duration, pad, frametype=None, source=None,
     end = gpstime + duration/2. + pad
     # construct file cache if none is given
     if source is None:
-        source = gwdetchar.find_urls(frametype[0], frametype, start, end)
+        source = gwdatafind.find_urls(frametype[0], frametype, start, end)
     # read from frames or NDS
     if source:
         return TimeSeriesDict.read(
