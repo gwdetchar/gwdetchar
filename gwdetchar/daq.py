@@ -25,12 +25,13 @@ from operator import attrgetter
 
 import numpy
 
+from gwdatafind import find_urls
+
 from gwpy.io.gwf import get_channel_names
 from gwpy.time import to_gps
 from gwpy.timeseries import StateTimeSeries
 
 from . import const
-from .io.datafind import find_frames
 from .utils import natural_sort
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -196,7 +197,7 @@ def _ligo_model_overflow_channels_nds(dcuid, ifo, gpstime, host):
 
 def _ligo_model_overflow_channels_gwf(dcuid, ifo, frametype, gpstime):
     try:
-        framefile = find_frames(ifo[0], frametype, gpstime, gpstime)[0].path
+        framefile = find_urls(ifo[0], frametype, gpstime, gpstime)[0]
     except IndexError as e:
         e.args = ('No %s-%s frames found at GPS %d'
                   % (ifo[0], frametype, gpstime),)
