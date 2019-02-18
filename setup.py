@@ -62,6 +62,7 @@ install_requires = [
     'lscsoft-glue>=1.60.0',
     'gwtrigfind',
     'sklearn',
+    'gwdatafind',
 ]
 
 # test
