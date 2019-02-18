@@ -83,6 +83,9 @@ margs.add_argument(
          'are found using the datafind server, must be in LAL cache format')
 
 pargs = parser.add_argument_group('Python options')
+pargs.add_argument('-d', '--disable-correlation', action='store_true',
+                   default=False, help='disable cross-correlation of aux '
+                                       'channels, default: False')
 pargs.add_argument('-t', '--far-threshold', type=float, default=1e-10,
                    help='white noise false alarm rate threshold for '
                         'processing channels, default: %(default)s Hz')
@@ -208,6 +211,8 @@ if args.wpipeline.endswith('wpipeline'):
 else:
     job.add_opt('far-threshold', str(args.far_threshold))
     job.add_opt('nproc', str(args.nproc))
+    if args.disable_correlation:
+        job.add_opt('disable-correlation', '')
     if args.ignore_state_flags:
         job.add_opt('ignore-state-flags', '')
     if args.verbose:

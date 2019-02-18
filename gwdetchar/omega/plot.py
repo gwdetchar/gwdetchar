@@ -19,7 +19,7 @@
 """Plotting routines for Omega scans
 """
 
-from __future__ import division
+from __future__ import (division, print_function)
 
 from matplotlib import (cm, rcParams)
 from gwpy.plot.colors import GW_OBSERVATORY_COLORS
@@ -89,7 +89,7 @@ def _format_color_axis(ax, colormap='viridis', clim=None, norm='linear'):
         the `Axis` object to format
 
     colormap : `str`
-        Matplotlib colorbar to use, default: viridis
+        matplotlib colormap to use, default: viridis
 
     clim : `tuple` or `None`
         limits of the color axis, default: autoscale with log scaling
@@ -112,7 +112,7 @@ def _format_color_axis(ax, colormap='viridis', clim=None, norm='linear'):
 # -- utilities ----------------------------------------------------------------
 
 def timeseries_plot(data, gps, span, channel, output, ylabel=None,
-                    figsize=(12, 6)):
+                    figsize=(9, 4.5)):
     """Custom plot for a GWPy TimeSeries object
 
     Parameters
@@ -157,7 +157,7 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
 
 def spectral_plot(data, gps, span, channel, output, ylabel=None,
                   colormap='viridis', clim=None, nx=1400, norm='linear',
-                  figsize=(12, 6)):
+                  figsize=(8, 4.35)):
     """Custom plot for a GWPy spectrogram or Q-gram
 
     Parameters
@@ -181,7 +181,7 @@ def spectral_plot(data, gps, span, channel, output, ylabel=None,
         label for the y-axis
 
     colormap : `str`
-        Matplotlib colorbar to use, default: viridis
+        matplotlib colormap to use, default: viridis
 
     clim : `tuple` or `None`
         limits of the color axis, default: autoscale with log scaling
@@ -225,46 +225,65 @@ def spectral_plot(data, gps, span, channel, output, ylabel=None,
     plot.close()
 
 
-def omega_plot(data, gps, span, channel, output, ylabel=None,
-               colormap='viridis', clim=None, nx=1400, figsize=(12, 6)):
-    """Plot any Omega scan data object
+def write_qscan_plots(gps, channel, series, colormap='viridis'):
+    """Custom plot utility for a full Omega scan
 
     Parameters
     ----------
-    data : `~gwpy.timeseries.TimeSeries`
-        the series to plot
-
     gps : `float`
         reference GPS time (in seconds) to serve as the origin
 
-    span : `float`
-        total duration (in seconds) of the time axis
+    channel : `OmegaChannel`
+        channel corresponding to these data
 
-    channel : `str`
-        name of the channel corresponding to this data
+    series : `tuple`
+        a collection of `TimeSeries`, `Spectrogram`, and `QGram` objects
 
-    output : `str`
-        name of the output file
-
-    ylabel : `str` or `None`
-        label for the y-axis
-
-    colormap : `str`
-        Matplotlib colorbar to use, default: viridis
-
-    clim : `tuple` or `None`
-        limits of the color axis, default: autoscale with log scaling
-
-    nx : `int`
-        number of points along the time axis, default: 500
-
-    figsize : `tuple`
-        size (width x height) of the final figure, default: `(12, 6)`
+    colormap : `str`, optional
+        matplotlib colormap to use, default: viridis
     """
-    from gwpy.timeseries import TimeSeries
-    if isinstance(data, TimeSeries):
-        timeseries_plot(data, gps, span, channel, output, ylabel=ylabel,
-                        figsize=figsize)
-    else:
-        spectral_plot(data, gps, span, channel, output, ylabel=ylabel,
-                      colormap=colormap, clim=clim, nx=nx, figsize=figsize)
+    # unpack series objects
+    xoft, hpxoft, wxoft, qgram, rqgram, qspec, rqspec = series
+    # range over plot types
+    fnames = channel.plots
+    for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
+        channel.pranges, fnames['qscan_whitened'],
+        fnames['qscan_autoscaled'], fnames['qscan_raw'],
+        fnames['timeseries_raw'], fnames['timeseries_highpassed'],
+        fnames['timeseries_whitened'], fnames['eventgram_raw'],
+        fnames['eventgram_whitened'], fnames['eventgram_autoscaled']
+    ):
+        # plot whitened qscan
+        spectral_plot(
+            qspec, gps, span, channel.name, str(png1), clim=(0, 25),
+            colormap=colormap)
+        # plot autoscaled, whitened qscan
+        spectral_plot(qspec, gps, span, channel.name, str(png2),
+                      colormap=colormap)
+        # plot raw qscan
+        spectral_plot(
+            rqspec, gps, span, channel.name, str(png3), clim=(0, 25),
+            colormap=colormap)
+        # plot raw timeseries
+        timeseries_plot(xoft, gps, span, channel.name, str(png4),
+                        ylabel='Amplitude')
+        # plot highpassed timeseries
+        timeseries_plot(hpxoft, gps, span, channel.name, str(png5),
+                        ylabel='Highpassed Amplitude')
+        # plot whitened timeseries
+        timeseries_plot(wxoft, gps, span, channel.name, str(png6),
+                        ylabel='Whitened Amplitude')
+        # plot raw eventgram
+        rtable = rqgram.table(snrthresh=channel.snrthresh)
+        spectral_plot(
+            rtable, gps, span, channel.name, str(png7), clim=(0, 25),
+            colormap=colormap)
+        # plot whitened eventgram
+        table = qgram.table(snrthresh=channel.snrthresh)
+        spectral_plot(
+            table, gps, span, channel.name, str(png8), clim=(0, 25),
+            colormap=colormap)
+        # plot autoscaled whitened eventgram
+        spectral_plot(table, gps, span, channel.name, str(png9),
+                      colormap=colormap)
+    return

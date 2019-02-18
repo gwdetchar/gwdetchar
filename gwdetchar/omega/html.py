@@ -23,6 +23,7 @@ from __future__ import division
 
 import os
 import sys
+import numpy
 import datetime
 import subprocess
 from functools import wraps
@@ -412,6 +413,9 @@ def wrap_html(func):
         # determine table of contents and refresh options
         toc = kwargs.pop('toc', {})
         refresh = kwargs.pop('refresh', False)
+        # determine primary channel
+        correlated = kwargs.pop('correlated', False)
+        primary = kwargs.pop('primary', '%s:GDS-CALIB_STRAIN' % ifo)
         # write about page
         try:
             config = kwargs.pop('config')
@@ -434,6 +438,9 @@ def wrap_html(func):
         if about:
             page.add(write_summary(ifo, gpstime, incomplete=refresh,
                      context=OBSERVATORY_MAP[ifo]['context']))
+            write_summary_table(toc, correlated)
+            if correlated:
+                page.add(write_ranking(toc, primary))
             kwargs['context'] = OBSERVATORY_MAP[ifo]['context']
         # write content
         page.div(id_='main')
@@ -598,18 +605,22 @@ def scaffold_plots(plots, nperrow=3):
     return page()
 
 
-def write_summary_table(blocks, base=os.path.curdir):
+def write_summary_table(blocks, correlated, base=os.path.curdir):
     """Write a summary table in variou formats for users to download
 
     Parameters
     ----------
     blocks : `dict` of `OmegaChannel`
         the channel blocks scanned in the analysis
+    correlated : `bool`
+        Boolean switch to determine if cross-correlation is included
     base : `str`
         the path for the `<base>` tag to link in the `<head>`
     """
     # record summary data for each channel
     channel, time, freq, Q, energy, snr = ([], [], [], [], [], [])
+    if correlated:
+        corr, delay = ([], [])
     for block in blocks.values():
         for chan in block['channels']:
             channel.append(chan.name)
@@ -618,10 +629,19 @@ def write_summary_table(blocks, base=os.path.curdir):
             Q.append(chan.Q)
             energy.append(chan.energy)
             snr.append(chan.snr)
+            if correlated:
+                corr.append(chan.corr)
+                delay.append(chan.delay)
     # store in a table
-    data = Table([channel, time, freq, Q, energy, snr],
-                 names=('Channel', 'Central Time', 'Central Frequency (Hz)',
-                        'Quality Factor', 'Normalized Energy', 'SNR'))
+    if correlated:
+        data = Table([channel, time, freq, Q, energy, snr, corr, delay],
+                     names=('Channel', 'Central Time',
+                            'Central Frequency (Hz)', 'Q', 'Energy', 'SNR',
+                            'Correlation', 'Delay (ms)'))
+    else:
+        data = Table([channel, time, freq, Q, energy, snr], names=(
+            'Channel', 'Central Time', 'Central Frequency (Hz)', 'Q', 'Energy',
+            'SNR'))
     # write in several formats
     datadir = os.path.join(base, 'data')
     fname = os.path.join(datadir, 'summary')
@@ -786,6 +806,119 @@ def write_summary(
     return page()
 
 
+def write_ranking(toc, primary, thresh=6.5,
+                  tableclass='table table-condensed table-hover table-bordered'
+                             ' table-responsive'):
+    """Write a table of channels ranked by their similarity to the primary
+
+    Parameters
+    ----------
+    toc : `dict`
+        metadata dictionary for navbar table of contents
+    primary : `str`
+        the name of the primary channel
+    thresh : `float`
+        the minimum correlation amplitude for appearing in this table
+    tableclass : `str`, optional
+        the ``class`` for the summary ``<table>``
+
+    Returns
+    -------
+    page : `~glue.markup.page`
+        the formatted markup object containing the analysis summary table
+    """
+    # construct an ordered dict of channel entries
+    entries = OrderedDict([
+        ('Channel', numpy.array([c.name for b in toc.values()
+                                 for c in b['channels']])),
+        ('GPS Time', numpy.array([c.t for b in toc.values()
+                                  for c in b['channels']])),
+        ('Frequency', numpy.array([c.f for b in toc.values()
+                                   for c in b['channels']])),
+        ('Q', numpy.array([c.Q for b in toc.values()
+                           for c in b['channels']])),
+        ('Energy', numpy.array([c.energy for b in toc.values()
+                                for c in b['channels']])),
+        ('SNR', numpy.array([c.snr for b in toc.values()
+                             for c in b['channels']])),
+        ('Correlation', numpy.array([c.corr for b in toc.values()
+                                     for c in b['channels']])),
+        ('Delay', numpy.array([c.delay for b in toc.values()
+                               for c in b['channels']]))
+    ])
+    std = numpy.array([c.stdev for b in toc.values()
+                       for c in b['channels']])
+
+    # identify the primary channel
+    pind = numpy.nonzero(entries['Channel'] == primary)
+    # sort by matched-filter correlation
+    ind_sorted = numpy.argsort(entries['Correlation'])[::-1]
+    if ind_sorted[0] != pind:
+        # prepend the primary channel
+        dind = numpy.nonzero(ind_sorted == pind)
+        ind_sorted = numpy.delete(ind_sorted, dind)
+        ind_sorted = numpy.insert(ind_sorted, 0, pind)
+
+    # construct HTML table
+    page = markup.page()
+    page.div(class_='row')
+    page.div(class_='col-md-12')
+    aparams = {
+        'title': 'Whitened timeseries of the primary channel, %s.' % primary,
+        'class_': 'fancybox',
+        'target': '_blank',
+        'style': "font-family: Monaco, \"Courier New\", monospace; "
+                 "color: black;",
+        'data-fancybox-group': 'qscan-image',
+    }
+    tlink = markup.oneliner.a(primary, href='plots/primary.png', **aparams)
+    page.p('Below are the top 5 channels ranked by matched-filter correlation '
+           'within 100 ms of %s.' % tlink)
+    page.table(class_=tableclass)
+    page.thead()
+    page.tr()
+    for column in entries.keys():
+        page.th(column, scope='col')
+    page.tr.close()
+    page.thead.close()
+    page.tbody()
+    # range over channels
+    k = 0
+    for i in ind_sorted:
+        if k > 5:
+            break
+        # reject channels with too high a glitch rate
+        if (std[i] > 2) and (entries['Channel'][i] != primary):
+            continue
+        params = {
+            'title': entries['Channel'][i],
+            'href': '#%s' % entries['Channel'][i].lower().replace(':', '-'),
+            'style': "font-family: Monaco, \"Courier New\", monospace; "
+                     "color: black;",
+        }
+        page.tr()
+        page.td(markup.oneliner.a(entries['Channel'][i], **params))
+        page.td(str(entries['GPS Time'][i]))
+        page.td('%.1f Hz' % entries['Frequency'][i])
+        page.td(str(entries['Q'][i]))
+        page.td(str(entries['Energy'][i]))
+        page.td(str(entries['SNR'][i]))
+        if entries['Channel'][i] == primary:
+            page.td('&mdash;')
+            page.td('&mdash;')
+        else:
+            page.td(str(entries['Correlation'][i]))
+            page.td('%s ms' % entries['Delay'][i])
+        page.tr.close()
+        # increment counter
+        k += 1
+    page.tbody.close()
+    page.table.close()
+    page.div.close()  # col-md-12
+    page.div.close()  # row
+    return page()
+
+
 def write_block(blockkey, block, context,
                 tableclass='table table-condensed table-hover table-bordered '
                            'table-responsive desktop-only'):
@@ -845,11 +978,16 @@ def write_block(blockkey, block, context,
         # summary table
         page.div(class_='col-md-7')
         page.table(class_=tableclass)
-        columns = ['GPS Time', 'Frequency', 'Quality Factor',
-                   'Normalized Energy', 'SNR']
-        entries = ['%.3f' % channel.t, '%.1f Hz' % channel.f,
-                   '%.1f' % channel.Q, '%.1f' % channel.energy,
-                   '%.1f' % channel.snr]
+        try:
+            columns = ['GPS Time', 'Frequency', 'Q', 'Energy', 'SNR',
+                       'Correlation', 'Delay']
+            entries = [str(channel.t), '%s Hz' % channel.f, str(channel.Q),
+                       str(channel.energy), str(channel.snr),
+                       str(channel.corr), '%s ms' % channel.delay]
+        except:
+            columns = ['GPS Time', 'Frequency', 'Q', 'Energy', 'SNR']
+            entries = [str(channel.t), '%s Hz' % channel.f, str(channel.Q),
+                       str(channel.energy), str(channel.snr)]
         page.thead()
         page.tr()
         for column in columns:
@@ -871,7 +1009,8 @@ def write_block(blockkey, block, context,
         for ptitle, pclass, ptypes in [
             ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
             ('Spectrogram', 'qscan', ('raw', 'whitened', 'autoscaled')),
-            ('Eventgram', 'eventgram', ('raw', 'whitened', 'autoscaled')),
+            ('Eventgram', 'eventgram', (
+                'raw', 'whitened', 'autoscaled')),
         ]:
             _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
             page.div(class_='btn-group', role='group')
@@ -937,7 +1076,6 @@ def write_qscan_page(blocks, context):
     page.div.close()  # banner
     for key, block in blocks.items():
         page.add(write_block(key, block, context))
-    write_summary_table(blocks)
     return page
 
 
@@ -995,8 +1133,8 @@ def write_about_page(configfiles):
     page.p('This page was generated with the command line call shown below.')
     page.pre(' '.join(sys.argv))
     page.h2('Configuration file')
-    page.p('Omega scans are configured through INI-format files. The files '
-           'used for this analysis are reproduced below in full.')
+    page.p('Omega scans are configured with INI-format files. The '
+           'configuration files for this analysis are shown below in full.')
     for configfile in configfiles:
         page.pre(write_config_html(configfile))
     return page
