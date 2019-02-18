@@ -44,6 +44,7 @@ from gwpy.utils import gprint
 
 from gwdetchar import (cds, cli, const, daq, __version__)
 from gwdetchar.io import (ligolw, html as htmlio)
+from gwdetchar.misc import get_gwpy_tex_settings
 
 try:
     from LDAStools import frameCPP
@@ -162,6 +163,10 @@ if args.ifo == 'L1':
         simulink = 'https://llocds.ligo-la.caltech.edu/daq/simulink/'
 
 span = Segment(args.gpsstart, args.gpsend)
+
+# set rcParams
+tex_settings = get_gwpy_tex_settings()
+rcParams.update(tex_settings)
 
 # get segments
 if args.state_flag:

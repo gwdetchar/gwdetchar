@@ -28,7 +28,7 @@ import numpy
 from scipy.stats import spearmanr
 from scipy.interpolate import UnivariateSpline
 
-from matplotlib import use
+from matplotlib import (use, rcParams)
 use('agg')
 import matplotlib.pyplot as plt
 
@@ -41,6 +41,7 @@ from gwpy.io import nds2 as io_nds2
 
 from gwdetchar import cli
 from gwdetchar.io import html
+from gwdetchar.misc import get_gwpy_tex_settings
 
 from sklearn import linear_model, preprocessing, datasets
 from sklearn.metrics import mean_squared_error, r2_score
@@ -125,6 +126,10 @@ def remove_outliers(ts, N):
             print("%d outliers remain" % len(outliers))
             c += 1
 
+
+# set TeX settings
+tex_settings = get_gwpy_tex_settings()
+rcParams.update(tex_settings)
 
 # load data
 print("-- Loading range data")
