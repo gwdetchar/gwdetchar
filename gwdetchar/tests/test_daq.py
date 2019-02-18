@@ -74,7 +74,7 @@ def test_ligo_accum_overflow_channel():
         'X1:FEC-4_ACCUM_OVERFLOW')
 
 
-@mock.patch('gwdetchar.daq.find_frames')
+@mock.patch('gwdetchar.daq.find_urls')
 @mock.patch('gwdetchar.daq.get_channel_names')
 def test_ligo_model_overflow_channels(get_names, find_frames):
     get_names.return_value = CHANNELS
