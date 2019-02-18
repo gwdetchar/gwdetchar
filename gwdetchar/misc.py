@@ -21,6 +21,9 @@
 
 import numpy
 
+from matplotlib import rcParams
+from gwpy.plot.tex import MACROS as GWPY_TEX_MACROS
+
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
@@ -41,3 +44,28 @@ def find_timeseries_value_changes(timeseries):
     diff = numpy.diff(timeseries.value)
     times = timeseries.times.value[1:]
     return times[diff > 0]
+
+
+def get_gwpy_tex_settings():
+    """Return a dict of rcParams similar to GWPY_TEX_RCPARAMS
+
+    Returns
+    -------
+    rcParams : `dict`
+        a dictionary of matplotlib rcParams
+    """
+    return {
+        # reproduce GWPY_TEX_PARAMS
+        'text.usetex': True,
+        'text.latex.preamble': (
+            rcParams.get('text.latex.preamble', []) + GWPY_TEX_MACROS),
+        'font.family': ['serif'],
+        'axes.formatter.use_mathtext': False,
+        # custom GW-DetChar formatting
+        'font.size': 10,
+        'xtick.labelsize': 18,
+        'ytick.labelsize': 18,
+        'axes.labelsize': 20,
+        'axes.titlesize': 24,
+        'grid.alpha': 0.5,
+    }

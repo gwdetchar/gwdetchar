@@ -49,6 +49,7 @@ from gwpy.segments import (DataQualityFlag, DataQualityDict,
 
 from gwdetchar import (cli, const, scattering, __version__)
 from gwdetchar.io import html as htmlio
+from gwdetchar.misc import get_gwpy_tex_settings
 
 try:
     from LDAStools import frameCPP
@@ -60,6 +61,8 @@ else:
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 # update rcParams
+tex_settings = get_gwpy_tex_settings()
+rcParams.update(tex_settings)
 rcParams.update({
     'axes.labelsize': 20,
     'figure.subplot.bottom': 0.17,

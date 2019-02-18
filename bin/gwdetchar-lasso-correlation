@@ -31,7 +31,7 @@ import warnings
 import numpy
 from scipy.interpolate import UnivariateSpline
 
-from matplotlib import use
+from matplotlib import (use, rcParams)
 use('agg')  # nopep8
 from matplotlib import cm as mcm
 
@@ -49,6 +49,7 @@ from gwpy.io import nds2 as io_nds2
 
 from gwdetchar import (cli, lasso as gwlasso)
 from gwdetchar.io import html
+from gwdetchar.misc import get_gwpy_tex_settings
 
 try:
     from LDAStools import frameCPP
@@ -180,6 +181,10 @@ lsig.add_argument('-l', '--line-size-aux', default=0.75, type=float,
                   help='line width of auxilary channel')
 
 args = parser.parse_args()
+
+# set TeX settings
+tex_settings = get_gwpy_tex_settings()
+rcParams.update(tex_settings)
 
 start = int(args.gpsstart)
 end = int(args.gpsend)
