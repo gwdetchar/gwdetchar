@@ -31,7 +31,7 @@ from multiprocessing import (Pool, cpu_count)
 
 from six.moves import StringIO
 
-from matplotlib import use
+from matplotlib import (use, rcParams)
 use('agg')
 
 from glue import markup
@@ -116,11 +116,12 @@ def plot_saturations(flag, span, facecolor='red', edgecolor='darkred',
                             'edgecolor': 'gray'}):
     """Plot the saturation segments contained within this flag
     """
+    name = flag.texname if rcParams["text.usetex"] else flag.name
     plot = flag.plot(
         figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
         known=known, label=' ',
         xlim=span, epoch=span[0],
-        title='%s software saturations' % flag.name.replace('_', r'\_'),
+        title="{} software saturations".format(name),
     )
     plot.subplots_adjust(bottom=0.4, top=0.8)
     return plot
