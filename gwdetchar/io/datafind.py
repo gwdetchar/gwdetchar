@@ -22,10 +22,11 @@
 from __future__ import print_function
 
 import os.path
+import warnings
 
 from six import string_types
 
-from glue import datafind
+import gwdatafind
 
 from ..const import DEFAULT_SEGMENT_SERVER
 
@@ -36,23 +37,13 @@ __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 
-def find_frames(site, frametype, gpsstart, gpsend, **kwargs):
+def find_frames(site, frametype, gpsstart, gpsend, urltype='file', **kwargs):
     """Find frames for given site and frametype
     """
-    # connect
-    host = kwargs.pop('host', None)
-    port = kwargs.pop('port', None)
-    port = port and int(port)
-    if port is not None and port != 80:
-        cert, key = datafind.find_credential()
-        connection = datafind.GWDataFindHTTPSConnection(
-            host=host, port=port, cert_file=cert, key_file=key)
-    else:
-        connection = datafind.GWDataFindHTTPConnection(host=host, port=port)
-    # find frames
-    kwargs.setdefault('urltype', 'file')
-    return connection.find_frame_urls(site[0], frametype, gpsstart, gpsend,
-                                      **kwargs)
+    warnings.warn("this function is deprecated, use `gwdatafind.find_urls` "
+                  "directly", DeprecationWarning)
+    return gwdatafind.find_urls(site[0], frametype, gpsstart, gpsend,
+                                urltype=urltype, **kwargs)
 
 
 def write_omega_cache(cache, fobj):
@@ -159,12 +150,11 @@ def get_data(channels, gpstime, duration, pad, frametype=None, source=None,
     end = gpstime + duration/2. + pad
     # construct file cache if none is given
     if source is None:
-        source = find_frames(frametype[0], frametype, start, end)
+        source = gwdetchar.find_urls(frametype[0], frametype, start, end)
     # read from frames or NDS
     if source:
         return TimeSeriesDict.read(
             source, channels, start=start, end=end, nproc=nproc,
             verbose=verbose, dtype=dtype)
-    else:
-        return TimeSeriesDict.fetch(channels, start, end, verbose=verbose,
-                                    dtype=dtype)
+    return TimeSeriesDict.fetch(channels, start, end, verbose=verbose,
+                                dtype=dtype)

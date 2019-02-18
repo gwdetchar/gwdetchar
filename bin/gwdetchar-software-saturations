@@ -34,8 +34,11 @@ from six.moves import StringIO
 from matplotlib import use
 use('agg')
 
+import gwdatafind
+
 from glue import markup
 
+from gwpy.io.cache import sieve as sieve_cache
 from gwpy.io.gwf import get_channel_names
 from gwpy.segments import (Segment, SegmentList,
                            DataQualityFlag, DataQualityDict)
@@ -44,7 +47,6 @@ from gwpy.timeseries import (TimeSeries, TimeSeriesDict, StateTimeSeries)
 
 from gwdetchar import (__version__, cli, const)
 from gwdetchar.io import html as htmlio
-from gwdetchar.io.datafind import find_frames
 from gwdetchar.saturation import find_saturations
 
 try:
@@ -213,7 +215,7 @@ def is_saturated(channel, cache, start=None, end=None,
     else:
         iokwargs = {'format': 'gwf'}
     data = TimeSeriesDict.read(
-        cache[0].path, indicators, start=start, end=start+1, **iokwargs)
+        cache[0], indicators, start=start, end=start+1, **iokwargs)
     if indicator.upper() == 'LIMEN':
         active = dict((c, data[indicators[i]].value[0]) for
                       i, c in enumerate(channels))
@@ -301,10 +303,7 @@ else:
     segs = SegmentList([Segment(args.gpsstart, args.gpsend)])
 
 # find frames
-cache = find_frames(site, frametype,
-                    int(args.gpsstart), int(args.gpsend))
-tcache = find_frames(site, '%s_T' % ifo, int(args.gpsstart),
-                     int(args.gpsend))
+cache = gwdatafind.find_urls(site, frametype, int(args.gpsstart), int(args.gpsend))
 
 # find channels
 if not os.getenv('LIGO_DATAFIND_SERVER'):
@@ -316,7 +315,7 @@ else:
         raise RuntimeError("No frames recovered for %s in interval [%s, %s)" %
                            (frametype, int(args.gpsstart),
                             int(args.gpsend)))
-    allchannels = get_channel_names(cache[0].path)
+    allchannels = get_channel_names(cache[0])
     print("   Found %d channels in frame" % len(allchannels))
     sys.stdout.flush()
     channels = find_limit_channels(allchannels, skip=args.skip)
@@ -354,7 +353,7 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
         while cset[-1] is None:
             cset.pop(-1)
         for seg in segs:
-            cache2 = cache.sieve(segment=seg)
+            cache2 = sieve_cache(cache, segment=seg)
             if not len(cache2):
                 continue
             saturated = is_saturated(cset, cache2, seg[0], seg[1],

@@ -28,17 +28,19 @@ import sys
 from matplotlib import use
 use('agg')
 
+import gwdatafind
+
 from glue.ligolw.utils import write_fileobj
 
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
 
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
-from gwpy.io.cache import cache_segments
+from gwpy.io.cache import (cache_segments, sieve as sieve_cache)
 from gwpy.utils import gprint
 
 from gwdetchar import (const, cli, cds, __version__)
-from gwdetchar.io import (datafind, ligolw, html as htmlio)
+from gwdetchar.io import (ligolw, html as htmlio)
 from gwdetchar.daq import find_crossings
 
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
@@ -91,7 +93,7 @@ for thresh in args.threshold:
            int(args.gpsstart), duration))
 
 # get frame cache
-cache = datafind.find_frames(args.ifo[0], args.frametype,
+cache = gwdatafind.find_urls(args.ifo[0], args.frametype,
                              int(args.gpsstart), int(args.gpsend))
 
 cachesegs = statea & cache_segments(cache)
@@ -109,9 +111,9 @@ for thresh in args.threshold:
 # sngl_burst table
 for seg in cachesegs:
     gprint('Processing segment %d - %d' % (seg[0],seg[1]))
-    c = cache.sieve(segment=seg)
+    c = sieve_cache(cache, segment=seg)
     data = TimeSeries.read(c, args.channel, nproc=args.nproc,
-                               start=seg[0], end=seg[1])
+                           start=seg[0], end=seg[1])
     for thresh in args.threshold:
         times = find_crossings(data,thresh)
         gprint('Found %d crossings for threshold %d' % (len(times),thresh))
