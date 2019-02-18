@@ -248,9 +248,9 @@ def write_qscan_plots(gps, channel, series, colormap='viridis'):
     fnames = channel.plots
     for span, png1, png2, png3, png4, png5, png6, png7, png8, png9 in zip(
         channel.pranges, fnames['qscan_whitened'],
-        fnames['qscan_autoscaled'], fnames['qscan_raw'],
+        fnames['qscan_autoscaled'], fnames['qscan_highpassed'],
         fnames['timeseries_raw'], fnames['timeseries_highpassed'],
-        fnames['timeseries_whitened'], fnames['eventgram_raw'],
+        fnames['timeseries_whitened'], fnames['eventgram_highpassed'],
         fnames['eventgram_whitened'], fnames['eventgram_autoscaled']
     ):
         # plot whitened qscan

@@ -219,9 +219,6 @@ def primary(gps, length, hoft, fftlength, resample=None, f_low=None,
     name : `str`, optional
         name of the channel this data corresponds to
 
-    filename : `str`, optional
-        name of an output file for a plot of `xoft`
-
     **kwargs : `dict`
         additional keyword arguments to `omega.conditioner`
 
@@ -265,7 +262,7 @@ def cross_correlate(xoft, hoft):
 
 
 def scan(gps, channel, xoft, fftlength, resample=None, fthresh=1e-10,
-         nt=1400, nf=700, **kwargs):
+         search=0.5, nt=1400, nf=700, **kwargs):
     """Scan a channel for evidence of transients
 
     Parameters
@@ -289,6 +286,10 @@ def scan(gps, channel, xoft, fftlength, resample=None, fthresh=1e-10,
     fthresh : `float`, optional
         threshold on false alarm rate (Hz) for this channel to be considered
         interesting, default: 1e-10
+
+    search : `float`, optional
+        time window (seconds) around `gps` in which to find peak energies,
+        default: 0.5
 
     nt : `int`, optional
         number of points on the time axis of the interpolated `Spectrogram`,
@@ -314,7 +315,7 @@ def scan(gps, channel, xoft, fftlength, resample=None, fthresh=1e-10,
     wxoft, hpxoft, xoft = conditioner(
         xoft, fftlength, resample=resample, f_low=channel.frange[0], **kwargs)
     # compute whitened Q-gram
-    search = Segment(gps - 0.25, gps + 0.25)
+    search = Segment(gps - search/2, gps + search/2)
     qgram, far = q_scan(
         wxoft, mismatch=channel.mismatch, qrange=channel.qrange,
         frange=channel.frange, search=search)
