@@ -66,11 +66,11 @@ parser.add_argument(
          'choose based on observatory, epoch, and pipeline')
 parser.add_argument('-q', '--wdq', default=WDQ, required=WDQ is None,
                     help='path to wdq executable')
-parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
-                    required=omega.WPIPELINE is None,
-                    help='path to Matlab wpipeline binary, can also choose '
-                         'the Python version with string "gwdetchar-omega", '
-                         'default: %(default)s')
+parser.add_argument('-w', '--wpipeline', default='gwdetchar-omega',
+                    nargs='?', const=omega.WPIPELINE,
+                    help='path to wpipeline binary (default: %(default)s), '
+                         'can choose the Matlab version by passing this flag '
+                         'with no argument')
 parser.add_argument('--colormap', default=None,
                     help='name of colormap to use (supported either in Python '
                          'or in Matlab omega > r3449), default: choose based '
