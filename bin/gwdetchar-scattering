@@ -351,7 +351,7 @@ for i, channel in enumerate(sorted(allchannels)):
                               trigs['bandwidth'], trigs['snr'],
                               edgecolors='face', linewidth=.1, anchor='ll')
     else:
-        axes['triggers'].scatter(trigs['time'], trigs['frequency'],
+        axes['triggers'].scatter(trigs['peak'], trigs['peak_frequency'],
                                  c=trigs['snr'], edgecolor='none')
     name = args.main_channel
     if rcParams["text.usetex"]:
