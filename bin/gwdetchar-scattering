@@ -39,6 +39,7 @@ import gwtrigfind
 from glue.lal import Cache
 
 from gwpy.plot import Plot
+from gwpy.plot.tex import label_to_latex
 from gwpy.utils import gprint
 from gwpy.table import EventTable
 from gwpy.table.filters import in_segmentlist
@@ -95,7 +96,7 @@ parser.add_argument('-s', '--segment-end-pad', type=float, default=1.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
 parser.add_argument('-c', '--main-channel',
-                    default='%s:GDS-CALIB_STRAIN' % const.IFO,
+                    default='{IFO}:GDS-CALIB_STRAIN',
                     help='name of main (h(t)) channel, default: %(default)s')
 cli.add_frametype_option(parser, default='%s_R' % const.IFO)
 parser.add_argument('-o', '--output-dir', type=os.path.abspath,
@@ -148,6 +149,7 @@ else:
 
 # -- load h(t) ----------------------------------------------------------------
 
+args.main_channel = args.main_channel.format(IFO=args.ifo)
 if args.verbose:
     gprint("Loading Omicron triggers for %s..." % args.main_channel, end=' ')
 
@@ -317,8 +319,8 @@ for i, channel in enumerate(sorted(allchannels)):
     # finalize plot
     if args.verbose:
         gprint("Plotting...", end=' ')
-    axes['position'].set_title("Scattering evidence in %s"
-                               % channel.replace('_', r'\_'))
+    name = label_to_latex(channel) if rcParams["text.usetex"] else channel
+    axes['position'].set_title("Scattering evidence in %s" % name)
     axes['position'].set_xlabel('')
     axes['position'].set_ylabel(r'Position [\textmu m]')
     axes['position'].text(
@@ -340,16 +342,20 @@ for i, channel in enumerate(sorted(allchannels)):
     axes['fringef'].legend(handles[::-1], labels[::-1], loc='upper right',
                            borderaxespad=0, bbox_to_anchor=(-0.01, 1.),
                            handlelength=1)
+
     if args.plot_main_tiles:
         axes['triggers'].tile(trigs['start'], trigs['flow'], trigs['duration'],
                               trigs['bandwidth'], trigs['snr'],
                               edgecolors='face', linewidth=.1, anchor='ll')
     else:
-        axes['triggers'].scatter(trigs['peak'], trigs['peak_frequency'],
+        axes['triggers'].scatter(trigs['time'], trigs['frequency'],
                                  c=trigs['snr'], edgecolor='none')
+    name = args.main_channel
+    if rcParams["text.usetex"]:
+        name = label_to_latex(name)
     axes['triggers'].text(
         0.01, 0.95,
-        '%s event triggers (Omicron)' % args.main_channel.replace('_', r'\_'),
+        '%s event triggers (Omicron)' % name,
         transform=axes['triggers'].transAxes, va='top', ha='left',
         bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
     axes['triggers'].set_ylabel('Frequency [Hz]')
@@ -359,7 +365,7 @@ for i, channel in enumerate(sorted(allchannels)):
     axes['segments'].set_ylim(-.55, .55)
     axes['segments'].text(
         0.01, 0.95,
-        r'Time segments with $f\times4 > %.2f$\,Hz' % args.frequency_threshold,
+        r'Time segments with $f\times4 > %.2f$ Hz' % args.frequency_threshold,
         transform=axes['segments'].transAxes, va='top', ha='left',
         bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
     for ax in axes.values():
