@@ -47,11 +47,11 @@ parser.add_argument(
     '-f', '--config-file',
     help='path to configuration file to use, default: '
          'choose based on observatory, epoch, and pipeline')
-parser.add_argument('-w', '--wpipeline', default=omega.WPIPELINE,
-                    required=omega.WPIPELINE is None,
-                    help='path to Matlab wpipeline binary, can also choose '
-                         'the Python version with string "gwdetchar-omega", '
-                         'default: %(default)s')
+parser.add_argument('-w', '--wpipeline', default='gwdetchar-omega',
+                    nargs='?', const=omega.WPIPELINE,
+                    help='path to wpipeline binary (default: %(default)s), '
+                         'can choose the Matlab version by passing this flag '
+                         'with no argument')
 parser.add_argument('--colormap', default=None,
                     help='name of colormap to use (supported either in Python '
                          'or in Matlab omega > r3449), default: choose based '
@@ -119,10 +119,10 @@ if 'gwdetchar-omega' in args.wpipeline:
 warnings.simplefilter('always', DeprecationWarning)
 warnings.warn('Since the Matlab omega scan code is reaching end-of-life, '
               '`wdq` will soon be deprecated in favor of `gwdetchar-omega`. '
-              'We are in the first stage of this process, where `wdq` '
-              'supports `gwdetchar-omega` but still runs the Matlab code '
-              'by default. A future version will set `gwdetchar-omega` as '
-              'default, and before O3, `wdq` will be removed entirely and '
+              'We are in the second stage of this process, where `wdq` '
+              'invokes `gwdetchar-omega` by default, but users may still '
+              'point to the Matlab code by passing `--wpipeline` with no '
+              'arguments. Before O3, `wdq` will be removed entirely and '
               '`wdq-batch` will become `gwdetchar-omega-batch`.',
               DeprecationWarning)
 
