@@ -390,11 +390,11 @@ for i, channel in enumerate(sorted(allchannels)):
     histogram = Plot(figsize=[12, 6])
     ax = histogram.gca()
     hrange = (0, 2 * args.frequency_threshold)
-    for m, color in zip(histdata, fringecolors)[::-1]:
+    for m, color in list(zip(histdata, fringecolors))[::-1]:
         if histdata[m].size:
             ax.hist(histdata[m], facecolor=color, alpha=.6, range=hrange,
                     bins=50, histtype='stepfilled', label=r'$f\times%d$' % m,
-                    cumulative=-1, weights=ts.dx.value, log=True)
+                    cumulative=-1, weights=ts.dx.value, bottom=1e-100, log=True)
         else:
             ax.plot(histdata[m], color=color, label=r'$f\times%d$' % m)
             ax.set_yscale('log')
