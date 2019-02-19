@@ -26,6 +26,11 @@ import warnings
 
 from six import string_types
 
+try:  # python 3.x
+    from urllib.parse import urlparse
+except ImportError:  # python 2.x
+    from urlparse import urlparse
+
 import gwdatafind
 
 from ..const import DEFAULT_SEGMENT_SERVER
@@ -150,7 +155,8 @@ def get_data(channels, gpstime, duration, pad, frametype=None, source=None,
     end = gpstime + duration/2. + pad
     # construct file cache if none is given
     if source is None:
-        source = gwdatafind.find_urls(frametype[0], frametype, start, end)
+        cache = gwdatafind.find_urls(frametype[0], frametype, start, end)
+        source = [urlparse(fileobj).path for fileobj in cache]
     # read from frames or NDS
     if source:
         return TimeSeriesDict.read(
