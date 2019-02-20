@@ -131,7 +131,7 @@ if len(times) == 1:
         import numpy
         times = numpy.loadtxt(times[0], dtype=float, ndmin=1)
 else:
-    times = map(float, times)
+    times = list(map(float, times))
 
 # finalise accounting tag based on run
 if '{epoch}' in args.condor_accounting_group:
