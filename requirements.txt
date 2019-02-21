@@ -17,3 +17,4 @@ lxml
 gwtrigfind
 sklearn
 gwdatafind
+pycondor

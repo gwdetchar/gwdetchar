@@ -63,6 +63,7 @@ install_requires = [
     'gwtrigfind',
     'sklearn',
     'gwdatafind',
+    'pycondor',
 ]
 
 # test
