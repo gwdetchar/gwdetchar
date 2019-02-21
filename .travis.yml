@@ -24,6 +24,8 @@ script:
   - .travis/test-exe.sh gwdetchar-scattering --help
   - .travis/test-exe.sh gwdetchar-overflow --help
   - .travis/test-exe.sh gwdetchar-omega --help
+  - .travis/test-exe.sh wdq --help
+  - .travis/test-exe.sh wdq-batch --help
 
 after_success:
   - coveralls
