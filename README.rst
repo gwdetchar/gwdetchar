@@ -1,6 +1,8 @@
 GWDetChar is a python package for for gravitational-wave detector
 characterisation and data quality.
 
+|PyPI version| |DOI| |License| |Supported Python versions|
+
 |Build Status| |Coverage Status|
 
 ------------
@@ -35,6 +37,15 @@ proposing additions/changes.
 .. _the contributions guide: https://github.com/gwdetchar/gwdetchar/blob/master/CONTRIBUTING.md
 .. _conda: https://conda.io
 
+
+.. |PyPI version| image:: https://badge.fury.io/py/gwdetchar.svg
+   :target: http://badge.fury.io/py/gwdetchar
+.. |DOI| image:: https://zenodo.org/badge/36960054.svg
+   :target: https://zenodo.org/badge/latestdoi/36960054
+.. |License| image:: https://img.shields.io/pypi/l/gwdetchar.svg
+   :target: https://choosealicense.com/licenses/gpl-3.0/
+.. |Supported Python versions| image:: https://img.shields.io/pypi/pyversions/gwdetchar.svg
+   :target: https://pypi.org/project/gwdetchar/
 .. |Build Status| image:: https://travis-ci.org/gwdetchar/gwdetchar.svg?branch=master
    :target: https://travis-ci.org/gwdetchar/gwdetchar
 .. |Coverage Status| image:: https://coveralls.io/repos/github/gwdetchar/gwdetchar/badge.svg?branch=master
