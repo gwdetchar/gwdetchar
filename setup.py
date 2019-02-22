@@ -60,6 +60,7 @@ install_requires = [
     'lscsoft-glue>=1.60.0',
     'matplotlib>=2.0.0',
     'numpy>=1.10',
+    'pandas',
     'pycondor',
     'scikit-learn',
     'scipy>=0.18.1',
