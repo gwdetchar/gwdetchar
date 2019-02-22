@@ -32,10 +32,9 @@ from matplotlib import (use, rcParams)
 use('agg')
 import matplotlib.pyplot as plt
 
+from gwpy.plot import Plot
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.time import from_gps
-from gwpy.plotter import TimeSeriesPlot
-from gwpy.plotter import Plot as gwplot
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
@@ -253,8 +252,9 @@ def process_channel(input_,):
             plot3 = None
             return chan, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s
 
-        plot = TimeSeriesPlot(darmblrms, ts, rangets, sep=True, sharex=True,
-                              figsize=(12, 12))
+        plot = Plot(darmblrms, ts, rangets,
+                    xscale="auto-gps", separate=True,
+                    figsize=(12, 12))
         plot.subplots_adjust(*p1)
         plot.axes[0].set_ylabel('$h(t)$ BLRMS [strain]')
         plot.axes[1].set_ylabel('Channel units')
@@ -287,8 +287,8 @@ def process_channel(input_,):
             tsscaled *= (darmrms / tsrms)
             if corr1 < 0:
                 tsscaled *= -1
-        plot = TimeSeriesPlot(darmscaled, rangescaled, tsscaled,
-                              figsize=[12, 6])
+        plot = Plot(darmscaled, rangescaled, tsscaled,
+                    xscale="auto-gps", figsize=[12, 6])
         plot.subplots_adjust(*p2)
         ax = plot.gca()
         ax.set_xlim(start, end)
@@ -323,7 +323,7 @@ def process_channel(input_,):
         rangeReg.fit(tsCopy, rangetsCopy)
         rangeFit = rangeReg.predict(tsCopy)
 
-        fig = gwplot(figsize=(12, 6))
+        fig = Plot(figsize=(12, 6))
         fig.subplots_adjust(*p2)
         ax = fig.add_subplot(121)
         ax.set_xlabel('Channel units')
