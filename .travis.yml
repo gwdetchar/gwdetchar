@@ -23,6 +23,7 @@ script:
   - bash ci/test-bin.sh
 
 after_success:
+  - python -m coverage report
   - coveralls
 
 cache:
