@@ -24,26 +24,24 @@ or can be bundled into one file formatted where the first column contains
 the GPS times (other columns are ignored).
 
 The output of this script is a condor workflow in the form of a DAG file,
-with associated condor submit (`.sub`) file and equivalent shell script (`.sh`)
-in the output directory.
+with associated condor submit (`.sub`) file in the output directory.
 Submitting the workflow to Condor will result in the scans being processed
-in parallel, or you can just run the `.sh` script to process in serial.
+in parallel.
 """
 
 from __future__ import print_function
 
 import os
+import warnings
 import subprocess
 from getpass import getuser
 
 from pycondor import (Dagman, Job)
 
-from gwdetchar import (omega, cli, condor)
+from gwdetchar import (cli, condor)
 
-# attempt to get WDQ path
-WDQ = os.path.join(os.path.dirname(__file__), 'wdq')
-if not os.path.isfile(WDQ):
-    WDQ = None
+# get gwdetchar-omega path
+WDQ = os.path.join(os.path.dirname(__file__), 'gwdetchar-omega')
 
 # set default accounting information
 CONDOR_ACCOUNTING_GROUP = os.getenv(
@@ -67,37 +65,20 @@ parser.add_argument(
     '-f', '--config-file',
     help='path to configuration file to use, default: '
          'choose based on observatory, epoch, and pipeline')
-parser.add_argument('-q', '--wdq', default=WDQ, required=WDQ is None,
-                    help='path to wdq executable')
-parser.add_argument('-w', '--wpipeline', default='gwdetchar-omega',
-                    nargs='?', const=omega.WPIPELINE,
-                    help='path to wpipeline binary (default: %(default)s), '
-                         'can choose the Matlab version by passing this flag '
-                         'with no argument')
-parser.add_argument('--colormap', default=None,
-                    help='name of colormap to use (supported either in Python '
-                         'or in Matlab omega > r3449), default: choose based '
-                         'on wpipeline')
-
-margs = parser.add_argument_group('Matlab options')
-margs.add_argument(
-    '-c', '--cache-file',
-    help='path to data cache file, if not given, data locations '
-         'are found using the datafind server, must be in LAL cache format')
-
-pargs = parser.add_argument_group('Python options')
-pargs.add_argument('-d', '--disable-correlation', action='store_true',
-                   default=False, help='disable cross-correlation of aux '
-                                       'channels, default: False')
-pargs.add_argument('-t', '--far-threshold', type=float, default=1e-10,
-                   help='white noise false alarm rate threshold for '
-                        'processing channels, default: %(default)s Hz')
-pargs.add_argument('-s', '--ignore-state-flags', action='store_true',
-                   default=False, help='ignore state flag definitions in '
-                                       'the configuration, default: False')
-cli.add_nproc_option(pargs)
-pargs.add_argument('-v', '--verbose', action='store_true', default=False,
-                   help='print verbose output, default: False')
+parser.add_argument('--colormap', default='viridis',
+                    help='name of colormap to use, default: %(default)s')
+parser.add_argument('-d', '--disable-correlation', action='store_true',
+                    default=False, help='disable cross-correlation of aux '
+                                        'channels, default: False')
+parser.add_argument('-t', '--far-threshold', type=float, default=1e-10,
+                    help='white noise false alarm rate threshold for '
+                         'processing channels, default: %(default)s Hz')
+parser.add_argument('-s', '--ignore-state-flags', action='store_true',
+                    default=False, help='ignore state flag definitions in '
+                                        'the configuration, default: False')
+cli.add_nproc_option(parser)
+parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                    help='print verbose output, default: False')
 
 cargs = parser.add_argument_group('Condor options')
 cargs.add_argument('-u', '--universe', default='vanilla', type=str,
@@ -129,6 +110,12 @@ args = parser.parse_args()
 
 outdir = os.path.abspath(os.path.expanduser(args.output_dir))
 
+# raise a deprecation warning
+warnings.simplefilter('always', DeprecationWarning)
+warnings.warn("Because gwdetchar no longer supports Matlab omega scans, "
+              "this tool will soon be re-named gwdetchar-omega-batch",
+              DeprecationWarning)
+
 # parse times
 times = getattr(args, 'gps-time')
 
@@ -159,12 +146,6 @@ if not valid:
                      "of valid groups, run `{1}`".format(
                          args.condor_accounting_group, listtags))
 
-# set colormap default
-if not args.colormap and args.wpipeline.endswith('wpipeline'):
-    args.colormap = 'parula'  # matlab
-elif not args.colormap:
-    args.colormap = 'viridis'  # python
-
 # -- generate workflow --------------------------------------------------------
 
 # generate directories
@@ -192,8 +173,8 @@ dagman = Dagman(
 # create condor job
 job = Job(
     dag=dagman,
-    name=os.path.basename(args.wdq),
-    executable=args.wdq,
+    name=os.path.basename(WDQ),
+    executable=WDQ,
     universe=args.universe,
     submit=subdir,
     error=logdir,
@@ -203,27 +184,21 @@ job = Job(
     extra_lines=condorcmds,
 )
 
-# add common wdq options
+# add common gwdetchar-omega options
 arguments = [
-    "--wpipeline", args.wpipeline,
     "--colormap", args.colormap,
     "--ifo", args.ifo,
 ]
 if args.config_file is not None:
     arguments.extend(("--config-file", os.path.abspath(args.config_file)))
-if args.wpipeline.endswith('wpipeline'):
-    arguments.append("--condor")
-    if args.cache_file is not None:
-        arguments.extent(("--cache-file", args.cache_file))
-else:
-    arguments.extend(("--far-threshold", str(args.far_threshold)))
-    arguments.extend(("--nproc", str(args.nproc)))
-    if args.disable_correlation:
-        arguments.append("--disable-correlation")
-    if args.ignore_state_flags:
-        arguments.append("--ignore-state-flags")
-    if args.verbose:
-        arguments.append("--verbose")
+arguments.extend(("--far-threshold", str(args.far_threshold)))
+arguments.extend(("--nproc", str(args.nproc)))
+if args.disable_correlation:
+    arguments.append("--disable-correlation")
+if args.ignore_state_flags:
+    arguments.append("--ignore-state-flags")
+if args.verbose:
+    arguments.append("--verbose")
 
 # make node in workflow for each time
 for t in times:

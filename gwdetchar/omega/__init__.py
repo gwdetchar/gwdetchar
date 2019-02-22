@@ -21,29 +21,10 @@
 See Chatterji 2005 [thesis] for details on the Q-pipeline.
 """
 
-import os
-
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
-
-# -- get/set omega paths ------------------------------------------------------
-
-# set default omega install directory
-if os.path.isdir('/home/omega/opt/omega'):  # default on LDAS
-    os.environ.setdefault('OMEGA_LOCATION', '/home/omega/opt/omega')
-
-# get omega install directory, and path of wpipeline executable
-try:
-    OMEGA_LOCATION = os.environ['OMEGA_LOCATION']
-except KeyError:
-    OMEGA_LOCATION = None
-    WPIPELINE = None
-else:
-    WPIPELINE = os.path.join(OMEGA_LOCATION, 'bin', 'wpipeline')
+__credits__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 # -- imports ------------------------------------------------------------------
-
-# import Matlab utils
-from .matlab import *
 
 # import pyomega utils
 from .core import *
