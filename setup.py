@@ -66,6 +66,7 @@ install_requires = [
     'scipy>=0.18.1',
     'setuptools',
     'six',
+    'pathlib ; python_version < \'3\'',
 ]
 
 # test
