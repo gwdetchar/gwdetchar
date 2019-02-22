@@ -14,6 +14,7 @@ before_install:
   - python -m pip install ${PIP_FLAGS} --upgrade pip
   - python -m pip install ${PIP_FLAGS} -r requirements.txt
   - python -m pip install ${PIP_FLAGS} pytest coverage coveralls
+  - npm -g install acorn
 
 install:
   - python -m pip install ${PIP_FLAGS} --editable .
@@ -21,6 +22,8 @@ install:
 script:
   - python -m coverage run ./setup.py test
   - bash ci/test-bin.sh
+  - acorn --silent gwdetchar/_static/bootstrap-ligo.min.js
+  - acorn --silent gwdetchar/_static/gwdetchar-omega.min.js
 
 after_success:
   - python -m coverage report
