@@ -5,6 +5,8 @@
 
 FAILED=()
 
+echo "---- Testing scripts in /bin/ ----"
+
 # loop over all bin/ scripts
 for EXE in bin/*; do
     # get file-name as PATH executable
@@ -16,7 +18,7 @@ for EXE in bin/*; do
     fi
 
     # execute --help with coverage
-    echo "${EXENAME} --help..."
+    echo "$ ${EXENAME} --help..."
     python -m coverage run --append --source=gwdetchar ${EXEPATH} --help;
     if [ "$?" -ne 0 ]; then
         FAILED+=("${EXENAME}")
