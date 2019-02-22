@@ -348,7 +348,7 @@ flattab.write(flatfile, format='ascii', overwrite=True)
 
 modelFit = model.predict(data)
 
-re_delim = re.compile('[:_-]')
+re_delim = re.compile(r'[:_-]')
 form = '%%.%dd' % len(str(nchan))
 p1 = (.1, .15, .9, .9)  # global plot defaults for plot1, lasso model
 
@@ -495,9 +495,9 @@ def process_channel(input_,):
         fig = Plot(figsize=(12, 6))
         fig.subplots_adjust(*p1)
         ax = fig.gca(xscale='auto-gps', epoch=start, xlim=xlim)
-        ax.plot(times, descaler(target), label=primary.replace('_', '\_'),
+        ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),
                 color='black', linewidth=args.line_size_primary)
-        ax.plot(times, descaler(tsscaled), label=chan.replace('_', '\_'),
+        ax.plot(times, descaler(tsscaled), label=chan.replace('_', r'\_'),
                 linewidth=args.line_size_aux)
         if range_is_primary:
             ax.set_ylabel('Sensitive range [Mpc]')
@@ -516,7 +516,7 @@ def process_channel(input_,):
         fig = Plot(figsize=(12, 6))
         fig.subplots_adjust(*p1)
         ax = fig.gca()
-        ax.set_xlabel(chan.replace('_', '\_') + ' [Channel units]')
+        ax.set_xlabel(chan.replace('_', r'\_') + ' [Channel units]')
         if range_is_primary:
             ax.set_ylabel('Sensitive range [Mpc]')
         else:
@@ -593,7 +593,7 @@ def generate_cluster(input_,):
             ax = fig.gca(xscale='auto-gps')
             ax.plot(
                 times, scale(currentts.value)*numpy.sign(input_[1][1]),
-                label=currentchan.replace('_', '\_'),
+                label=currentchan.replace('_', r'\_'),
                 linewidth=args.line_size_aux, color=colors[0])
 
             for i in range(0, ncluster):
@@ -605,7 +605,7 @@ def generate_cluster(input_,):
                     color=colors2[i+1],
                     linewidth=args.line_size_aux,
                     label=('{0}, r = {1:.2}'.format(
-                        cluster[i][3].replace('_', '\_'), cluster[i][2])),
+                        cluster[i][3].replace('_', r'\_'), cluster[i][2])),
                 )
 
             ax.margins(x=0)

@@ -16,18 +16,14 @@ before_install:
   - python -m pip install ${PIP_FLAGS} pytest coverage coveralls
 
 install:
-  - python -m pip install ${PIP_FLAGS} .
+  - python -m pip install ${PIP_FLAGS} --editable .
 
 script:
   - python -m coverage run ./setup.py test
-  - .travis/test-exe.sh gwdetchar-software-saturations --help
-  - .travis/test-exe.sh gwdetchar-scattering --help
-  - .travis/test-exe.sh gwdetchar-overflow --help
-  - .travis/test-exe.sh gwdetchar-omega --help
-  - .travis/test-exe.sh wdq --help
-  - .travis/test-exe.sh wdq-batch --help
+  - bash ci/test-bin.sh
 
 after_success:
+  - python -m coverage report
   - coveralls
 
 cache:
