@@ -47,8 +47,9 @@ __version__ = versioneer.get_version()
 
 # build
 setup_requires = [
-    'libsass',
     'jsmin',
+    'libsass',
+    'setuptools',
 ]
 
 # run
@@ -81,11 +82,15 @@ tests_require = [
 packagenames = find_packages()
 scripts = glob.glob(os.path.join('bin', '*'))
 
+# read description
+with open('README.rst', 'rb') as f:
+    longdesc = f.read().decode().strip()
+
 setup(name=DISTNAME,
       provides=[PACKAGENAME],
       version=__version__,
-      description=None,
-      long_description=None,
+      description="A python package for gravitational-wave detector characterisation",
+      long_description=longdesc,
       author=AUTHOR,
       author_email=AUTHOR_EMAIL,
       license=LICENSE,
@@ -98,18 +103,23 @@ setup(name=DISTNAME,
       install_requires=install_requires,
       use_2to3=True,
       classifiers=[
-          'Programming Language :: Python',
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'Intended Audience :: Science/Research',
           'Intended Audience :: End Users/Desktop',
           'Intended Audience :: Developers',
+          'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3)',
           'Natural Language :: English',
-          'Topic :: Scientific/Engineering',
-          'Topic :: Scientific/Engineering :: Astronomy',
-          'Topic :: Scientific/Engineering :: Physics',
           'Operating System :: POSIX',
           'Operating System :: Unix',
           'Operating System :: MacOS',
-          'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+          'Programming Language :: Python',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
+          'Topic :: Scientific/Engineering',
+          'Topic :: Scientific/Engineering :: Astronomy',
+          'Topic :: Scientific/Engineering :: Physics',
       ],
       )
