@@ -53,17 +53,18 @@ setup_requires = [
 
 # run
 install_requires = [
-    'six',
-    'numpy>=1.10',
-    'scipy>=0.18.1',
-    'matplotlib>=2.0.0',
     'astropy>=1.2',
-    'gwpy>=0.13.0',
-    'lscsoft-glue>=1.60.0',
-    'gwtrigfind',
-    'sklearn',
     'gwdatafind',
+    'gwpy>=0.13.0',
+    'gwtrigfind',
+    'lscsoft-glue>=1.60.0',
+    'matplotlib>=2.0.0',
+    'numpy>=1.10',
     'pycondor',
+    'scikit-learn',
+    'scipy>=0.18.1',
+    'setuptools',
+    'six',
 ]
 
 # test

@@ -1,20 +1,18 @@
-# build
-setuptools
-jsmin
-libsass
-# run
-six
-numpy >= 1.10
-scipy >= 0.18.1
-matplotlib >= 2.0.0
 astropy >= 1.2
-gwpy >= 0.13.0
-lalsuite
-lscsoft-glue >= 1.60.0
-dqsegdb
 beautifulsoup4
-lxml
-gwtrigfind
-sklearn
+dqsegdb
 gwdatafind
+gwpy >= 0.13.0
+gwtrigfind
+jsmin
+lalsuite
+libsass
+lscsoft-glue >= 1.60.0
+lxml
+matplotlib >= 2.0.0
+numpy >= 1.10
 pycondor
+scikit-learn
+scipy >= 0.18.1
+setuptools
+six
