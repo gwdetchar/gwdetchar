@@ -22,7 +22,7 @@
 import numpy
 
 from matplotlib import rcParams
-from gwpy.plot.tex import MACROS as GWPY_TEX_MACROS
+from gwpy.plot.tex import (has_tex, MACROS as GWPY_TEX_MACROS)
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
@@ -54,14 +54,8 @@ def get_gwpy_tex_settings():
     rcParams : `dict`
         a dictionary of matplotlib rcParams
     """
-    return {
-        # reproduce GWPY_TEX_PARAMS
-        'text.usetex': True,
-        'text.latex.preamble': (
-            rcParams.get('text.latex.preamble', []) + GWPY_TEX_MACROS),
-        'font.family': ['serif'],
-        'axes.formatter.use_mathtext': False,
-        # custom GW-DetChar formatting
+    # custom GW-DetChar formatting
+    params = {
         'font.size': 10,
         'xtick.labelsize': 18,
         'ytick.labelsize': 18,
@@ -69,3 +63,12 @@ def get_gwpy_tex_settings():
         'axes.titlesize': 24,
         'grid.alpha': 0.5,
     }
+    if has_tex():
+        params.update({
+            'text.usetex': True,
+            'text.latex.preamble': (
+                rcParams.get('text.latex.preamble', []) + GWPY_TEX_MACROS),
+            'font.family': ['serif'],
+            'axes.formatter.use_mathtext': False,
+        })
+    return params
