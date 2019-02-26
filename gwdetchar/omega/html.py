@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright (C) Duncan Macleod (2015)
+# Copyright (C) Alex Urban (2018-)
 #
 # This file is part of the GW DetChar python package.
 #
@@ -39,7 +39,7 @@ from glue import markup
 from gwpy.table import Table
 from gwpy.time import tconvert
 from ..io.html import (JQUERY_JS, BOOTSTRAP_CSS, BOOTSTRAP_JS)
-from .. import __version__
+from .._version import get_versions
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -606,7 +606,7 @@ def scaffold_plots(plots, nperrow=3):
 
 
 def write_summary_table(blocks, correlated, base=os.path.curdir):
-    """Write a summary table in variou formats for users to download
+    """Write a summary table in various formats for users to download
 
     Parameters
     ----------
@@ -673,8 +673,9 @@ def write_footer(about=None, date=None):
     # write user/time for analysis
     if date is None:
         date = datetime.datetime.now().replace(second=0, microsecond=0)
-    version = __version__
-    url = 'https://github.com/ligovirgo/gwdetchar'
+    version = get_versions()['version']
+    commit = get_versions()['full-revisionid']
+    url = 'https://github.com/gwdetchar/gwdetchar/tree/%s' % commit 
     hlink = markup.oneliner.a('GW-DetChar version %s' % version, href=url,
                               target='_blank', style='color:#eee;')
     page.div(class_='row')
