@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright (C) Duncan Macleod (2015)
+# Copyright (C) Alex Urban (2018-)
 #
 # This file is part of the GW DetChar python package.
 #
@@ -155,9 +155,8 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
     plot.close()
 
 
-def spectral_plot(data, gps, span, channel, output, ylabel=None,
-                  colormap='viridis', clim=None, nx=1400, norm='linear',
-                  figsize=(8, 4.35)):
+def spectral_plot(data, gps, span, channel, output, colormap='viridis',
+                  clim=None, nx=1400, norm='linear', figsize=(8, 4.35)):
     """Custom plot for a GWPy spectrogram or Q-gram
 
     Parameters
@@ -176,9 +175,6 @@ def spectral_plot(data, gps, span, channel, output, ylabel=None,
 
     output : `str`
         name of the output file
-
-    ylabel : `str` or `None`
-        label for the y-axis
 
     colormap : `str`
         matplotlib colormap to use, default: viridis

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright (C) Duncan Macleod (2015)
+# Copyright (C) Alex Urban (2019)
 #
 # This file is part of the GW DetChar python package.
 #
@@ -77,9 +77,8 @@ def highpass(series, f_low, order=12, analog=False, ftype='sos'):
 
 
 def whiten(series, fftlength, overlap=None, method='lal_median_mean',
-           window='hann', f_low=None, detrend='linear', **kwargs):
-    """Whiten a `TimeSeries` against its own ASD, with an optional
-    high-pass filter
+           window='hann', detrend='linear'):
+    """Whiten a `TimeSeries` against its own ASD
 
     Parameters
     ----------
@@ -102,42 +101,23 @@ def whiten(series, fftlength, overlap=None, method='lal_median_mean',
         see :func:`scipy.signal.get_window` for details on acceptable
         formats
 
-    f_low : `float`, optional
-        lower cutoff frequency (Hz) of the filter, default: `None`
-
     detrend : `str`, optional
         type of detrending to do before FFT, default: ``'linear'``
-
-    **kwargs : `dict`, optional
-        additional arguments to `omega.highpass`
 
     Returns
     -------
     wseries : `~gwpy.timeseries.TimeSeries`
         a whitened version of the input data with zero mean and unit variance
 
-    hpseries : `~gwpy.timeseries.TimeSeries`
-        high-passed version of the input data (returned only if `f_low` is
-        not `None`)
-
     See Also
     --------
-    highpass
-        utility used for high-pass filtering
     gwpy.timeseries.TimeSeries.whiten
     """
-    # get overlap window
+    # get overlap window and whiten
     if overlap is None:
         overlap = fftlength / 2
-    # compute ASD before highpassing
-    asd = series.asd(fftlength, overlap, method=method, window=window)
-    # highpass and whiten
-    if f_low is not None:
-        hpseries = highpass(series, f_low, **kwargs)
-        wseries = hpseries.whiten(asd=asd, window=window).detrend(detrend)
-        return (wseries, hpseries)
-    else:
-        return series.whiten(asd=asd, window=window).detrend(detrend)
+    return series.whiten(fftlength=fftlength, overlap=overlap, window=window,
+                         detrend=detrend, method=method).detrend(detrend)
 
 
 # -- Omega scans --------------------------------------------------------------
@@ -186,13 +166,13 @@ def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
         wxoft = whiten(xoft, fftlength, overlap=overlap)
         return (wxoft, xoft)
     else:
-        wxoft, hpxoft = whiten(
-            xoft, fftlength, overlap=overlap, f_low=f_low, **kwargs)
+        hpxoft = highpass(xoft, f_low, **kwargs)
+        wxoft = whiten(hpxoft, fftlength, overlap=overlap)
         return (wxoft, hpxoft, xoft)
 
 
 def primary(gps, length, hoft, fftlength, resample=None, f_low=None,
-            name=None, **kwargs):
+            **kwargs):
     """Condition the primary channel for use as a matched-filter
 
     Parameters
@@ -216,9 +196,6 @@ def primary(gps, length, hoft, fftlength, resample=None, f_low=None,
     f_low : `float`, optional
         lower cutoff frequency (Hz) of the filter, default: `None`
 
-    name : `str`, optional
-        name of the channel this data corresponds to
-
     **kwargs : `dict`
         additional keyword arguments to `omega.conditioner`
 
@@ -228,8 +205,7 @@ def primary(gps, length, hoft, fftlength, resample=None, f_low=None,
         the conditioned data stream
     """
     if f_low is None:
-        out, _ = conditioner(
-            hoft, fftlength, resample=resample, f_low=f_low, **kwargs)
+        out, _ = conditioner(hoft, fftlength, resample=resample)
     else:
         out, _, _ = conditioner(
             hoft, fftlength, resample=resample, f_low=f_low, **kwargs)
