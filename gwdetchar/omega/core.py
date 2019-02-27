@@ -76,8 +76,8 @@ def highpass(series, f_low, order=12, analog=False, ftype='sos'):
     return hpseries
 
 
-def whiten(series, fftlength, overlap=None, method='lal_median_mean',
-           window='hann', detrend='linear'):
+def whiten(series, fftlength, overlap=None, method='median', window='hann',
+           detrend='linear'):
     """Whiten a `TimeSeries` against its own ASD
 
     Parameters
@@ -92,8 +92,7 @@ def whiten(series, fftlength, overlap=None, method='lal_median_mean',
         seconds of overlap between FFTs, defaults to half the FFT length
 
     method : `str`, optional
-        FFT-averaging method, default: ``'scipy-welch'``,
-        see *Notes* for more details
+        FFT-averaging method, default: ``'median'``,
 
     window : `str`, `numpy.ndarray`, optional
         window function to apply to timeseries prior to FFT,
