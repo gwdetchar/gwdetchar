@@ -64,7 +64,7 @@ install_requires = [
     'pandas',
     'pycondor',
     'scikit-learn',
-    'scipy>=0.18.1',
+    'scipy>=1.2.0',
     'setuptools',
     'six',
     'pathlib ; python_version < \'3\'',

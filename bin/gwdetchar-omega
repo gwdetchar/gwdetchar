@@ -180,11 +180,10 @@ if not args.disable_correlation:
     print('Processing primary channel')
     duration = primary.duration
     fftlength = primary.fftlength
-    pad = max(1, fftlength/4.)
     # process `duration` seconds of data centered on gps
     name = primary.channel.name
     correlate = get_data(
-        [name], gps, duration, pad, frametype=primary.frametype,
+        [name], gps, duration, pad=1, frametype=primary.frametype,
         source=primary.source, nproc=args.nproc,
         verbose=args.verbose)[name]
     correlate = omega.primary(
@@ -205,16 +204,15 @@ for block in blocks.values():
     # get configuration
     duration = block.duration
     fftlength = block.fftlength
-    pad = max(1, fftlength/4.)
     # check that analysis flag is active for all of `duration`
     if block.flag and (not args.ignore_state_flags):
         if args.verbose:
             print('Querying state flag %s' % block.flag)
-        if not check_flag(block.flag, gps, duration, pad):
+        if not check_flag(block.flag, gps, duration, pad=1):
             print('%s not active, skipping block' % block.flag)
             continue
     # read in `duration` seconds of data centered on gps
-    data = get_data(chans, gps, duration, pad, frametype=block.frametype,
+    data = get_data(chans, gps, duration, pad=1, frametype=block.frametype,
                     source=block.source, nproc=args.nproc,
                     verbose=args.verbose)
 
@@ -223,7 +221,7 @@ for block in blocks.values():
         try:
             print('Scanning channel %s' % channel.name)
             series = omega.scan(
-                gps, channel, data[channel.name], fftlength,
+                gps, channel, data[channel.name].astype('float64'), fftlength,
                 resample=block.resample, fthresh=args.far_threshold,
                 search=block.search)
         except Exception:
