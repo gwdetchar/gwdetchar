@@ -55,8 +55,11 @@ def new_bootstrap_page(*args, **kwargs):
     return page
 
 
-def write_flag_html(flag, span, id=0, parent='accordion', context='warning',
-                    title=None, plotdir=None, plot_func=None):
+def write_flag_html(flag, span=None, id=0, parent='accordion',
+                    context='warning', title=None, plotdir=None,
+                    plot_func=None):
+    """Write HTML for data quality flags
+    """
     page = markup.page()
     page.div(class_='panel panel-%s' % context)
     page.div(class_='panel-heading')

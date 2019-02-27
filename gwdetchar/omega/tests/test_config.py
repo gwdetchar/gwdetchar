@@ -70,7 +70,10 @@ channels = X1:TEST-STRAIN
 CONFIG_FILE = StringIO(CONFIGURATION)
 
 CP = config.OmegaConfigParser(ifo='X1')
-CP.readfp(CONFIG_FILE)
+try:  # python 3.x
+    CP.read_file(CONFIG_FILE)
+except AttributeError:  # python 2.7
+    CP.readfp(CONFIG_FILE)
 BLOCKS = CP.get_channel_blocks()
 PRIMARY = BLOCKS['primary']
 GW = BLOCKS['GW']

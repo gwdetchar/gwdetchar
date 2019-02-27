@@ -675,7 +675,7 @@ def write_footer(about=None, date=None):
         date = datetime.datetime.now().replace(second=0, microsecond=0)
     version = get_versions()['version']
     commit = get_versions()['full-revisionid']
-    url = 'https://github.com/gwdetchar/gwdetchar/tree/%s' % commit 
+    url = 'https://github.com/gwdetchar/gwdetchar/tree/%s' % commit
     hlink = markup.oneliner.a('GW-DetChar version %s' % version, href=url,
                               target='_blank', style='color:#eee;')
     page.div(class_='row')
@@ -690,40 +690,6 @@ def write_footer(about=None, date=None):
     page.div.close()  # container
     markup.element('footer', case=page.case, parent=page).close()
     return page
-
-
-def write_config_html(filepath, format='ini'):
-    """Return an HTML-formatted copy of the file with syntax highlighting
-    This method attemps to use the `highlight` package to provide a block
-    of HTML that can be embedded inside a ``<pre></pre>`` tag.
-
-    Parameters
-    ----------
-    filepath : `str`
-        path of file to format
-    format : `str`, optional
-        syntax format for this file
-
-    Returns
-    -------
-    html : `str`
-        a formatted block of HTML containing HTML with inline CSS
-    """
-    highlight = ['highlight', '--out-format', 'html', '--syntax', format,
-                 '--inline-css', '--fragment', '--input', filepath]
-    try:
-        process = subprocess.Popen(highlight, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-    except OSError:
-        with open(filepath, 'r') as fobj:
-            return fobj.read()
-    else:
-        out, err = process.communicate()
-        if process.returncode != 0:
-            with open(filepath, 'r') as fobj:
-                return fobj.read()
-        else:
-            return out
 
 
 # -- Qscan HTML ---------------------------------------------------------------
@@ -1137,5 +1103,7 @@ def write_about_page(configfiles):
     page.p('Omega scans are configured with INI-format files. The '
            'configuration files for this analysis are shown below in full.')
     for configfile in configfiles:
-        page.pre(write_config_html(configfile))
+        with open(configfile, 'r') as fobj:
+            contents = fobj.read()
+        page.pre(contents)
     return page

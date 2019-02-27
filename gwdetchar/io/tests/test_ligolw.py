@@ -28,24 +28,24 @@ from glue.ligolw.ligolw import Document
 from gwpy.segments import (Segment, SegmentList)
 from gwpy.testing.utils import assert_segmentlist_equal
 
-from ..io import ligolw as io_ligolw
+from .. import ligolw
 
 
 def test_new_table():
-    tab = io_ligolw.new_table('sngl_burst')
+    tab = ligolw.new_table('sngl_burst')
     assert isinstance(tab, lsctables.SnglBurstTable)
     assert sorted(tab.columnnames) == sorted(
         lsctables.SnglBurstTable.validcolumns.keys())
 
     cols = ['peak_time', 'peak_time_ns', 'snr']
-    tab = io_ligolw.new_table(lsctables.SnglBurstTable, columns=cols)
+    tab = ligolw.new_table(lsctables.SnglBurstTable, columns=cols)
     assert tab.columnnames == cols
 
 
 def test_sngl_burst_from_times():
     numpy.random.seed(0)
     times = numpy.random.random(4) * 100.
-    tab = io_ligolw.sngl_burst_from_times(times)
+    tab = ligolw.sngl_burst_from_times(times)
     assert isinstance(tab, lsctables.SnglBurstTable)
     assert len(tab) == 4
     nanosec, sec = numpy.modf(times)
@@ -55,15 +55,15 @@ def test_sngl_burst_from_times():
 
 
 def test_segments_from_sngl_burst():
-    tab = io_ligolw.sngl_burst_from_times([1, 4, 7, 10], channel='test')
-    segs = io_ligolw.segments_from_sngl_burst(tab, 1)
+    tab = ligolw.sngl_burst_from_times([1, 4, 7, 10], channel='test')
+    segs = ligolw.segments_from_sngl_burst(tab, 1)
     assert_segmentlist_equal(segs['test'].active, SegmentList([
         Segment(0, 2), Segment(3, 5), Segment(6, 8), Segment(9, 11),
     ]))
 
 
 def test_table_to_document():
-    tab = io_ligolw.new_table('sngl_burst')
-    xmldoc = io_ligolw.table_to_document(tab)
+    tab = ligolw.new_table('sngl_burst')
+    xmldoc = ligolw.table_to_document(tab)
     assert isinstance(xmldoc, Document)
     assert xmldoc.childNodes[-1].childNodes[0] is tab

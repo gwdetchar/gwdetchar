@@ -85,12 +85,8 @@ def test_qgram_plot():
 
 
 def test_write_qscan_plots(tmpdir):
-    plotdir = str(tmpdir.mkdir('plots'))
-    try:  # python 3.x
-        from pathlib import Path  # nopep8
-        wdir = str(Path(plotdir).parent)
-    except ImportError:  # python 2.7
-        wdir = os.path.abspath(os.path.join(plotdir, '..'))
+    tmpdir.mkdir('plots')
+    wdir = str(tmpdir)
     os.chdir(wdir)
     plot.write_qscan_plots(gps=0, channel=CHANNEL, series=SERIES)
     shutil.rmtree(wdir, ignore_errors=True)
