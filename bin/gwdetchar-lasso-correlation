@@ -722,7 +722,8 @@ write_param('Lasso coefficient threshold', '%g' % args.threshold)
 write_param('Sigma for outlier removal', '%g' % args.remove_outliers)
 write_param('Cluster coefficient threshold: ',
             '%g' % args.cluster_coefficient)
-
+if args.band_pass:
+    write_param('Filter settings','Flow=%dHz, Fhigh=%dHz ' % (flower, fupper))
 page.h2('Model Information')
 
 page.div(class_='model')
