@@ -54,7 +54,7 @@ FLAG_HTML = """<div class="panel panel-warning">
 <div id="flag0" class="panel-collapse collapse">
 <div class="panel-body">
 <pre># seg\tstart\tstop\tduration
-0\t0\t66\t66
+0\t0\t66\t66.0
 </pre>
 </div>
 </div>
