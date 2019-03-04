@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Compute an Omega scan for a list of channels around a given GPS time
+"""Compute an omega scan for a list of channels around a given GPS time
 
 This utility can be used to process an arbitrary list of detector channels
 with minimal effort in finding data. The input should be an INI-formatted
@@ -173,7 +173,7 @@ print('Setting up HTML at %s/index.html' % outdir)
 html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 
 # launch omega scans
-print('Launching Omega scans')
+print('Launching omega scans')
 
 # construct a matched-filter from primary channel
 if not args.disable_correlation:
@@ -182,13 +182,14 @@ if not args.disable_correlation:
     fftlength = primary.fftlength
     # process `duration` seconds of data centered on gps
     name = primary.channel.name
+    start = gps - duration/2. - 1
+    end = gps + duration/2. + 1
     correlate = get_data(
-        [name], gps, duration, pad=1, frametype=primary.frametype,
-        source=primary.source, nproc=args.nproc,
-        verbose=args.verbose)[name]
+        name, start, end, frametype=primary.frametype, source=primary.source,
+        nproc=args.nproc, verbose=args.verbose)
     correlate = omega.primary(
         gps, primary.length, correlate, fftlength, resample=primary.resample,
-        f_low=primary.flow, name=name)
+        f_low=primary.flow)
     plot.timeseries_plot(correlate, gps, primary.length, name,
                          'plots/primary.png', ylabel='Whitened Amplitude')
     # prepare HTML output
@@ -212,9 +213,11 @@ for block in blocks.values():
             print('%s not active, skipping block' % block.flag)
             continue
     # read in `duration` seconds of data centered on gps
-    data = get_data(chans, gps, duration, pad=1, frametype=block.frametype,
-                    source=block.source, nproc=args.nproc,
-                    verbose=args.verbose)
+    start = gps - duration/2. - 1
+    end = gps + duration/2. + 1
+    data = get_data(
+        chans, start, end, frametype=block.frametype, source=block.source,
+        nproc=args.nproc, verbose=args.verbose)
 
     # scan individual channels
     for channel in block.channels:
@@ -232,7 +235,7 @@ for block in blocks.values():
         if series is None:
             continue  # channel is insignificant, skip it
 
-        print('Plotting Omega scan products for channel %s' % channel.name)
+        print('Plotting omega scan products for channel %s' % channel.name)
         plot.write_qscan_plots(gps, channel, series, colormap=args.colormap)
 
         if correlate is not None:

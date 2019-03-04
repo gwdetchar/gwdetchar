@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright (C) Duncan Macleod (2015)
+# Copyright (C) Alex Urban (2019)
 #
 # This file is part of the GW DetChar python package.
 #
@@ -16,34 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Miscellaneous methods and utilities
+"""Plotting utilities
 """
-
-import numpy
 
 from matplotlib import rcParams
 from gwpy.plot.tex import (has_tex, MACROS as GWPY_TEX_MACROS)
 
-__author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
-
-
-def find_timeseries_value_changes(timeseries):
-    """Find the times of changes in the value of a `TimeSeries`
-
-    Parameters
-    ----------
-    timeseries : `~gwpy.timeseries.TimeSeries`
-        the input data series
-
-    Returns
-    -------
-    times : `numpy.ndarray`
-        an array of GPS times (`~numpy.float64`) at which the given
-        timeseries changed value
-    """
-    diff = numpy.diff(timeseries.value)
-    times = timeseries.times.value[1:]
-    return times[diff > 0]
+__author__ = 'Alex Urban <alexander.urban@ligo.org>'
+__credits__ = 'Dan Hoak <daniel.hoak@ligo.org>, ' \
+              'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
 def get_gwpy_tex_settings():
@@ -72,3 +53,26 @@ def get_gwpy_tex_settings():
             'axes.formatter.use_mathtext': False,
         })
     return params
+
+
+# TeX settings
+tex_settings = get_gwpy_tex_settings()
+rcParams.update(tex_settings)
+
+
+# -- plotting utilities -------------------------------------------------------
+
+def plot_segments(flag, span, facecolor='red', edgecolor='darkred',
+                  known={'alpha': 0.2, 'facecolor': 'lightgray',
+                         'edgecolor': 'gray'}):
+    """Plot the saturation segments contained within a flag
+    """
+    name = flag.texname if has_tex() else flag.name
+    plot = flag.plot(
+        figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
+        known=known, label=' ',
+        xlim=span, xscale='auto-gps', epoch=span[0],
+        title="{} segments".format(name),
+    )
+    plot.subplots_adjust(bottom=0.4, top=0.8)
+    return plot

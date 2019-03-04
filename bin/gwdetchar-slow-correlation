@@ -26,21 +26,20 @@ import sys
 
 import numpy
 from scipy.stats import spearmanr
-from scipy.interpolate import UnivariateSpline
 
 from matplotlib import (use, rcParams)
 use('agg')
 import matplotlib.pyplot as plt
 
 from gwpy.plot import Plot
-from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.time import from_gps
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
-from gwdetchar import cli
-from gwdetchar.io import html
-from gwdetchar.misc import get_gwpy_tex_settings
+from gwdetchar import (cli, lasso)
+from gwdetchar.io import html as htmlio
+from gwdetchar.io.datafind import get_data
+from gwdetchar.plot import get_gwpy_tex_settings
 
 from sklearn import linear_model, preprocessing, datasets
 from sklearn.metrics import mean_squared_error, r2_score
@@ -102,39 +101,14 @@ if not os.path.isdir(args.output_dir):
 os.chdir(args.output_dir)
 nprocplot = args.nproc_plot or args.nproc
 
-
-def remove_outliers(ts, N):
-    outliers = find_outliers(ts, N)
-    c = 1
-    if outliers.any():
-        print("-- Found %d outliers in %s, recursively removing"
-              % (len(outliers), ts.name))
-        while outliers.any():
-            unit = ts.unit
-            cache = outliers
-            mask = numpy.ones(len(ts), dtype=bool)
-            mask[outliers] = False
-            spline = UnivariateSpline(ts[mask].times.value, ts[mask].value,
-                                      s=0, k=3)
-            ts[outliers] = (spline(ts[outliers].times.value) * unit)
-            outliers = find_outliers(ts, N)
-            print("Completed %d removal cycles" % c)
-            if numpy.array_equal(outliers, cache):
-                print("Outliers did not change, breaking recursion")
-                break
-            print("%d outliers remain" % len(outliers))
-            c += 1
-
-
 # set TeX settings
 tex_settings = get_gwpy_tex_settings()
 rcParams.update(tex_settings)
 
 # load data
 print("-- Loading range data")
-rangets = TimeSeries.get(rangechannel, start, end,
-                         frametype=args.range_frametype, verbose=True,
-                         nproc=args.nproc)
+rangets = get_data(rangechannel, start, end, frametype=args.range_frametype,
+                   verbose=True, nproc=args.nproc)
 
 if args.trend_type == 'minute':
     dstart, dend = rangets.span
@@ -143,9 +117,8 @@ else:
     dend = end
 
 print("-- Loading h(t) data")
-darmts = TimeSeries.get(primary, dstart-pad, dend+pad, verbose=True,
-                        frametype=args.primary_frametype,
-                        nproc=args.nproc)
+darmts = get_data(primary, dstart-pad, dend+pad, verbose=True,
+                  frametype=args.primary_frametype, nproc=args.nproc)
 
 # get darm BLRMS
 print("-- Filtering h(t) data")
@@ -168,8 +141,8 @@ else:
 
 if args.remove_outliers:
     print("-- Removing outliers above %f sigma" % args.remove_outliers)
-    remove_outliers(darmblrms, args.remove_outliers)
-    remove_outliers(rangets, args.remove_outliers)
+    gwlasso.remove_outliers(darmblrms, args.remove_outliers)
+    gwlasso.remove_outliers(rangets, args.remove_outliers)
 
 if args.trend_type == 'minute':
     # calculate the r value between the DARM BLRMS and the Range timeseries
@@ -207,9 +180,8 @@ if args.trend_type == 'minute':
     frametype = '%s_M' % args.ifo  # for minute trends
 else:
     frametype = '%s_T' % args.ifo  # for second trends
-auxdata = TimeSeriesDict.get(map(str, channels), dstart, dend, verbose=True,
-                             frametype=frametype, nproc=args.nproc,
-                             observatory=args.ifo[0], pad=0)
+auxdata = get_data(map(str, channels), dstart, dend, verbose=True,
+                   frametype=frametype, nproc=args.nproc, pad=0)
 
 gpsstub = '%d-%d' % (start, end-start)
 re_delim = re.compile('[:_-]')
@@ -374,7 +346,7 @@ def process_channel(input_,):
 
 
 pool = multiprocessing.Pool(nprocplot)
-results = pool.map(process_channel, auxdata.iteritems())
+results = pool.map(process_channel, list(auxdata.items()))
 results.sort(key=lambda x: (x[1] is not None and max(abs(x[1]), abs(x[2]),
              abs(x[6]), abs(x[7])) or 0, x[0]), reverse=True)
 rhos = numpy.asarray([x[1] for x in results if x is not None])
@@ -385,7 +357,7 @@ with open('results.txt', 'w') as f:
 
 # -- write html
 title = '%s slow correlations: %d-%d' % (args.ifo, start, end)
-page = html.new_bootstrap_page(title=title)
+page = htmlio.new_bootstrap_page(title=title)
 page.div(class_='container')
 
 # header
@@ -410,22 +382,22 @@ r = "<i>r</i>"
 rho_blrms = "<i>&rho;<sub>blrms</sub> </i>"
 rho_range = "<i>&rho;<sub>range</sub> </i>"
 rho = "<i>&rho;</i>"
-Pearson_wikilink = html.markup.oneliner.a(
+Pearson_wikilink = htmlio.markup.oneliner.a(
     "Pearson's correlation coefficient",
     href="https://en.wikipedia.org/wiki/"
          "Pearson_product-moment_correlation_coefficient",
     rel="external")
-numpylink = html.markup.oneliner.a(
+numpylink = htmlio.markup.oneliner.a(
     "<code>numpy.corrcoef</code>",
     href="http://docs.scipy.org/doc/numpy-1.10.1/reference/generated/"
          "numpy.corrcoef.html",
     rel="external")
-Spearman_wikilink = html.markup.oneliner.a(
+Spearman_wikilink = htmlio.markup.oneliner.a(
     "Spearman's correlation coefficient",
     href="https://en.wikipedia.org/wiki/"
          "Spearman%27s_rank_correlation_coefficient",
     rel="external")
-scipylink = html.markup.oneliner.a(
+scipylink = htmlio.markup.oneliner.a(
     "<code>scipy.stats.spearmanr</code>",
     href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/"
          "scipy.stats.spearmanr.html",
@@ -443,7 +415,8 @@ if args.trend_type == 'minute':
               rangechannel, r, corr_p, rho, corr_s))
 
 page.div(class_='panel-group', id_='results')
-for i, (ch, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s) in enumerate(results):
+for i, (ch, corr1, corr2, plot1, plot2, plot3,
+        corr1s, corr2s) in enumerate(results):
     if corr1 is None:
         h = '%s [flat]' % ch
     elif plot1 is None:
@@ -492,24 +465,18 @@ for i, (ch, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s) in enumerate(resu
     page.div.close()  # panel
 page.div.close()  # panel-group
 
-
-# params
-def write_param(param, value):
-    page.p()
-    page.strong('%s: ' % param)
-    page.add(str(value))
-    page.p.close()
-
-
 page.h2('Parameters')
 page.p('This analysis used the following parameters:')
-write_param('Start time', '%s (%d)' % (from_gps(start), start))
-write_param('End time', '%s (%d)' % (from_gps(end), end))
-write_param('Primary channel',
-            '%s (%s)' % (primary, args.primary_frametype.format(ifo=args.ifo)))
-write_param('Range channel',
-            '%s (%s)' % (rangechannel, args.range_frametype or '-'))
-write_param('Band-pass', '%s-%s' % (flower, fupper))
+page.add(htmlio.write_param(
+    'Start time', '%s (%d)' % (from_gps(start), start)))
+page.add(htmlio.write_param('End time', '%s (%d)' % (from_gps(end), end)))
+page.add(htmlio.write_param(
+    'Primary channel',
+    '%s (%s)' % (primary, args.primary_frametype.format(ifo=args.ifo))))
+page.add(htmlio.write_param(
+    'Range channel',
+    '%s (%s)' % (rangechannel, args.range_frametype or '-')))
+page.add(htmlio.write_param('Band-pass', '%s-%s' % (flower, fupper)))
 
 page.div.close()  # container
 with open('index.html', 'w') as f:

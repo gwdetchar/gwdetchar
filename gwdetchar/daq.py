@@ -27,11 +27,13 @@ import numpy
 
 from gwdatafind import find_urls
 
-from gwpy.io.gwf import get_channel_names
 from gwpy.time import to_gps
+from gwpy.io.gwf import get_channel_names
 from gwpy.timeseries import StateTimeSeries
+from gwpy.segments import (SegmentList, DataQualityDict)
 
 from . import const
+from .io import ligolw
 from .utils import natural_sort
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -46,6 +48,7 @@ def find_overflows(timeseries, cumulative=True):
     ----------
     timeseries : `~gwpy.timeseries.TimeSeries`
         the input data from the cumulative overflow counter
+
     cumulative : `bool`, default: `True`
         whether the timeseries contains a cumulative overflow counter
         or an overflow state [0/1]
@@ -72,6 +75,7 @@ def find_overflow_segments(timeseries, cumulative=True, round=False):
     ----------
     timeseries : `~gwpy.timeseries.TimeSeries`
         the input data from the cumulative overflow counter
+
     cumulative : `bool`, default: `True`
         whether the timeseries contains a cumulative overflow counter
         or an overflow state [0/1]
@@ -91,6 +95,54 @@ def find_overflow_segments(timeseries, cumulative=True, round=False):
         name=timeseries.name, round=round)
 
 
+def get_overflows(overflows, timeseries, channel, segment, cumulative=True,
+                  round=False, as_table=False):
+    """Record overflow segments in a `DataQualityDict` or `Table`
+
+    Parameters
+    ----------
+    overflows : `~gwpy.segments.DataQualityDict` or `~glue.ligolw.Table`
+        a running collection of DAQ overflow segments
+
+    timeseries : `~gwpy.timeseries.TimeSeries`
+        the input data from the cumulative overflow counter
+
+    channel : `str`
+        name of the channel corresponding to `timeseries`
+
+    segment : `~gwpy.segments.Segment`
+        analysis segment over which to record overflows
+
+    cumulative : `bool`, default: `True`
+        whether the timeseries contains a cumulative overflow counter
+        or an overflow state [0/1]
+
+    as_table : `bool`, default: `False`
+        whether to save the output as a `~glue.ligolw.Table`
+
+    Notes
+    -----
+    This utility accepts a pre-existing `DataQualityDict` or `Table`, then
+    extends the input object based on the `timeseries`.
+    """
+    if as_table:
+        times = find_overflows(timeseries, cumulative=cumulative)
+        times = times[(times >= float(segment[0])) &
+                      (times < float(segment[1]))]
+        overflows.extend(ligolw.sngl_burst_from_times(
+            times, snr=10, peak_frequency=100, channel=channel,
+            search=os.path.basename(__file__)))
+    else:
+        segs = find_overflow_segments(timeseries, cumulative=cumulative,
+                                      round=round)
+        segs.known &= SegmentList([segment])
+        segs.coalesce()
+        try:
+            overflows[channel] += segs
+        except KeyError:
+            overflows[channel] = segs
+
+
 def ligo_accum_overflow_channel(dcuid, ifo=None):
     """Returns the channel name for cumulative overflows for this DCUID
 
@@ -98,6 +150,7 @@ def ligo_accum_overflow_channel(dcuid, ifo=None):
     ----------
     dcuid : `int`
         the DCUID for the relevant front-end model
+
     ifo : `str`
         the IFO prefix, defaults to the $IFO environment variable
 
@@ -216,14 +269,15 @@ def find_crossings(timeseries, threshold):
     ----------
     timeseries : `~gwpy.timeseries.TimeSeries`
         the input data to test against a threshold
+
     threshold : `float`
-        function will analyze input timeseries and find times when data 
+        function will analyze input timeseries and find times when data
         crosses this threshold
 
     Returns
     -------
     times : `numpy.ndarray`
-        an array of GPS times (`~numpy.float64`) at which the input data 
+        an array of GPS times (`~numpy.float64`) at which the input data
         crossed the threshold
     """
     if threshold >= 0:

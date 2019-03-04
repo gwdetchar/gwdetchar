@@ -70,6 +70,13 @@ def test_new_bootstrap_page():
     assert parse_html(str(page)) == parse_html(NEW_BOOTSTRAP_PAGE)
 
 
+def test_write_param():
+    page = html.write_param('test', 'test')
+    assert parse_html(str(page)) == parse_html(
+        '<p>\n<strong>test: </strong>\ntest\n</p>'
+    )
+
+
 def test_write_flag_html():
     page = html.write_flag_html(FLAG)
     assert parse_html(str(page)) == parse_html(FLAG_HTML)

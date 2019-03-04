@@ -25,6 +25,8 @@ from six.moves import StringIO
 
 from glue import markup
 
+from ..plot import plot_segments
+
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 JQUERY_JS = "https://code.jquery.com/jquery-1.11.2.min.js"
@@ -55,9 +57,20 @@ def new_bootstrap_page(*args, **kwargs):
     return page
 
 
+def write_param(param, value):
+    """Format a parameter value with HTML
+    """
+    page = markup.page()
+    page.p()
+    page.strong('%s: ' % param)
+    page.add(str(value))
+    page.p.close()
+    return page()
+
+
 def write_flag_html(flag, span=None, id=0, parent='accordion',
                     context='warning', title=None, plotdir=None,
-                    plot_func=None):
+                    plot_func=plot_segments):
     """Write HTML for data quality flags
     """
     page = markup.page()

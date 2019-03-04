@@ -29,11 +29,12 @@ import pytest
 import numpy
 from numpy.testing import assert_array_equal
 
-from gwpy.segments import (Segment, SegmentList)
 from gwpy.timeseries import TimeSeries
+from gwpy.segments import (Segment, SegmentList, DataQualityDict)
 from gwpy.testing.utils import assert_segmentlist_equal
 
 from .. import daq
+from ..io import ligolw
 
 OVERFLOW_SERIES = TimeSeries([0, 0, 0, 1, 1, 0, 0, 1, 0, 1], dx=.5)
 CUMULATIVE_SERIES = TimeSeries([0, 0, 0, 1, 2, 2, 2, 3, 3, 4], dx=.5)
@@ -43,6 +44,7 @@ OVERFLOW_SEGMENTS = SegmentList([
     Segment(3.5, 4),
     Segment(4.5, 5),
 ])
+CROSSING_TIMES = numpy.array([1.5, 2.5, 3.5, 4, 4.5])
 
 CHANNELS = [
     'X1:TEST-CHANNEL_1',
@@ -62,11 +64,33 @@ CHANNELS = [
     (True, CUMULATIVE_SERIES),
 ])
 def test_find_overflows_and_segments(cmltv, series):
+    # find overflows
     times = daq.find_overflows(series, cumulative=cmltv)
     assert_array_equal(times, OVERFLOW_TIMES)
 
+    # find segments
     segments = daq.find_overflow_segments(series, cumulative=cmltv)
     assert_segmentlist_equal(segments.active, OVERFLOW_SEGMENTS)
+
+    # get DataQualityDict
+    channel = 'X1:TEST'
+    flags = DataQualityDict()
+    daq.get_overflows(flags, series, channel, series.span, cumulative=cmltv)
+    assert channel in flags.keys()
+    assert flags[channel].active == OVERFLOW_SEGMENTS
+
+    # get Table
+    columns = ['peak_time', 'peak_time_ns', 'peak_frequency', 'event_id',
+               'channel', 'snr']
+    table = ligolw.new_table('sngl_burst', columns=columns)
+    daq.get_overflows(table, series, channel, series.span, cumulative=cmltv,
+                      as_table=True)
+    nanosec, sec = numpy.modf(times)
+    sect = table.getColumnByName('peak_time').asarray()
+    nanosect = table.getColumnByName('peak_time_ns').asarray()
+    assert_array_equal(sect, sec)
+    assert_array_equal(nanosect / 1e9, nanosec)
+    assert set(table.columnnames) == set(columns)
 
 
 def test_ligo_accum_overflow_channel():
@@ -89,3 +113,8 @@ def test_ligo_model_overflow_channels(get_names, find_frames):
     with pytest.raises(IndexError) as exc:
         daq.ligo_model_overflow_channels(1, ifo='X1')
     assert str(exc.value).startswith('No X-X1_R frames found')
+
+
+def test_find_crossings():
+    times = daq.find_crossings(OVERFLOW_SERIES, 0.1)
+    assert_array_equal(times, CROSSING_TIMES)
