@@ -41,6 +41,12 @@ JS_FILES = [
 SASS_FILES = glob.glob(os.path.join('share', 'sass', '[!_]*.scss')) + (
     glob.glob(os.path.join('bootstrap-ligo', 'css', '[!_]*.scss')))
 
+# make sure submodule is not empty
+static = glob.glob(os.path.join('bootstrap-ligo', '*'))
+if not static:
+    raise ValueError('bootstrap-ligo submodule is empty, please populate it '
+                     'with `git submodule update --init`')
+
 
 # -- custom commands ----------------------------------------------------------
 

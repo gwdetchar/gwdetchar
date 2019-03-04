@@ -19,9 +19,6 @@
 """Tests for `gwdetchar.io.datafind`
 """
 
-import os
-import shutil
-
 import pytest
 
 import numpy
@@ -86,35 +83,31 @@ def test_get_data_dict_from_NDS(tsdfetch):
     nptest.assert_array_equal(data['X1:TEST-STRAIN'].value, HOFT.value)
 
 
-def test_get_data_from_cache(tmpdir):
-    # set up a data file
-    os.chdir(str(tmpdir))
-    HOFT.write('test.gwf')
-
+@mock.patch('gwpy.timeseries.TimeSeries.read',
+            return_value=HOFT.crop(16, 48))
+def test_get_data_from_cache(tsfetch):
     # retrieve test frame
     start = 16
     end = start + 32
     channel = 'X1:TEST-STRAIN'
-    data = datafind.get_data(channel, start, end, source='test.gwf')
+    data = datafind.get_data(channel, start, end, source=True)
 
     # test data products
     assert isinstance(data, TimeSeries)
     assert data.duration.value == 32
     assert data.span == Segment(start, end)
     nptest.assert_array_equal(data.value, HOFT.crop(start, end).value)
-    shutil.rmtree(str(tmpdir), ignore_errors=True)
 
 
-def test_get_data_dict_from_cache(tmpdir):
-    # set up a data file
-    os.chdir(str(tmpdir))
-    HOFT.write('test.gwf')
-
+@mock.patch('gwpy.timeseries.TimeSeriesDict.read',
+            return_value=TimeSeriesDict({
+                'X1:TEST-STRAIN': HOFT.crop(16, 48)}))
+def test_get_data_dict_from_cache(tsdfetch):
     # retrieve test frame
     start = 16
     end = start + 32
     channels = ['X1:TEST-STRAIN']
-    data = datafind.get_data(channels, start, end, source='test.gwf')
+    data = datafind.get_data(channels, start, end, source=True)
 
     # test data products
     assert isinstance(data, TimeSeriesDict)
@@ -122,4 +115,3 @@ def test_get_data_dict_from_cache(tmpdir):
     assert data[channels[0]].span == Segment(start, end)
     nptest.assert_array_equal(data[channels[0]].value,
                               HOFT.crop(start, end).value)
-    shutil.rmtree(str(tmpdir), ignore_errors=True)
