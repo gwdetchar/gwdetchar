@@ -61,8 +61,8 @@ def mock_request(output):
 def test_get_dcuid_map(_):
     dcuidmap = cds.get_dcuid_map('X1')
     assert dcuidmap == {
-      1: 'x1model1',
-      2: 'x2model2',
+        1: 'x1model1',
+        2: 'x2model2',
     }
 
 
@@ -105,3 +105,13 @@ def test_get_adc_channel(mockr):
     assert mockr.call_count == 1
     with pytest.raises(KeyError):
         assert cds.get_adc_channel('X1', 'x1model1', 9, 9)
+
+
+@mock_request(ADCLIST_CONTENT)
+@mock.patch('gwdetchar.cds.model_name_from_dcuid', return_value='x1model1')
+def test_get_real_channel(mockr, mockadc):
+    assert cds.get_real_channel('X1:TEST-1_ADC_OVERFLOW_ACC_0_0') == 'A'
+    assert cds.get_real_channel('X1:TEST-1_ADC_OVERFLOW_ACC_0_1') == 'B'
+    assert mockr.call_count == 2
+    with pytest.raises(ValueError):
+        assert cds.get_real_channel('X1:TEST-1_TEST_OVERFLOW_ACC_0_0')

@@ -59,15 +59,27 @@ def test_check_flag(segserver):
     assert datafind.check_flag(flag, gpstime, duration, pad) is True
 
 
+@mock.patch('gwpy.timeseries.TimeSeries.fetch', return_value=HOFT)
+def test_get_data_from_NDS(tsfetch):
+    # retrieve data
+    start = 0
+    end = 64
+    channel = 'X1:TEST-STRAIN'
+    data = datafind.get_data(channel, start, end, source=0)
+
+    # test data products
+    assert isinstance(data, TimeSeries)
+    nptest.assert_array_equal(data.value, HOFT.value)
+
+
 @mock.patch('gwpy.timeseries.TimeSeriesDict.fetch',
             return_value=TimeSeriesDict({'X1:TEST-STRAIN': HOFT}))
-def test_get_data_from_NDS(tsdfetch):
+def test_get_data_dict_from_NDS(tsdfetch):
     # retrieve data
-    gpstime = 33
-    duration = 64
-    pad = 1
+    start = 33
+    end = 64
     channels = ['X1:TEST-STRAIN']
-    data = datafind.get_data(channels, gpstime, duration, pad, source=0)
+    data = datafind.get_data(channels, start, end, source=0)
 
     # test data products
     assert isinstance(data, TimeSeriesDict)
@@ -76,21 +88,38 @@ def test_get_data_from_NDS(tsdfetch):
 
 def test_get_data_from_cache(tmpdir):
     # set up a data file
-    target = os.path.join(str(tmpdir), 'test.gwf')
-    HOFT.write(target)
+    os.chdir(str(tmpdir))
+    HOFT.write('test.gwf')
 
     # retrieve test frame
-    gpstime = 33
-    duration = 32
-    pad = 1
+    start = 16
+    end = start + 32
+    channel = 'X1:TEST-STRAIN'
+    data = datafind.get_data(channel, start, end, source='test.gwf')
+
+    # test data products
+    assert isinstance(data, TimeSeries)
+    assert data.duration.value == 32
+    assert data.span == Segment(start, end)
+    nptest.assert_array_equal(data.value, HOFT.crop(start, end).value)
+    shutil.rmtree(str(tmpdir), ignore_errors=True)
+
+
+def test_get_data_dict_from_cache(tmpdir):
+    # set up a data file
+    os.chdir(str(tmpdir))
+    HOFT.write('test.gwf')
+
+    # retrieve test frame
+    start = 16
+    end = start + 32
     channels = ['X1:TEST-STRAIN']
-    data = datafind.get_data(channels, gpstime, duration, pad, source=target)
+    data = datafind.get_data(channels, start, end, source='test.gwf')
 
     # test data products
     assert isinstance(data, TimeSeriesDict)
-    assert data[channels[0]].duration.value == duration + 2*pad
-    assert data[channels[0]].span == Segment(
-        gpstime - duration/2 - pad, gpstime + duration/2 + pad)
-    nptest.assert_array_equal(data[channels[0]].value, HOFT.crop(
-        gpstime - duration/2 - pad, gpstime + duration/2 + pad).value)
-    shutil.rmtree(target, ignore_errors=True)
+    assert data[channels[0]].duration.value == 32
+    assert data[channels[0]].span == Segment(start, end)
+    nptest.assert_array_equal(data[channels[0]].value,
+                              HOFT.crop(start, end).value)
+    shutil.rmtree(str(tmpdir), ignore_errors=True)

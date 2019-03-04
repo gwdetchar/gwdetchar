@@ -21,17 +21,19 @@
 
 from __future__ import print_function
 
-import os.path
-import warnings
-
-from six import string_types
-
 import gwdatafind
 
 from ..const import DEFAULT_SEGMENT_SERVER
 
 from gwpy.segments import (Segment, DataQualityFlag)
-from gwpy.timeseries import TimeSeriesDict
+from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
+
+try:
+    from LDAStools import frameCPP
+except ImportError:
+    iokwargs = {'format': 'gwf'}
+else:
+    iokwargs = {'type': 'adc', 'format': 'gwf.framecpp'}
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -75,30 +77,27 @@ def check_flag(flag, gpstime, duration, pad):
     return True
 
 
-def get_data(channels, gpstime, duration, pad, frametype=None,
-             source=None, nproc=1, verbose=False):
-    """Retrieve data for a given channel, centered at a given time
+def get_data(channel, start, end, frametype=None, source=None, nproc=1,
+             verbose=False, **kwargs):
+    """Retrieve data for given channels within a certain time range
 
     Parameters
     ----------
-    channels : `list`
-        required data channels
+    channel : `str` or `list`
+        either a single channel name, or a list of channel names
 
-    gpstime : `float`
-        GPS time of required data
+    start : `float`
+        GPS start time of requested data
 
-    duration : `float`
-        duration (in seconds) of required data
-
-    pad : `float`
-        amount of extra data to read in at the start and end for filtering
+    end : `float`
+        GPS end time of requested data
 
     frametype : `str`, optional
-        name of frametype in which this channel is stored, by default will
-        search for all required frame types
+        name of frametype in which channel(s) are stored, required if `source`
+        is `None`
 
     source : `str`, `list`, optional
-        `str` path of a LAL-format cache file or single data file, will
+        `str` path(s) of a LAL-format cache file or individual data file, will
         supercede `frametype` if given, defaults to `None`
 
     nproc : `int`, optional
@@ -107,6 +106,21 @@ def get_data(channels, gpstime, duration, pad, frametype=None,
     verbose : `bool`, optional
         print verbose output about NDS progress, default: False
 
+    **kwargs : `dict`, optional
+        additional keyword arguments to `~gwpy.timeseries.TimeSeries.read`
+        or `~gwpy.timeseries.TimeSeries.fetch`
+
+    Returns
+    -------
+    data : `~gwpy.timeseries.TimeSeries` or `~gwpy.timeseries.TimeSeriesDict`
+        collection of data for the requested channels in the requested time
+        range
+
+    Notes
+    -----
+    If `channel` is a `str`, then a `TimeSeries` object will be returned, else
+    the result is a `TimeSeriesDict`.
+
     See Also
     --------
     gwpy.timeseries.TimeSeries.fetch
@@ -114,15 +128,26 @@ def get_data(channels, gpstime, duration, pad, frametype=None,
     gwpy.timeseries.TimeSeries.read
         for the underlying method to read from a local file cache
     """
-    # set GPS start and end time
-    start = gpstime - duration/2. - pad
-    end = gpstime + duration/2. + pad
+    # get TimeSeries class
+    if isinstance(channel, (list, tuple)):
+        series_class = TimeSeriesDict
+    else:
+        series_class = TimeSeries
     # construct file cache if none is given
     if source is None:
         source = gwdatafind.find_urls(frametype[0], frametype, start, end)
     # read from frames or NDS
     if source:
-        return TimeSeriesDict.read(
-            source, channels, start=start, end=end, nproc=nproc,
-            verbose=verbose)
-    return TimeSeriesDict.fetch(channels, start, end, verbose=verbose)
+        kwargs.update(iokwargs)
+        return series_class.read(
+            source, channel, start=start, end=end, nproc=nproc,
+            verbose=verbose, **kwargs)
+    elif isinstance(channel, str):
+        return series_class.fetch(
+            channel, start, end, verbose=verbose, **kwargs)
+    # if all else fails, process channels in groups of 60
+    data = series_class()
+    for group in [channel[i:i + 60] for i in range(0, len(channel), 60)]:
+        data.append(series_class.fetch(
+            group, start, end, verbose=verbose, **kwargs))
+    return data

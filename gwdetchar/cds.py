@@ -106,3 +106,13 @@ def get_adc_channel(ifo, model, card, slot):
         e.args = ('No channel associated with card %d, slot %d for %s'
                   % (card, slot, model),)
         raise
+
+
+def get_real_channel(adcchannel):
+    main = str(adcchannel).split('-', 1)[1]
+    ifo = str(adcchannel).split(':')[0]
+    dcuid, type_, _, _, card, slot = main.split('_')
+    if type_ != 'ADC':
+        raise ValueError("No 'real' channel map for non-ADC channels")
+    modelname = model_name_from_dcuid(ifo, int(dcuid))
+    return get_adc_channel(ifo, modelname, int(card), int(slot))

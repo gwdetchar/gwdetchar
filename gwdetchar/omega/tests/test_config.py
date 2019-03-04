@@ -176,7 +176,7 @@ def test_omega_channel():
     assert channel.frange == (4.0, 1024)
     assert channel.mismatch == 0.2
     assert channel.snrthresh == 5
-    assert channel.always_plot == True
+    assert channel.always_plot is True
     assert channel.pranges == [4]
 
 
@@ -191,7 +191,7 @@ def test_save_loudest_tile_features():
         sample_rate=16384, epoch=-1) * 1e-4
     in_ = noise.inject(glitch)
     _, _, _, qgram, _, _, _ = core.scan(
-	    gps=0, channel=channel, xoft=in_, resample=4096, fftlength=8)
+        gps=0, channel=channel, xoft=in_, resample=4096, fftlength=8)
 
     # test loudest tiles
     channel.save_loudest_tile_features(qgram)

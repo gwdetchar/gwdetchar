@@ -43,20 +43,13 @@ from gwpy.plot.tex import label_to_latex
 from gwpy.utils import gprint
 from gwpy.table import EventTable
 from gwpy.table.filters import in_segmentlist
-from gwpy.timeseries import TimeSeriesDict
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
 
 from gwdetchar import (cli, const, scattering, __version__)
 from gwdetchar.io import html as htmlio
-from gwdetchar.misc import get_gwpy_tex_settings
-
-try:
-    from LDAStools import frameCPP
-except ImportError:
-    io_kw = {'format': 'gwf'}
-else:
-    io_kw = {'type': 'adc', 'format': 'gwf.framecpp'}
+from gwdetchar.io.datafind import get_data
+from gwdetchar.plot import get_gwpy_tex_settings
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
@@ -225,11 +218,11 @@ if args.verbose:
 alldata = []
 for i, seg in enumerate(statea):
     alldata.append(
-        TimeSeriesDict.get(allchannels, seg[0], seg[1], nproc=args.nproc,
-                           frametype=args.frametype, **io_kw).resample(128))
+        get_data(allchannels, seg[0], seg[1], frametype=args.frametype,
+                 nproc=args.nproc).resample(128))
     if args.verbose:
         gprint("Reading all data... %d/%d segments read"
-           % (i+1, len(statea)), end='\r')
+               % (i+1, len(statea)), end='\r')
 if args.verbose:
     gprint("Reading all data... {0}/{0} segments read".format(len(statea)))
 
@@ -270,7 +263,7 @@ for i, channel in enumerate(sorted(allchannels)):
             fm = fringef * m
             line = axes['fringef'].plot(
                 fm, color=fringecolors[k],
-                label=j==0 and r'$f\times%d$' % m or None)[0]
+                label=(j == 0 and r'$f\times%d$' % m or None))[0]
             fringecolors[k] = line.get_color()
             histdata[m].resize((histdata[m].size + fm.size,))
             histdata[m][-fm.size:] = fm.value
@@ -293,7 +286,7 @@ for i, channel in enumerate(sorted(allchannels)):
             gprint("    Found %d scattering segments" % (len(scatter.active)))
     if args.verbose:
         gprint("Completed channel, found %d segments in total."
-           % len(scatter_segments[channel].active))
+               % len(scatter_segments[channel].active))
 
     # calculate efficiency and deadtime of veto
     deadtime = abs(scatter_segments[channel].active)
@@ -302,7 +295,8 @@ for i, channel in enumerate(sorted(allchannels)):
     except ZeroDivisionError:
         deadtimepc = 0.
     if args.verbose:
-        gprint("Deadtime: %.2f%% (%.2f/%ds)" % (deadtimepc, deadtime, livetime))
+        gprint("Deadtime: %.2f%% (%.2f/%ds)"
+               % (deadtimepc, deadtime, livetime))
     efficiency = in_segmentlist(highsnrtrigs['peak'],
                                 scatter_segments[channel].active).sum()
     try:
@@ -311,7 +305,7 @@ for i, channel in enumerate(sorted(allchannels)):
         efficiencypc = 0.
     if args.verbose:
         gprint("Efficiency (SNR>=8): %.2f%% (%d/%d)"
-           % (efficiencypc, efficiency, len(highsnrtrigs)))
+               % (efficiencypc, efficiency, len(highsnrtrigs)))
     if deadtimepc == 0.:
         effdt = 0
     else:
@@ -392,9 +386,10 @@ for i, channel in enumerate(sorted(allchannels)):
     hrange = (0, 2 * args.frequency_threshold)
     for m, color in list(zip(histdata, fringecolors))[::-1]:
         if histdata[m].size:
-            ax.hist(histdata[m], facecolor=color, alpha=.6, range=hrange,
-                    bins=50, histtype='stepfilled', label=r'$f\times%d$' % m,
-                    cumulative=-1, weights=ts.dx.value, bottom=1e-100, log=True)
+            ax.hist(
+                histdata[m], facecolor=color, alpha=.6, range=hrange,
+                bins=50, histtype='stepfilled', label=r'$f\times%d$' % m,
+                cumulative=-1, weights=ts.dx.value, bottom=1e-100, log=True)
         else:
             ax.plot(histdata[m], color=color, label=r'$f\times%d$' % m)
             ax.set_yscale('log')
@@ -417,7 +412,7 @@ for i, channel in enumerate(sorted(allchannels)):
     elif ((deadtime != 0 and effdt < 2) or
           (histdata[args.multiplier_for_threshold].size and
            histdata[args.multiplier_for_threshold].max() >=
-             args.frequency_threshold/2.)):
+              args.frequency_threshold/2.)):
         context = 'warning'
     else:
         context = 'default'
@@ -432,7 +427,7 @@ for i, channel in enumerate(sorted(allchannels)):
     if deadtime:
         page.p("%d segments were found predicting a scattering fringe above "
                "%.2f Hz." % (len(scatter_segments[channel].active),
-                            args.frequency_threshold))
+                             args.frequency_threshold))
         page.table(class_='table table-condensed table-hover')
         page.tbody()
         page.tr()

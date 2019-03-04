@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright (C) Duncan Macleod (2015)
+# Copyright (C) Alex Urban (2019)
 #
 # This file is part of the GW DetChar python package.
 #
@@ -16,16 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The GW DetChar package (`gwdetchar`) provides python utilies for
-Gravitational-wave detector characterisation.
-
-This package extends the GWpy package for gravitational-wave
-data processing (https://gwpy.github.io).
+"""Methods and utilties for Lasso correlation
 """
 
-from ._version import get_versions
+__author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
-__version__ = get_versions()['version']
-__author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+# -- imports ------------------------------------------------------------------
 
-del get_versions
+# import lasso utils
+from .core import *

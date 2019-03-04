@@ -93,5 +93,3 @@ def add_nproc_option(
         **kwargs):
     return parser.add_argument('-j', '--nproc', default=default, help=help,
                                type=type, **kwargs)
-
-

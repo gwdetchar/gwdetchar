@@ -22,10 +22,71 @@
 from math import log
 
 import numpy
+from scipy.interpolate import UnivariateSpline
 
 from sklearn.linear_model import Lasso
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+__credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
+              'Alex Urban, Josh Smith'
+
+
+# -- utilities ----------------------------------------------------------------
+
+def find_outliers(ts, N=5):
+    """Find outliers within a `TimeSeries`
+
+    Parameters
+    ----------
+    ts : `~gwpy.timeseries.TimeSeries`
+        data to find outliers within
+
+    N : `float`, optional
+        number of standard deviations to consider an outlier, default: 5
+
+    Returns
+    -------
+    out : `ndarray`
+        array indices of the input where outliers occur
+    """
+    ts = ts.value  # strip out Quantity extras
+    return numpy.nonzero(abs(ts - ts.mean()) > N*ts.std())[0]
+
+
+def remove_outliers(ts, N=5):
+    """Find and remove outliers within a `TimeSeries`
+
+    Parameters
+    ----------
+    ts : `~gwpy.timeseries.TimeSeries`
+        data to find outliers within
+
+    N : `float`, optional
+        number of standard deviations to consider an outlier, default: 5
+
+    Notes
+    -----
+    This action is done in-place, with no `return` statement.
+    """
+    outliers = find_outliers(ts, N=N)
+    c = 1
+    while outliers.any():
+        print("-- Pass %d: removing %d outliers in %s"
+              % (c, outliers.size, ts.name))
+        unit = ts.unit
+        cache = outliers
+        mask = numpy.ones(ts.size, dtype=bool)
+        mask[outliers] = False
+        spline = UnivariateSpline(ts.times.value[mask], ts.value[mask],
+                                  s=0, k=3)
+        ts[outliers] = spline(ts.times.value[outliers]) * unit
+        outliers = find_outliers(ts, N=N)
+        print("   Completed %d removal passes" % c)
+        if numpy.array_equal(outliers, cache):
+            print("   Outliers did not change, breaking recursion")
+            break
+        print("   %d outliers remain" % len(outliers))
+        c += 1
 
 
 def fit(data, target, alpha=None):
@@ -41,7 +102,7 @@ def fit(data, target, alpha=None):
 
     alpha : `float`
         the Lasso alpha parameter, if `None` one will be determined using
-        :func:`find_best_alpha`
+        :func:`find_alpha`
 
     Returns
     -------
@@ -91,18 +152,20 @@ def find_alpha(data, target):
 def remove_flat(tsdict):
     """Remove flat timeseries from a `TimeSeriesDict`
     """
+    outdict = tsdict.copy()
     for key in tsdict.keys():
         series = tsdict[key].value
         if series.min() == series.max():
-            tsdict.pop(key)
-    return tsdict
+            outdict.pop(key)
+    return outdict
 
 
 def remove_bad(tsdict):
     """Remove data that cannot be scaled from a `TimeSeriesDict`
     """
+    outdict = tsdict.copy()
     for key in tsdict.keys():
         series = tsdict[key].value
         if numpy.isnan(series).any() or numpy.isinf(series).any():
-            tsdict.pop(key)
-    return tsdict
+            outdict.pop(key)
+    return outdict
