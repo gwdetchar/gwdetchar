@@ -79,7 +79,10 @@ def parse_html(html):
     """
     stdout = sys.stdout
     sys.stdout = StringIO()
-    parser.feed(html)
+    if sys.version_info.major < 3:
+        parser.feed(html.decode('utf-8', 'ignore'))
+    else:
+        parser.feed(html)
     output = sys.stdout.getvalue()
     sys.stdout = stdout
     return output
