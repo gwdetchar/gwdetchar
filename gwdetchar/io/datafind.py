@@ -28,13 +28,6 @@ from ..const import DEFAULT_SEGMENT_SERVER
 from gwpy.segments import (Segment, DataQualityFlag)
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 
-try:
-    from LDAStools import frameCPP
-except ImportError:
-    iokwargs = {'format': 'gwf'}
-else:
-    iokwargs = {'type': 'adc', 'format': 'gwf.framecpp'}
-
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Alex Urban <alexander.urban@ligo.org>'
 
@@ -138,7 +131,6 @@ def get_data(channel, start, end, frametype=None, source=None, nproc=1,
         source = gwdatafind.find_urls(frametype[0], frametype, start, end)
     # read from frames or NDS
     if source:
-        kwargs.update(iokwargs)
         return series_class.read(
             source, channel, start=start, end=end, nproc=nproc,
             verbose=verbose, **kwargs)
