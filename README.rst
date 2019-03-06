@@ -15,7 +15,7 @@ GWDetChar is best installed with `conda`_:
 
    conda install -c conda-forge gwdetchar
 
-but can also be installed with `pip`:
+but can also be installed with `pip`_:
 
 .. code:: bash
 
@@ -36,6 +36,7 @@ proposing additions/changes.
 .. _pep8: https://pypi.python.org/pypi/pep8
 .. _the contributions guide: https://github.com/gwdetchar/gwdetchar/blob/master/CONTRIBUTING.md
 .. _conda: https://conda.io
+.. _pip: https://pip.pypa.io/en/stable/
 
 
 .. |PyPI version| image:: https://badge.fury.io/py/gwdetchar.svg
