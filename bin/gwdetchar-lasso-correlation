@@ -126,7 +126,8 @@ if args.band_pass:
 
     print("-- Loading primary channel data")
     bandts = get_data(
-        primary, start-pad, end+pad, verbose=True, nproc=args.nproc)
+        primary, start-pad, end+pad, verbose=True,
+        frametype=args.primary_frametype, nproc=args.nproc)
     if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
         raise ValueError("bandpass frequency is out of range for this "
                          "channel, band (Hz): {0}, sample rate: {1}".format(
