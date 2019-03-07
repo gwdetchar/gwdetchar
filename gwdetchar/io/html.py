@@ -23,7 +23,7 @@ import os
 
 from six.moves import StringIO
 
-from glue import markup
+from MarkupPy import markup
 
 from ..plot import plot_segments
 
