@@ -30,7 +30,7 @@ except ImportError:
     from StringIO import StringIO
 
 
-from matplotlib import use
+from matplotlib import (use, rcParams)
 use('agg')
 
 import gwdatafind
@@ -43,6 +43,7 @@ from gwpy.segments import (Segment, SegmentList,
                            DataQualityFlag, DataQualityDict)
 
 from gwdetchar import (__version__, cli, const, saturation)
+from gwdetchar.plot import get_gwpy_tex_settings
 from gwdetchar.io import html as htmlio
 
 __author__ = 'Dan Hoak <daniel.hoak@ligo.org>'
@@ -80,6 +81,10 @@ args = parser.parse_args()
 ifo = args.ifo.upper()
 site = ifo[0]
 frametype = args.frametype or '%s_R' % ifo
+
+# set TeX settings
+tex_settings = get_gwpy_tex_settings()
+rcParams.update(tex_settings)
 
 # get segments
 span = Segment(args.gpsstart, args.gpsend)
