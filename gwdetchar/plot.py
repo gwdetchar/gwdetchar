@@ -21,6 +21,7 @@
 
 from matplotlib import rcParams
 from gwpy.plot.tex import (has_tex, MACROS as GWPY_TEX_MACROS)
+from gwpy.utils.env import bool_env
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Dan Hoak <daniel.hoak@ligo.org>, ' \
@@ -44,7 +45,7 @@ def get_gwpy_tex_settings():
         'axes.titlesize': 24,
         'grid.alpha': 0.5,
     }
-    if has_tex():
+    if has_tex() and bool_env("GWPY_USETEX", True):
         params.update({
             'text.usetex': True,
             'text.latex.preamble': (
