@@ -635,7 +635,7 @@ page.add(htmlio.write_param(
 page.add(htmlio.write_param('Cluster coefficient threshold: ',
                             '%g' % args.cluster_coefficient))
 if args.band_pass:
-    page.add(write_param('Filter settings',
+    page.add(htmlio.write_param('Filter settings',
                          'Flow=%dHz, Fhigh=%dHz ' % (flower, fupper)))
 page.h2('Model Information')
 
