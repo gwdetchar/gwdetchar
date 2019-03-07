@@ -56,11 +56,6 @@ def get_gwpy_tex_settings():
     return params
 
 
-# TeX settings
-tex_settings = get_gwpy_tex_settings()
-rcParams.update(tex_settings)
-
-
 # -- plotting utilities -------------------------------------------------------
 
 def plot_segments(flag, span, facecolor='red', edgecolor='darkred',

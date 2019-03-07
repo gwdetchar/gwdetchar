@@ -53,7 +53,7 @@ from gwdetchar.plot import get_gwpy_tex_settings
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
-# update rcParams
+# TeX settings
 tex_settings = get_gwpy_tex_settings()
 rcParams.update(tex_settings)
 rcParams.update({

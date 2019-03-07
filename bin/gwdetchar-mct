@@ -25,9 +25,6 @@ import numpy
 import os
 import sys
 
-from matplotlib import (use, rcParams)
-use('agg')
-
 import gwdatafind
 
 from glue.ligolw.utils import write_fileobj
@@ -42,7 +39,6 @@ from gwdetchar import (const, cli, cds, __version__)
 from gwdetchar.io import (ligolw, html as htmlio)
 from gwdetchar.io.datafind import get_data
 from gwdetchar.daq import find_crossings
-from gwdetchar.plot import get_gwpy_tex_settings
 
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -82,10 +78,6 @@ else:
     statea = SegmentList([span])
 
 duration = abs(span)
-
-# set TeX settings
-tex_settings = get_gwpy_tex_settings()
-rcParams.update(tex_settings)
 
 # initialize output files for each threshold and store them in a dict
 outfiles = {}
