@@ -195,7 +195,8 @@ if args.verbose:
 
 # make node in workflow for each time
 for t in times:
-    cmd = " ".join([str(t)] + arguments)
+    cmd = " ".join([str(t)] + [
+        "--output-directory", os.path.join(outdir, str(t))] + arguments)
     job.add_arg(cmd, name=str(t).replace(".", "_"))
 
 # write DAG
