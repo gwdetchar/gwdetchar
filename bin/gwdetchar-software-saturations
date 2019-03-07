@@ -35,7 +35,7 @@ use('agg')
 
 import gwdatafind
 
-from glue import markup
+from MarkupPy import markup
 
 from gwpy.io.cache import sieve as sieve_cache
 from gwpy.io.gwf import get_channel_names

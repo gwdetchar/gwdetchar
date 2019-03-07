@@ -35,7 +35,8 @@ from six.moves.urllib.parse import urlparse
 
 from pkg_resources import resource_filename
 
-from glue import markup
+from MarkupPy import markup
+
 from gwpy.table import Table
 from gwpy.time import tconvert
 from ..io.html import (JQUERY_JS, BOOTSTRAP_CSS, BOOTSTRAP_JS)
@@ -586,7 +587,7 @@ def scaffold_plots(plots, nperrow=3):
 
     Returns
     -------
-    page : `~glue.markup.page`
+    page : `~MarkupPy.markup.page`
         the markup object containing the scaffolded HTML
     """
     page = markup.page()
@@ -663,7 +664,7 @@ def write_footer(about=None, date=None):
 
     Returns
     -------
-    page : `~glue.markup.page`
+    page : `~MarkupPy.markup.page`
         the markup object containing the footer HTML
     """
     page = markup.page()
@@ -717,7 +718,7 @@ def write_summary(
 
     Returns
     -------
-    page : `~glue.markup.page`
+    page : `~MarkupPy.markup.page`
         the formatted markup object containing the analysis summary table
     """
     utc = tconvert(gpstime)
@@ -791,7 +792,7 @@ def write_ranking(toc, primary, thresh=6.5,
 
     Returns
     -------
-    page : `~glue.markup.page`
+    page : `~MarkupPy.markup.page`
         the formatted markup object containing the analysis summary table
     """
     # construct an ordered dict of channel entries
@@ -906,7 +907,7 @@ def write_block(blockkey, block, context,
 
     Returns
     -------
-    page : `~glue.markup.page`
+    page : `~MarkupPy.markup.page`
         the formatted HTML for this block
     """
     page = markup.page()
