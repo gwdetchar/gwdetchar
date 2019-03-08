@@ -109,8 +109,14 @@ def test_primary():
     length = 6
     mfilter = core.primary(0, length=length, hoft=INPUT, fftlength=FFTLENGTH)
     assert mfilter.duration.value == length
-    tmax = mfilter.times[mfilter.argmax()]
-    assert tmax.value == 0
+    assert mfilter.times[mfilter.argmax()].value == 0
+
+    # test again, with a high-pass filter
+    f_low = 4
+    mfilterhp = core.primary(0, length=length, f_low=f_low, hoft=INPUT,
+                             fftlength=FFTLENGTH)
+    assert mfilterhp.duration.value == length
+    assert mfilterhp.times[mfilterhp.argmax()].value == 0
 
 
 def test_cross_correlate():
@@ -121,6 +127,14 @@ def test_cross_correlate():
     assert wxoft.is_compatible(corr)
     tmax = corr.abs().times[corr.argmax()]
     assert tmax.value == 0
+
+    # test with resampling
+    corr2 = core.cross_correlate(wxoft.resample(2048), whoft)
+    corr3 = core.cross_correlate(wxoft, whoft.resample(2048))
+    assert corr2.sample_rate.value == 2048
+    assert corr2.is_compatible(corr3)
+    assert corr2.abs().times[corr2.argmax()].value == tmax.value
+    assert corr3.abs().times[corr3.argmax()].value == tmax.value
 
 
 def test_scan():
@@ -141,3 +155,9 @@ def test_scan():
     assert qspec.q == rqspec.q
     assert qspec.q == qgram.plane.q
     assert qgram.plane.q == rqgram.plane.q
+
+    # test low false alarm rate
+    CHANNEL.always_plot = False
+    empty = core.scan(gps=0, channel=CHANNEL, xoft=NOISE, resample=2048,
+                      fftlength=FFTLENGTH)
+    assert empty is None

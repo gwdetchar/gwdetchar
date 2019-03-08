@@ -26,7 +26,7 @@ import pytest
 
 import numpy
 
-from matplotlib import use
+from matplotlib import (use, rcParams, rcParamsDefault)
 use('agg')
 
 from gwpy.plot import Plot
@@ -45,11 +45,22 @@ SERIES = TimeSeries(DATA, sample_rate=60, unit='Mpc', name='X1:TEST')
 
 # -- make sure plots run end-to-end -------------------------------------------
 
+def test_configure_mpl():
+    plot.configure_mpl()
+    assert os.environ['HOME'] == os.environ['MPLCONFIGDIR']
+    assert rcParams['ps.useafm'] is True
+    assert rcParams['pdf.use14corefonts'] is True
+    assert rcParams['text.usetex'] is True
+    rcParams.update(rcParamsDefault)
+
+
 def test_save_figure(tmpdir):
     base = str(tmpdir)
     fig = SERIES.plot()
     tsplot = plot.save_figure(fig, os.path.join(base, 'test.png'))
     assert tsplot == os.path.join(base, 'test.png')
+    noneplot = plot.save_figure(fig, os.path.join('tgpflk', 'test.png'))
+    assert noneplot is None
     shutil.rmtree(base, ignore_errors=True)
 
 

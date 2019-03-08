@@ -19,14 +19,20 @@
 """Tests for `gwdetchar.io.html`
 """
 
+import os
+import shutil
+
 import pytest
+
+from matplotlib import use
+use('Agg')  # nopep8
 
 try:  # python 3.x
     from io import StringIO
 except ImportError:  # python 2.7
     from cStringIO import StringIO
 
-from gwpy.segments import DataQualityFlag
+from gwpy.segments import (Segment, DataQualityFlag)
 
 from .. import html
 from ...utils import parse_html
@@ -47,20 +53,31 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML PUBLIC \'-//W3C//DTD HTML 4.01 Transition
 </body>
 </html>"""  # nopep8
 
-FLAG_HTML = """<div class="panel panel-warning">
+FLAG_CONTENT = """<div class="panel panel-warning">
 <div class="panel-heading">
-<a class="panel-title" href="#flag0" data-toggle="collapse" data-parent="#accordion">
+<a class="panel-title" href="#flag0" data-toggle="collapse" data-parent="#accordion">X1:TEST_FLAG</a>
 </div>
 <div id="flag0" class="panel-collapse collapse">
 <div class="panel-body">
-<pre># seg\tstart\tstop\tduration
-0\t0\t66\t66.0
-</pre>
-</div>
+{content}
+</div>{plots}
 </div>
 </div>"""  # nopep8
 
-FLAG = DataQualityFlag(known=[(0, 66)], active=[(0, 66)])
+FLAG_HTML = FLAG_CONTENT.format(content="""<pre># seg\tstart\tstop\tduration
+0\t0\t66\t66.0
+</pre>""", plots='')
+
+FLAG_HTML_WITH_PLOTS = FLAG_CONTENT.format(
+    content='<pre># seg\tstart\tstop\tduration\n0\t0\t66\t66.0\n</pre>',
+    plots='\n<a href="plots/X1-TEST_FLAG-0-66.png" target="_blank">\n'
+          '<img src="plots/X1-TEST_FLAG-0-66.png" style="width: 100%;" />\n'
+          '</a>')
+
+FLAG_HTML_NO_SEGMENTS = FLAG_CONTENT.format(
+    content='<p>No segments were found.</p>', plots='')
+
+FLAG = DataQualityFlag(known=[(0, 66)], active=[(0, 66)], name='X1:TEST_FLAG')
 
 
 # -- HTML unit tests ----------------------------------------------------------
@@ -80,3 +97,15 @@ def test_write_param():
 def test_write_flag_html():
     page = html.write_flag_html(FLAG)
     assert parse_html(str(page)) == parse_html(FLAG_HTML)
+
+    page2 = html.write_flag_html(
+        DataQualityFlag(known=[], active=[], name='X1:TEST_FLAG'))
+    assert parse_html(str(page2)) == parse_html(FLAG_HTML_NO_SEGMENTS)
+
+
+def test_write_flag_html_with_plots(tmpdir):
+    tmpdir.mkdir('plots')
+    os.chdir(str(tmpdir))
+    page = html.write_flag_html(FLAG, span=Segment(0, 66), plotdir='plots')
+    assert parse_html(str(page)) == parse_html(FLAG_HTML_WITH_PLOTS)
+    shutil.rmtree(str(tmpdir), ignore_errors=True)

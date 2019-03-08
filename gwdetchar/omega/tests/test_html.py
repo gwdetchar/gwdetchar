@@ -481,9 +481,22 @@ def test_write_block():
 # -- end-to-end tests ---------------------------------------------------------
 
 def test_write_qscan_page(tmpdir):
-    os.chdir(str(tmpdir))
-    html.write_qscan_page('L1', 0, ANALYZED, 'info')
-    shutil.rmtree(str(tmpdir), ignore_errors=True)
+    tmpdir.mkdir('about')
+    tmpdir.mkdir('data')
+    tmpdir.mkdir('plots')
+    base = str(tmpdir)
+    config = os.path.join(base, 'config.ini')
+    with open(config, 'w') as fobj:
+        fobj.write(CONFIGURATION)
+    os.chdir(base)
+    htmlv = {
+        'title': 'test',
+        'refresh': True,
+        'config': [config],
+    }
+    html.write_qscan_page('L1', 0, ANALYZED, **htmlv)
+    html.write_qscan_page('L1', 0, ANALYZED, correlated=False, **htmlv)
+    shutil.rmtree(base, ignore_errors=True)
 
 
 def test_write_null_page(tmpdir):
@@ -493,7 +506,10 @@ def test_write_null_page(tmpdir):
 
 
 def test_write_about_page(tmpdir):
-    tmpdir.mkdir('about')
-    os.chdir(str(tmpdir))
-    html.write_about_page('L1', 0, CONFIG_FILE, outdir='about')
-    shutil.rmtree(str(tmpdir), ignore_errors=True)
+    base = str(tmpdir)
+    config = os.path.join(base, 'config.ini')
+    with open(config, 'w') as fobj:
+        fobj.write(CONFIGURATION)
+    os.chdir(base)
+    html.write_about_page('L1', 0, [config], outdir='about')
+    shutil.rmtree(base, ignore_errors=True)

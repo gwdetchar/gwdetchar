@@ -23,6 +23,7 @@ import os
 import shutil
 import tempfile
 import atexit
+import warnings
 
 from matplotlib import rcParams
 

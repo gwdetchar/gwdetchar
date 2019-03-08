@@ -156,8 +156,6 @@ except ImportError:  # python 2.x
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
-OMEGA_DEFAULTS = {}
-
 
 # -- define parser ------------------------------------------------------------
 
@@ -166,18 +164,6 @@ class OmegaConfigParser(configparser.ConfigParser):
         if ifo is not None:
             defaults.setdefault('IFO', ifo)
         configparser.ConfigParser.__init__(self, defaults=defaults, **kwargs)
-        self.set_omega_defaults()
-
-    def set_omega_defaults(self):
-        for section in OMEGA_DEFAULTS:
-            self.add_section(section)
-            for key, val in OMEGA_DEFAULTS[section].iteritems():
-                if key.endswith('channels') and isinstance(val, (tuple, list)):
-                    self.set(section, key, '\n'.join(list(val)))
-                elif isinstance(val, tuple):
-                    self.set(section, key, ', '.join(map(str, val)))
-                else:
-                    self.set(section, key, str(val))
 
     def read(self, filenames):
         readok = configparser.ConfigParser.read(self, filenames)
@@ -186,28 +172,6 @@ class OmegaConfigParser(configparser.ConfigParser):
                 raise IOError("Cannot read file %r" % f)
         return readok
     read.__doc__ = configparser.ConfigParser.read.__doc__
-
-    def getfloats(self, section, option):
-        return self._get(section, comma_separated_floats, option)
-
-    def getparams(self, section, prefix):
-        nchar = len(prefix)
-        params = dict((key[nchar:], val) for (key, val) in
-                      self.items(section) if key.startswith(prefix))
-        # try simple typecasting
-        for key in params:
-            if params[key].lower() in ('true', 'false'):
-                params[key] = bool(params[key])
-            if key == 'frequency-range':
-                params[key] = tuple([float(s) for s in params[key].split(',')])
-            if key == 'channels':
-                params[key] = params[key].split(',\n')
-            else:
-                try:
-                    params[key] = float(params[key])
-                except ValueError:
-                    pass
-        return params
 
     def get_channel_blocks(self):
         # retrieve an ordered dictionary of contextual channel blocks
@@ -220,10 +184,6 @@ class OmegaConfigParser(configparser.ConfigParser):
 
 
 # -- utilities ----------------------------------------------------------------
-
-def comma_separated_floats(string):
-    return map(float, string.split(','))
-
 
 def get_default_configuration(ifo, gpstime):
     """Retrieve a default configuration file stored locally

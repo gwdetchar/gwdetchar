@@ -100,12 +100,17 @@ def test_ligo_accum_overflow_channel():
 
 @mock.patch('gwdetchar.daq.find_urls')
 @mock.patch('gwdetchar.daq.get_channel_names')
-def test_ligo_model_overflow_channels(get_names, find_frames):
+@mock.patch('gwdetchar.daq._ligo_model_overflow_channels_nds')
+def test_ligo_model_overflow_channels(nds, get_names, find_frames):
     get_names.return_value = CHANNELS
 
     names = daq.ligo_model_overflow_channels(1, ifo='X1', accum=True)
     assert names == CHANNELS[1:5]
 
+    names = daq.ligo_model_overflow_channels(1, ifo='X1', accum=False)
+    assert names == CHANNELS[5:7]
+
+    nds.return_value = CHANNELS
     names = daq.ligo_model_overflow_channels(1, ifo='X1', accum=False)
     assert names == CHANNELS[5:7]
 
@@ -118,3 +123,6 @@ def test_ligo_model_overflow_channels(get_names, find_frames):
 def test_find_crossings():
     times = daq.find_crossings(OVERFLOW_SERIES, 0.1)
     assert_array_equal(times, CROSSING_TIMES)
+
+    times0 = daq.find_crossings(OVERFLOW_SERIES, 0)
+    assert_array_equal(times0, [])

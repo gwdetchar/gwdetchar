@@ -25,11 +25,9 @@ import sys
 try:  # python 3.x
     from io import StringIO
     from html.parser import HTMLParser
-    from html.entities import name2codepoint
 except:  # python 2.7
     from cStringIO import StringIO
     from HTMLParser import HTMLParser
-    from htmlentitydefs import name2codepoint
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -51,20 +49,6 @@ class GWHTMLParser(HTMLParser):
 
     def handle_data(self, data):
         print("Data:", data)
-
-    def handle_comment(self, data):
-        print("Comment:", data)
-
-    def handle_entityref(self, name):
-        c = chr(name2codepoint[name])
-        print("Named entity:", c)
-
-    def handle_charref(self, name):
-        if name.startswith('x'):
-            c = chr(int(name[1:], 16))
-        else:
-            c = chr(int(name))
-        print("Numeric entity:", c)
 
     def handle_decl(self, data):
         print("Decl:", data)

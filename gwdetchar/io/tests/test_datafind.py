@@ -40,7 +40,7 @@ HOFT = TimeSeries(
     numpy.random.normal(loc=1, scale=.5, size=16384 * 66),
     sample_rate=16384, epoch=0, name='X1:TEST-STRAIN')
 
-FLAG = DataQualityFlag(known=[(0, 66)], active=[(0, 66)],
+FLAG = DataQualityFlag(known=[(-33, 33)], active=[(-33, 33)],
                        name='X1:TEST-FLAG:1')
 
 
@@ -49,11 +49,9 @@ FLAG = DataQualityFlag(known=[(0, 66)], active=[(0, 66)],
 @mock.patch('gwpy.segments.DataQualityFlag.query', return_value=FLAG)
 def test_check_flag(segserver):
     # attempt to query segments database for an analysis flag
-    gpstime = 0
-    duration = 64
-    pad = 1
     flag = 'X1:TEST-FLAG:1'
-    assert datafind.check_flag(flag, gpstime, duration, pad) is True
+    assert datafind.check_flag(flag, gpstime=0, duration=64, pad=1) is True
+    assert datafind.check_flag(flag, gpstime=800, duration=64, pad=1) is False
 
 
 @mock.patch('gwpy.timeseries.TimeSeries.fetch', return_value=HOFT)
@@ -115,3 +113,9 @@ def test_get_data_dict_from_cache(tsdfetch):
     assert data[channels[0]].span == Segment(start, end)
     nptest.assert_array_equal(data[channels[0]].value,
                               HOFT.crop(start, end).value)
+
+
+def test_fail_on_no_frametype():
+    channel = 'X1:TEST-STRAIN'
+    with pytest.raises(TypeError):
+        datafind.get_data(channel, start=0, end=32)
