@@ -680,13 +680,13 @@ def write_footer(about=None, date=None):
         date = datetime.datetime.now().replace(second=0, microsecond=0)
     version = get_versions()['version']
     commit = get_versions()['full-revisionid']
-    url = 'https://github.com/gwdetchar/gwdetchar/tree/%s' % commit
-    hlink = markup.oneliner.a('GW-DetChar version %s' % version, href=url,
+    url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
+    link = markup.oneliner.a('gwdetchar version {}'.format(version), href=url,
                               target='_blank', style='color:#eee;')
     page.div(class_='row')
     page.div(class_='col-md-12')
-    page.p('Page generated using %s by %s at %s'
-           % (hlink, getuser(), date))
+    page.p('These results were obtained using {link} by {user} at '
+           '{date}.'.format(link=link, user=getuser(), date=date))
     # link to 'about'
     if about is not None:
         page.a('How was this page generated?', href=about, style='color:#eee;')
