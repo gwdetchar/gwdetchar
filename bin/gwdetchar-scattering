@@ -88,7 +88,10 @@ parser.add_argument('-m', '--optic', action='append',
 parser.add_argument('-p', '--segment-padding', type=float, default=.05,
                     help='time with which to pad scattering segments on '
                          'either side, default: %(default)s')
-parser.add_argument('-s', '--segment-end-pad', type=float, default=1.0,
+parser.add_argument('-s', '--segment-start-pad', type=float, default=30.0,
+                    help='amount of time to remove from the start of each '
+                         'analysis segment')
+parser.add_argument('-e', '--segment-end-pad', type=float, default=30.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
 parser.add_argument('-c', '--main-channel',
@@ -133,7 +136,8 @@ if args.state_flag:
                                   int(args.gpsend),
                                   url=const.DEFAULT_SEGMENT_SERVER)
     for i, seg in enumerate(state.active):
-        state.active[i] = type(seg)(seg[0], seg[1]-args.segment_end_pad)
+        state.active[i] = type(seg)(
+            seg[0]+args.segment_start_pad, seg[1]-args.segment_end_pad)
     state.coalesce()
     statea = state.active
     livetime = float(abs(statea))
@@ -422,6 +426,12 @@ for i, channel in enumerate(sorted(allchannels)):
            **{'data-toggle': 'collapse', 'data-parent': '#accordion'})
     page.div.close()
     page.div(id_='flag%s' % i, class_='panel-collapse collapse')
+    page.a(href=png, target='_blank')
+    page.img(style="width: 100%;", src=png)
+    page.a.close()
+    page.a(href=hpng, target='_blank')
+    page.img(style="width: 100%;", src=hpng)
+    page.a.close()
     page.div(class_='panel-body')
     segs = StringIO()
     if deadtime:
@@ -456,12 +466,6 @@ for i, channel in enumerate(sorted(allchannels)):
         page.p("No segments were found with scattering above %.2f Hz."
                % args.frequency_threshold)
     page.div.close()
-    page.a(href=png, target='_blank')
-    page.img(style="width: 100%;", src=png)
-    page.a.close()
-    page.a(href=hpng, target='_blank')
-    page.img(style="width: 100%;", src=hpng)
-    page.a.close()
     page.div.close()
     page.div.close()
 
