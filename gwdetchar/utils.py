@@ -21,13 +21,15 @@
 
 import re
 import sys
-
+from functools import partial
 try:  # python 3.x
     from io import StringIO
     from html.parser import HTMLParser
 except:  # python 2.7
     from cStringIO import StringIO
     from HTMLParser import HTMLParser
+
+from gwpy.table import EventTable
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -97,3 +99,24 @@ def natural_sort(l, key=str):
     alphanum_key = lambda key: [convert(c) for c in
                                 re.split('([0-9]+)', k[l.index(key)])]
     return sorted(l, key=alphanum_key)
+
+
+def table_from_segments(flagdict, sngl_burst=False):
+    """Build an `EventTable` from a `DataQualityDict`
+    """
+    rows = []
+    if sngl_burst:
+        names = ("peak", "peak_frequency", "snr", "channel")
+        def row(seg, channel):
+            return seg[0], 100, 10, channel
+    else:
+        names = ("time", "frequency", "tstart", "tend", "snr", "channel")
+        def row(seg, channel):
+            return seg[0], 100, seg[0], seg[1], 10, channel
+
+    for name, flag in flagdict.items():
+        rows.extend(map(partial(row, channel=name), flag.active))
+    table = EventTable(rows=rows, names=names)
+    if sngl_burst:  # add tablename for GWpy's ligolw writer
+        table.meta["tablename"] = "sngl_burst"
+    return table

@@ -22,28 +22,27 @@
 
 from __future__ import print_function
 
-import numpy
 import os.path
-import sys
 
 import tqdm
 
 from matplotlib import (use, rcParams)
-use('agg')
+use('agg')  # noqa
+
+import h5py
 
 import gwdatafind
 
-from glue.ligolw.utils import write_fileobj
-
+from gwpy.io.cache import cache_segments
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
-from gwpy.io.cache import cache_segments
 from gwpy.utils import gprint
 
-from gwdetchar import (cds, cli, const, daq, __version__)
-from gwdetchar.plot import get_gwpy_tex_settings
-from gwdetchar.io import (ligolw, html as htmlio)
+from gwdetchar import (cds, cli, const, daq)
+from gwdetchar.io import (html as htmlio)
 from gwdetchar.io.datafind import get_data
+from gwdetchar.plot import get_gwpy_tex_settings
+from gwdetchar.utils import table_from_segments
 
 SITE_MAP = {
     'K1': 'KAGRA',
@@ -70,11 +69,11 @@ parser.add_argument('--nds', metavar='HOST:PORT',
                     help='use the given NDS host:port to access data, '
                          'default: use datafind')
 parser.add_argument('-o', '--output-file',
-                    help='path to output xml file, default name will be '
+                    help='path to output data file, default name will be '
                          'automatically generated based on IFO and GPS times')
-parser.add_argument('-O', '--output-format', default='sngl_burst',
-                    choices=['sngl_burst', 'segments', 'integer-segments'],
-                    help='output format, default: %(default)s')
+parser.add_argument('-I', '--integer-segments', action='store_true',
+                    default=False, help="pad all overflow segments to integer "
+                                        "boundaries (default: %(default)s)")
 parser.add_argument('-p', '--segment-pad', type=float, default=0.1,
                     help='minimum padding (one-sided) for output segments '
                          'when using --output-format '
@@ -129,20 +128,12 @@ else:
 if not args.output_file:
     duration = abs(span)
     args.output_file = (
-        '%s-OVERFLOWS-%d-%d.xml.gz'
+        '%s-OVERFLOWS-%d-%d.h5'
         % (args.ifo, int(args.gpsstart), duration))
     gprint("Set default output file as %s" % args.output_file)
 
 # set up container
-if args.output_format.endswith('segments'):
-    as_table = False
-    overflows = DataQualityDict()
-else:
-    as_table = True
-    overflows = ligolw.new_table(
-        'sngl_burst',
-        columns=['peak_time', 'peak_time_ns', 'peak_frequency', 'event_id',
-                 'channel', 'snr'])
+overflows = DataQualityDict()
 
 # prepare data access
 if args.nds:
@@ -162,10 +153,13 @@ else:  # get frame cache
                                  int(args.gpsstart), int(args.gpsend))
     cachesegs = statea & cache_segments(cache)
 
+flag_desc = "ADC/DAC Overflow indicated by {0}"
+
 # get channel and find overflows
 for dcuid in args.dcuid:
     gprint("Processing DCUID %d" % dcuid)
     channel = daq.ligo_accum_overflow_channel(dcuid, args.ifo)
+    overflows[channel] = DataQualityFlag(channel, known=cachesegs)
     if args.deep:
         gprint("    Getting list of overflow channels...", end=' ')
         try:
@@ -174,67 +168,59 @@ for dcuid in args.dcuid:
         except IndexError:  # no frame found for GPS start, try GPS end
             channels = daq.ligo_model_overflow_channels(
                 dcuid, args.ifo, args.frametype, gpstime=span[-1])
+        for chan in channels:  # set up flags early
+            overflows[chan] = DataQualityFlag(
+                chan,
+                known=cachesegs,
+                description=flag_desc.format(chan),
+                isgood=False,
+            )
         gprint("    %d channels found" % len(channel))
     for seg in cachesegs:
-        gprint("    Reading ACCUM_OVERFLOW data for %d-%d..." % seg, end=' ')
+        gprint("    Processing {}-{}:".format(*seg))
         if args.nds:
             read_kw = dict(connection=ndsconnection)
         else:
             read_kw = dict(source=cache, nproc=args.nproc)
-        data = get_data(channel, seg[0], seg[1], pad=0., **read_kw)
-        if not as_table:
-            new = daq.find_overflow_segments(data)
-            osegs = type(new.active)([type(s)(s[0]-2, s[0]+2) for
-                                      s in new.active])
-            go_deep = len(new.active) > 0
-        else:
-            new = daq.find_overflows(data)
-            osegs = SegmentList([Segment(t-2, t+2) for t in new])
-            go_deep = new.size != 0
-        gprint("%d overflows found" % len(osegs))
-        if args.deep:
-            if go_deep:
-                for s, e in tqdm.tqdm(osegs.coalesce(), unit='ovfl',
-                                      desc='    Going deep'):
-                    data = get_data(channels, s, e, **read_kw)
-                    for ch in channels:
-                        daq.get_overflows(
-                            overflows, data[ch], ch, seg, as_table=as_table)
-            elif not as_table:
-                for ch in channels:
-                    try:
-                        overflows[ch] += DataQualityFlag(ch, known=[seg])
-                    except KeyError:
-                        overflows[ch] = DataQualityFlag(ch, known=[seg])
-        elif not args.deep and not as_table:
-            try:
-                overflows[channel] += new
-            except KeyError:
-                overflows[channel] = new
-        elif not args.deep:
-            overflows.extend(ligolw.sngl_burst_from_times(
-                new, snr=10, peak_frequency=100, channel=channel,
-                search=os.path.basename(__file__)))
+        msg = "        Reading ACCUM_OVERFLOW data: "
+        data = get_data(
+            channel, seg[0], seg[1],
+            pad=0., verbose=msg, **read_kw
+        )
+        new = daq.find_overflow_segments(
+            data,
+            cumulative=True,
+        )
+        overflows[channel] += new
+        gprint("        {} overflows found".format(len(new.active)))
+        if not new.active:
+            continue
+        # go deep!
+        for s, e in tqdm.tqdm(new.active.protract(2), unit='ovfl',
+                              desc='        Going deep'):
+            data = get_data(channels, s, e, **read_kw)
+            for ch in channels:
+                overflows[ch] += daq.find_overflow_segments(
+                    data[ch],
+                    cumulative=True,
+                )
     gprint("    Complete")
 
-# get segments
-if not as_table:
-    for flag in overflows:
-        overflows[flag].known = cachesegs
-    segs = overflows
+# write output
+table = table_from_segments(
+    overflows,
+    sngl_burst=args.output_file.endswith((".xml", ".xml.gz")),
+)
+if args.integer_segments:
+    for key in overflows:
+        overflows[key] = overflows[key].round()
+if args.output_file.endswith((".h5", "hdf", ".hdf5")):
+    with h5py.File(args.output_file, "w") as h5f:
+        table.write(h5f, path="triggers")
+        overflows.write(h5f, path="segments")
 else:
-    segs = ligolw.segments_from_sngl_burst(
-        overflows, args.segment_pad, known=statea)
-if args.output_format == 'integer-segments':
-    for key in segs:
-        segs[key] = segs[key].round()
-
-# write results to file
-gz = args.output_file.endswith('.gz')
-if args.output_format == 'sngl_burst':
-    write_fileobj(ligolw.table_to_document(overflows), args.output_file, gz=gz)
-else:
-    segs.write(args.output_file, format="ligolw", gz=gz)
+    table.write(args.output_file, overwrite=True)
+    overflows.write(args.output_file, overwrite=True, append=True)
 gprint("Written output to %s" % args.output_file)
 
 # write HTML
@@ -283,11 +269,11 @@ if args.html:
             state, span, 'state', parent='accordion1', context='success')))
         page.div.close()
     # print overflow segments
-    if sum(abs(s.active) for s in segs.values()):
+    if sum(abs(s.active) for s in overflows.values()):
         page.p('The following channels indicated an overflow (constant '
                'overflow is yellow, otherwise red):')
         page.div(class_='panel-group', id_='accordion2')
-        for i, (c, flag) in enumerate(list(segs.items())):
+        for i, (c, flag) in enumerate(list(overflows.items())):
             if abs(flag.active) == 0:
                 continue
             if abs(flag.active) == abs(cachesegs):
@@ -320,7 +306,7 @@ if args.html:
     page.thead.close()
     # write body
     page.tbody()
-    for c, seglist in segs.items():
+    for c, seglist in overflows.items():
         t = abs(seglist.active)
         if t == 0:
             context = 'default'
