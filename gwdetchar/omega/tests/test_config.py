@@ -194,9 +194,12 @@ def test_save_loudest_tile_features():
         gps=0, channel=channel, xoft=in_, resample=4096, fftlength=8)
 
     # test loudest tiles
-    channel.save_loudest_tile_features(qgram)
+    channel.save_loudest_tile_features(qgram, correlate=glitch)
     assert channel.Q == numpy.around(qgram.plane.q, 1)
     assert channel.energy == numpy.around(qgram.peak['energy'], 1)
     assert channel.snr == numpy.around(qgram.peak['snr'], 1)
     assert channel.t == numpy.around(qgram.peak['time'], 3)
     assert channel.f == numpy.around(qgram.peak['frequency'], 1)
+    assert channel.corr == numpy.around(glitch.max().value, 1)
+    assert channel.delay == 0.0
+    assert channel.stdev == glitch.std().value

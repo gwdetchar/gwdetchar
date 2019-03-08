@@ -60,24 +60,17 @@ def _format_time_axis(ax, gps, span):
     ax.grid(True, axis='x', which='major')
 
 
-def _format_frequency_axis(ax, axis='y'):
+def _format_frequency_axis(ax):
     """Format the frequency axis of an Omega scan plot
 
     Parameters
     ----------
     ax : `~matplotlib.axis.Axis`
         the `Axis` object to format
-
-    axis : `str`
-        a string identifiying the axis to format, must be either `'x'` or `'y'`
     """
-    ax.grid(True, axis=axis, which='both')
-    if axis == 'x':
-        ax.set_xscale('log')
-        ax.set_xlabel('Frequency [Hz]')
-    else:
-        ax.set_yscale('log')
-        ax.set_ylabel('Frequency [Hz]')
+    ax.grid(True, axis='y', which='both')
+    ax.set_yscale('log')
+    ax.set_ylabel('Frequency [Hz]')
 
 
 def _format_color_axis(ax, colormap='viridis', clim=None, norm='linear'):

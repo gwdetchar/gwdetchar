@@ -22,10 +22,12 @@
 import os
 import shutil
 
+import pytest
+
 import numpy
 from numpy.testing import assert_array_equal
 
-from gwpy.segments import (Segment, SegmentList)
+from gwpy.segments import (Segment, SegmentList, DataQualityFlag)
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.testing.utils import assert_segmentlist_equal
 from gwpy.testing.compat import mock
@@ -81,8 +83,22 @@ def test_find_limit_channels():
     assert_array_equal(limens, ['X1:TEST'])
     assert_array_equal(swstats, ['X1:TEST'])
 
+    limens2, swstats2 = saturation.find_limit_channels(CHANNELS, skip='TEST')
+    assert not limens2
+    assert not swstats2
+
 
 @mock.patch('gwpy.timeseries.TimeSeriesDict.read', return_value=TSDICT)
 def test_is_saturated(mread):
     saturated = saturation.is_saturated('X1:TEST', 1, start=0, end=8)
+    assert isinstance(saturated, DataQualityFlag)
     assert_segmentlist_equal(saturated.active, SEGMENTS)
+
+    saturated2 = saturation.is_saturated(['X1:TEST_LIMIT'], 1, start=0, end=8)
+    assert isinstance(saturated2, list)
+    assert_segmentlist_equal(saturated2[0].active, saturated.active)
+
+    with pytest.raises(ValueError) as exc:
+        saturated3 = saturation.is_saturated(
+            'X1:TEST', 1, start=0, end=8, indicator='blah')
+    assert str(exc.value).startswith("Don't know how to determine")
