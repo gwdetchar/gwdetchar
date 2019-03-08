@@ -35,6 +35,10 @@ from six.moves.urllib.parse import urlparse
 
 from pkg_resources import resource_filename
 
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
+
 from MarkupPy import markup
 
 from gwpy.table import Table
@@ -1096,15 +1100,23 @@ def write_about_page(configfiles):
     index : `str`
         the path of the HTML written for this analysis
     """
+    # configure syntax highlighting
+    blexer = get_lexer_by_name('bash', stripall=True)
+    ilexer = get_lexer_by_name('ini', stripall=True)
+    formatter = HtmlFormatter(noclasses=True)
+    # set up page
     page = markup.page()
     page.h2('On the command line')
     page.p('This page was generated with the command line call shown below.')
-    page.pre(' '.join(sys.argv))
+    commandline = highlight(' '.join(sys.argv), blexer, formatter)
+    page.add(commandline)
     page.h2('Configuration file')
     page.p('Omega scans are configured with INI-format files. The '
            'configuration files for this analysis are shown below in full.')
+    # range over config files
     for configfile in configfiles:
         with open(configfile, 'r') as fobj:
-            contents = fobj.read()
-        page.pre(contents)
+            inifile = fobj.read()
+        contents = highlight(inifile, ilexer, formatter)
+        page.add(contents)
     return page
