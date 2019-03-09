@@ -103,18 +103,18 @@ def natural_sort(l, key=str):
     return sorted(l, key=alphanum_key)
 
 
-def table_from_segments(flagdict, sngl_burst=False):
+def table_from_segments(flagdict, sngl_burst=False, snr=10, frequency=100):
     """Build an `EventTable` from a `DataQualityDict`
     """
     rows = []
     if sngl_burst:
         names = ("peak", "peak_frequency", "snr", "channel")
         def row(seg, channel):
-            return seg[0], 100, 10, channel
+            return seg[0], frequency, snr, channel
     else:
         names = ("time", "frequency", "tstart", "tend", "snr", "channel")
         def row(seg, channel):
-            return seg[0], 100, seg[0], seg[1], 10, channel
+            return seg[0], frequency, seg[0], seg[1], snr, channel
 
     for name, flag in flagdict.items():
         rows.extend(map(partial(row, channel=name), flag.active))
