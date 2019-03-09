@@ -83,9 +83,9 @@ parser.add_argument('-d', '--disable-correlation', action='store_true',
 parser.add_argument('-s', '--ignore-state-flags', action='store_true',
                     default=False, help='ignore state flag definitions in '
                                         'the configuration, default: False')
-parser.add_argument('-t', '--far-threshold', type=float, default=1e-10,
-                    help='white noise false alarm rate threshold for '
-                         'processing channels, default: %(default)s Hz')
+parser.add_argument('-t', '--far-threshold', type=float, default=3.171e-8,
+                    help='white noise false alarm rate threshold (Hz) for '
+                         'processing channels, default: %(default)s')
 parser.add_argument('-c', '--colormap', default='viridis',
                     help='name of colormap to use, default: %(default)s')
 cli.add_nproc_option(parser)
