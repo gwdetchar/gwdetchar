@@ -35,6 +35,10 @@ from six.moves.urllib.parse import urlparse
 
 from pkg_resources import resource_filename
 
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
+
 from MarkupPy import markup
 
 from gwpy.table import Table
@@ -676,13 +680,13 @@ def write_footer(about=None, date=None):
         date = datetime.datetime.now().replace(second=0, microsecond=0)
     version = get_versions()['version']
     commit = get_versions()['full-revisionid']
-    url = 'https://github.com/gwdetchar/gwdetchar/tree/%s' % commit
-    hlink = markup.oneliner.a('GW-DetChar version %s' % version, href=url,
+    url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
+    link = markup.oneliner.a('gwdetchar version {}'.format(version), href=url,
                               target='_blank', style='color:#eee;')
     page.div(class_='row')
     page.div(class_='col-md-12')
-    page.p('Page generated using %s by %s at %s'
-           % (hlink, getuser(), date))
+    page.p('These results were obtained using {link} by {user} at '
+           '{date}.'.format(link=link, user=getuser(), date=date))
     # link to 'about'
     if about is not None:
         page.a('How was this page generated?', href=about, style='color:#eee;')
@@ -1096,15 +1100,23 @@ def write_about_page(configfiles):
     index : `str`
         the path of the HTML written for this analysis
     """
+    # configure syntax highlighting
+    blexer = get_lexer_by_name('bash', stripall=True)
+    ilexer = get_lexer_by_name('ini', stripall=True)
+    formatter = HtmlFormatter(noclasses=True)
+    # set up page
     page = markup.page()
     page.h2('On the command line')
     page.p('This page was generated with the command line call shown below.')
-    page.pre(' '.join(sys.argv))
+    commandline = highlight(' '.join(sys.argv), blexer, formatter)
+    page.add(commandline)
     page.h2('Configuration file')
     page.p('Omega scans are configured with INI-format files. The '
            'configuration files for this analysis are shown below in full.')
+    # range over config files
     for configfile in configfiles:
         with open(configfile, 'r') as fobj:
-            contents = fobj.read()
-        page.pre(contents)
+            inifile = fobj.read()
+        contents = highlight(inifile, ilexer, formatter)
+        page.add(contents)
     return page

@@ -69,6 +69,7 @@ install_requires = [
     'setuptools',
     'six',
     'pathlib ; python_version < \'3\'',
+    'pygments',
 ]
 
 # test
