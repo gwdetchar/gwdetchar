@@ -21,24 +21,21 @@
 """
 from __future__ import print_function
 
-import numpy
 import os
-import sys
 
 import gwdatafind
 
-from glue.ligolw.utils import write_fileobj
+from astropy.table import vstack as vstack_tables
 
-from gwpy.segments import (DataQualityFlag, DataQualityDict,
-                           Segment, SegmentList)
+from gwpy.segments import (DataQualityFlag, Segment, SegmentList)
 
 from gwpy.io.cache import (cache_segments, sieve as sieve_cache)
-from gwpy.utils import gprint
+from gwpy.table import EventTable
 
-from gwdetchar import (const, cli, cds, __version__)
-from gwdetchar.io import (ligolw, html as htmlio)
-from gwdetchar.io.datafind import get_data
+from gwdetchar import (const, cli)
 from gwdetchar.daq import find_crossings
+from gwdetchar.io.datafind import get_data
+from gwdetchar.utils import table_from_times
 
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -52,7 +49,7 @@ cli.add_frametype_option(parser, required=const.IFO is None,
 parser.add_argument('-a', '--state-flag', metavar='FLAG',
                     help='restrict search to times when FLAG was active')
 parser.add_argument('-o', '--output-path',
-                    help='path to output xml file, name will be '
+                    help='path to output HDF5 file, name will be '
                          'automatically generated based on IFO and GPS times')
 parser.add_argument('-t', '--threshold', type=float, nargs='+',
                     default=[0., 2.**16, -2.**16],
@@ -61,13 +58,14 @@ parser.add_argument('-c', '--channel', required=True, type=str,
                     help='channel to read for input data')
 parser.add_argument('-r', '--rate-thresh', default=16., type=float,
                     help='if the trigger rate (Hz) is above this value '
-                         'an XML file will not be written')
+                         'for a given segment, crossings for that '
+                         'segment will not be recorded')
 args = parser.parse_args()
 
 span = Segment(args.gpsstart, args.gpsend)
 
-gprint('Processing channel %s over span %d - %d'
-       % (args.channel, args.gpsstart, args.gpsend))
+print('-- Processing channel %s over span %d - %d'
+      % (args.channel, args.gpsstart, args.gpsend))
 
 if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
@@ -85,7 +83,7 @@ for thresh in args.threshold:
     outfiles[str(thresh)] = (
         os.path.join(
             args.output_path,
-            '%s_%s_DAC-%d-%d.xml.gz'
+            '%s_%s_DAC-%d-%d.h5'
             % (args.channel.replace('-', '_').replace(':', '-'),
                str(int(thresh)).replace('-', 'n'),
                int(args.gpsstart), duration)))
@@ -96,33 +94,52 @@ cache = gwdatafind.find_urls(args.ifo[0], args.frametype,
 
 cachesegs = statea & cache_segments(cache)
 
-# initialize a ligolw table for each threshold and store them in a dict
-tables = {}
 if not os.path.exists(args.output_path):
     os.makedirs(args.output_path)
+
+# initialize a ligolw table for each threshold and store them in a dict
+names = ("time", "frequency", "snr")
+dtypes = ("f8",) * len(names)
+tables = {}
 for thresh in args.threshold:
-    tables[str(thresh)] = ligolw.new_table(
-        'sngl_burst',
-        columns=['peak_time', 'peak_time_ns', 'peak_frequency', 'snr'])
+    tables[str(thresh)] = EventTable(names=names, dtype=dtypes,
+                                     meta={"channel": args.channel})
 
 # for each science segment, read in the data from frames, check for threshold
 # crossings, and if the rate of crossings is less than rate_thresh, write to a
 # sngl_burst table
 for seg in cachesegs:
-    gprint('Processing segment %d - %d' % (seg[0], seg[1]))
+    print("Processing {}:".format(seg))
     c = sieve_cache(cache, segment=seg)
-    data = get_data(args.channel, seg[0], seg[1], nproc=args.nproc, source=c)
+    if not c:
+        print("    No {} data files for this segment, "
+              "skipping".format(args.frametype))
+        continue
+    data = get_data(args.channel, seg[0], seg[1], nproc=args.nproc,
+                    source=c, verbose="    Reading data:")
     for thresh in args.threshold:
         times = find_crossings(data, thresh)
-        gprint('Found %d crossings for threshold %d' % (len(times), thresh))
-        gprint('Rate of crossings: %.2f Hz' % (float(len(times))/abs(seg)))
-        if len(times) and (len(times)/abs(seg) < args.rate_thresh):
-            tables[str(thresh)].extend(ligolw.sngl_burst_from_times(
-                times, snr=10, peak_frequency=100,
-                search=os.path.basename(__file__)))
+        rate = float(times.size)/abs(seg) if times.size else 0
+        print("    Found {} crossings of {}, rate: {} Hz".format(
+            times.size,
+            thresh,
+            rate,
+        ))
+        if times.size and rate < args.rate_thresh:
+            existing = tables[str(thresh)]
+            tables[str(thresh)] = vstack_tables(
+                (existing,
+                 table_from_times(times, snr=10., frequency=100.,
+                                  names=existing.colnames),
+                 ),
+                join_type="exact",
+            )
 
-for thresh in args.threshold:
-    gprint('Writing output XML: %s' % outfiles[str(thresh)])
-    file = open(outfiles[str(thresh)], 'w')
-    gz = True
-    write_fileobj(ligolw.table_to_document(tables[str(thresh)]), file, gz=gz)
+n = max(map(len, tables.values()))
+for thresh, outfile in outfiles.items():
+    tables[thresh].write(outfile, path="triggers", format="hdf5",
+                         overwrite=True)
+    print("{} events written to {}".format(
+        str(len(tables[thresh])).rjust(len(str(n))),
+        outfile,
+    ))

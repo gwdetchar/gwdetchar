@@ -29,6 +29,8 @@ except:  # python 2.7
     from cStringIO import StringIO
     from HTMLParser import HTMLParser
 
+import numpy
+
 from gwpy.table import EventTable
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -120,3 +122,34 @@ def table_from_segments(flagdict, sngl_burst=False):
     if sngl_burst:  # add tablename for GWpy's ligolw writer
         table.meta["tablename"] = "sngl_burst"
     return table
+
+
+def table_from_times(times, names=("time", "frequency", "snr"),
+                     snr=10, frequency=100, **kwargs):
+    """Build an `EventTable` from a `DataQualityDict`
+
+    Parameters
+    ----------
+    times : `numpy.ndarray`
+        a 1D array of GPS times
+
+    names : `tuple`, `list`, optional
+        the list of names to use
+
+    snr : `float`, optional
+        the SNR to assign to all 'event triggers'
+
+    frequency : `float`, optional
+        the frequency to assign to all 'event triggers'
+
+    **kwargs
+        other keyword arguments to pass to the `EventTable` constructor
+
+    Returns
+    -------
+    table : `~gwpy.table.EventTable`
+        a new table filled with events at the given times
+    """
+    farr = numpy.ones_like(times) * frequency
+    sarr = numpy.ones_like(times) * snr
+    return EventTable([times, farr, sarr], names=names, **kwargs)
