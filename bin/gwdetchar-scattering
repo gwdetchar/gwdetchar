@@ -136,8 +136,9 @@ if args.state_flag:
                                   int(args.gpsend),
                                   url=const.DEFAULT_SEGMENT_SERVER)
     for i, seg in enumerate(state.active):
-        state.active[i] = type(seg)(
-            seg[0]+args.segment_start_pad, seg[1]-args.segment_end_pad)
+        if abs(seg) > (args.segment_start_pad + args.segment_end_pad):
+            state.active[i] = type(seg)(
+                seg[0]+args.segment_start_pad, seg[1]-args.segment_end_pad)
     state.coalesce()
     statea = state.active
     livetime = float(abs(statea))
