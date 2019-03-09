@@ -135,10 +135,15 @@ if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
                                   int(args.gpsend),
                                   url=const.DEFAULT_SEGMENT_SERVER)
+    padding = args.segment_start_pad + args.segment_end_pad
     for i, seg in enumerate(state.active):
-        if abs(seg) > (args.segment_start_pad + args.segment_end_pad):
+        if abs(seg) > padding:
             state.active[i] = type(seg)(
                 seg[0]+args.segment_start_pad, seg[1]-args.segment_end_pad)
+        else:
+            if args.verbose:
+                gprint("Segment length {} shorter than padding length {}, "
+                       "skipping this segment".format(abs(seg), padding))
     state.coalesce()
     statea = state.active
     livetime = float(abs(statea))
