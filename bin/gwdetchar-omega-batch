@@ -69,9 +69,9 @@ parser.add_argument('--colormap', default='viridis',
 parser.add_argument('-d', '--disable-correlation', action='store_true',
                     default=False, help='disable cross-correlation of aux '
                                         'channels, default: False')
-parser.add_argument('-t', '--far-threshold', type=float, default=1e-10,
-                    help='white noise false alarm rate threshold for '
-                         'processing channels, default: %(default)s Hz')
+parser.add_argument('-t', '--far-threshold', type=float, default=3.171e-8,
+                    help='white noise false alarm rate threshold (Hz) for '
+                         'processing channels, default: %(default)s')
 parser.add_argument('-s', '--ignore-state-flags', action='store_true',
                     default=False, help='ignore state flag definitions in '
                                         'the configuration, default: False')
