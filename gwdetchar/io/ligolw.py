@@ -19,7 +19,12 @@
 """Utilties for LIGO_LW XML I/O
 """
 
-from glue.ligolw import (ligolw, table, lsctables)
+try:
+    from glue.ligolw import (ligolw, table, lsctables)
+except ImportError as exc:
+    exc.args = ("{!s}, please install lscsoft-glue to "
+                "handle LIGO_LW files".format(exc),)
+    raise
 
 from gwpy.segments import (Segment, DataQualityFlag, DataQualityDict)
 
