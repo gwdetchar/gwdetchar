@@ -94,7 +94,11 @@ def find_saturations(timeseries, limit=2**16, precision=1, segments=False):
     if segments:
         saturation = saturated.view(StateTimeSeries)
         saturation.__metadata_finalize__(timeseries)
-        return saturation.to_dqflag()
+        flag = saturation.to_dqflag(
+            description="Software saturation indicated by " + timeseries.name,
+        )
+        flag.isgood = False
+        return flag
     else:
         return timeseries.times[1:].value[
             numpy.diff(saturated.astype(int)) > 0]
@@ -147,8 +151,8 @@ def is_saturated(channel, cache, start=None, end=None, indicator='LIMEN',
     channel : `str`, or `list` of `str`
         either a single channel name, or a list of channel names
 
-    cache : `~glue.lal.Cache`
-        a `~glue.lal.Cache` of file paths, the cache must be contiguous
+    cache : `list`
+        a `list` of file paths, the cache must be contiguous
 
     start : `~gwpy.time.LIGOTimeGPS`, `int`
         the GPS start time of the check

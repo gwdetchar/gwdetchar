@@ -63,7 +63,7 @@ def plot_segments(flag, span, facecolor='red', edgecolor='darkred',
                          'edgecolor': 'gray'}):
     """Plot the saturation segments contained within a flag
     """
-    name = flag.texname if has_tex() else flag.name
+    name = flag.texname if rcParams["text.usetex"] else flag.name
     plot = flag.plot(
         figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
         known=known, label=' ',

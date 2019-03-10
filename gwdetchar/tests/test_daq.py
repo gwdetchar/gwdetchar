@@ -72,26 +72,6 @@ def test_find_overflows_and_segments(cmltv, series):
     segments = daq.find_overflow_segments(series, cumulative=cmltv)
     assert_segmentlist_equal(segments.active, OVERFLOW_SEGMENTS)
 
-    # get DataQualityDict
-    channel = 'X1:TEST'
-    flags = DataQualityDict()
-    daq.get_overflows(flags, series, channel, series.span, cumulative=cmltv)
-    assert channel in flags.keys()
-    assert flags[channel].active == OVERFLOW_SEGMENTS
-
-    # get Table
-    columns = ['peak_time', 'peak_time_ns', 'peak_frequency', 'event_id',
-               'channel', 'snr']
-    table = ligolw.new_table('sngl_burst', columns=columns)
-    daq.get_overflows(table, series, channel, series.span, cumulative=cmltv,
-                      as_table=True)
-    nanosec, sec = numpy.modf(times)
-    sect = table.getColumnByName('peak_time').asarray()
-    nanosect = table.getColumnByName('peak_time_ns').asarray()
-    assert_array_equal(sect, sec)
-    assert_array_equal(nanosect / 1e9, nanosec)
-    assert set(table.columnnames) == set(columns)
-
 
 def test_ligo_accum_overflow_channel():
     assert daq.ligo_accum_overflow_channel(4, ifo='X1') == (

@@ -24,11 +24,6 @@ from __future__ import print_function
 
 import os
 import sys
-try:
-    from io import StringIO
-except ImportError:
-    from StringIO import StringIO
-
 
 from matplotlib import (use, rcParams)
 use('agg')
@@ -42,9 +37,9 @@ from gwpy.io.gwf import get_channel_names
 from gwpy.segments import (Segment, SegmentList,
                            DataQualityFlag, DataQualityDict)
 
-from gwdetchar import (__version__, cli, const, saturation)
-from gwdetchar.plot import get_gwpy_tex_settings
+from gwdetchar import (cli, const, saturation)
 from gwdetchar.io import html as htmlio
+from gwdetchar.plot import get_gwpy_tex_settings
 
 __author__ = 'Dan Hoak <daniel.hoak@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -196,17 +191,17 @@ if len(bad):
     print("-------------------------------------------------------------------"
           "--")
 
-# write LIGO_LW XML
-outfile = ('%s-SOFTWARE_SATURATIONS-%d-%d.xml.gz'
+# write segments to file
+outfile = ('%s-SOFTWARE_SATURATIONS-%d-%d.h5'
            % (ifo, int(args.gpsstart),
               int(args.gpsend) - int(args.gpsstart)))
-saturations.write(outfile, overwrite=True)
+saturations.write(outfile, path="segments", overwrite=True)
 print("Saturation segments written to \n%s" % outfile)
 
 if args.html:
     if args.plot:
         args.plot = os.path.dirname(args.html)
-    xmlfile = os.path.relpath(outfile, os.path.dirname(args.html))
+    segfile = os.path.relpath(outfile, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
         page = htmlio.new_bootstrap_page()
     else:
@@ -220,16 +215,15 @@ if args.html:
            "OUTPUT value matched the LIMIT value set in software. Only "
            "those signals achieving saturation are printed in the Segments "
            "section below, while all channels for which the LIMIT was active "
-           "are included in the Results summary and the XML record."
+           "are included in the Results summary and the output file."
            % sum(map(len, channels)))
     page.div.close()
     # -- segments
     page.h2('Segments')
-    # link XML file
+    # link output file
     page.p()
-    page.add('The full output segments are recorded in '
-             'LIGO_LW-format XML here:')
-    page.a(os.path.basename(xmlfile), href=xmlfile, target='_blank')
+    page.add('The full output segments are recorded in HDF5-format here:')
+    page.a(os.path.basename(segfile), href=segfile, target='_blank')
     page.p.close()
     # print state segments
     if args.state_flag:

@@ -21,6 +21,15 @@
 
 import pytest
 
+import numpy
+
+from gwpy.segments import (
+    DataQualityFlag,
+    DataQualityDict,
+)
+from gwpy.table import EventTable
+from gwpy.testing.utils import assert_table_equal
+
 from .. import utils
 
 
@@ -32,3 +41,46 @@ from .. import utils
 ])
 def test_natural_sort(in_, out):
     assert utils.natural_sort(in_) == out
+
+
+def test_table_from_segments():
+    segs = DataQualityDict()
+    segs["test1"] = DataQualityFlag(
+        active=[(0, 1), (3, 4)],
+    )
+    segs["test2"] = DataQualityFlag(
+        active=[(5, 6)],
+    )
+    assert_table_equal(
+        utils.table_from_segments(segs),
+        EventTable(
+            rows=[(0., 100., 0., 1., 10., "test1"),
+                  (3., 100., 3., 4., 10., "test1"),
+                  (5., 100., 5., 6., 10., "test2")],
+            names=("time", "frequency", "start_time", "end_time",
+                   "snr", "channel"),
+        ),
+    )
+    assert_table_equal(
+        utils.table_from_segments(
+            segs,
+            frequency=1234.,
+            snr=-4.,
+            sngl_burst=True),
+        EventTable(
+            rows=[(0., 1234., -4., "test1"),
+                  (3., 1234., -4., "test1"),
+                  (5., 1234., -4., "test2")],
+            names=("peak", "peak_frequency", "snr", "channel"),
+        ),
+    )
+
+
+
+def test_table_from_times():
+    times = numpy.array(range(10), dtype=float)
+    assert_table_equal(
+        utils.table_from_times(times),
+        EventTable([times, [100.] * 10, [10.] * 10],
+                   names=("time", "frequency", "snr")),
+    )

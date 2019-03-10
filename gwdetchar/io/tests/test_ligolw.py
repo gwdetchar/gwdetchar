@@ -19,16 +19,16 @@
 """Tests for `gwdetchar.io.ligolw`
 """
 
+import pytest
+
 import numpy
 from numpy.testing import (assert_array_equal, assert_allclose)
-
-from glue.ligolw import lsctables
-from glue.ligolw.ligolw import Document
 
 from gwpy.segments import (Segment, SegmentList)
 from gwpy.testing.utils import assert_segmentlist_equal
 
-from .. import ligolw
+lsctables = pytest.importorskip("glue.ligolw.lsctables")
+ligolw = pytest.importorskip("gwdetchar.io.ligolw")
 
 
 def test_new_table():
@@ -63,6 +63,7 @@ def test_segments_from_sngl_burst():
 
 
 def test_table_to_document():
+    from glue.ligolw.ligolw import Document
     tab = ligolw.new_table('sngl_burst')
     xmldoc = ligolw.table_to_document(tab)
     assert isinstance(xmldoc, Document)

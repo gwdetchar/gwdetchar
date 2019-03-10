@@ -21,13 +21,17 @@
 
 import re
 import sys
-
+from functools import partial
 try:  # python 3.x
     from io import StringIO
     from html.parser import HTMLParser
 except:  # python 2.7
     from cStringIO import StringIO
     from HTMLParser import HTMLParser
+
+import numpy
+
+from gwpy.table import EventTable
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -97,3 +101,58 @@ def natural_sort(l, key=str):
     alphanum_key = lambda key: [convert(c) for c in
                                 re.split('([0-9]+)', k[l.index(key)])]
     return sorted(l, key=alphanum_key)
+
+
+def table_from_segments(flagdict, sngl_burst=False, snr=10., frequency=100.):
+    """Build an `EventTable` from a `DataQualityDict`
+    """
+    rows = []
+    if sngl_burst:
+        names = ("peak", "peak_frequency", "snr", "channel")
+        def row(seg, channel):
+            a, b = map(float, seg)
+            return a, frequency, snr, channel
+    else:
+        names = ("time", "frequency", "start_time", "end_time",
+                 "snr", "channel")
+        def row(seg, channel):
+            a, b = map(float, seg)
+            return a, frequency, a, b, snr, channel
+
+    for name, flag in flagdict.items():
+        rows.extend(map(partial(row, channel=name), flag.active))
+    table = EventTable(rows=rows, names=names)
+    if sngl_burst:  # add tablename for GWpy's ligolw writer
+        table.meta["tablename"] = "sngl_burst"
+    return table
+
+
+def table_from_times(times, names=("time", "frequency", "snr"),
+                     snr=10., frequency=100., **kwargs):
+    """Build an `EventTable` from a `DataQualityDict`
+
+    Parameters
+    ----------
+    times : `numpy.ndarray`
+        a 1D array of GPS times
+
+    names : `tuple`, `list`, optional
+        the list of names to use
+
+    snr : `float`, optional
+        the SNR to assign to all 'event triggers'
+
+    frequency : `float`, optional
+        the frequency to assign to all 'event triggers'
+
+    **kwargs
+        other keyword arguments to pass to the `EventTable` constructor
+
+    Returns
+    -------
+    table : `~gwpy.table.EventTable`
+        a new table filled with events at the given times
+    """
+    farr = numpy.ones_like(times) * frequency
+    sarr = numpy.ones_like(times) * snr
+    return EventTable([times, farr, sarr], names=names, **kwargs)
