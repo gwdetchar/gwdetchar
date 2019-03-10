@@ -151,8 +151,8 @@ def is_saturated(channel, cache, start=None, end=None, indicator='LIMEN',
     channel : `str`, or `list` of `str`
         either a single channel name, or a list of channel names
 
-    cache : `~glue.lal.Cache`
-        a `~glue.lal.Cache` of file paths, the cache must be contiguous
+    cache : `list`
+        a `list` of file paths, the cache must be contiguous
 
     start : `~gwpy.time.LIGOTimeGPS`, `int`
         the GPS start time of the check

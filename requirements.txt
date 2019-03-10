@@ -7,7 +7,6 @@ gwtrigfind
 jsmin
 lalsuite
 libsass
-lscsoft-glue >= 1.60.0
 lxml
 matplotlib >= 2.0.0
 MarkupPy >=1.14
