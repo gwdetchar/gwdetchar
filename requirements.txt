@@ -1,3 +1,4 @@
+# development
 astropy >= 1.2
 beautifulsoup4
 dqsegdb
@@ -7,6 +8,7 @@ gwtrigfind
 jsmin
 lalsuite
 libsass
+lscsoft-glue >= 2.0.0
 lxml
 matplotlib >= 2.0.0
 MarkupPy >=1.14
@@ -19,3 +21,6 @@ setuptools
 six
 pathlib ; python_version < '3'
 pygments
+# testing
+pytest
+coverage
