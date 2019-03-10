@@ -40,7 +40,6 @@ from gwpy.segments import (Segment, SegmentList,
 from gwdetchar import (cli, const, saturation)
 from gwdetchar.io import html as htmlio
 from gwdetchar.plot import get_gwpy_tex_settings
-from gwdetchar.plot import get_gwpy_tex_settings
 
 __author__ = 'Dan Hoak <daniel.hoak@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
