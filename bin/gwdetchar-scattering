@@ -227,8 +227,9 @@ page.p.close()
 if args.state_flag:
     page.p('This analysis was executed over the following segments:')
     page.div(class_='panel-group', id_='accordion1')
-    page.add(str(htmlio.write_flag_html(state, 'state', parent='accordion1',
-                                        context='success', id='state')))
+    page.add(str(htmlio.write_flag_html(
+        state, span, 'state', parent='accordion1', context='success',
+        plotdir='./', facecolor=(0.2, 0.8, 0.2), edgecolor='darkgreen')))
     page.div.close()
 
 page.p("The following channels were searched for evidence of scattering "
