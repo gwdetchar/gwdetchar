@@ -268,6 +268,8 @@ if args.html:
             'Simulink models', '<a href="{0}" target="_blank" '
                                'title="{1} Simulink models">{0}</a>'.format(
                                    simulink, args.ifo)))
+    page.add(htmlio.write_param('Command line', ''))                                
+    page.add(htmlio.get_command_line())
 
     # -- segments
     page.h2('Segments')
@@ -346,6 +348,7 @@ if args.html:
     page.table.close()
 
     # -- close and write
+    page.add(htmlio.write_footer())
     page.div.close()
     with open(args.html, 'w') as fp:
         print(str(page), file=fp)

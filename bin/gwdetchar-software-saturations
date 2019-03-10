@@ -226,6 +226,8 @@ if args.html:
     page.add(htmlio.write_param('State flag', args.state_flag))
     page.add(htmlio.write_param('State end padding', args.pad_state_end))
     page.add(htmlio.write_param('Skip', ', '.join(map(repr, args.skip))))
+    page.add(htmlio.write_param('Command line', ''))                            
+    page.add(htmlio.get_command_line())
     # -- segments
     page.h2('Segments')
     # link output file
@@ -279,6 +281,7 @@ if args.html:
     page.tbody.close()
     page.table.close()
     # close and write
+    page.add(htmlio.write_footer())
     page.div.close()
     with open(args.html, 'w') as fp:
         print(str(page), file=fp)
