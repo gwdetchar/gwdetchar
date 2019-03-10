@@ -83,15 +83,7 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     page.div.close()
     page.div(id_='flag%s' % id, class_='panel-collapse collapse')
     page.div(class_='panel-body')
-    segs = StringIO()
-    try:
-        flag.active.write(segs, format='segwizard',
-                          coltype=type(flag.active[0][0]))
-    except IndexError:
-        page.p("No segments were found.")
-    else:
-        page.pre(segs.getvalue())
-    page.div.close()
+    # render segment plot
     if plotdir is not None and plot_func is not None:
         flagr = flag.name.replace('-', '_').replace(':', '-', 1)
         png = os.path.join(
@@ -102,6 +94,16 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
         page.a(href=png, target='_blank')
         page.img(style="width: 100%;", src=png)
         page.a.close()
+    # write segments
+    segs = StringIO()
+    try:
+        flag.active.write(segs, format='segwizard',
+                          coltype=type(flag.active[0][0]))
+    except IndexError:
+        page.p("No segments were found.")
+    else:
+        page.pre(segs.getvalue())
+    page.div.close()
     page.div.close()
     page.div.close()
     return page
