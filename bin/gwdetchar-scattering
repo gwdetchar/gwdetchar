@@ -229,7 +229,8 @@ if args.state_flag:
     page.div(class_='panel-group', id_='accordion1')
     page.add(str(htmlio.write_flag_html(
         state, span, 'state', parent='accordion1', context='success',
-        plotdir='./', facecolor=(0.2, 0.8, 0.2), edgecolor='darkgreen')))
+        plotdir='', facecolor=(0.2, 0.8, 0.2), edgecolor='darkgreen',
+        known={'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4})))
     page.div.close()
 
 page.p("The following channels were searched for evidence of scattering "
@@ -312,9 +313,9 @@ for i, channel in enumerate(sorted(allchannels)):
             scatter.active = scatter.active.protract(args.segment_padding)
             scatter.coalesce()
         axes['segments'].plot(scatter, facecolor='red', edgecolor='darkred',
-                              known={'alpha': 0.2, 'facecolor': 'lightgray',
-                                     'edgecolor': 'gray'},
-                              y=0, label=' ')
+                              known={'alpha': 0.6, 'facecolor': 'lightgray',
+                                     'edgecolor': 'gray', 'height': 0.4},
+                              height=0.8, y=0, label=' ')
         scatter_segments[channel] += scatter
         if args.verbose:
             gprint("    Found %d scattering segments" % (len(scatter.active)))

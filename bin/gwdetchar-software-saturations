@@ -240,7 +240,8 @@ if args.html:
         page.add(str(htmlio.write_flag_html(
             state, span, 'state', parent='accordion1', context='success',
             plotdir=args.plot, facecolor=(0.2, 0.8, 0.2),
-            edgecolor='darkgreen')))
+            edgecolor='darkgreen', known={
+                'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4})))
         page.div.close()
     # print saturation segments
     if len(bad):
