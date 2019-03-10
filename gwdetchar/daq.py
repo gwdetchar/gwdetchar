@@ -95,7 +95,7 @@ def find_overflow_segments(timeseries, cumulative=True, round=False):
         name=timeseries.name, round=round)
 
 
-def get_overflows(overflows, timeseries, channel, cumulative=True,
+def get_overflows(overflows, timeseries, channel, segment, cumulative=True,
                   round=False, as_table=False):
     """Record overflow segments in a `DataQualityDict` or `Table`
 
@@ -135,7 +135,7 @@ def get_overflows(overflows, timeseries, channel, cumulative=True,
     else:
         segs = find_overflow_segments(timeseries, cumulative=cumulative,
                                       round=round)
-        segs.known = SegmentList([segment])
+        segs.known &= SegmentList([segment])
         segs.coalesce()
         try:
             overflows[channel] += segs
