@@ -238,7 +238,9 @@ if args.html:
         page.p('This analysis was executed over the following segments:')
         page.div(class_='panel-group', id_='accordion1')
         page.add(str(htmlio.write_flag_html(
-            state, id='state', parent='accordion1', context='success')))
+            state, span, 'state', parent='accordion1', context='success',
+            plotdir=args.plot, facecolor=(0.2, 0.8, 0.2),
+            edgecolor='darkgreen')))
         page.div.close()
     # print saturation segments
     if len(bad):
