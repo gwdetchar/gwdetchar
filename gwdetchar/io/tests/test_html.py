@@ -58,9 +58,9 @@ FLAG_CONTENT = """<div class="panel panel-warning">
 <a class="panel-title" href="#flag0" data-toggle="collapse" data-parent="#accordion">X1:TEST_FLAG</a>
 </div>
 <div id="flag0" class="panel-collapse collapse">
-<div class="panel-body">
+<div class="panel-body">{plots}
 {content}
-</div>{plots}
+</div>
 </div>
 </div>"""  # nopep8
 
