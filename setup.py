@@ -102,7 +102,7 @@ setup(name=DISTNAME,
       scripts=scripts,
       setup_requires=setup_requires,
       install_requires=install_requires,
-      use_2to3=True,
+      use_2to3=False,
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Science/Research',
