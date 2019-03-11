@@ -374,6 +374,20 @@ page.p("This analysis searched %d channels for linear correlations with %s"
        % (nchan, pstr))
 page.div.close()
 
+# run parameters
+page.h2('Parameters')
+page.p('This analysis used the following parameters:')
+page.add(htmlio.write_param(
+    'Start time', '%s (%d)' % (from_gps(start), start)))
+page.add(htmlio.write_param('End time', '%s (%d)' % (from_gps(end), end)))
+page.add(htmlio.write_param(
+    'Primary channel',
+    '%s (%s)' % (primary, args.primary_frametype.format(ifo=args.ifo))))
+page.add(htmlio.write_param(
+    'Range channel',
+    '%s (%s)' % (rangechannel, args.range_frametype or '-')))
+page.add(htmlio.write_param('Band-pass', '%s-%s' % (flower, fupper)))
+
 # results
 page.h2('Results')
 r_blrms = "<i>r<sub>blrms</sub> </i>"
@@ -464,19 +478,6 @@ for i, (ch, corr1, corr2, plot1, plot2, plot3,
     page.div.close()  # panel-collapse
     page.div.close()  # panel
 page.div.close()  # panel-group
-
-page.h2('Parameters')
-page.p('This analysis used the following parameters:')
-page.add(htmlio.write_param(
-    'Start time', '%s (%d)' % (from_gps(start), start)))
-page.add(htmlio.write_param('End time', '%s (%d)' % (from_gps(end), end)))
-page.add(htmlio.write_param(
-    'Primary channel',
-    '%s (%s)' % (primary, args.primary_frametype.format(ifo=args.ifo))))
-page.add(htmlio.write_param(
-    'Range channel',
-    '%s (%s)' % (rangechannel, args.range_frametype or '-')))
-page.add(htmlio.write_param('Band-pass', '%s-%s' % (flower, fupper)))
 
 page.div.close()  # container
 with open('index.html', 'w') as f:
