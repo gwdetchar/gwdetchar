@@ -102,7 +102,7 @@ else:
 gps = numpy.around(float(args.gpstime), 3)
 
 print("----------------------------------------------\n"
-      "Creating %s omega scan at GPS second %s" % (ifo, gps))
+      "Creating {} omega scan at GPS second {}".format(ifo, gps))
 
 # get default configuration
 if args.config_file is None:
@@ -113,7 +113,7 @@ args.config_file = [os.path.abspath(f) for f in args.config_file]
 if args.verbose:
     print('Parsing the following configuration files:')
     for fname in args.config_file:
-        print(''.join(['\t', fname]))
+        print(' '.join(['  --', fname]))
 cp = config.OmegaConfigParser(ifo=ifo)
 cp.read(args.config_file)
 
@@ -155,7 +155,7 @@ outdir = os.path.abspath(outdir)
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
 os.chdir(outdir)
-print("Output directory created as %s" % outdir)
+print("Output directory created as {}".format(outdir))
 
 
 # -- Compute Qscan ------------------------------------------------------------
@@ -169,7 +169,7 @@ for d in [plotdir, aboutdir, datadir]:
         os.makedirs(d)
 
 # set up html output
-print('Setting up HTML at %s/index.html' % outdir)
+print('Setting up HTML at {}/index.html'.format(outdir))
 html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 
 # launch omega scans
@@ -208,9 +208,9 @@ for block in blocks.values():
     # check that analysis flag is active for all of `duration`
     if block.flag and (not args.ignore_state_flags):
         if args.verbose:
-            print('Querying state flag %s' % block.flag)
+            print('  -- Querying state flag {}'.format(block.flag))
         if not check_flag(block.flag, gps, duration, pad=1):
-            print('%s not active, skipping block' % block.flag)
+            print('  -- {} not active, skipping block'.format(block.flag))
             continue
     # read in `duration` seconds of data centered on gps
     start = gps - duration/2. - 1
@@ -222,24 +222,24 @@ for block in blocks.values():
     # scan individual channels
     for channel in block.channels:
         try:
-            print('Scanning channel %s' % channel.name)
+            print('  -- Scanning channel {}'.format(channel.name))
             series = omega.scan(
                 gps, channel, data[channel.name].astype('float64'), fftlength,
                 resample=block.resample, fthresh=args.far_threshold,
                 search=block.search)
         except Exception:
             traceback.print_exc()
-            print('Problem encountered, skipping channel %s' % channel.name)
+            print('  -- Problem encountered, skipping {}'.format(channel.name))
             continue
 
         if series is None:
             continue  # channel is insignificant, skip it
 
-        print('Plotting omega scan products for channel %s' % channel.name)
+        print('  -- Plotting omega scan products for {}'.format(channel.name))
         plot.write_qscan_plots(gps, channel, series, colormap=args.colormap)
 
         if correlate is not None:
-            print('Cross-correlating channel %s' % channel.name)
+            print('  -- Cross-correlating {}'.format(channel.name))
             correlation = omega.cross_correlate(series[2], correlate)
             channel.save_loudest_tile_features(
                 series[3], correlation, gps=gps, dt=block.dt)
@@ -258,7 +258,7 @@ for block in blocks.values():
 # -- Prepare HTML -------------------------------------------------------------
 
 # write HTML page and finish
-print('Finalizing HTML at %s/index.html' % outdir)
+print('Finalizing HTML at {}/index.html'.format(outdir))
 htmlv['refresh'] = False  # turn off auto-refresh
 if analyzed:
     html.write_qscan_page(ifo, gps, analyzed, **htmlv)
