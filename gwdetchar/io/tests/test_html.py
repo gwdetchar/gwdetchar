@@ -217,13 +217,6 @@ def test_write_arguments():
     assert '<strong>Command line: </strong>' in page
 
 
-def test_write_footer():
-    date = datetime.datetime.now()
-    out = html.write_footer(date=date, class_=True)
-    assert parse_html(str(out)) == parse_html(
-        HTML_FOOTER.format(user=getuser(), date=date))
-
-
 def test_write_flag_html():
     page = html.write_flag_html(FLAG)
     assert parse_html(str(page)) == parse_html(FLAG_HTML)
@@ -239,3 +232,10 @@ def test_write_flag_html_with_plots(tmpdir):
     page = html.write_flag_html(FLAG, span=Segment(0, 66), plotdir='plots')
     assert parse_html(str(page)) == parse_html(FLAG_HTML_WITH_PLOTS)
     shutil.rmtree(str(tmpdir), ignore_errors=True)
+
+
+def test_write_footer():
+    date = datetime.datetime.now()
+    out = html.write_footer(date=date, class_=True)
+    assert parse_html(str(out)) == parse_html(
+        HTML_FOOTER.format(user=getuser(), date=date))
