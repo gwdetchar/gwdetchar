@@ -23,8 +23,13 @@ import os
 import sys
 import datetime
 from getpass import getuser
-from pathlib import Path
 from shutil import copyfile
+try:
+    from pathlib2 import Path
+except ImportError:  # python >= 3.6
+    # NOTE: we do it this was around because pathlib exists for py35,
+    #       but doesn't work very well
+    from pathlib import Path
 
 from six.moves import StringIO
 from six.moves.urllib.parse import urlparse
