@@ -89,6 +89,10 @@ parser.add_argument('-t', '--far-threshold', type=float, default=3.171e-8,
 parser.add_argument('-c', '--colormap', default='viridis',
                     help='name of colormap to use, default: %(default)s')
 cli.add_nproc_option(parser)
+parser.add_argument('-n', '--no-checkpoint', action='store_true',
+                    default=False,
+                    help='ignore condor checkpointing and start this analysis '
+                         'from scratch, default: False')
 
 args = parser.parse_args()
 
