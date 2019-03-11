@@ -89,8 +89,6 @@ parser.add_argument('-t', '--far-threshold', type=float, default=3.171e-8,
 parser.add_argument('-c', '--colormap', default='viridis',
                     help='name of colormap to use, default: %(default)s')
 cli.add_nproc_option(parser)
-parser.add_argument('-v', '--verbose', action='store_true', default=False,
-                    help='print verbose output, default: False')
 
 args = parser.parse_args()
 
@@ -101,7 +99,7 @@ else:
     ifo = 'Network'
 gps = numpy.around(float(args.gpstime), 3)
 
-print("---------------------------------------------------------------------\n"
+print("-----------------------------------------------------------------------"
       "Creating {} omega scan at GPS second {}".format(ifo, gps))
 
 # get default configuration
@@ -110,10 +108,9 @@ if args.config_file is None:
 
 # parse configuration files
 args.config_file = [os.path.abspath(f) for f in args.config_file]
-if args.verbose:
-    print('Parsing the following configuration files:')
-    for fname in args.config_file:
-        print(''.join(['    ', fname]))
+print('Parsing the following configuration files:')
+for fname in args.config_file:
+    print(''.join(['    ', fname]))
 cp = config.OmegaConfigParser(ifo=ifo)
 cp.read(args.config_file)
 
@@ -177,7 +174,7 @@ print('Launching omega scans')
 
 # construct a matched-filter from primary channel
 if not args.disable_correlation:
-    print('\nProcessing primary channel')
+    print('Processing primary channel')
     duration = primary.duration
     fftlength = primary.fftlength
     # process `duration` seconds of data centered on gps
@@ -200,15 +197,14 @@ else:
 
 # range over channel blocks
 for block in blocks.values():
-    print('\nProcessing block {}'.format(block.key))
+    print('Processing block {}'.format(block.key))
     chans = [c.name for c in block.channels]
     # get configuration
     duration = block.duration
     fftlength = block.fftlength
     # check that analysis flag is active for all of `duration`
     if block.flag and (not args.ignore_state_flags):
-        if args.verbose:
-            print('    Querying state flag {}'.format(block.flag))
+        print('    Querying state flag {}'.format(block.flag))
         if not check_flag(block.flag, gps, duration, pad=1):
             print('    {} not active, skipping block'.format(block.flag))
             continue
