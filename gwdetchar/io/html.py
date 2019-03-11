@@ -309,7 +309,7 @@ def fancybox_img(img, linkparams=dict(), **params):
         'title': img.caption,
         'class_': 'fancybox',
         'target': '_blank',
-        'data-fancybox-group': 'qscan-image',
+        'data-fancybox-group': 'images',
     }
     aparams.update(linkparams)
     img = str(img)
@@ -429,9 +429,11 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
         plot = plot_func(flag, span, **kwargs)
         plot.save(png)
         plot.close()
-        page.a(href=png, target='_blank')
-        page.img(style="width: 100%;", src=png)
-        page.a.close()
+        # set up fancybox
+        img = FancyPlot(
+            img=png, caption='Known (small) and active (large) analysis '
+                             'segments for {}'.format(title))
+        page.add(fancybox_plot(img))
     # write segments
     segs = StringIO()
     try:
