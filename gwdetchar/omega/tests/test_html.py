@@ -289,18 +289,6 @@ def test_close_page(tmpdir):
     shutil.rmtree(target, ignore_errors=True)
 
 
-@pytest.mark.parametrize('args, kwargs, result', [
-    (('test.html', 'Test link'), {},
-     '<a href="test.html" target="_blank">Test link</a>'),
-    (('test.html', 'Test link'), {'class_': 'test-case'},
-     '<a class="test-case" href="test.html" target="_blank">Test link</a>'),
-])
-def test_html_link(args, kwargs, result):
-    h1 = parse_html(html.html_link(*args, **kwargs))
-    h2 = parse_html(result)
-    assert h1 == h2
-
-
 def test_toggle_link():
     h1 = parse_html(html.toggle_link('timeseries_raw', GW.channels[0], [4]))
     h2 = parse_html(
@@ -308,17 +296,6 @@ def test_toggle_link():
         'onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], '
         '&quot;timeseries_raw&quot;, '
         '[&quot;X1-TEST_AUX-timeseries_raw-4.png&quot;]);">raw</a>'
-    )
-    assert h1 == h2
-
-
-def test_cis_link():
-    h1 = parse_html(html.cis_link('X1:TEST-CHANNEL'))
-    h2 = parse_html(
-        '<a style="font-family: Monaco, &quot;Courier New&quot;, '
-        'monospace; color: black;" href="https://cis.ligo.org/channel/byname/'
-        'X1:TEST-CHANNEL" target="_blank" title="CIS entry for '
-        'X1:TEST-CHANNEL">X1:TEST-CHANNEL</a>'
     )
     assert h1 == h2
 

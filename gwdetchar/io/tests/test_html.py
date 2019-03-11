@@ -143,6 +143,29 @@ def test_write_param():
         '<p>\n<strong>test: </strong>\ntest\n</p>')
 
 
+@pytest.mark.parametrize('args, kwargs, result', [
+    (('test.html', 'Test link'), {},
+     '<a href="test.html" target="_blank">Test link</a>'),
+    (('test.html', 'Test link'), {'class_': 'test-case'},
+     '<a class="test-case" href="test.html" target="_blank">Test link</a>'),
+])
+def test_html_link(args, kwargs, result):
+    h1 = parse_html(html.html_link(*args, **kwargs))
+    h2 = parse_html(result)
+    assert h1 == h2
+
+
+def test_cis_link():
+    h1 = parse_html(html.cis_link('X1:TEST-CHANNEL'))
+    h2 = parse_html(
+        '<a style="font-family: Monaco, &quot;Courier New&quot;, '
+        'monospace; color: black;" href="https://cis.ligo.org/channel/byname/'
+        'X1:TEST-CHANNEL" target="_blank" title="CIS entry for '
+        'X1:TEST-CHANNEL">X1:TEST-CHANNEL</a>'
+    )
+    assert h1 == h2
+
+
 def test_fancybox_img():
     img = html.FancyPlot('X1-TEST_AUX-test-4.png')
     out = html.fancybox_img(img)

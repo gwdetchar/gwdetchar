@@ -353,29 +353,6 @@ def wrap_html(func):
 
 # -- Utilities ----------------------------------------------------------------
 
-def html_link(href, txt, target="_blank", **params):
-    """Write an HTML <a> tag
-
-    Parameters
-    ----------
-    href : `str`
-        the URL to point to
-    txt : `str`
-        the text for the link
-    target : `str`, optional
-        the ``target`` of this link
-    **params
-        other HTML parameters for the ``<a>`` tag
-
-    Returns
-    -------
-    html : `str`
-    """
-    if target is not None:
-        params.setdefault('target', target)
-    return markup.oneliner.a(txt, href=href, **params)
-
-
 def toggle_link(plottype, channel, pranges):
     """Create a Bootstrap button object that toggles between plot types.
 
@@ -401,30 +378,6 @@ def toggle_link(plottype, channel, pranges):
         text, class_='dropdown-item',
         onclick="showImage('{0}', [{1}], '{2}', {3});".format(
             chanstring, ','.join(pstrings), plottype, captions))
-
-
-def cis_link(channel, **params):
-    """Write a channel name as a link to the Channel Information System
-
-    Parameters
-    ----------
-    channel : `str`
-        the name of the channel to link
-    **params
-        other HTML parmeters for the ``<a>`` tag
-
-    Returns
-    -------
-    html : `str`
-    """
-    kwargs = {
-        'title': "CIS entry for %s" % channel,
-        'style': "font-family: Monaco, \"Courier New\", monospace; "
-                 "color: black;",
-    }
-    kwargs.update(params)
-    return html_link("https://cis.ligo.org/channel/byname/%s" % channel,
-                     channel, **kwargs)
 
 
 def write_summary_table(blocks, correlated, base=os.path.curdir):
