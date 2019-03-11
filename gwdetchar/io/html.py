@@ -23,7 +23,13 @@ import os
 import sys
 import datetime
 from getpass import getuser
+from pathlib import Path
+from shutil import copyfile
+
 from six.moves import StringIO
+from six.moves.urllib.parse import urlparse
+
+from pkg_resources import resource_filename
 
 from MarkupPy import markup
 
@@ -36,14 +42,101 @@ from .._version import get_versions
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
-JQUERY_JS = "https://code.jquery.com/jquery-1.11.2.min.js"
+# -- HTML URLs ----------------------------------------------------------------
+
+JQUERY_JS = "https://code.jquery.com/jquery-1.12.3.min.js"
 
 BOOTSTRAP_CSS = (
     "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css")
 BOOTSTRAP_JS = (
     "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js")
 
+_FANCYBOX_CDN = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5"
+FANCYBOX_CSS = "{0}/jquery.fancybox.min.css".format(_FANCYBOX_CDN)
+FANCYBOX_JS = "{0}/jquery.fancybox.min.js".format(_FANCYBOX_CDN)
+
+MOMENT_JS = (
+    "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js")
+
+BOOTSTRAP_LIGO_CSS = resource_filename(
+    'gwdetchar',
+    '_static/bootstrap-ligo.min.css',
+)
+BOOTSTRAP_LIGO_JS = resource_filename(
+    'gwdetchar',
+    '_static/bootstrap-ligo.min.js',
+)
+
+CSS_FILES = [
+    BOOTSTRAP_CSS,
+    FANCYBOX_CSS,
+    BOOTSTRAP_LIGO_CSS,
+]
+JS_FILES = [
+    JQUERY_JS,
+    MOMENT_JS,
+    BOOTSTRAP_JS,
+    FANCYBOX_JS,
+    BOOTSTRAP_LIGO_JS,
+]
+
+
 FORMATTER = HtmlFormatter(noclasses=True)
+
+
+def finalize_static_urls(static, cssfiles, jsfiles):
+    """Finalise the necessary CSS and javascript files as URLS.
+
+    The method parses the lists of files given, copying any local files into
+    ``static`` as necessary to create resolvable URLs to include in the HTML
+    ``<head>``.
+
+    Parameters
+    ----------
+    static : `str`
+        the target directory for the static files, will be created if
+        necessary
+
+    cssfiles : `list` of `str`
+        the list of CSS files to include
+
+    jsfiles : `list` of `str`
+        the (complete) list of javascript files to include
+
+    Returns
+    -------
+    cssurls : `list` of `str`
+        the finalised list of CSS files
+    jsurls : `list` of `str`
+        the finalised list of javascript files
+    """
+    static = Path(static).resolve()
+    base = static.parent
+
+    def _local_url(path):
+        """Copy a filepath into the static dir if required
+        """
+        path = Path(path).resolve()
+        # if file is already below static in the hierarchy, don't do anything
+        if static in path.parents:
+            return path.relative_to(base)
+        # otherwise copy the file into static
+        static.mkdir(parents=True, exist_ok=True)
+        local = static / path.name
+        copyfile(str(path), str(local))  # only need str for py<3.6
+        return str(local.relative_to(base))
+
+    # copy lists so that we can modify
+    cssfiles = list(cssfiles)
+    jsfiles = list(jsfiles)
+
+    for flist in (cssfiles, jsfiles):
+        for i, fn in enumerate(flist):
+            url = urlparse(fn)
+            if url.netloc in {"", "file"}:
+                flist[i] = _local_url(fn)
+
+    return cssfiles, jsfiles
 
 
 def new_bootstrap_page(*args, **kwargs):
