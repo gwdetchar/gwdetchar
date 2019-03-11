@@ -671,7 +671,7 @@ def write_block(blockkey, block, context,
 
         # channel name
         chanid = channel.name.lower().replace(':', '-')
-        page.h4(cis_link(channel.name), id_=chanid)
+        page.h4(io_html.cis_link(channel.name), id_=chanid)
 
         page.div(class_='row')
 
