@@ -113,7 +113,7 @@ args.config_file = [os.path.abspath(f) for f in args.config_file]
 if args.verbose:
     print('Parsing the following configuration files:')
     for fname in args.config_file:
-        print(' '.join(['  --', fname]))
+        print(''.join(['    ', fname]))
 cp = config.OmegaConfigParser(ifo=ifo)
 cp.read(args.config_file)
 
