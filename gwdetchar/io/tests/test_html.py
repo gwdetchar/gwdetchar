@@ -207,6 +207,16 @@ def test_scaffold_plots():
     assert h1 == h2
 
 
+def test_write_arguments():
+    page = html.write_arguments([('test', 'test')], 0, 1, flag='X1:TEST')
+    assert '<h2>Parameters</h2>' in page
+    assert '<strong>Start time: </strong>\n0 (1980-01-06 00:00:00)' in page
+    assert '<strong>End time: </strong>\n1 (1980-01-06 00:00:01)' in page
+    assert '<strong>State flag: </strong>\nX1:TEST' in page
+    assert '<strong>test: </strong>\ntest' in page
+    assert '<strong>Command line: </strong>' in page
+
+
 def test_write_footer():
     date = datetime.datetime.now()
     out = html.write_footer(date=date, class_=True)

@@ -37,7 +37,7 @@ from gwpy.table import Table
 from pandas import set_option
 
 from gwpy.plot import Plot
-from gwpy.time import (Time, from_gps)
+from gwpy.time import Time
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
@@ -611,34 +611,24 @@ page.div(class_='page-header')
 page.h1(title)
 page.div.close()  # page-header
 
-page.h2('Parameters')
-page.p('This analysis used the following parameters:')
-page.add(
-    htmlio.write_param('Start time', '%s (%d)' % (from_gps(start), start)))
-page.add(htmlio.write_param('End time', '%s (%d)' % (from_gps(end), end)))
-page.add(htmlio.write_param(
-    'Primary channel',
-    '%s (%s)' % (primary, args.primary_frametype or '-')))
-page.add(htmlio.write_param(
-    'Channels searched',
-    '%d (%s)' % (nchan, "<a href= %s target='_blank'>channel list</a>"
-                 % channelsfile)))
-page.add(htmlio.write_param(
-    'Number of flat channels',
-    '%d (%s)' % (len(flattab),
-                 "<a href= %s target='_blank'>flat channel list</a>"
-                 % (flatfile))))
-page.add(htmlio.write_param(
-    'Lasso coefficient threshold', '%g' % args.threshold))
-page.add(htmlio.write_param(
-    'Sigma for outlier removal', '%g' % args.remove_outliers))
-page.add(htmlio.write_param('Cluster coefficient threshold',
-                            '%g' % args.cluster_coefficient))
+content = [
+    ('Primary channel',
+     '{} ({})'.format(primary, args.primary_frametype or '-')),
+    ('Channels searched',
+     '{} ({})'.format(nchan, "<a href= %s target='_blank'>channel list</a>"
+                             % channelsfile)),
+    ('Number of flat channels',
+     '{} ({})'.format(len(flattab),
+                      "<a href= %s target='_blank'>flat channel list</a>"
+                      % (flatfile))),
+    ('Lasso coefficient threshold', '{}'.format(args.threshold)),
+    ('Sigma for outlier removal', '{}'.format(args.remove_outliers)),
+    ('Cluster coefficient threshold', '{}'.format(args.cluster_coefficient))]
 if args.band_pass:
-    page.add(htmlio.write_param(
-        'Filter settings', 'Flow=%dHz, Fhigh=%dHz ' % (flower, fupper)))
-page.add(htmlio.write_param('Command line', ''))
-page.add(htmlio.get_command_line())
+    content.append(
+        ('Filter settings',
+         'Flow = {} Hz, Fhigh = {} Hz '.format(flower, fupper)))
+page.add(htmlio.write_arguments(content, start=start, end=end))
 
 page.h2('Model Information')
 

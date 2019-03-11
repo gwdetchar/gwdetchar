@@ -42,6 +42,8 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
+from gwpy.time import from_gps
+
 from ..plot import plot_segments
 from .._version import get_versions
 
@@ -357,6 +359,74 @@ def scaffold_plots(plots, nperrow=3):
             page.div.close()  # row
     if i % nperrow < nperrow-1:
         page.div.close()  # row
+
+
+def write_arguments(content, start, end, flag=None, section='Parameters',
+                    info='This analysis used the following parameters:'):
+    """Render an informative section with run parameters in HTML
+
+    Parameters
+    ----------
+    content: `dict`
+        a collection of parameters to list
+
+    section: `str`
+        name of the section, will appear as a header with an <h2> tag
+    """
+    content.insert(0, ('Start time', '{} ({})'.format(start, from_gps(start))))
+    content.insert(1, ('End time', '{} ({})'.format(end, from_gps(end))))
+    if flag is not None:
+        content.insert(2, ('State flag', flag))
+    page = markup.page()
+    page.h2(section)
+    page.p(info)
+    for item in content:
+        page.add(write_param(*item))
+    page.add(write_param('Command line', ''))
+    page.add(get_command_line())
+    return page()
+
+
+def write_flag_html(flag, span=None, id=0, parent='accordion',
+                    context='warning', title=None, plotdir=None,
+                    plot_func=plot_segments, **kwargs):
+    """Write HTML for data quality flags
+    """
+    page = markup.page()
+    page.div(class_='panel panel-%s' % context)
+    page.div(class_='panel-heading')
+    if title is None:
+        title = flag.name
+    page.a(title, class_="panel-title", href='#flag%s' % id,
+           **{'data-toggle': 'collapse', 'data-parent': '#%s' % parent})
+    page.div.close()
+    page.div(id_='flag%s' % id, class_='panel-collapse collapse')
+    page.div(class_='panel-body')
+    # render segment plot
+    if plotdir is not None and plot_func is not None:
+        flagr = flag.name.replace('-', '_').replace(':', '-', 1)
+        png = os.path.join(
+            plotdir, '%s-%d-%d.png' % (flagr, span[0], abs(span)))
+        plot = plot_func(flag, span, **kwargs)
+        plot.save(png)
+        plot.close()
+        # set up fancybox
+        img = FancyPlot(
+            img=png, caption='Known (small) and active (large) analysis '
+                             'segments for {}'.format(title))
+        page.add(fancybox_img(img))
+    # write segments
+    segs = StringIO()
+    try:
+        flag.active.write(segs, format='segwizard',
+                          coltype=type(flag.active[0][0]))
+    except IndexError:
+        page.p("No segments were found.")
+    else:
+        page.pre(segs.getvalue())
+    page.div.close()
+    page.div.close()
+    page.div.close()
     return page()
 
 
@@ -404,46 +474,3 @@ def write_footer(about=None, date=None, class_=False,
     if class_:
         markup.element('footer', case=page.case, parent=page).close()
     return page()
-
-
-def write_flag_html(flag, span=None, id=0, parent='accordion',
-                    context='warning', title=None, plotdir=None,
-                    plot_func=plot_segments, **kwargs):
-    """Write HTML for data quality flags
-    """
-    page = markup.page()
-    page.div(class_='panel panel-%s' % context)
-    page.div(class_='panel-heading')
-    if title is None:
-        title = flag.name
-    page.a(title, class_="panel-title", href='#flag%s' % id,
-           **{'data-toggle': 'collapse', 'data-parent': '#%s' % parent})
-    page.div.close()
-    page.div(id_='flag%s' % id, class_='panel-collapse collapse')
-    page.div(class_='panel-body')
-    # render segment plot
-    if plotdir is not None and plot_func is not None:
-        flagr = flag.name.replace('-', '_').replace(':', '-', 1)
-        png = os.path.join(
-            plotdir, '%s-%d-%d.png' % (flagr, span[0], abs(span)))
-        plot = plot_func(flag, span, **kwargs)
-        plot.save(png)
-        plot.close()
-        # set up fancybox
-        img = FancyPlot(
-            img=png, caption='Known (small) and active (large) analysis '
-                             'segments for {}'.format(title))
-        page.add(fancybox_img(img))
-    # write segments
-    segs = StringIO()
-    try:
-        flag.active.write(segs, format='segwizard',
-                          coltype=type(flag.active[0][0]))
-    except IndexError:
-        page.p("No segments were found.")
-    else:
-        page.pre(segs.getvalue())
-    page.div.close()
-    page.div.close()
-    page.div.close()
-    return page
