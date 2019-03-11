@@ -152,7 +152,8 @@ condorcmds = [
 ]
 if args.condor_timeout:
     condorcmds.append("periodic_remove = {}".format(
-        'CurrentTime-EnteredCurrentStatus > %d' % (3600 * args.condor_timeout),
+        'CurrentTime-EnteredCurrentStatus > {}'.format(
+            3600 * args.condor_timeout),
     ))
 condorcmds.extend(args.condor_command)
 
