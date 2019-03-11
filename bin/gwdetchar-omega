@@ -208,9 +208,9 @@ for block in blocks.values():
     # check that analysis flag is active for all of `duration`
     if block.flag and (not args.ignore_state_flags):
         if args.verbose:
-            print('  -- Querying state flag {}'.format(block.flag))
+            print('    Querying state flag {}'.format(block.flag))
         if not check_flag(block.flag, gps, duration, pad=1):
-            print('  -- {} not active, skipping block'.format(block.flag))
+            print('    {} not active, skipping block'.format(block.flag))
             continue
     # read in `duration` seconds of data centered on gps
     start = gps - duration/2. - 1
@@ -222,24 +222,26 @@ for block in blocks.values():
     # scan individual channels
     for channel in block.channels:
         try:
-            print('  -- Scanning channel {}'.format(channel.name))
+            print('    Scanning channel {}'.format(channel.name))
             series = omega.scan(
                 gps, channel, data[channel.name].astype('float64'), fftlength,
                 resample=block.resample, fthresh=args.far_threshold,
                 search=block.search)
         except Exception:
             traceback.print_exc()
-            print('  -- Problem encountered, skipping {}'.format(channel.name))
+            print('    Problem encountered, skipping {}'.format(channel.name))
             continue
 
         if series is None:
+            print('    Channel not significant at white noise false alarm '
+                  'rate {} Hz'.format(fthresh))
             continue  # channel is insignificant, skip it
 
-        print('  -- Plotting omega scan products for {}'.format(channel.name))
+        print('    Plotting omega scan products for {}'.format(channel.name))
         plot.write_qscan_plots(gps, channel, series, colormap=args.colormap)
 
         if correlate is not None:
-            print('  -- Cross-correlating {}'.format(channel.name))
+            print('    Cross-correlating {}'.format(channel.name))
             correlation = omega.cross_correlate(series[2], correlate)
             channel.save_loudest_tile_features(
                 series[3], correlation, gps=gps, dt=block.dt)

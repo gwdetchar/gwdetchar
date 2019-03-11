@@ -295,9 +295,7 @@ def scan(gps, channel, xoft, fftlength, resample=None, fthresh=1e-10,
         wxoft, mismatch=channel.mismatch, qrange=channel.qrange,
         frange=channel.frange, search=search)
     if (far >= fthresh) and (not channel.always_plot):
-        print('Channel not significant at white noise false alarm '
-              'rate %s Hz' % fthresh)
-        return None
+        return None  # series is insignificant
     # compute raw Q-gram
     Q = qgram.plane.q
     rqgram, _ = q_scan(
