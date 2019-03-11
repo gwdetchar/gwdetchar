@@ -280,28 +280,6 @@ def test_fancy_plot():
     assert test.caption is 'test.png'
 
 
-def test_finalize_static_urls(tmpdir):
-    static = os.path.join(str(tmpdir), 'static')
-    css, js = html.finalize_static_urls(static, html.CSS_FILES, html.JS_FILES)
-    assert css == [
-        'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/'
-            'bootstrap.min.css',  # nopep8
-        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
-            'jquery.fancybox.min.css',  # nopep8
-        'static/bootstrap-ligo.min.css',
-        'static/gwdetchar-omega.min.css']
-    assert js == [
-        'https://code.jquery.com/jquery-1.12.3.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/'
-            'moment.min.js',  # nopep8
-        'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
-            'jquery.fancybox.min.js',  # nopep8
-        'static/bootstrap-ligo.min.js',
-        'static/gwdetchar-omega.min.js']
-    shutil.rmtree(str(tmpdir), ignore_errors=True)
-
-
 def test_init_page(tmpdir):
     base = str(tmpdir)
     os.chdir(base)
