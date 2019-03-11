@@ -153,6 +153,9 @@ try:  # python 3.x
 except ImportError:  # python 2.x
     import ConfigParser as configparser
 
+if sys.version_info < (3, 7):
+    from collections import OrderedDict
+
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
@@ -178,7 +181,6 @@ class OmegaConfigParser(configparser.ConfigParser):
         if sys.version_info >= (3, 7):  # python 3.7+
             return {s: OmegaChannelList(s, **self[s]) for s in self.sections()}
         else:
-            from collections import OrderedDict
             return OrderedDict([(s, OmegaChannelList(s, **dict(self.items(s))))
                                 for s in self.sections()])
 
