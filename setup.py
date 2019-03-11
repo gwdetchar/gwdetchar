@@ -67,7 +67,7 @@ install_requires = [
     'scipy>=1.2.0',
     'setuptools',
     'six',
-    'pathlib ; python_version < \'3\'',
+    'pathlib2 ; python_version < \'3.6\'',
     'pygments',
 ]
 

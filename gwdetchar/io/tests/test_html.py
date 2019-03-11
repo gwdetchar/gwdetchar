@@ -53,7 +53,7 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML PUBLIC \'-//W3C//DTD HTML 4.01 Transition
 <head>
 <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
-<script src="https://code.jquery.com/jquery-1.11.2.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-1.12.3.min.js" type="text/javascript"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
 </head>
 <body>
@@ -98,6 +98,26 @@ FLAG = DataQualityFlag(known=[(0, 66)], active=[(0, 66)], name='X1:TEST_FLAG')
 
 
 # -- HTML unit tests ----------------------------------------------------------
+
+def test_finalize_static_urls(tmpdir):
+    static = os.path.join(str(tmpdir), 'static')
+    css, js = html.finalize_static_urls(static, html.CSS_FILES, html.JS_FILES)
+    assert css == [
+        'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/'
+            'bootstrap.min.css',  # nopep8
+        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
+            'jquery.fancybox.min.css',  # nopep8
+        'static/bootstrap-ligo.min.css']
+    assert js == [
+        'https://code.jquery.com/jquery-1.12.3.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/'
+            'moment.min.js',  # nopep8
+        'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
+            'jquery.fancybox.min.js',  # nopep8
+        'static/bootstrap-ligo.min.js']
+    shutil.rmtree(str(tmpdir), ignore_errors=True)
+
 
 def test_new_bootstrap_page():
     page = html.new_bootstrap_page()

@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
 import warnings
-import pathlib
 import runpy
+try:
+    import pathlib
+except ImportError:  # python < 3
+    import pathlib2 as pathlib
 
 this = pathlib.Path(__file__)
 

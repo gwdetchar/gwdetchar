@@ -22,13 +22,9 @@
 from __future__ import division
 
 import os
-import sys
 import numpy
 from functools import wraps
-from shutil import copyfile
 from collections import OrderedDict
-
-from six.moves.urllib.parse import urlparse
 
 from pkg_resources import resource_filename
 
@@ -37,8 +33,7 @@ from MarkupPy import markup
 from gwpy.table import Table
 from gwpy.time import tconvert
 
-from ..io.html import (JQUERY_JS, BOOTSTRAP_CSS, BOOTSTRAP_JS,
-                       render_code, get_command_line, write_footer)
+from ..io import html as io_html
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -114,21 +109,11 @@ OBSERVATORY_MAP = {
 
 # -- set up default JS and CSS files
 
-_FANCYBOX_CDN = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5"
-
-FANCYBOX_CSS = "{0}/jquery.fancybox.min.css".format(_FANCYBOX_CDN)
-JQUERY_JS = "https://code.jquery.com/jquery-1.12.3.min.js"
-MOMENT_JS = (
-    "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js")
-FANCYBOX_JS = "{0}/jquery.fancybox.min.js".format(_FANCYBOX_CDN)
-
 OMEGA_CSS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.css')
-LIGO_CSS = resource_filename('gwdetchar', '_static/bootstrap-ligo.min.css')
 OMEGA_JS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.js')
-LIGO_JS = resource_filename('gwdetchar', '_static/bootstrap-ligo.min.js')
 
-CSS_FILES = [BOOTSTRAP_CSS, FANCYBOX_CSS, LIGO_CSS, OMEGA_CSS]
-JS_FILES = [JQUERY_JS, MOMENT_JS, BOOTSTRAP_JS, FANCYBOX_JS, LIGO_JS, OMEGA_JS]
+CSS_FILES = io_html.CSS_FILES + [OMEGA_CSS]
+JS_FILES = io_html.JS_FILES + [OMEGA_JS]
 
 
 # -- Plot construction --------------------------------------------------------
@@ -156,71 +141,6 @@ class FancyPlot(object):
 
 
 # -- HTML construction --------------------------------------------------------
-
-def finalize_static_urls(static, cssfiles, jsfiles):
-    """Finalise the necessary CSS and javascript files as URLS.
-
-    The method parses the lists of files given, copying any local files into
-    ``static`` as necessary to create resolvable URLs to include in the HTML
-    ``<head>``.
-
-    Parameters
-    ----------
-    static : `str`
-        the target directory for the static files, will be created if
-        necessary
-
-    cssfiles : `list` of `str`
-        the list of CSS files to include
-
-    jsfiles : `list` of `str`
-        the (complete) list of javascript files to include
-
-    Returns
-    -------
-    cssurls : `list` of `str`
-        the finalised list of CSS files
-    jsurls : `list` of `str`
-        the finalised list of javascript files
-    """
-    static = os.path.abspath(static)
-
-    def _mkstatic():
-        """Create the static files directory.
-
-        This function is only called if files are going to be written into
-        the directory, to prevent creating empty directories.
-        """
-        if not os.path.isdir(static):
-            os.makedirs(static)
-
-    def _local_url(path):
-        """Copy a filepath into the static dir if required
-        """
-        path = os.path.abspath(path)
-        # if file is already below static in the hierarchy, don't do anything
-        if static in path:
-            local = path
-        # otherwise copy the file into static
-        else:
-            base = os.path.basename(path)
-            local = os.path.join(static, os.path.basename(path))
-            _mkstatic()
-            copyfile(fn, local)
-        return os.path.relpath(local, os.path.dirname(static))
-
-    # copy lists so that we can modify
-    cssfiles = list(CSS_FILES)
-    jsfiles = list(JS_FILES)
-
-    for flist in (cssfiles, jsfiles):
-        for i, fn in enumerate(flist):
-            url = urlparse(fn)
-            if not url.netloc:
-                flist[i] = _local_url(fn)
-
-    return cssfiles, jsfiles
-
 
 def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
               base=os.path.curdir, **kwargs):
@@ -268,9 +188,11 @@ def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
         script = JS_FILES
 
     # write CSS to static dir
-    staticdir = os.path.join(os.path.curdir, 'static')
-    css, script = finalize_static_urls(os.path.join(os.path.curdir, 'static'),
-                                       css, script)
+    css, script = io_html.finalize_static_urls(
+        os.path.join(os.path.curdir, 'static'),
+        css,
+        script,
+    )
 
     # create page
     page = markup.page()
@@ -381,8 +303,8 @@ def close_page(page, target, about=None, date=None):
         `~datetime.datetime.now`
     """
     page.div.close()  # container
-    page.add(write_footer(about=about, date=date, class_=True,
-                          linkstyle='color:#eee;'))
+    page.add(io_html.write_footer(about=about, date=date, class_=True,
+                                  linkstyle='color:#eee;'))
     if not page._full:
         page.body.close()
         page.html.close()
@@ -1057,7 +979,7 @@ def write_about_page(configfiles):
     page = markup.page()
     page.h2('On the command line')
     page.p('This page was generated with the command line call shown below.')
-    page.add(get_command_line())
+    page.add(io_html.get_command_line())
     page.h2('Configuration file')
     page.p('Omega scans are configured with INI-format files. The '
            'configuration files for this analysis are shown below in full.')
@@ -1065,5 +987,5 @@ def write_about_page(configfiles):
     for configfile in configfiles:
         with open(configfile, 'r') as fobj:
             inifile = fobj.read()
-        page.add(render_code(inifile, 'ini'))
+        page.add(io_html.render_code(inifile, 'ini'))
     return page
