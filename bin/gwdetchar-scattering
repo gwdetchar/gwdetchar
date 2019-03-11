@@ -69,7 +69,7 @@ rcParams.update({
 parser = cli.create_parser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
-parser.add_argument('-a', '--state-flag', metavar='FLAG',
+parser.add_argument('-a', '--state-flag', metavar='FLAG', default=None,
                     help='restrict search to times when FLAG was active')
 parser.add_argument('-t', '--frequency-threshold', type=float, default=40.,
                     help='critical fringe frequency threshold (in Hertz), '
@@ -124,7 +124,7 @@ segfile = '%s-SCATTERING_SEGMENTS_%s_HZ-%s.h5' % (args.ifo, tstr, gpsstr)
 span = Segment(args.gpsstart, args.gpsend)
 
 # get segments
-if args.state_flag:
+if args.state_flag is not None:
     state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
                                   int(args.gpsend),
                                   url=const.DEFAULT_SEGMENT_SERVER)
@@ -216,8 +216,8 @@ page.p("This analysis searched for evidence of beam scattering based on the "
        "velocity of optic motion. The fringe frequency is predicted using "
        "equation (3) of <a href=\"http://iopscience.iop.org/article/10.1088/"
        "0264-9381/27/19/194011\" target=\"_blank\">Accadia et al. (2010)</a>.")
-page.p("This analysis was done with the following command line call:")
-page.add(htmlio.get_command_line()) 
+page.add(htmlio.write_arguments(
+    [], start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag)) 
 page.div.close()
 
 # link segments file
@@ -226,7 +226,7 @@ page.add('The full output segments are recorded in HDF5 format here:')
 page.a(os.path.basename(segfile), href=segfile, target='_blank')
 page.p.close()
 # print state segments
-if args.state_flag:
+if args.state_flag is not None:
     page.p('This analysis was executed over the following segments:')
     page.div(class_='panel-group', id_='accordion1')
     page.add(htmlio.write_flag_html(
