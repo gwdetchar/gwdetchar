@@ -216,6 +216,8 @@ page.p("This analysis searched for evidence of beam scattering based on the "
        "velocity of optic motion. The fringe frequency is predicted using "
        "equation (3) of <a href=\"http://iopscience.iop.org/article/10.1088/"
        "0264-9381/27/19/194011\" target=\"_blank\">Accadia et al. (2010)</a>.")
+page.p("This analysis was done with the following command line call:")
+page.add(htmlio.get_command_line()) 
 page.div.close()
 
 # link segments file
@@ -507,6 +509,7 @@ if args.verbose:
     gprint("%s written" % segfile)
 
 # write HTML
+page.add(htmlio.write_footer())
 page.div.close()
 with open('index.html', 'w') as fp:
     fp.write(str(page))

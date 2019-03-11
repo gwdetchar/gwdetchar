@@ -112,7 +112,8 @@ Links <b class="caret"></b>
 </body>
 </html>"""  # nopep8
 
-HTML_FOOTER = """<footer class="footer">
+HTML_CLOSE = """</div>
+<footer class="footer">
 <div class="container">
 <div class="row">
 <div class="col-md-12">
@@ -120,12 +121,9 @@ HTML_FOOTER = """<footer class="footer">
 </div>
 </div>
 </div>
-</footer>""" % (COMMIT, VERSION)  # nopep8
-
-HTML_CLOSE = """</div>
-%s
+</footer>
 </body>
-</html>""" % HTML_FOOTER
+</html>""" % (COMMIT, VERSION)  # nopep8
 
 CONFIGURATION = u"""
 [primary]
@@ -406,13 +404,6 @@ def test_write_summary_table(tmpdir):
     os.chdir(wdir)
     html.write_summary_table(ANALYZED, correlated=True)
     shutil.rmtree(wdir)
-
-
-def test_write_footer():
-    date = datetime.datetime.now()
-    out = html.write_footer(date=date)
-    assert parse_html(str(out)) == parse_html(
-        HTML_FOOTER.format(user=getuser(), date=date))
 
 
 def test_write_summary():

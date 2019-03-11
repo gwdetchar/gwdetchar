@@ -20,12 +20,19 @@
 """
 
 import os
-
+import sys
+import datetime
+from getpass import getuser
 from six.moves import StringIO
 
 from MarkupPy import markup
 
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
+
 from ..plot import plot_segments
+from .._version import get_versions
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
@@ -35,6 +42,8 @@ BOOTSTRAP_CSS = (
     "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css")
 BOOTSTRAP_JS = (
     "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js")
+
+FORMATTER = HtmlFormatter(noclasses=True)
 
 
 def new_bootstrap_page(*args, **kwargs):
@@ -49,9 +58,13 @@ def new_bootstrap_page(*args, **kwargs):
     for js in [BOOTSTRAP_JS, JQUERY_JS]:
         if js not in script:
             script.insert(0, js)
+    # ensure nice formatting on mobile screens
+    metainfo = {
+        'viewport': 'width=device-width, initial-scale=1.0'}
     # create page and init
     kwargs['css'] = css
     kwargs['script'] = script
+    kwargs['metainfo'] = metainfo
     page = markup.page()
     page.init(*args, **kwargs)
     return page
@@ -65,6 +78,79 @@ def write_param(param, value):
     page.strong('%s: ' % param)
     page.add(str(value))
     page.p.close()
+    return page()
+
+
+def render_code(code, language):
+    """Render a black of code with syntax highlighting
+
+    Parameters
+    ----------
+    code : `str`
+        a raw block of source code
+
+    language : `str`
+        language the code is written in, e.g. `'python'`
+    """
+    lexer = get_lexer_by_name(language, stripall=True)
+    return highlight(code, lexer, FORMATTER)
+
+
+def get_command_line(language='bash'):
+    """Render the command line invocation used to generate a page
+
+    Parameters
+    ----------
+    language : `str`, optional
+        language the code is written in, default: `'bash'`
+    """
+    commandline = ' '.join(sys.argv)
+    return render_code(commandline, language)
+
+
+def write_footer(about=None, date=None, class_=False,
+                 linkstyle='color:#000;'):
+    """Write a <footer> for a bootstrap page
+
+    Parameters
+    ----------
+    about : `str`, optional
+        path of about page to link
+
+    date : `datetime.datetime`, optional
+        the datetime representing when this analysis was generated, defaults
+        to `~datetime.datetime.now`
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        the markup object containing the footer HTML
+    """
+    page = markup.page()
+    if class_:
+        page.twotags.append('footer')
+        markup.element('footer', case=page.case, parent=page)(class_='footer')
+    page.div(class_='container')
+    # write user/time for analysis
+    if date is None:
+        date = datetime.datetime.now().replace(second=0, microsecond=0)
+    version = get_versions()['version']
+    commit = get_versions()['full-revisionid']
+    url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
+    link = markup.oneliner.a('gwdetchar version {}'.format(version), href=url,
+                              target='_blank', style=linkstyle)
+    page.div(class_='row')
+    page.div(class_='col-md-12')
+    page.p('These results were obtained using {link} by {user} at '
+           '{date}.'.format(link=link, user=getuser(), date=date))
+    # link to 'about'
+    if about is not None:
+        page.a('How was this page generated?', href=about, style=linkstyle)
+    page.div.close()  # col-md-12
+    page.div.close()  # row
+    page.div.close()  # container
+    if class_:
+        markup.element('footer', case=page.case, parent=page).close()
     return page()
 
 

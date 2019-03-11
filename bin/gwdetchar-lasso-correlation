@@ -632,11 +632,14 @@ page.add(htmlio.write_param(
     'Lasso coefficient threshold', '%g' % args.threshold))
 page.add(htmlio.write_param(
     'Sigma for outlier removal', '%g' % args.remove_outliers))
-page.add(htmlio.write_param('Cluster coefficient threshold: ',
+page.add(htmlio.write_param('Cluster coefficient threshold',
                             '%g' % args.cluster_coefficient))
 if args.band_pass:
     page.add(htmlio.write_param(
         'Filter settings', 'Flow=%dHz, Fhigh=%dHz ' % (flower, fupper)))
+page.add(htmlio.write_param('Command line', ''))
+page.add(htmlio.get_command_line())
+
 page.h2('Model Information')
 
 page.div(class_='model')
@@ -652,6 +655,7 @@ page.add(htmlio.write_param(
     '%d (%s)' % (len(zeroed),
                  "<a href= %s target='_blank'>zeroed channel list</a>"
                  % (zerofile))))
+
 page.div(class_='results-table', align='center')
 page.p('<br /><br />%s' % style_table(df.to_html(
     index=True,
@@ -789,6 +793,7 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
     page.div.close()  # panel-collapse
     page.div.close()  # panel
 page.div.close()  # panel-group
+page.add(htmlio.write_footer())
 page.div.close()  # container
 with open('index.html', 'w') as f:
     print(str(page), file=f)

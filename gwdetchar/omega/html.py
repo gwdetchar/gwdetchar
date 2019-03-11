@@ -24,10 +24,7 @@ from __future__ import division
 import os
 import sys
 import numpy
-import datetime
-import subprocess
 from functools import wraps
-from getpass import getuser
 from shutil import copyfile
 from collections import OrderedDict
 
@@ -35,16 +32,13 @@ from six.moves.urllib.parse import urlparse
 
 from pkg_resources import resource_filename
 
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name
-from pygments.formatters import HtmlFormatter
-
 from MarkupPy import markup
 
 from gwpy.table import Table
 from gwpy.time import tconvert
-from ..io.html import (JQUERY_JS, BOOTSTRAP_CSS, BOOTSTRAP_JS)
-from .._version import get_versions
+
+from ..io.html import (JQUERY_JS, BOOTSTRAP_CSS, BOOTSTRAP_JS,
+                       render_code, get_command_line, write_footer)
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -387,7 +381,8 @@ def close_page(page, target, about=None, date=None):
         `~datetime.datetime.now`
     """
     page.div.close()  # container
-    page.add(str(write_footer(about=about, date=date)))
+    page.add(write_footer(about=about, date=date, class_=True,
+                          linkstyle='color:#eee;'))
     if not page._full:
         page.body.close()
         page.html.close()
@@ -653,48 +648,6 @@ def write_summary_table(blocks, correlated, base=os.path.curdir):
     data.write(fname + '.txt', format='ascii', overwrite=True)
     data.write(fname + '.csv', format='csv', overwrite=True)
     data.write(fname + '.tex', format='latex', overwrite=True)
-
-
-def write_footer(about=None, date=None):
-    """Write a <footer> for a Qscan page
-
-    Parameters
-    ----------
-    about : `str`, optional
-        path of about page to link
-    date : `datetime.datetime`, optional
-        the datetime representing when this analysis was generated, defaults
-        to `~datetime.datetime.now`
-
-    Returns
-    -------
-    page : `~MarkupPy.markup.page`
-        the markup object containing the footer HTML
-    """
-    page = markup.page()
-    page.twotags.append('footer')
-    markup.element('footer', case=page.case, parent=page)(class_='footer')
-    page.div(class_='container')
-    # write user/time for analysis
-    if date is None:
-        date = datetime.datetime.now().replace(second=0, microsecond=0)
-    version = get_versions()['version']
-    commit = get_versions()['full-revisionid']
-    url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
-    link = markup.oneliner.a('gwdetchar version {}'.format(version), href=url,
-                              target='_blank', style='color:#eee;')
-    page.div(class_='row')
-    page.div(class_='col-md-12')
-    page.p('These results were obtained using {link} by {user} at '
-           '{date}.'.format(link=link, user=getuser(), date=date))
-    # link to 'about'
-    if about is not None:
-        page.a('How was this page generated?', href=about, style='color:#eee;')
-    page.div.close()  # col-md-12
-    page.div.close()  # row
-    page.div.close()  # container
-    markup.element('footer', case=page.case, parent=page).close()
-    return page
 
 
 # -- Qscan HTML ---------------------------------------------------------------
@@ -1100,16 +1053,11 @@ def write_about_page(configfiles):
     index : `str`
         the path of the HTML written for this analysis
     """
-    # configure syntax highlighting
-    blexer = get_lexer_by_name('bash', stripall=True)
-    ilexer = get_lexer_by_name('ini', stripall=True)
-    formatter = HtmlFormatter(noclasses=True)
     # set up page
     page = markup.page()
     page.h2('On the command line')
     page.p('This page was generated with the command line call shown below.')
-    commandline = highlight(' '.join(sys.argv), blexer, formatter)
-    page.add(commandline)
+    page.add(get_command_line())
     page.h2('Configuration file')
     page.p('Omega scans are configured with INI-format files. The '
            'configuration files for this analysis are shown below in full.')
@@ -1117,6 +1065,5 @@ def write_about_page(configfiles):
     for configfile in configfiles:
         with open(configfile, 'r') as fobj:
             inifile = fobj.read()
-        contents = highlight(inifile, ilexer, formatter)
-        page.add(contents)
+        page.add(render_code(inifile, 'ini'))
     return page

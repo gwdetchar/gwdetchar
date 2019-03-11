@@ -387,6 +387,8 @@ page.add(htmlio.write_param(
     'Range channel',
     '%s (%s)' % (rangechannel, args.range_frametype or '-')))
 page.add(htmlio.write_param('Band-pass', '%s-%s' % (flower, fupper)))
+page.add(htmlio.write_param('Command line', ''))                                
+page.add(htmlio.get_command_line())
 
 # results
 page.h2('Results')
@@ -479,6 +481,7 @@ for i, (ch, corr1, corr2, plot1, plot2, plot3,
     page.div.close()  # panel
 page.div.close()  # panel-group
 
+page.add(htmlio.write_footer())
 page.div.close()  # container
 with open('index.html', 'w') as f:
     print(str(page), file=f)

@@ -21,6 +21,8 @@
 
 import os
 import shutil
+import datetime
+from getpass import getuser
 
 import pytest
 
@@ -35,6 +37,7 @@ except ImportError:  # python 2.7
 from gwpy.segments import (Segment, DataQualityFlag)
 
 from .. import html
+from ..._version import get_versions
 from ...utils import parse_html
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -42,9 +45,13 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 # global test objects
 
+VERSION = get_versions()['version']
+COMMIT = get_versions()['full-revisionid']
+
 NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML PUBLIC \'-//W3C//DTD HTML 4.01 Transitional//EN\'>
 <html lang="en">
 <head>
+<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
 <script src="https://code.jquery.com/jquery-1.11.2.min.js" type="text/javascript"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
@@ -52,6 +59,16 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML PUBLIC \'-//W3C//DTD HTML 4.01 Transition
 <body>
 </body>
 </html>"""  # nopep8
+
+HTML_FOOTER = """<footer class="footer">
+<div class="container">
+<div class="row">
+<div class="col-md-12">
+<p>These results were obtained using <a style="color:#000;" href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">gwdetchar version %s</a> by {user} at {date}.</p>
+</div>
+</div>
+</div>
+</footer>""" % (COMMIT, VERSION)  # nopep8
 
 FLAG_CONTENT = """<div class="panel panel-warning">
 <div class="panel-heading">
@@ -92,6 +109,13 @@ def test_write_param():
     assert parse_html(str(page)) == parse_html(
         '<p>\n<strong>test: </strong>\ntest\n</p>'
     )
+
+
+def test_write_footer():
+    date = datetime.datetime.now()
+    out = html.write_footer(date=date, class_=True)
+    assert parse_html(str(out)) == parse_html(
+        HTML_FOOTER.format(user=getuser(), date=date))
 
 
 def test_write_flag_html():
