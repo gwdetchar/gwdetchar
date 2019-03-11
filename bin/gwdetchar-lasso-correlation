@@ -603,7 +603,7 @@ def style_table(html_table):
 
 
 # write html
-title = '%s Lasso slow correlations: %d-%d' % (args.ifo, start, end)
+title = '%s Lasso Slow Correlations: %d-%d' % (args.ifo, start, end)
 page = htmlio.new_bootstrap_page(title=title)
 page.div(class_='container')
 

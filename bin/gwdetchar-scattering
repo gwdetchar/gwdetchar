@@ -207,7 +207,7 @@ if args.verbose:
 
 # -- prepare HTML -------------------------------------------------------------
 
-page = htmlio.new_bootstrap_page(title='%s scattering' % args.ifo)
+page = htmlio.new_bootstrap_page(title='%s Scattering' % args.ifo)
 page.div(class_='container')
 page.div(class_='page-header')
 page.h1('%s scattering: %d-%d'
@@ -216,11 +216,12 @@ page.p("This analysis searched for evidence of beam scattering based on the "
        "velocity of optic motion. The fringe frequency is predicted using "
        "equation (3) of <a href=\"http://iopscience.iop.org/article/10.1088/"
        "0264-9381/27/19/194011\" target=\"_blank\">Accadia et al. (2010)</a>.")
+page.div.close()
 page.add(htmlio.write_arguments(
     [], start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag)) 
-page.div.close()
 
 # link segments file
+page.h2('Segments')
 page.p()
 page.add('The full output segments are recorded in HDF5 format here:')
 page.a(os.path.basename(segfile), href=segfile, target='_blank')

@@ -355,7 +355,7 @@ with open('results.txt', 'w') as f:
         print('%s %s %s %s %s' % (ch, corr1, corr2, corr1s, corr2s), file=f)
 
 # -- write html
-title = '%s slow correlations: %d-%d' % (args.ifo, start, end)
+title = '%s Slow Correlations: %d-%d' % (args.ifo, start, end)
 page = htmlio.new_bootstrap_page(title=title)
 page.div(class_='container')
 
