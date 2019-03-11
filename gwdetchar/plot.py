@@ -58,17 +58,16 @@ def get_gwpy_tex_settings():
 
 # -- plotting utilities -------------------------------------------------------
 
-def plot_segments(flag, span, facecolor='red', edgecolor='darkred',
-                  known={'alpha': 0.2, 'facecolor': 'lightgray',
-                         'edgecolor': 'gray'}):
+def plot_segments(flag, span, facecolor='red', edgecolor='darkred', height=0.8,
+                  known={'alpha': 0.6, 'facecolor': 'lightgray',
+                         'edgecolor': 'gray', 'height': 0.4}):
     """Plot the saturation segments contained within a flag
     """
     name = flag.texname if rcParams["text.usetex"] else flag.name
     plot = flag.plot(
         figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
-        known=known, label=' ',
-        xlim=span, xscale='auto-gps', epoch=span[0],
-        title="{} segments".format(name),
+        height=height, known=known, label=' ', xlim=span, xscale='auto-gps',
+        epoch=span[0], title="{} segments".format(name),
     )
     plot.subplots_adjust(bottom=0.4, top=0.8)
     return plot

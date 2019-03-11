@@ -70,7 +70,7 @@ def write_param(param, value):
 
 def write_flag_html(flag, span=None, id=0, parent='accordion',
                     context='warning', title=None, plotdir=None,
-                    plot_func=plot_segments):
+                    plot_func=plot_segments, **kwargs):
     """Write HTML for data quality flags
     """
     page = markup.page()
@@ -83,6 +83,18 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     page.div.close()
     page.div(id_='flag%s' % id, class_='panel-collapse collapse')
     page.div(class_='panel-body')
+    # render segment plot
+    if plotdir is not None and plot_func is not None:
+        flagr = flag.name.replace('-', '_').replace(':', '-', 1)
+        png = os.path.join(
+            plotdir, '%s-%d-%d.png' % (flagr, span[0], abs(span)))
+        plot = plot_func(flag, span, **kwargs)
+        plot.save(png)
+        plot.close()
+        page.a(href=png, target='_blank')
+        page.img(style="width: 100%;", src=png)
+        page.a.close()
+    # write segments
     segs = StringIO()
     try:
         flag.active.write(segs, format='segwizard',
@@ -92,16 +104,6 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     else:
         page.pre(segs.getvalue())
     page.div.close()
-    if plotdir is not None and plot_func is not None:
-        flagr = flag.name.replace('-', '_').replace(':', '-', 1)
-        png = os.path.join(
-            plotdir, '%s-%d-%d.png' % (flagr, span[0], abs(span)))
-        plot = plot_func(flag, span)
-        plot.save(png)
-        plot.close()
-        page.a(href=png, target='_blank')
-        page.img(style="width: 100%;", src=png)
-        page.a.close()
     page.div.close()
     page.div.close()
     return page

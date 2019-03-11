@@ -218,6 +218,14 @@ if args.html:
            "are included in the Results summary and the output file."
            % sum(map(len, channels)))
     page.div.close()
+    # -- paramters
+    page.h2('Parameters')
+    page.p('This analysis used the following parameters:')
+    page.add(htmlio.write_param('Start time', args.gpsstart))
+    page.add(htmlio.write_param('End time', args.gpsend))
+    page.add(htmlio.write_param('State flag', args.state_flag))
+    page.add(htmlio.write_param('State end padding', args.pad_state_end))
+    page.add(htmlio.write_param('Skip', ', '.join(map(repr, args.skip))))
     # -- segments
     page.h2('Segments')
     # link output file
@@ -230,7 +238,10 @@ if args.html:
         page.p('This analysis was executed over the following segments:')
         page.div(class_='panel-group', id_='accordion1')
         page.add(str(htmlio.write_flag_html(
-            state, id='state', parent='accordion1', context='success')))
+            state, span, 'state', parent='accordion1', context='success',
+            plotdir=args.plot, facecolor=(0.2, 0.8, 0.2),
+            edgecolor='darkgreen', known={
+                'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4})))
         page.div.close()
     # print saturation segments
     if len(bad):
@@ -267,14 +278,6 @@ if args.html:
         page.tr.close()
     page.tbody.close()
     page.table.close()
-    # -- paramters
-    page.h2('Parameters')
-    page.p('This analysis used the following parameters:')
-    page.add(htmlio.write_param('Start time', args.gpsstart))
-    page.add(htmlio.write_param('End time', args.gpsend))
-    page.add(htmlio.write_param('State flag', args.state_flag))
-    page.add(htmlio.write_param('State end padding', args.pad_state_end))
-    page.add(htmlio.write_param('Skip', ', '.join(map(repr, args.skip))))
     # close and write
     page.div.close()
     with open(args.html, 'w') as fp:
