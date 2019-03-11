@@ -89,6 +89,33 @@ JS_FILES = [
 FORMATTER = HtmlFormatter(noclasses=True)
 
 
+# -- Plot construction --------------------------------------------------------
+
+class FancyPlot(object):
+    """A helpful class of objects that coalesce image links and caption text
+    for fancybox figures.
+
+    Parameters
+    ----------
+    img : `str` or `FancyPlot`
+        either a filename (including relative or absolute path) or another
+        FancyPlot instance
+
+    caption : `str`
+        the text to be displayed in a fancybox as this figure's caption
+    """
+    def __init__(self, img, caption=None):
+        if isinstance(img, FancyPlot):
+            caption = caption if caption else img.caption
+        self.img = str(img)
+        self.caption = caption if caption else os.path.basename(self.img)
+
+    def __str__(self):
+        return self.img
+
+
+# -- HTML construction --------------------------------------------------------
+
 def finalize_static_urls(static, cssfiles, jsfiles):
     """Finalise the necessary CSS and javascript files as URLS.
 
@@ -204,6 +231,82 @@ def get_command_line(language='bash'):
     """
     commandline = ' '.join(sys.argv)
     return render_code(commandline, language)
+
+
+def fancybox_img(img, linkparams=dict(), **params):
+    """Return the markup to embed an <img> in HTML
+
+    Parameters
+    ----------
+    img : `FancyPlot`
+        a `FancyPlot` object containing the path of the image to embed
+        and its caption to be displayed
+
+    linkparams : `dict`
+        the HTML attributes for the ``<a>`` tag
+
+    **params
+        the HTML attributes for the ``<img>`` tag
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        the markup object containing fancyplot HTML
+    """
+    page = markup.page()
+    aparams = {
+        'title': img.caption,
+        'class_': 'fancybox',
+        'target': '_blank',
+        'data-fancybox-group': 'qscan-image',
+    }
+    aparams.update(linkparams)
+    img = str(img)
+    substrings = os.path.basename(img).split('-')
+    channel = '%s-%s' % tuple(substrings[:2])
+    duration = substrings[-1].split('.')[0]
+    page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
+    imgparams = {
+        'alt': os.path.basename(img),
+        'class_': 'img-responsive',
+    }
+    imgparams['src'] = img
+    imgparams.update(params)
+    page.img(id_='img_%s_%s' % (channel, duration), **imgparams)
+    page.a.close()
+    return page()
+
+
+def scaffold_plots(plots, nperrow=3):
+    """Embed a `list` of images in a bootstrap scaffold
+
+    Parameters
+    ----------
+    plot : `list` of `FancyPlot`
+        the list of image paths to embed
+
+    nperrow : `int`
+        the number of images to place in a row (on a desktop screen)
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        the markup object containing the scaffolded HTML
+    """
+    page = markup.page()
+    x = int(12//nperrow)
+    # scaffold plots
+    for i, p in enumerate(plots):
+        if i % nperrow == 0:
+            page.div(class_='row')
+        page.div(class_='col-sm-%d' % x)
+        page.add(fancybox_img(p))
+        page.div.close()  # col
+        if i % nperrow == nperrow - 1:
+            page.div.close()  # row
+    if i % nperrow < nperrow-1:
+        page.div.close()  # row
+    return page()
 
 
 def write_footer(about=None, date=None, class_=False,

@@ -116,30 +116,6 @@ CSS_FILES = io_html.CSS_FILES + [OMEGA_CSS]
 JS_FILES = io_html.JS_FILES + [OMEGA_JS]
 
 
-# -- Plot construction --------------------------------------------------------
-
-class FancyPlot(object):
-    """A helpful class of objects that coalesce image links and caption text
-    for fancybox figures.
-
-    Parameters
-    ----------
-    img : `str` or `FancyPlot`
-        either a filename (including relative or absolute path) or another
-        FancyPlot instance
-    caption : `str`
-        the text to be displayed in a fancybox as this figure's caption
-    """
-    def __init__(self, img, caption=None):
-        if isinstance(img, FancyPlot):
-            caption = caption if caption else img.caption
-        self.img = str(img)
-        self.caption = caption if caption else os.path.basename(self.img)
-
-    def __str__(self):
-        return self.img
-
-
 # -- HTML construction --------------------------------------------------------
 
 def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
@@ -377,7 +353,6 @@ def wrap_html(func):
 
 # -- Utilities ----------------------------------------------------------------
 
-
 def html_link(href, txt, target="_blank", **params):
     """Write an HTML <a> tag
 
@@ -450,81 +425,6 @@ def cis_link(channel, **params):
     kwargs.update(params)
     return html_link("https://cis.ligo.org/channel/byname/%s" % channel,
                      channel, **kwargs)
-
-
-def fancybox_img(img, linkparams=dict(), **params):
-    """Return the markup to embed an <img> in HTML
-
-    Parameters
-    ----------
-    img : `FancyPlot`
-        a `FancyPlot` object containing the path of the image to embed
-        and its caption to be displayed
-    linkparams : `dict`
-        the HTML attributes for the ``<a>`` tag
-    **params
-        the HTML attributes for the ``<img>`` tag
-
-    Returns
-    -------
-    html : `str`
-    Notes
-    -----
-    See `~gwdetchar.omega.plot.FancyPlot` for more about the `FancyPlot` class.
-    """
-    page = markup.page()
-    aparams = {
-        'title': img.caption,
-        'class_': 'fancybox',
-        'target': '_blank',
-        'data-fancybox-group': 'qscan-image',
-    }
-    aparams.update(linkparams)
-    img = str(img)
-    substrings = os.path.basename(img).split('-')
-    channel = '%s-%s' % tuple(substrings[:2])
-    duration = substrings[-1].split('.')[0]
-    page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
-    imgparams = {
-        'alt': os.path.basename(img),
-        'class_': 'img-responsive',
-    }
-    imgparams['src'] = img
-    imgparams.update(params)
-    page.img(id_='img_%s_%s' % (channel, duration), **imgparams)
-    page.a.close()
-    return str(page)
-
-
-def scaffold_plots(plots, nperrow=3):
-    """Embed a `list` of images in a bootstrap scaffold
-
-    Parameters
-    ----------
-    plot : `list` of `FancyPlot`
-        the list of image paths to embed
-    nperrow : `int`
-        the number of images to place in a row (on a desktop screen)
-
-    Returns
-    -------
-    page : `~MarkupPy.markup.page`
-        the markup object containing the scaffolded HTML
-    """
-    page = markup.page()
-    x = int(12//nperrow)
-    # scaffold plots
-    for i, p in enumerate(plots):
-        if i % nperrow == 0:
-            page.div(class_='row')
-        page.div(class_='col-sm-%d' % x)
-        page.add(fancybox_img(p))
-        page.div.close()  # col
-        if i % nperrow == nperrow - 1:
-            page.div.close()  # row
-    if i % nperrow < nperrow-1:
-        page.div.close()  # row
-    return page()
 
 
 def write_summary_table(blocks, correlated, base=os.path.curdir):
@@ -879,8 +779,9 @@ def write_block(blockkey, block, context,
         page.div.close()  # row
 
         # plots
-        page.add(scaffold_plots(channel.plots['qscan_whitened'],
-                 nperrow=min(len(channel.pranges), 3)))
+        page.add(io_html.scaffold_plots(
+            channel.plots['qscan_whitened'],
+            nperrow=min(len(channel.pranges), 3)))
 
         page.div.close()  # container anchor
         page.li.close()
