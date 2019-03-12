@@ -200,7 +200,7 @@ auxdata = get_data(
 
 print('-- Pre-processing auxiliary channel data')
 
-gwlasso.remove_flat(auxdata)
+auxdata = gwlasso.remove_flat(auxdata)
 flattab = Table(data=(list(set(channels) - set(auxdata.keys())),),
                 names=('Channels',))
 print('Removed {0} channels with flat data'.format(len(flattab)))
@@ -210,7 +210,7 @@ print('{0} channels remaining'.format(len(auxdata)))
 
 print("Removing any channels with bad data...")
 nbefore = len(auxdata)
-gwlasso.remove_bad(auxdata)
+auxdata = gwlasso.remove_bad(auxdata)
 nafter = len(auxdata)
 print('Removed {0} channels with bad data'.format(nbefore - nafter))
 print('{0} channels remaining'.format(nafter))
