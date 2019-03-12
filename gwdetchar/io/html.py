@@ -359,6 +359,7 @@ def scaffold_plots(plots, nperrow=3):
             page.div.close()  # row
     if i % nperrow < nperrow-1:
         page.div.close()  # row
+    return page()
 
 
 def write_arguments(content, start, end, flag=None, section='Parameters',
