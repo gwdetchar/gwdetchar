@@ -254,7 +254,7 @@ Eventgram view <span class="caret"></span>
 </div>
 <div class="row">
 <div class="col-sm-12">
-<a href="plots/X1-TEST_AUX-qscan_whitened-4.png" id="a_X1-TEST_AUX_4" title="X1-TEST_AUX-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox-group="qscan-image">
+<a href="plots/X1-TEST_AUX-qscan_whitened-4.png" id="a_X1-TEST_AUX_4" title="X1-TEST_AUX-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox-group="images">
 <img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-qscan_whitened-4.png" class="img-responsive" src="plots/X1-TEST_AUX-qscan_whitened-4.png" />
 </a>
 </div>
@@ -266,19 +266,6 @@ Eventgram view <span class="caret"></span>
 
 
 # -- unit tests ---------------------------------------------------------------
-
-def test_fancy_plot():
-    # create a dummy FancyPlot instance
-    test = html.FancyPlot('test.png')
-    assert test.img is 'test.png'
-    assert test.caption is 'test.png'
-
-    # check that its properties are unchanged when the argument
-    # to FancyPlot() is also a FancyPlot instance
-    test = html.FancyPlot(test)
-    assert test.img is 'test.png'
-    assert test.caption is 'test.png'
-
 
 def test_init_page(tmpdir):
     base = str(tmpdir)
@@ -302,18 +289,6 @@ def test_close_page(tmpdir):
     shutil.rmtree(target, ignore_errors=True)
 
 
-@pytest.mark.parametrize('args, kwargs, result', [
-    (('test.html', 'Test link'), {},
-     '<a href="test.html" target="_blank">Test link</a>'),
-    (('test.html', 'Test link'), {'class_': 'test-case'},
-     '<a class="test-case" href="test.html" target="_blank">Test link</a>'),
-])
-def test_html_link(args, kwargs, result):
-    h1 = parse_html(html.html_link(*args, **kwargs))
-    h2 = parse_html(result)
-    assert h1 == h2
-
-
 def test_toggle_link():
     h1 = parse_html(html.toggle_link('timeseries_raw', GW.channels[0], [4]))
     h2 = parse_html(
@@ -321,57 +296,6 @@ def test_toggle_link():
         'onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], '
         '&quot;timeseries_raw&quot;, '
         '[&quot;X1-TEST_AUX-timeseries_raw-4.png&quot;]);">raw</a>'
-    )
-    assert h1 == h2
-
-
-def test_cis_link():
-    h1 = parse_html(html.cis_link('X1:TEST-CHANNEL'))
-    h2 = parse_html(
-        '<a style="font-family: Monaco, &quot;Courier New&quot;, '
-        'monospace; color: black;" href="https://cis.ligo.org/channel/byname/'
-        'X1:TEST-CHANNEL" target="_blank" title="CIS entry for '
-        'X1:TEST-CHANNEL">X1:TEST-CHANNEL</a>'
-    )
-    assert h1 == h2
-
-
-def test_fancybox_img():
-    img = html.FancyPlot('X1-TEST_AUX-test-4.png')
-    out = html.fancybox_img(img)
-    assert parse_html(out) == parse_html(
-        '<a class="fancybox" href="X1-TEST_AUX-test-4.png" target="_blank" '
-            'data-fancybox-group="qscan-image" id="a_X1-TEST_AUX_4" '
-            'title="X1-TEST_AUX-test-4.png">\n'
-        '<img class="img-responsive" alt="X1-TEST_AUX-test-4.png" '
-            'src="X1-TEST_AUX-test-4.png" id="img_X1-TEST_AUX_4"/>\n'
-        '</a>'
-    )
-
-
-def test_scaffold_plots():
-    h1 = parse_html(html.scaffold_plots([
-        html.FancyPlot('X1-TEST_AUX-test-4.png'),
-        html.FancyPlot('X1-TEST_AUX-test-16.png')], nperrow=2))
-    h2 = parse_html(
-        '<div class="row">\n'
-        '<div class="col-sm-6">\n'
-        '<a class="fancybox" href="X1-TEST_AUX-test-4.png" target="_blank" '
-            'id="a_X1-TEST_AUX_4" data-fancybox-group="qscan-image" '
-            'title="X1-TEST_AUX-test-4.png">\n'
-        '<img class="img-responsive" alt="X1-TEST_AUX-test-4.png" '
-            'id="img_X1-TEST_AUX_4" src="X1-TEST_AUX-test-4.png" />\n'
-        '</a>\n'
-        '</div>\n'
-        '<div class="col-sm-6">\n'
-        '<a class="fancybox" href="X1-TEST_AUX-test-16.png" target="_blank"'
-            ' id="a_X1-TEST_AUX_16" data-fancybox-group="qscan-image" '
-            'title="X1-TEST_AUX-test-16.png">\n'
-        '<img class="img-responsive" alt="X1-TEST_AUX-test-16.png" '
-            'id="img_X1-TEST_AUX_16" src="X1-TEST_AUX-test-16.png" />\n'
-        '</a>\n'
-        '</div>\n'
-        '</div>'
     )
     assert h1 == h2
 
@@ -424,7 +348,7 @@ def test_write_ranking():
             'primary channel, X1:TEST-STRAIN." class="fancybox" '
             'target="_blank" style="font-family: Monaco, &quot;Courier '
             'New&quot;, monospace; color: black;" data-fancybox-group='
-            '"qscan-image">X1:TEST-STRAIN</a>.</p>\n'
+            '"images">X1:TEST-STRAIN</a>.</p>\n'
         '<table class="table table-condensed table-hover table-bordered '
             'table-responsive">\n'
         '<thead>\n<tr>\n<th scope="col">Channel</th>\n'

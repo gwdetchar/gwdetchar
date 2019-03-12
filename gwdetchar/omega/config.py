@@ -145,8 +145,8 @@ import numpy
 
 from gwpy.detector import (Channel, ChannelList)
 
-from . import html
 from .. import const
+from ..io.html import FancyPlot
 
 try:  # python 3.x
     import configparser
@@ -227,7 +227,7 @@ def get_fancyplots(channel, plottype, duration, caption=None):
     filename = '%s/%s-%s-%s.png' % (plotdir, chan, plottype, duration)
     if not caption:
         caption = os.path.basename(filename)
-    return html.FancyPlot(filename, caption)
+    return FancyPlot(filename, caption)
 
 
 # -- channel list objects -----------------------------------------------------

@@ -473,9 +473,8 @@ for i, (ch, corr1, corr2, plot1, plot2, plot3,
                % (args.threshold))
     else:
         for p in (plot1, plot2, plot3):
-            page.a(href=p, target='_blank')
-            page.img(class_='img-responsive', src=p)
-            page.a.close()
+            img = htmlio.FancyPlot(p)
+            page.add(htmlio.fancybox_img(img))
     page.div.close()  # panel-body
     page.div.close()  # panel-collapse
     page.div.close()  # panel

@@ -87,9 +87,12 @@ FLAG_HTML = FLAG_CONTENT.format(content="""<pre># seg\tstart\tstop\tduration
 
 FLAG_HTML_WITH_PLOTS = FLAG_CONTENT.format(
     content='<pre># seg\tstart\tstop\tduration\n0\t0\t66\t66.0\n</pre>',
-    plots='\n<a href="plots/X1-TEST_FLAG-0-66.png" target="_blank">\n'
-          '<img src="plots/X1-TEST_FLAG-0-66.png" style="width: 100%;" />\n'
-          '</a>')
+    plots='\n<a id="a_X1-TEST_FLAG_66" target="_blank" title="Known (small) '
+          'and active (large) analysis segments for X1:TEST_FLAG" '
+          'class="fancybox" href="plots/X1-TEST_FLAG-0-66.png" '
+          'data-fancybox-group="images">\n<img id="img_X1-TEST_FLAG_66" '
+          'alt="X1-TEST_FLAG-0-66.png" class="img-responsive" '
+          'src="plots/X1-TEST_FLAG-0-66.png" />\n</a>')
 
 FLAG_HTML_NO_SEGMENTS = FLAG_CONTENT.format(
     content='<p>No segments were found.</p>', plots='')
@@ -98,6 +101,19 @@ FLAG = DataQualityFlag(known=[(0, 66)], active=[(0, 66)], name='X1:TEST_FLAG')
 
 
 # -- HTML unit tests ----------------------------------------------------------
+
+def test_fancy_plot():
+    # create a dummy FancyPlot instance
+    test = html.FancyPlot('test.png')
+    assert test.img is 'test.png'
+    assert test.caption is 'test.png'
+
+    # check that its properties are unchanged when the argument
+    # to FancyPlot() is also a FancyPlot instance
+    test = html.FancyPlot(test)
+    assert test.img is 'test.png'
+    assert test.caption is 'test.png'
+
 
 def test_finalize_static_urls(tmpdir):
     static = os.path.join(str(tmpdir), 'static')
@@ -127,8 +143,68 @@ def test_new_bootstrap_page():
 def test_write_param():
     page = html.write_param('test', 'test')
     assert parse_html(str(page)) == parse_html(
-        '<p>\n<strong>test: </strong>\ntest\n</p>'
+        '<p>\n<strong>test: </strong>\ntest\n</p>')
+
+
+@pytest.mark.parametrize('args, kwargs, result', [
+    (('test.html', 'Test link'), {},
+     '<a href="test.html" target="_blank">Test link</a>'),
+    (('test.html', 'Test link'), {'class_': 'test-case'},
+     '<a class="test-case" href="test.html" target="_blank">Test link</a>'),
+])
+def test_html_link(args, kwargs, result):
+    h1 = parse_html(html.html_link(*args, **kwargs))
+    h2 = parse_html(result)
+    assert h1 == h2
+
+
+def test_cis_link():
+    h1 = parse_html(html.cis_link('X1:TEST-CHANNEL'))
+    h2 = parse_html(
+        '<a style="font-family: Monaco, &quot;Courier New&quot;, '
+        'monospace; color: black;" href="https://cis.ligo.org/channel/byname/'
+        'X1:TEST-CHANNEL" target="_blank" title="CIS entry for '
+        'X1:TEST-CHANNEL">X1:TEST-CHANNEL</a>'
     )
+    assert h1 == h2
+
+
+def test_fancybox_img():
+    img = html.FancyPlot('X1-TEST_AUX-test-4.png')
+    out = html.fancybox_img(img)
+    assert parse_html(out) == parse_html(
+        '<a class="fancybox" href="X1-TEST_AUX-test-4.png" target="_blank" '
+            'data-fancybox-group="images" id="a_X1-TEST_AUX_4" '
+            'title="X1-TEST_AUX-test-4.png">\n'
+        '<img class="img-responsive" alt="X1-TEST_AUX-test-4.png" '
+            'src="X1-TEST_AUX-test-4.png" id="img_X1-TEST_AUX_4"/>\n'
+        '</a>')
+
+
+def test_scaffold_plots():
+    h1 = parse_html(html.scaffold_plots([
+        html.FancyPlot('X1-TEST_AUX-test-4.png'),
+        html.FancyPlot('X1-TEST_AUX-test-16.png')], nperrow=2))
+    h2 = parse_html(
+        '<div class="row">\n'
+        '<div class="col-sm-6">\n'
+        '<a class="fancybox" href="X1-TEST_AUX-test-4.png" target="_blank" '
+            'id="a_X1-TEST_AUX_4" data-fancybox-group="images" '
+            'title="X1-TEST_AUX-test-4.png">\n'
+        '<img class="img-responsive" alt="X1-TEST_AUX-test-4.png" '
+            'id="img_X1-TEST_AUX_4" src="X1-TEST_AUX-test-4.png" />\n'
+        '</a>\n'
+        '</div>\n'
+        '<div class="col-sm-6">\n'
+        '<a class="fancybox" href="X1-TEST_AUX-test-16.png" target="_blank"'
+            ' id="a_X1-TEST_AUX_16" data-fancybox-group="images" '
+            'title="X1-TEST_AUX-test-16.png">\n'
+        '<img class="img-responsive" alt="X1-TEST_AUX-test-16.png" '
+            'id="img_X1-TEST_AUX_16" src="X1-TEST_AUX-test-16.png" />\n'
+        '</a>\n'
+        '</div>\n'
+        '</div>')
+    assert h1 == h2
 
 
 def test_write_footer():
