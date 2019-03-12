@@ -33,7 +33,8 @@ from scipy import signal
 
 from gwpy.timeseries import TimeSeries
 
-from .. import (config, core, html)
+from .. import (config, core)
+from ...io import html as htmlio
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
@@ -93,7 +94,7 @@ def test_get_fancyplots():
     fp = config.get_fancyplots(
         channel='X1:TEST-STRAIN', plottype='test-plot', duration=4)
     fname = 'plots/X1-TEST_STRAIN-test-plot-4.png'
-    assert isinstance(fp, html.FancyPlot)
+    assert isinstance(fp, htmlio.FancyPlot)
     assert fp.img == fname
     assert str(fp) == fp.img
     assert fp.caption == os.path.basename(fname)

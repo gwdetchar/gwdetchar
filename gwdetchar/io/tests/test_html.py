@@ -87,9 +87,12 @@ FLAG_HTML = FLAG_CONTENT.format(content="""<pre># seg\tstart\tstop\tduration
 
 FLAG_HTML_WITH_PLOTS = FLAG_CONTENT.format(
     content='<pre># seg\tstart\tstop\tduration\n0\t0\t66\t66.0\n</pre>',
-    plots='\n<a href="plots/X1-TEST_FLAG-0-66.png" target="_blank">\n'
-          '<img src="plots/X1-TEST_FLAG-0-66.png" style="width: 100%;" />\n'
-          '</a>')
+    plots='\n<a id="a_X1-TEST_FLAG_66" target="_blank" title="Known (small) '
+          'and active (large) analysis segments for X1:TEST_FLAG" '
+          'class="fancybox" href="plots/X1-TEST_FLAG-0-66.png" '
+          'data-fancybox-group="images">\n<img id="img_X1-TEST_FLAG_66" '
+          'alt="X1-TEST_FLAG-0-66.png" class="img-responsive" '
+          'src="plots/X1-TEST_FLAG-0-66.png" />\n</a>')
 
 FLAG_HTML_NO_SEGMENTS = FLAG_CONTENT.format(
     content='<p>No segments were found.</p>', plots='')
@@ -171,7 +174,7 @@ def test_fancybox_img():
     out = html.fancybox_img(img)
     assert parse_html(out) == parse_html(
         '<a class="fancybox" href="X1-TEST_AUX-test-4.png" target="_blank" '
-            'data-fancybox-group="qscan-image" id="a_X1-TEST_AUX_4" '
+            'data-fancybox-group="images" id="a_X1-TEST_AUX_4" '
             'title="X1-TEST_AUX-test-4.png">\n'
         '<img class="img-responsive" alt="X1-TEST_AUX-test-4.png" '
             'src="X1-TEST_AUX-test-4.png" id="img_X1-TEST_AUX_4"/>\n'
@@ -186,7 +189,7 @@ def test_scaffold_plots():
         '<div class="row">\n'
         '<div class="col-sm-6">\n'
         '<a class="fancybox" href="X1-TEST_AUX-test-4.png" target="_blank" '
-            'id="a_X1-TEST_AUX_4" data-fancybox-group="qscan-image" '
+            'id="a_X1-TEST_AUX_4" data-fancybox-group="images" '
             'title="X1-TEST_AUX-test-4.png">\n'
         '<img class="img-responsive" alt="X1-TEST_AUX-test-4.png" '
             'id="img_X1-TEST_AUX_4" src="X1-TEST_AUX-test-4.png" />\n'
@@ -194,7 +197,7 @@ def test_scaffold_plots():
         '</div>\n'
         '<div class="col-sm-6">\n'
         '<a class="fancybox" href="X1-TEST_AUX-test-16.png" target="_blank"'
-            ' id="a_X1-TEST_AUX_16" data-fancybox-group="qscan-image" '
+            ' id="a_X1-TEST_AUX_16" data-fancybox-group="images" '
             'title="X1-TEST_AUX-test-16.png">\n'
         '<img class="img-responsive" alt="X1-TEST_AUX-test-16.png" '
             'id="img_X1-TEST_AUX_16" src="X1-TEST_AUX-test-16.png" />\n'

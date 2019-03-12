@@ -433,7 +433,7 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
         img = FancyPlot(
             img=png, caption='Known (small) and active (large) analysis '
                              'segments for {}'.format(title))
-        page.add(fancybox_plot(img))
+        page.add(fancybox_img(img))
     # write segments
     segs = StringIO()
     try:

@@ -254,7 +254,7 @@ Eventgram view <span class="caret"></span>
 </div>
 <div class="row">
 <div class="col-sm-12">
-<a href="plots/X1-TEST_AUX-qscan_whitened-4.png" id="a_X1-TEST_AUX_4" title="X1-TEST_AUX-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox-group="qscan-image">
+<a href="plots/X1-TEST_AUX-qscan_whitened-4.png" id="a_X1-TEST_AUX_4" title="X1-TEST_AUX-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox-group="images">
 <img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-qscan_whitened-4.png" class="img-responsive" src="plots/X1-TEST_AUX-qscan_whitened-4.png" />
 </a>
 </div>
@@ -348,7 +348,7 @@ def test_write_ranking():
             'primary channel, X1:TEST-STRAIN." class="fancybox" '
             'target="_blank" style="font-family: Monaco, &quot;Courier '
             'New&quot;, monospace; color: black;" data-fancybox-group='
-            '"qscan-image">X1:TEST-STRAIN</a>.</p>\n'
+            '"images">X1:TEST-STRAIN</a>.</p>\n'
         '<table class="table table-condensed table-hover table-bordered '
             'table-responsive">\n'
         '<thead>\n<tr>\n<th scope="col">Channel</th>\n'

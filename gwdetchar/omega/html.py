@@ -569,7 +569,7 @@ def write_ranking(toc, primary, thresh=6.5,
         'target': '_blank',
         'style': "font-family: Monaco, \"Courier New\", monospace; "
                  "color: black;",
-        'data-fancybox-group': 'qscan-image',
+        'data-fancybox-group': 'images',
     }
     tlink = markup.oneliner.a(primary, href='plots/primary.png', **aparams)
     page.p('Below are the top 5 channels ranked by matched-filter correlation '
