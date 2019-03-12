@@ -76,8 +76,6 @@ parser.add_argument('-s', '--ignore-state-flags', action='store_true',
                     default=False, help='ignore state flag definitions in '
                                         'the configuration, default: False')
 cli.add_nproc_option(parser)
-parser.add_argument('-v', '--verbose', action='store_true', default=False,
-                    help='print verbose output, default: False')
 
 cargs = parser.add_argument_group('Condor options')
 cargs.add_argument('-u', '--universe', default='vanilla', type=str,
@@ -152,7 +150,8 @@ condorcmds = [
 ]
 if args.condor_timeout:
     condorcmds.append("periodic_remove = {}".format(
-        'CurrentTime-EnteredCurrentStatus > %d' % (3600 * args.condor_timeout),
+        'CurrentTime-EnteredCurrentStatus > {}'.format(
+            3600 * args.condor_timeout),
     ))
 condorcmds.extend(args.condor_command)
 
@@ -190,8 +189,6 @@ if args.disable_correlation:
     arguments.append("--disable-correlation")
 if args.ignore_state_flags:
     arguments.append("--ignore-state-flags")
-if args.verbose:
-    arguments.append("--verbose")
 
 # make node in workflow for each time
 for t in times:

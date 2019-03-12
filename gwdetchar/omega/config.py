@@ -153,6 +153,9 @@ try:  # python 3.x
 except ImportError:  # python 2.x
     import ConfigParser as configparser
 
+if sys.version_info < (3, 7):
+    from collections import OrderedDict
+
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
@@ -178,7 +181,6 @@ class OmegaConfigParser(configparser.ConfigParser):
         if sys.version_info >= (3, 7):  # python 3.7+
             return {s: OmegaChannelList(s, **self[s]) for s in self.sections()}
         else:
-            from collections import OrderedDict
             return OrderedDict([(s, OmegaChannelList(s, **dict(self.items(s))))
                                 for s in self.sections()])
 
@@ -192,6 +194,7 @@ def get_default_configuration(ifo, gpstime):
     ----------
     ifo : `str`
         interferometer ID string, e.g. `'L1'`
+
     gpstime : `float`
         time of analysis in GPS second format
     """
@@ -215,10 +218,13 @@ def get_fancyplots(channel, plottype, duration, caption=None):
     ----------
     channel : `str`
         the name of the channel
+
     plottype : `str`
         the type of plot, e.g. 'raw_timeseries'
+
     duration : `str`
         duration of the plot, in seconds
+
     caption : `str`, optional
         a caption to render in the fancybox
     """
@@ -239,8 +245,10 @@ class OmegaChannel(Channel):
     ----------
     channelname : `str`
         name of this channel, e.g. `L1:GDS-CALIB_STRAIN`
+
     section : `str`
         configuration section to which this channel belongs
+
     params : `dict`
         parameters set in a configuration file
     """
@@ -327,6 +335,7 @@ class OmegaChannelList(object):
     key : `str`
         the unique identifier for this list, e.g. `'CAL'` for calibration
         channels
+
     params : `dict`
         parameters set in a configuration file
     """
