@@ -670,47 +670,22 @@ page.div.close()  # model-info
 
 page.p('<br /><br />')
 
-page.div(class_='primary-lasso')
-page.a(href=plot1, target='_blank')
-page.img(class_='lasso-img', src=plot1)
-page.a.close()  # primary lasso plot
+page.div(class_='container', id_='primary-lasso')
+img1 = htmlio.FancyPlot(plot1)
+page.add(htmlio.fancybox_img(img1))  # primary lasso plot
 page.div.close()  # primary-lasso
 
-page.div(
-    class_='channel-summation',
-    style_='display: flex;flex-wrap:nowrap;justify-content:space-around;')
-page.div(style_='display: block;')
-page.a(href=plot2, target='_blank')
-page.img(class_='channels-summation-img', src=plot2)
-page.a.close()  # channels-summation plot
-page.div.close()  # close plot2 div
-page.div(class_='scroll-container',
-         style_='display: block; padding-top: 40px;')
-page.div(style_='display: block; overflow:auto; height:400px;')
-page.a(href=plot2_legend, target='_blank')
-page.img(class_='channels-contrib-img', src=plot2_legend)
-page.a.close()  # legend image
-page.div.close()  # overflowed window
-page.div.close()  # scroll container
-page.div.close()  # channels-summation
+page.div(class_='container', id_='channel-summation')
+img2 = htmlio.FancyPlot(plot2)
+img2_legend = htmlio.FancyPlot(plot2_legend)
+page.add(htmlio.scaffold_plots([img2, img2_legend], nperrow=2))
+page.div.close()  # channel-summartion
 
-page.div(
-    class_='channels-and-primary',
-    style_='display: flex;flex-wrap:nowrap;justify-content:space-around;')
-page.div(style_='display: block;')
-page.a(href=plot3, target='_blank')
-page.img(class_='channels-contrib-img', src=plot3)
-page.a.close()  # channels-contrib plot
-page.div.close()  # plot3 div
-page.div(class_='scroll-container',
-         style_='display: block; padding-top: 40px;')
-page.div(style_='display: block; overflow:auto; height:400px;')
-page.a(href=plot3_legend, target='_blank')
-page.img(class_='channels-contrib-img', src=plot3_legend)
-page.a.close()  # legend image
-page.div.close()  # overflowed window
-page.div.close()  # scroll container
-page.div.close()  # channels-and-primary
+page.div(class_='container', id_='channels-and-primary')                           
+img3 = htmlio.FancyPlot(plot3)                                                  
+img3_legend = htmlio.FancyPlot(plot3_legend)                                    
+page.add(htmlio.scaffold_plots([img3, img3_legend], nperrow=2))                 
+page.div.close()  # channel-summartion
 
 page.div.close()  # model-body
 page.div.close()  # model
@@ -756,32 +731,17 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
                % (args.threshold))
     else:
         for p in (plot4, plot5, plot6):
-            page.a(href=p, target='_blank')
-            page.img(class_='img-responsive', src=p)
-            page.a.close()
+            pimg = htmlio.FancyPlot(p)
+            page.add(htmlio.fancybox_img(pimg))
         if args.no_cluster is False:
             if clusters[i][0] is None:
                 page.p("<font size = '3'><br />No channels were highly"
                        " correlated with this channel.</font>")
             else:
-                page.div(
-                    class_='clusters',
-                    style_='display: flex;flex-wrap:nowrap;'
-                           'justify-content:space-around;')
-                page.div(style_='display: block;')
-                page.a(href=clusters[i][0], target='_blank')
-                page.img(class_='img-responsive', src=clusters[i][0])
-                page.a.close()
-                page.div.close()  # close plot7 div
-                page.div(class_='scroll-container',
-                         style_='display: block; padding-top: 40px;')
-                page.div(style_='display: block; overflow:auto;'
-                                ' height: 375px;')
-                page.a(href=clusters[i][1], target='_blank')
-                page.img(class_='img-responsive', src=clusters[i][1])
-                page.a.close()  # legend image
-                page.div.close()  # overflowed window
-                page.div.close()  # scroll container
+                page.div(class_='container', id_='clusters')
+                cimg = htmlio.FancyPlot(clusters[i][0])
+                cimg_legend = htmlio.FancyPlot(clusters[i][1])
+                page.add(htmlio.scaffold_plots([cimg, cimg_legend], nperrow=2))
                 page.div.close()  # clusters
                 if clusters[i][2] is not None:
                     page.p("<font size = '3'><br />Only the first %d highly"
