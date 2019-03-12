@@ -32,7 +32,6 @@ use('agg')
 import matplotlib.pyplot as plt
 
 from gwpy.plot import Plot
-from gwpy.time import from_gps
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
@@ -356,7 +355,7 @@ with open('results.txt', 'w') as f:
         print('%s %s %s %s %s' % (ch, corr1, corr2, corr1s, corr2s), file=f)
 
 # -- write html
-title = '%s slow correlations: %d-%d' % (args.ifo, start, end)
+title = '%s Slow Correlations: %d-%d' % (args.ifo, start, end)
 page = htmlio.new_bootstrap_page(title=title)
 page.div(class_='container')
 
@@ -375,20 +374,13 @@ page.p("This analysis searched %d channels for linear correlations with %s"
 page.div.close()
 
 # run parameters
-page.h2('Parameters')
-page.p('This analysis used the following parameters:')
-page.add(htmlio.write_param(
-    'Start time', '%s (%d)' % (from_gps(start), start)))
-page.add(htmlio.write_param('End time', '%s (%d)' % (from_gps(end), end)))
-page.add(htmlio.write_param(
-    'Primary channel',
-    '%s (%s)' % (primary, args.primary_frametype.format(ifo=args.ifo))))
-page.add(htmlio.write_param(
-    'Range channel',
-    '%s (%s)' % (rangechannel, args.range_frametype or '-')))
-page.add(htmlio.write_param('Band-pass', '%s-%s' % (flower, fupper)))
-page.add(htmlio.write_param('Command line', ''))                                
-page.add(htmlio.get_command_line())
+contents = [
+    ('Primary channel',
+     '{} ({})'.format(primary, args.primary_frametype.format(ifo=args.ifo))),
+    ('Range channel',
+     '{} ({})'.format(rangechannel, args.range_frametype or '-')),
+    ('Band-pass', '{}-{}'.format(flower, fupper))]
+page.add(htmlio.write_arguments(content, start=start, end=end))
 
 # results
 page.h2('Results')

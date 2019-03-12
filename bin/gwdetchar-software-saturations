@@ -209,7 +209,7 @@ if args.html:
     page.div(class_='container')
     # -- header
     page.div(class_='page-header')
-    page.h1('%s software saturations: %d-%d'
+    page.h1('%s Software Saturations: %d-%d'
             % (ifo, int(args.gpsstart), int(args.gpsend)))
     page.p("This analysis searched %d channels for times during which their "
            "OUTPUT value matched the LIMIT value set in software. Only "
@@ -219,15 +219,11 @@ if args.html:
            % sum(map(len, channels)))
     page.div.close()
     # -- paramters
-    page.h2('Parameters')
-    page.p('This analysis used the following parameters:')
-    page.add(htmlio.write_param('Start time', args.gpsstart))
-    page.add(htmlio.write_param('End time', args.gpsend))
-    page.add(htmlio.write_param('State flag', args.state_flag))
-    page.add(htmlio.write_param('State end padding', args.pad_state_end))
-    page.add(htmlio.write_param('Skip', ', '.join(map(repr, args.skip))))
-    page.add(htmlio.write_param('Command line', ''))                            
-    page.add(htmlio.get_command_line())
+    content = [
+        ('State end padding', args.pad_state_end),
+        ('Skip', ', '.join(map(repr, args.skip)))]
+    page.add(htmlio.write_arguments(
+        content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
     # -- segments
     page.h2('Segments')
     # link output file
@@ -239,11 +235,11 @@ if args.html:
     if args.state_flag:
         page.p('This analysis was executed over the following segments:')
         page.div(class_='panel-group', id_='accordion1')
-        page.add(str(htmlio.write_flag_html(
+        page.add(htmlio.write_flag_html(
             state, span, 'state', parent='accordion1', context='success',
             plotdir=args.plot, facecolor=(0.2, 0.8, 0.2),
             edgecolor='darkgreen', known={
-                'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4})))
+                'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4}))
         page.div.close()
     # print saturation segments
     if len(bad):
@@ -252,9 +248,9 @@ if args.html:
         for i, (c, flag) in enumerate(saturations.items()):
             if abs(flag.active) > 0:
                 title = '%s [%d]' % (flag.name, len(flag.active))
-                page.add(str(htmlio.write_flag_html(
+                page.add(htmlio.write_flag_html(
                     flag, span=span, id=i, parent='accordion2', title=title,
-                    plotdir=args.plot)))
+                    plotdir=args.plot))
         page.div.close()
     else:
         page.div(class_='alert alert-info')

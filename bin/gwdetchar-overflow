@@ -253,23 +253,18 @@ if args.html:
     page.div.close()
 
     # -- paramters
-    page.h2('Parameters')
-    page.p('This analysis used the following parameters:')
-    page.add(htmlio.write_param('Start time', args.gpsstart))
-    page.add(htmlio.write_param('End time', args.gpsend))
-    page.add(htmlio.write_param('State flag', args.state_flag))
-    page.add(htmlio.write_param('DCUIDs', ' '.join(map(str, args.dcuid))))
+    content = [('DCUIDs', ' '.join(map(str, args.dcuid)))]
     if fec_map:
-        page.add(htmlio.write_param(
+        content.append((
             'FEC map', '<a href="{0}" target="_blank" title="{1} FEC '
                        'map">{0}</a>'.format(fec_map, args.ifo)))
     if simulink:
-        page.add(htmlio.write_param(
-            'Simulink models', '<a href="{0}" target="_blank" '
-                               'title="{1} Simulink models">{0}</a>'.format(
+        content.append((
+            'Simulink models', '<a href="{0}" target="_blank" title="{1} '
+                               'Simulink models">{0}</a>'.format(
                                    simulink, args.ifo)))
-    page.add(htmlio.write_param('Command line', ''))                                
-    page.add(htmlio.get_command_line())
+    page.add(htmlio.write_arguments(
+        content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
 
     # -- segments
     page.h2('Segments')
@@ -284,11 +279,11 @@ if args.html:
     if args.state_flag:
         page.p('This analysis was executed over the following segments:')
         page.div(class_='panel-group', id_='accordion1')
-        page.add(str(htmlio.write_flag_html(
+        page.add(htmlio.write_flag_html(
             state, span, 'state', parent='accordion1', context='success',
             plotdir=args.plot, facecolor=(0.2, 0.8, 0.2),
             edgecolor='darkgreen', known={
-                'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4})))
+                'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4}))
         page.div.close()
     # print overflow segments
     if sum(abs(s.active) for s in overflows.values()):
@@ -308,9 +303,9 @@ if args.html:
                 title = '%s [%d]' % (flag.name, len(flag.active))
             else:
                 title = '%s (%s) [%d]' % (flag.name, channel, len(flag.active))
-            page.add(str(htmlio.write_flag_html(
+            page.add(htmlio.write_flag_html(
                 flag, span, i, parent='accordion2', title=title,
-                context=context, plotdir=args.plot)))
+                context=context, plotdir=args.plot))
         page.div.close()
     else:
         page.div(class_='alert alert-info')
