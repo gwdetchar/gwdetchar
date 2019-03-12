@@ -499,6 +499,8 @@ def package_list():
              "list", "installed",
              "--format", "json"],
         )
+    if isinstance(raw, bytes):
+        raw = raw.decode('utf-8')
     return json.loads(raw)
 
 
