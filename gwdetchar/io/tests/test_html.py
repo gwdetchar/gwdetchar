@@ -246,7 +246,7 @@ def test_write_footer():
         HTML_FOOTER.format(user=getuser(), date=date))
 
 
-@mock.patch("pathlib.Path.is_dir")
+@mock.patch("{}.Path.is_dir".format(html.Path.__module__))
 @mock.patch("subprocess.check_output", return_value="{\"key\": 0}")
 @pytest.mark.parametrize("isdir, cmd", [
     pytest.param(
