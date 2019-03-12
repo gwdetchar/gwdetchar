@@ -19,8 +19,6 @@
 """Tests for `gwdetchar.lasso`
 """
 
-import pytest
-
 import numpy
 from numpy import testing as nptest
 

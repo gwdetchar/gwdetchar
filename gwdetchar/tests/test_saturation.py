@@ -19,9 +19,6 @@
 """Tests for :mod:`gwdetchar.saturation`
 """
 
-import os
-import shutil
-
 import pytest
 
 import numpy

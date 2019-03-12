@@ -26,8 +26,6 @@ try:  # python 3.x
 except ImportError:  # python 2.7
     from cStringIO import StringIO
 
-import pytest
-
 import numpy
 from scipy import signal
 

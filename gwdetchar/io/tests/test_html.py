@@ -34,11 +34,6 @@ import pytest
 from matplotlib import use
 use('Agg')  # nopep8
 
-try:  # python 3.x
-    from io import StringIO
-except ImportError:  # python 2.7
-    from cStringIO import StringIO
-
 from gwpy.segments import (Segment, DataQualityFlag)
 
 from .. import html

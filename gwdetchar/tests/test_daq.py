@@ -30,11 +30,10 @@ import numpy
 from numpy.testing import assert_array_equal
 
 from gwpy.timeseries import TimeSeries
-from gwpy.segments import (Segment, SegmentList, DataQualityDict)
+from gwpy.segments import (Segment, SegmentList)
 from gwpy.testing.utils import assert_segmentlist_equal
 
 from .. import daq
-from ..io import ligolw
 
 OVERFLOW_SERIES = TimeSeries([0, 0, 0, 1, 1, 0, 0, 1, 0, 1], dx=.5)
 CUMULATIVE_SERIES = TimeSeries([0, 0, 0, 1, 2, 2, 2, 3, 3, 4], dx=.5)

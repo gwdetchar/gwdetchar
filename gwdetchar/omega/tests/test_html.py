@@ -29,8 +29,6 @@ try:  # python 3.x
 except ImportError:  # python 2.7
     from cStringIO import StringIO
 
-import pytest
-
 from .. import (config, html)
 from ..._version import get_versions
 from ...utils import parse_html

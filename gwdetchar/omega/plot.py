@@ -185,7 +185,6 @@ def spectral_plot(data, gps, span, channel, output, colormap='viridis',
     figsize : `tuple`
         size (width x height) of the final figure, default: `(12, 6)`
     """
-    import numpy
     from gwpy.spectrogram import Spectrogram
     # construct plot
     if isinstance(data, Spectrogram):

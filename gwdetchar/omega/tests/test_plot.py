@@ -23,8 +23,6 @@ import os
 import shutil
 import tempfile
 
-import pytest
-
 import numpy
 from scipy import signal
 
