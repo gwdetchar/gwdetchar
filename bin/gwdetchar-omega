@@ -230,7 +230,7 @@ for block in blocks.values():
 
         if series is None:
             print('    Channel not significant at white noise false alarm '
-                  'rate {} Hz'.format(fthresh))
+                  'rate {} Hz'.format(args.far_threshold))
             continue  # channel is insignificant, skip it
 
         print('    Plotting omega scan products for {}'.format(channel.name))
