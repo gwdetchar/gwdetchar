@@ -236,22 +236,6 @@ def get_fancyplots(channel, plottype, duration, caption=None):
     return html.FancyPlot(filename, caption)
 
 
-def get_already_processed(cache, blocks):
-    """Work out which blocks have already been processed given a local cache
-    of intermediate data products
-
-    Parameters
-    ----------
-    cache : `str`
-        path to a local file with intermediate data products
-
-    blocks : `list` of `OmegaChannelList`
-        blocks configured to run
-    """
-    out = []
-    processed = numpy.recfromcsv(cache)
-
-
 # -- channel list objects -----------------------------------------------------
 
 class OmegaChannel(Channel):
