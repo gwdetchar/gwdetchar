@@ -842,4 +842,6 @@ def write_about_page(configfiles):
         with open(configfile, 'r') as fobj:
             inifile = fobj.read()
         page.add(htmlio.render_code(inifile, 'ini'))
+    # add environment listing
+    page.add(str(htmlio.package_table()))
     return page

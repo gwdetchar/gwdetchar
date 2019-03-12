@@ -19,10 +19,13 @@
 """Utilties for HTML output
 """
 
+import json
 import os
 import sys
 import datetime
+import subprocess
 from getpass import getuser
+from operator import itemgetter
 from shutil import copyfile
 try:
     from pathlib2 import Path
@@ -475,3 +478,77 @@ def write_footer(about=None, date=None, class_=False,
     if class_:
         markup.element('footer', case=page.case, parent=page).close()
     return page()
+
+
+def package_list():
+    """Get the list of packages installed alongside this one
+
+    Returns a `list` of `dict`
+    """
+    prefix = sys.prefix
+    if (Path(prefix) / "conda-meta").is_dir():
+        raw = subprocess.check_output(
+            ["conda", "list",
+             "--prefix", prefix,
+             "--json"],
+        )
+    else:
+        raw = subprocess.check_output(
+            [sys.executable,
+             "-m", "pip",
+             "list", "installed",
+             "--format", "json"],
+        )
+    return json.loads(raw)
+
+
+def package_table(
+        h2="Environment",
+        class_="table table-hover table-condensed table-responsive",
+        caption="Table of packages installed in the production environment",
+):
+    """Write a table listing packages installed in the current environment
+
+    Parameters
+    ----------
+    h2 : `str`, `None`, optional
+        the header for the HTML section
+
+    caption : `str`, `None`, optional
+        the `<caption>` for the package table
+
+    Returns
+    -------
+    page : `MarkupPy.markup.page`
+        the page object including a `<table>`
+    """
+    # get package list and inspect columns
+    pkgs = package_list()
+    if "build_string" in pkgs[0]:  # conda list
+        cols = ("name", "version", "channel", "build_string")
+    else:  # pip list installed
+        cols = ("name", "version")
+
+    # create page and write <table>
+    page = markup.page()
+    if h2 is not None:
+        page.h2(h2)
+    page.table(class_=class_)
+    if caption is not None:
+        page.caption(caption)
+    page.thead()
+    page.tr()
+    for head in cols:
+        page.th(head.title(), scope="col")
+    page.tr.close()
+    page.thead.close()
+    page.tbody()
+    for pkg in sorted(pkgs, key=itemgetter("name")):
+        page.tr()
+        for col in cols:
+            page.td(pkg[col.lower()])
+        page.tr.close()
+    page.tbody.close()
+    page.table.close()
+
+    return page
