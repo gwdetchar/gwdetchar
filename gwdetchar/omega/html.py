@@ -33,7 +33,7 @@ from MarkupPy import markup
 from gwpy.table import Table
 from gwpy.time import tconvert
 
-from ..io import html as io_html
+from ..io import html as htmlio
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -112,8 +112,8 @@ OBSERVATORY_MAP = {
 OMEGA_CSS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.css')
 OMEGA_JS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.js')
 
-CSS_FILES = io_html.CSS_FILES + [OMEGA_CSS]
-JS_FILES = io_html.JS_FILES + [OMEGA_JS]
+CSS_FILES = htmlio.CSS_FILES + [OMEGA_CSS]
+JS_FILES = htmlio.JS_FILES + [OMEGA_JS]
 
 
 # -- HTML construction --------------------------------------------------------
@@ -164,7 +164,7 @@ def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
         script = JS_FILES
 
     # write CSS to static dir
-    css, script = io_html.finalize_static_urls(
+    css, script = htmlio.finalize_static_urls(
         os.path.join(os.path.curdir, 'static'),
         css,
         script,
@@ -279,8 +279,8 @@ def close_page(page, target, about=None, date=None):
         `~datetime.datetime.now`
     """
     page.div.close()  # container
-    page.add(io_html.write_footer(about=about, date=date, class_=True,
-                                  linkstyle='color:#eee;'))
+    page.add(htmlio.write_footer(about=about, date=date, class_=True,
+                                 linkstyle='color:#eee;'))
     if not page._full:
         page.body.close()
         page.html.close()
@@ -671,7 +671,7 @@ def write_block(blockkey, block, context,
 
         # channel name
         chanid = channel.name.lower().replace(':', '-')
-        page.h4(io_html.cis_link(channel.name), id_=chanid)
+        page.h4(htmlio.cis_link(channel.name), id_=chanid)
 
         page.div(class_='row')
 
@@ -732,7 +732,7 @@ def write_block(blockkey, block, context,
         page.div.close()  # row
 
         # plots
-        page.add(io_html.scaffold_plots(
+        page.add(htmlio.scaffold_plots(
             channel.plots['qscan_whitened'],
             nperrow=min(len(channel.pranges), 3)))
 
@@ -833,7 +833,7 @@ def write_about_page(configfiles):
     page = markup.page()
     page.h2('On the command line')
     page.p('This page was generated with the command line call shown below.')
-    page.add(io_html.get_command_line())
+    page.add(htmlio.get_command_line())
     page.h2('Configuration file')
     page.p('Omega scans are configured with INI-format files. The '
            'configuration files for this analysis are shown below in full.')
@@ -841,5 +841,5 @@ def write_about_page(configfiles):
     for configfile in configfiles:
         with open(configfile, 'r') as fobj:
             inifile = fobj.read()
-        page.add(io_html.render_code(inifile, 'ini'))
+        page.add(htmlio.render_code(inifile, 'ini'))
     return page

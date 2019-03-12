@@ -679,13 +679,13 @@ page.div(class_='container', id_='channel-summation')
 img2 = htmlio.FancyPlot(plot2)
 img2_legend = htmlio.FancyPlot(plot2_legend)
 page.add(htmlio.scaffold_plots([img2, img2_legend], nperrow=2))
-page.div.close()  # channel-summartion
+page.div.close()  # channel-summation
 
 page.div(class_='container', id_='channels-and-primary')                           
 img3 = htmlio.FancyPlot(plot3)                                                  
 img3_legend = htmlio.FancyPlot(plot3_legend)                                    
 page.add(htmlio.scaffold_plots([img3, img3_legend], nperrow=2))                 
-page.div.close()  # channel-summartion
+page.div.close()  # channels-and-primary
 
 page.div.close()  # model-body
 page.div.close()  # model
