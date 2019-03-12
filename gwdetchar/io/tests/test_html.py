@@ -275,26 +275,13 @@ def test_package_list(check_output, is_dir, isdir, cmd):
 )
 def test_package_table(package_list):
     assert parse_html(
-        str(html.package_table(class_="test", caption="Test")),
+        html.package_table(class_="test", caption="Test"),
     ) == parse_html(
-        """<h2>Environment</h2>
-<table class="test">
-<caption>Test</caption>
-<thead>
-<tr>
-<th scope="col">Name</th>
-<th scope="col">Version</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>gwdetchar</td>
-<td>1.2.3</td>
-</tr>
-<tr>
-<td>gwpy</td>
-<td>1.0.0</td>
-</tr>
-</tbody>
-</table>""",
+        "<h2>Environment</h2><table class=\"test\"><caption>Test</caption>"
+        "<thead>"
+        "<tr><th scope=\"col\">Name</th><th scope=\"col\">Version</th></tr>"
+        "</thead><tbody>"
+        "<tr><td>gwdetchar</td><td>1.2.3</td></tr>"
+        "<tr><td>gwpy</td><td>1.0.0</td></tr>"
+        "</tbody></table>",
     )

@@ -519,8 +519,8 @@ def package_table(
 
     Returns
     -------
-    page : `MarkupPy.markup.page`
-        the page object including a `<table>`
+    html : `str`
+        an HTML table
     """
     # get package list and inspect columns
     pkgs = package_list()
@@ -530,7 +530,7 @@ def package_table(
         cols = ("name", "version")
 
     # create page and write <table>
-    page = markup.page()
+    page = markup.page(separator="")
     if h2 is not None:
         page.h2(h2)
     page.table(class_=class_)
@@ -551,4 +551,4 @@ def package_table(
     page.tbody.close()
     page.table.close()
 
-    return page
+    return page()
