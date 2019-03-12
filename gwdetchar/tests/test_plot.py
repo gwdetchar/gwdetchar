@@ -22,8 +22,6 @@
 import os
 import shutil
 
-import pytest
-
 from gwpy.segments import DataQualityFlag
 
 from matplotlib import use

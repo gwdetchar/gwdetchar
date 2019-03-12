@@ -19,8 +19,6 @@
 """Tests for `gwdetchar.omega.core`
 """
 
-import pytest
-
 import numpy
 from numpy import testing as nptest
 from scipy import signal

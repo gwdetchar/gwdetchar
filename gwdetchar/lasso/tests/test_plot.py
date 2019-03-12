@@ -22,8 +22,6 @@
 import os
 import shutil
 
-import pytest
-
 import numpy
 
 from matplotlib import (use, rcParams, rcParamsDefault)

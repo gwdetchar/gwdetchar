@@ -143,7 +143,7 @@ import ast
 import os.path
 import numpy
 
-from gwpy.detector import (Channel, ChannelList)
+from gwpy.detector import Channel
 
 from .. import const
 from ..io.html import FancyPlot
