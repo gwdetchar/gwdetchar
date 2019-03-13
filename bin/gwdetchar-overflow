@@ -24,6 +24,7 @@ from __future__ import print_function
 
 import os.path
 
+import warnings
 import tqdm
 
 from matplotlib import (use, rcParams)
@@ -200,10 +201,14 @@ for dcuid in args.dcuid:
                               desc='        Going deep'):
             data = get_data(channels, s, e, **read_kw)
             for ch in channels:
-                overflows[ch] += daq.find_overflow_segments(
-                    data[ch],
-                    cumulative=True,
-                )
+                try:
+                    overflows[ch] += daq.find_overflow_segments(
+                        data[ch],
+                        cumulative=True,
+                    )
+                except Exception as exc:
+                    warnings.warn("Skipping {}: [{}] {}".format(
+                        ch, type(exc), str(exc)), UserWarning)
     gprint("    Complete")
 
 # write output

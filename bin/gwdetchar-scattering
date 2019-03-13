@@ -291,7 +291,11 @@ for i, channel in enumerate(sorted(allchannels)):
     for j, seg in enumerate(statea):
         if args.verbose:
             gprint("Processing segment [%d .. %d)..." % seg)
-        ts = alldata[j][channel]
+        try:
+            ts = alldata[j][channel]
+        except Exception:
+            warnings.warn("Skipping {}: [{}] {}".format(
+                channel, type(exc), str(exc)), UserWarning)
         # get raw data and plot
         line = axes['position'].plot(ts, color=linecolor)[0]
         linecolor = line.get_color()

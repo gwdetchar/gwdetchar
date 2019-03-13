@@ -85,8 +85,12 @@ def test_find_limit_channels():
     assert not swstats2
 
 
-@mock.patch('gwpy.timeseries.TimeSeriesDict.read', return_value=TSDICT)
-def test_is_saturated(mread):
+@mock.patch('gwdetchar.io.datafind.remove_missing_channels')
+@mock.patch('gwpy.timeseries.TimeSeriesDict.read')
+def test_is_saturated(tsdfetch, remove):
+    tsdfetch.return_value = TSDICT
+    remove.return_value = ['X1:TEST_LIMIT']
+
     saturated = saturation.is_saturated('X1:TEST', 1, start=0, end=8)
     assert isinstance(saturated, DataQualityFlag)
     assert_segmentlist_equal(saturated.active, SEGMENTS)
