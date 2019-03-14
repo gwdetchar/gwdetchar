@@ -261,7 +261,7 @@ for i, seg in enumerate(statea):
 
 scatter_segments = DataQualityDict()
 
-for i, channel in enumerate(sorted(allchannels)):
+for i, channel in enumerate(sorted(alldata[0].keys())):
     if args.verbose:
         gprint("-- Processing %s --------------------" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
@@ -291,11 +291,7 @@ for i, channel in enumerate(sorted(allchannels)):
     for j, seg in enumerate(statea):
         if args.verbose:
             gprint("Processing segment [%d .. %d)..." % seg)
-        try:
-            ts = alldata[j][channel]
-        except KeyError:
-            warnings.warn("Skipping {}".format(channel), UserWarning)
-            continue
+        ts = alldata[j][channel]
         # get raw data and plot
         line = axes['position'].plot(ts, color=linecolor)[0]
         linecolor = line.get_color()
