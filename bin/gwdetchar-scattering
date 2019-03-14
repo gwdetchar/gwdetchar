@@ -293,9 +293,8 @@ for i, channel in enumerate(sorted(allchannels)):
             gprint("Processing segment [%d .. %d)..." % seg)
         try:
             ts = alldata[j][channel]
-        except Exception:
-            warnings.warn("Skipping {}: [{}] {}".format(
-                channel, type(exc), str(exc)), UserWarning)
+        except KeyError:
+            warnings.warn("Skipping {}".format(channel), UserWarning)
         # get raw data and plot
         line = axes['position'].plot(ts, color=linecolor)[0]
         linecolor = line.get_color()

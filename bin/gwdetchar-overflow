@@ -206,9 +206,8 @@ for dcuid in args.dcuid:
                         data[ch],
                         cumulative=True,
                     )
-                except Exception as exc:
-                    warnings.warn("Skipping {}: [{}] {}".format(
-                        ch, type(exc), str(exc)), UserWarning)
+                except KeyError:
+                    warnings.warn("Skipping {}".format(ch), UserWarning)
     gprint("    Complete")
 
 # write output

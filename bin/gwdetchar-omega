@@ -118,7 +118,7 @@ if not args.disable_correlation:
     try:
         primary = config.OmegaChannelList(
             'primary', **dict(cp.items('primary')))
-    except Exception:
+    except config.configparser.NoSectionError:
         warnings.warn(
             'No primary configured, continuing without cross-correlation')
         args.disable_correlation = True
@@ -221,9 +221,9 @@ for block in blocks.values():
                 gps, channel, data[channel.name].astype('float64'), fftlength,
                 resample=block.resample, fthresh=args.far_threshold,
                 search=block.search)
-        except Exception as exc:
+        except (ValueError, KeyError) as exc:
             warnings.warn("Skipping {}: [{}] {}".format(
-                channel, type(exc), str(exc)), UserWarning)
+                channel.name, type(exc), str(exc)), UserWarning)
             continue
 
         if series is None:

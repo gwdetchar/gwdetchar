@@ -108,7 +108,7 @@ def remove_missing_channels(channels, gwfcache):
     # get available channels from the first and last frame file
     available = set(io_gwf.iter_channel_names(gwfcache[0]))
     if len(gwfcache) > 1:
-        available.update(io_gwf.iter_channel_names(gwfcache[-1]))
+        available.intersection_update(io_gwf.iter_channel_names(gwfcache[-1]))
     # work out which channels to keep, and which to reject
     channels = set(channels)
     keep = channels & available
