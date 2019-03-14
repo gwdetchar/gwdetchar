@@ -295,6 +295,7 @@ for i, channel in enumerate(sorted(allchannels)):
             ts = alldata[j][channel]
         except KeyError:
             warnings.warn("Skipping {}".format(channel), UserWarning)
+            continue
         # get raw data and plot
         line = axes['position'].plot(ts, color=linecolor)[0]
         linecolor = line.get_color()

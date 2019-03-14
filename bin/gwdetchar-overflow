@@ -208,6 +208,7 @@ for dcuid in args.dcuid:
                     )
                 except KeyError:
                     warnings.warn("Skipping {}".format(ch), UserWarning)
+                    continue
     gprint("    Complete")
 
 # write output
