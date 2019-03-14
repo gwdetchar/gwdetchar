@@ -190,7 +190,7 @@ def is_saturated(channel, cache, start=None, end=None, indicator='LIMEN',
 
     # check limits for returned channels
     channels = [
-        c for c in channels if '{}_{}'.format(c, indicator) in data.keys()]
+        c for c in channels if '{}_{}'.format(c, indicator) in data]
     if indicator.upper() == 'LIMEN':
         active = dict((c, data[indicators[i]].value[0]) for
                       i, c in enumerate(channels))
