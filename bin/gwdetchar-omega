@@ -181,7 +181,7 @@ if not args.disable_correlation:
     end = gps + duration/2. + 1
     correlate = get_data(
         name, start, end, frametype=primary.frametype, source=primary.source,
-        obs=ifo[0], nproc=args.nproc, verbose='    Reading primary: ')
+        nproc=args.nproc, verbose='    Reading primary: ')
     correlate = omega.primary(
         gps, primary.length, correlate, fftlength, resample=primary.resample,
         f_low=primary.flow)
@@ -211,7 +211,7 @@ for block in blocks.values():
     end = gps + duration/2. + 1
     data = get_data(
         chans, start, end, frametype=block.frametype, source=block.source,
-        obs=ifo[0], nproc=args.nproc, verbose='    Reading block: ')
+        nproc=args.nproc, verbose='    Reading block: ')
 
     # scan individual channels
     for channel in block.channels:
