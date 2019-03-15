@@ -108,10 +108,14 @@ auto_xlabel = ('Time [hours] from '
                         Time(start, format='gps', scale='utc').iso)
                + ' UTC (%d)' % start)
 
-if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
-    args.primary_frametype = '%s_HOFT_C00' % args.ifo
-primary = args.primary_channel.format(ifo=args.ifo)
+primary = args.primary_channel.format(ifo=args.ifo)                             
 range_is_primary = 'DMT-SNSH_EFFECTIVE_RANGE_MPC.mean' in args.primary_channel
+if args.primary_frametype is None:
+    if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
+        args.primary_frametype = '{}_HOFT_C00'.format(args.ifo)
+    if range_is_primary:
+        args.primary_frametype = 'SenseMonitor_hoft_{}_M'.format(args.ifo)
+        
 
 if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
@@ -126,7 +130,7 @@ if args.band_pass:
 
     print("-- Loading primary channel data")
     bandts = get_data(
-        primary, start-pad, end+pad, verbose=True,
+        primary, start-pad, end+pad, verbose=True, obs=args.ifo[0],
         frametype=args.primary_frametype, nproc=args.nproc)
     if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
         raise ValueError("bandpass frequency is out of range for this "
@@ -158,7 +162,7 @@ else:
     # load primary channel data
     print("-- Loading primary channel data")
     primaryts = get_data(primary, start, end, frametype=args.primary_frametype,
-                         verbose=True, nproc=args.nproc)
+                         obs=args.ifo[0], verbose=True, nproc=args.nproc)
 
 if args.remove_outliers:
     print("-- Removing outliers above %f sigma" % args.remove_outliers)
@@ -193,7 +197,7 @@ else:
     frametype = '%s_T' % args.ifo  # for second trends
 
 auxdata = get_data(
-    channels, start, end, verbose=True, frametype=frametype,
+    channels, start, end, verbose=True, obs=args.ifo[0], frametype=frametype,
     nproc=args.nproc, pad=0)
 
 # -- removes flat data to be re-introdused later

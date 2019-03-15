@@ -120,8 +120,8 @@ def remove_missing_channels(channels, gwfcache):
     return list(keep)
 
 
-def get_data(channel, start, end, frametype=None, source=None, nproc=1,
-             verbose=False, **kwargs):
+def get_data(channel, start, end, obs=None, frametype=None, source=None,
+             nproc=1, verbose=False, **kwargs):
     """Retrieve data for given channels within a certain time range
 
     Parameters
@@ -134,6 +134,10 @@ def get_data(channel, start, end, frametype=None, source=None, nproc=1,
 
     end : `float`
         GPS end time of requested data
+
+    obs : `str`, optional
+        single-letter name of observatory, defaults to the first letter of
+        `frametype`
 
     frametype : `str`, optional
         name of frametype in which channel(s) are stored, required if `source`
@@ -178,7 +182,8 @@ def get_data(channel, start, end, frametype=None, source=None, nproc=1,
         series_class = TimeSeries
     # construct file cache if none is given
     if source is None:
-        source = gwdatafind.find_urls(frametype[0], frametype, start, end)
+        obs = obs if obs is not None else frametype[0]
+        source = gwdatafind.find_urls(obs, frametype, start, end)
     # read from frames or NDS
     if source:
         if isinstance(channel, (list, tuple)):
