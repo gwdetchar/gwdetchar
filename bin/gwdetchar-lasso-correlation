@@ -108,13 +108,17 @@ auto_xlabel = ('Time [hours] from '
                         Time(start, format='gps', scale='utc').iso)
                + ' UTC (%d)' % start)
 
+# get primary channel frametype
 primary = args.primary_channel.format(ifo=args.ifo)                             
 range_is_primary = 'DMT-SNSH_EFFECTIVE_RANGE_MPC.mean' in args.primary_channel
 if args.primary_frametype is None:
     if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
         args.primary_frametype = '{}_HOFT_C00'.format(args.ifo)
-    if range_is_primary:
+    elif range_is_primary:
         args.primary_frametype = 'SenseMonitor_hoft_{}_M'.format(args.ifo)
+    else:
+        raise ValueError("Could not determine primary channel's frametype, "
+                         "please specify with --primary-frametype")
         
 
 if not os.path.isdir(args.output_dir):
