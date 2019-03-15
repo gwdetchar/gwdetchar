@@ -21,10 +21,13 @@
 
 from __future__ import print_function
 
+import warnings
+
 import gwdatafind
 
 from ..const import DEFAULT_SEGMENT_SERVER
 
+from gwpy.io import gwf as io_gwf
 from gwpy.segments import (Segment, DataQualityFlag)
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 
@@ -68,6 +71,53 @@ def check_flag(flag, gpstime, duration, pad):
     if (not active.intersects_segment(seg)) or (abs(active[0]) < abs(seg)):
         return False
     return True
+
+
+def remove_missing_channels(channels, gwfcache):
+    """Find and remove channels from a given list that are not available in
+    a given cache of frame files
+
+    Parameters
+    ----------
+    channels : `list` of `str`
+        list of requested channels
+
+    gwfcache : `list` of `str`
+        list of paths to .gwf files
+
+    Returns
+    -------
+    keep : `list` of `str`
+        list of common channels found in the first and last files in the
+        cache
+
+    Notes
+    -----
+    As a shorthand, this utility checks `channels` against only the first
+    and last frame files in `gwfcache`. This saves time and memory by not
+    loading tables of contents for large numbers of very long data files.
+
+    For every channel requested that is not available in `gwfcache`, a
+    `UserWarning` will be raised.
+
+    See Also
+    --------
+    gwpy.io.gwf.iter_channel_names
+        for the utility used to identify frame contents
+    """
+    # get available channels from the first and last frame file
+    available = set(io_gwf.iter_channel_names(gwfcache[0]))
+    if len(gwfcache) > 1:
+        available.intersection_update(io_gwf.iter_channel_names(gwfcache[-1]))
+    # work out which channels to keep, and which to reject
+    channels = set(channels)
+    keep = channels & available
+    reject = channels - keep
+    for channel in reject:
+        warnings.warn(
+            '{} is being removed because it was not available in all '
+            'requested files'.format(channel), UserWarning)
+    return list(keep)
 
 
 def get_data(channel, start, end, frametype=None, source=None, nproc=1,
@@ -131,6 +181,8 @@ def get_data(channel, start, end, frametype=None, source=None, nproc=1,
         source = gwdatafind.find_urls(frametype[0], frametype, start, end)
     # read from frames or NDS
     if source:
+        if isinstance(channel, (list, tuple)):
+            channel = remove_missing_channels(channel, source)
         return series_class.read(
             source, channel, start=start, end=end, nproc=nproc,
             verbose=verbose, **kwargs)

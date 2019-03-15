@@ -48,7 +48,7 @@ from __future__ import (division, print_function)
 
 import os
 import sys
-import traceback
+import warnings
 import numpy
 
 from gwpy.time import to_gps
@@ -99,8 +99,7 @@ else:
     ifo = 'Network'
 gps = numpy.around(float(args.gpstime), 3)
 
-print("-----------------------------------------------------------------------"
-      "Creating {} omega scan at GPS second {}".format(ifo, gps))
+print("Creating {} omega scan at GPS second {}".format(ifo, gps))
 
 # get default configuration
 if args.config_file is None:
@@ -119,8 +118,7 @@ if not args.disable_correlation:
     try:
         primary = config.OmegaChannelList(
             'primary', **dict(cp.items('primary')))
-    except Exception:
-        import warnings
+    except config.configparser.NoSectionError:
         warnings.warn(
             'No primary configured, continuing without cross-correlation')
         args.disable_correlation = True
@@ -223,9 +221,9 @@ for block in blocks.values():
                 gps, channel, data[channel.name].astype('float64'), fftlength,
                 resample=block.resample, fthresh=args.far_threshold,
                 search=block.search)
-        except Exception:
-            traceback.print_exc()
-            print('    Problem encountered, skipping {}'.format(channel.name))
+        except (ValueError, KeyError) as exc:
+            warnings.warn("Skipping {}: [{}] {}".format(
+                channel.name, type(exc), str(exc)), UserWarning)
             continue
 
         if series is None:

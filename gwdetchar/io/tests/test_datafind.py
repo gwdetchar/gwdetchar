@@ -53,6 +53,18 @@ def test_check_flag(segserver):
     assert datafind.check_flag(flag, gpstime=800, duration=64, pad=1) is False
 
 
+@mock.patch('gwpy.io.gwf.iter_channel_names', return_value=['X1:TEST-STRAIN'])
+def test_remove_missing_channels(io_gwf):
+    channels = datafind.remove_missing_channels(
+        ['X1:TEST-STRAIN'], 'test.cache')
+    assert channels == ['X1:TEST-STRAIN']
+
+    with pytest.warns(UserWarning, match='is being removed because'):
+        channels = datafind.remove_missing_channels(
+            ['X1:TEST-STRAIN', 'X1:TEST-STRAIN_NONEXISTENT'], 'test.cache')
+        assert channels == ['X1:TEST-STRAIN']
+
+
 @mock.patch('gwpy.timeseries.TimeSeries.fetch', return_value=HOFT)
 def test_get_data_from_NDS(tsfetch):
     # retrieve data
@@ -96,10 +108,13 @@ def test_get_data_from_cache(tsfetch):
     nptest.assert_array_equal(data.value, HOFT.crop(start, end).value)
 
 
-@mock.patch('gwpy.timeseries.TimeSeriesDict.read',
-            return_value=TimeSeriesDict({
-                'X1:TEST-STRAIN': HOFT.crop(16, 48)}))
-def test_get_data_dict_from_cache(tsdfetch):
+@mock.patch('gwdetchar.io.datafind.remove_missing_channels')
+@mock.patch('gwpy.timeseries.TimeSeriesDict.read')
+def test_get_data_dict_from_cache(tsdfetch, remove):
+    # set return values
+    tsdfetch.return_value = TimeSeriesDict({
+        'X1:TEST-STRAIN': HOFT.crop(16, 48)})
+    remove.return_value = ['X1:TEST-STRAIN']
     # retrieve test frame
     start = 16
     end = start + 32
