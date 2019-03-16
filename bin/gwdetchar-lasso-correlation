@@ -225,8 +225,9 @@ model = gwlasso.fit(data, target, alpha=args.alpha)
 print('Alpha:', model.alpha)
 
 # restructure results for convenience
-allresults = Table(data=(auxdata.keys(), model.coef_, numpy.abs(model.coef_)),
-                   names=('Channel', 'Lasso coefficient', 'rank'))
+allresults = Table(
+    data=(list(auxdata.keys()), model.coef_, numpy.abs(model.coef_)),
+    names=('Channel', 'Lasso coefficient', 'rank'))
 allresults.sort('rank')
 allresults.reverse()
 useful = allresults['rank'] > 0
@@ -492,7 +493,7 @@ def generate_cluster(input_,):
         if cluster:
             # write cluster table to file
             cluster = sorted(cluster, key=lambda x: abs(x[2]), reverse=True)
-            clustertab = Table(data=zip(*cluster)[2:4],
+            clustertab = Table(data=list(zip(*cluster))[2:4],
                                names=('Channel', 'Pearson Coefficient'))
             plot7_list = '%s_CLUSTER_LIST-%s.txt' % (
                 re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
