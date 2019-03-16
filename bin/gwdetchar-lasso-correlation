@@ -142,8 +142,8 @@ if args.band_pass:
 
     print("-- Loading primary channel data")
     bandts = get_data(
-        primary, start-pad, end+pad, verbose=True, obs=args.ifo[0],
-        frametype=args.primary_frametype, nproc=args.nproc)
+        primary, start-pad, end+pad, verbose='Reading primary:',
+        obs=args.ifo[0], frametype=args.primary_frametype, nproc=args.nproc)
     if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
         raise ValueError("bandpass frequency is out of range for this "
                          "channel, band (Hz): {0}, sample rate: {1}".format(
@@ -174,7 +174,7 @@ else:
     # load primary channel data
     print("-- Loading primary channel data")
     primaryts = get_data(primary, start, end, frametype=args.primary_frametype,
-                         obs=args.ifo[0], verbose=True, nproc=args.nproc)
+                         obs=args.ifo[0], verbose='Reading:', nproc=args.nproc)
 
 if args.remove_outliers:
     print("-- Removing outliers above %f sigma" % args.remove_outliers)
@@ -209,8 +209,8 @@ else:
     frametype = '%s_T' % args.ifo  # for second trends
 
 auxdata = get_data(
-    channels, start, end, verbose=True, obs=args.ifo[0], frametype=frametype,
-    nproc=args.nproc, pad=0)
+    channels, start, end, verbose='Reading:', obs=args.ifo[0],
+    frametype=frametype, nproc=args.nproc, pad=0)
 
 # -- removes flat data to be re-introdused later
 
