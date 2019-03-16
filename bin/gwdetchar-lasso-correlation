@@ -48,6 +48,14 @@ from gwdetchar.io.datafind import get_data
 from gwdetchar.plot import get_gwpy_tex_settings
 
 
+# default frametypes
+DEFAULT_FRAMETYPE = {
+    'GDS-CALIB_STRAIN': '{ifo}_HOFT_C00',
+    'DMT-SNSH_EFFECTIVE_RANGE_MPC.mean': 'SenseMonitor_hoft_{ifo}_M',
+    'DMT-SNSW_EFFECTIVE_RANGE_MPC.mean': 'SenseMonitor_CAL_{ifo}_M',
+}
+
+
 # -- parse command line -------------------------------------------------------
 
 parser = cli.create_parser(
@@ -68,8 +76,9 @@ parser.add_argument('-T', '--trend-type', default='minute',
 parser.add_argument('-p', '--primary-channel',
                     default='{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean',
                     help='name of primary channel to use')
-parser.add_argument('-P', '--primary-frametype',
-                    help='frametype for --primary-channel')
+parser.add_argument('-P', '--primary-frametype', default=None,
+                    help='frametype for --primary-channel, default: guess '
+                         'by channel name')
 parser.add_argument('-O', '--remove-outliers', type=float, default=None,
                     help='Std. dev. limit for removing outliers')
 parser.add_argument('-t', '--threshold', type=float, default=0.0001,
@@ -108,10 +117,17 @@ auto_xlabel = ('Time [hours] from '
                         Time(start, format='gps', scale='utc').iso)
                + ' UTC (%d)' % start)
 
-if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
-    args.primary_frametype = '%s_HOFT_C00' % args.ifo
-primary = args.primary_channel.format(ifo=args.ifo)
-range_is_primary = 'DMT-SNSH_EFFECTIVE_RANGE_MPC.mean' in args.primary_channel
+# get primary channel frametype
+primary = args.primary_channel.format(ifo=args.ifo)                             
+range_is_primary = 'EFFECTIVE_RANGE_MPC' in args.primary_channel
+if args.primary_frametype is None:
+    try:
+        args.primary_frametype = DEFAULT_FRAMETYPE[
+            args.primary_channel.split(':')[1]].format(ifo=args.ifo)
+    except KeyError as exc:
+        raise type(exc)("Could not determine primary channel's frametype, "
+                        "please specify with --primary-frametype")
+        
 
 if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
@@ -126,8 +142,8 @@ if args.band_pass:
 
     print("-- Loading primary channel data")
     bandts = get_data(
-        primary, start-pad, end+pad, verbose=True,
-        frametype=args.primary_frametype, nproc=args.nproc)
+        primary, start-pad, end+pad, verbose='Reading primary:',
+        obs=args.ifo[0], frametype=args.primary_frametype, nproc=args.nproc)
     if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
         raise ValueError("bandpass frequency is out of range for this "
                          "channel, band (Hz): {0}, sample rate: {1}".format(
@@ -158,7 +174,7 @@ else:
     # load primary channel data
     print("-- Loading primary channel data")
     primaryts = get_data(primary, start, end, frametype=args.primary_frametype,
-                         verbose=True, nproc=args.nproc)
+                         obs=args.ifo[0], verbose='Reading:', nproc=args.nproc)
 
 if args.remove_outliers:
     print("-- Removing outliers above %f sigma" % args.remove_outliers)
@@ -193,8 +209,8 @@ else:
     frametype = '%s_T' % args.ifo  # for second trends
 
 auxdata = get_data(
-    channels, start, end, verbose=True, frametype=frametype,
-    nproc=args.nproc, pad=0)
+    channels, start, end, verbose='Reading:', obs=args.ifo[0],
+    frametype=frametype, nproc=args.nproc, pad=0)
 
 # -- removes flat data to be re-introdused later
 
