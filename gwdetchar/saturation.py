@@ -30,6 +30,7 @@ import numpy
 from astropy.units import Quantity
 from multiprocessing import (cpu_count, Pool)
 
+from gwpy.io.cache import file_segment
 from gwpy.timeseries import StateTimeSeries
 
 from .io.datafind import get_data
@@ -186,7 +187,8 @@ def is_saturated(channel, cache, start=None, end=None, indicator='LIMEN',
             channels[i] = c[:-6]
     # check limit if set
     indicators = ['{}_{}'.format(c, indicator) for c in channels]
-    data = get_data(indicators, start, start+1, source=cache, nproc=nproc)
+    gps = file_segment(cache[0])[0]
+    data = get_data(indicators, gps, gps+1, source=cache, nproc=nproc)
 
     # check limits for returned channels
     if len(data) < len(channels):  # exclude nonexistent channels
