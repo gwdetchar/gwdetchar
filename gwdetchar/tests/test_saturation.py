@@ -88,18 +88,23 @@ def test_find_limit_channels():
 @mock.patch('gwdetchar.io.datafind.remove_missing_channels')
 @mock.patch('gwpy.timeseries.TimeSeriesDict.read')
 def test_is_saturated(tsdfetch, remove):
+    cache = [
+        "X-TEST-0-1.gwf",
+    ]
+
     tsdfetch.return_value = TSDICT
     remove.return_value = ['X1:TEST_LIMIT']
 
-    saturated = saturation.is_saturated('X1:TEST', 1, start=0, end=8)
+    saturated = saturation.is_saturated('X1:TEST', cache, start=0, end=8)
     assert isinstance(saturated, DataQualityFlag)
     assert_segmentlist_equal(saturated.active, SEGMENTS)
 
-    saturated2 = saturation.is_saturated(['X1:TEST_LIMIT'], 1, start=0, end=8)
+    saturated2 = saturation.is_saturated(
+        ['X1:TEST_LIMIT'], cache, start=0, end=8)
     assert isinstance(saturated2, list)
     assert_segmentlist_equal(saturated2[0].active, saturated.active)
 
     with pytest.raises(ValueError) as exc:
         saturated3 = saturation.is_saturated(
-            'X1:TEST', 1, start=0, end=8, indicator='blah')
+            'X1:TEST', cache, start=0, end=8, indicator='blah')
     assert str(exc.value).startswith("Don't know how to determine")
