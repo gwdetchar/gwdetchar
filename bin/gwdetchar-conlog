@@ -84,15 +84,9 @@ data2 = get_data(
 
 # identify channels that demonstrate change
 messages = []
-for channel in channels:
-    try:
-        xoft1 = data1[channel].value
-        xoft2 = data2[channel].value
-    except KeyError:
-        warnings.warn(
-            '{} could not be read from all frames'.format(channel),
-            UserWarning)
-        continue
+for channel in data1:
+    xoft1 = data1[channel].value
+    xoft2 = data2[channel].value
 
     # flat channels
     if any(numpy.diff(xoft1) != 0):
