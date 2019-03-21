@@ -56,7 +56,7 @@ from gwpy.time import to_gps
 from matplotlib import use
 use('agg')  # nopep8
 
-from gwdetchar import (cli, omega, __version__)
+from gwdetchar import (cli, omega)
 from gwdetchar.omega import (config, html, plot)
 from gwdetchar.io.datafind import (check_flag, get_data)
 
