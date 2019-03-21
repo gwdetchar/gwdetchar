@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/aurban/opt/gwdetchar-dev/bin/python
 # coding=utf-8
 # Copyright (C) LIGO Scientific Collaboration (2015-)
 #
@@ -45,10 +45,10 @@ parser = cli.create_parser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
 cli.add_frametype_option(parser, required=const.IFO is None,
-                         default=const.IFO is not None and '%s_T' % const.IFO)
+                         default='%s_T'.format(const.IFO))
 cli.add_nproc_option(parser)
 parser.add_argument('-o', '--output',
-                    default='changes.txt',
+                    default='change.txt',
                     help='Path to output data file, default: %(default)s')
 parser.add_argument('-c', '--channels', nargs='*', default=[],
                     help='process channels matching this string, default is '
@@ -59,26 +59,25 @@ args = parser.parse_args()
 # get IFO and frametype
 ifo = args.ifo.upper()
 obs = ifo[0]
-frametype = args.frametype or '%s_T' % ifo
+frametype = args.frametype or '{}_T'.format(ifo)
 
 # get paths to frame files
-cache1 = gwdatafind.find_urls(obs, frametype, args.gpsstart-8, args.gpsstart)
+cache1 = gwdatafind.find_urls(obs, frametype, args.gpsstart-1, args.gpsstart)
 cache2 = gwdatafind.find_urls(obs, frametype, args.gpsend, args.gpsend+1)
 
 # get list of channels to analyze
 print('Determining channels to analyze...')
 available = set(io_gwf.iter_channel_names(cache1[-1]))
-available.intersection_update(io_gwf.iter_channel_names(cache2[0]))
-if args.channels:
-    requested = re.compile('(%s)' % '|'.join(args.channels))
-    channels = [x for x in available if requested.search(x)]
-else:
-    channels = list(available)
-print('  Found {} channels in frames'.format(len(channels)))
+available &= set(io_gwf.iter_channel_names(cache2[0]))
+channels = [x for x in available if x.endswith('.mean')]
+if args.channels:  # if requested, search for channels matching regex patterns
+    re_requested = re.compile('({})'.format('|'.join(args.channels)))
+    channels = [x for x in channels if re_requested.search(x)]
+print('Found {} channels in frames'.format(len(channels)))
 
 # get data from frames
 data1 = get_data(
-    channels, start=args.gpsstart-8, end=args.gpsstart, source=cache1,
+    channels, start=args.gpsstart-1, end=args.gpsstart, source=cache1,
     nproc=args.nproc, verbose='Reading initial data:')
 data2 = get_data(
     channels, start=args.gpsend, end=args.gpsend+1, source=cache2,
