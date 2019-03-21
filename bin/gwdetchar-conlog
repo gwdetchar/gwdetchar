@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Check whether a list of 16Hz EPICS records changed between two reference
+"""Check whether a list of channel records has changed between two reference
 times
 """
 
