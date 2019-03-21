@@ -22,7 +22,6 @@ times
 """
 
 import re
-import numpy
 
 import gwdatafind
 from gwpy.table import Table
@@ -80,19 +79,15 @@ data2 = get_data(
     channels, start=args.gpsend, end=args.gpsend+1, source=cache2,
     nproc=args.nproc, verbose='Reading final data:')
 
-# identify channels that demonstrate change
+# initialize columns
 changes = []
 value1 = []
 value2 = []
+
+# identify channels
 for channel in data1:
     xoft1 = data1[channel].value
     xoft2 = data2[channel].value
-
-    # flat channels
-    if any(numpy.diff(xoft1) != 0):
-        continue
-
-    # dynamic channels
     if xoft1[-1] == xoft2[0]:
         continue
     changes.append(channel)
