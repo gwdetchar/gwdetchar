@@ -1,4 +1,4 @@
-#!/home/aurban/opt/gwdetchar-dev/bin/python
+#!/usr/bin/env python
 # coding=utf-8
 # Copyright (C) LIGO Scientific Collaboration (2015-)
 #
@@ -21,13 +21,11 @@
 times
 """
 
-from __future__ import (division, print_function)
-
 import re
 import numpy
-import warnings
 
 import gwdatafind
+from gwpy.table import Table
 from gwpy.io import gwf as io_gwf
 
 from gwdetchar import (cli, const)
@@ -47,7 +45,7 @@ cli.add_ifo_option(parser)
 cli.add_frametype_option(parser, required=const.IFO is None,
                          default='%s_T'.format(const.IFO))
 cli.add_nproc_option(parser)
-parser.add_argument('-o', '--output', default='changes.txt',
+parser.add_argument('-o', '--output', default='changes.csv',
                     help='Path to output data file, default: %(default)s')
 parser.add_argument('-c', '--channels', nargs='*', default=[],
                     help='process channels matching this string, default is '
@@ -83,7 +81,9 @@ data2 = get_data(
     nproc=args.nproc, verbose='Reading final data:')
 
 # identify channels that demonstrate change
-messages = []
+changes = []
+value1 = []
+value2 = []
 for channel in data1:
     xoft1 = data1[channel].value
     xoft2 = data2[channel].value
@@ -93,15 +93,15 @@ for channel in data1:
         continue
 
     # dynamic channels
-    value1 = xoft1[-1]
-    value2 = xoft2[0]
-    if value1 == value2:
+    if xoft1[-1] == xoft2[0]:
         continue
-    else:
-        messages.append('{} changes from {:.4g} to {:.4g}'.format(
-            channel, value1, value2))
-        print(messages[-1])
+    changes.append(channel)
+    value1.append(xoft1[-1])
+    value2.append(xoft2[0])
+    print('{} changes from {:.4g} to {:.4g}'.format(
+        channel, value1[-1], value2[-1]))
 
 # write output
-with open(args.output, 'w') as fout:
-    fout.write('\n'.join(messages))
+table = Table([changes, value1, value2],
+              names=('channel', 'initial_value', 'final_value'))
+table.write(args.output)
