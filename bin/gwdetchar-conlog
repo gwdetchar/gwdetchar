@@ -1,0 +1,115 @@
+#!/usr/bin/env python
+# coding=utf-8
+# Copyright (C) LIGO Scientific Collaboration (2015-)
+#
+# This file is part of the GW DetChar python package.
+#
+# GW DetChar is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GW DetChar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Check whether a list of 16Hz EPICS records changed between two reference
+times
+"""
+
+from __future__ import (division, print_function)
+
+import re
+import numpy
+import warnings
+
+import gwdatafind
+from gwpy.io import gwf as io_gwf
+
+from gwdetchar import (cli, const)
+from gwdetchar.io.datafind import get_data
+
+__author__ = 'Alex Urban <alexander.urban@ligo.org>'
+__credits__ = 'Andrew Lundgren <andrew.lundgren@ligo.org>, ' \
+              'Joshua Smith <joshua.smith@ligo.org>, ' \
+              'Duncan Macleod <duncan.macleod@ligo.org>'
+
+
+# -- parse command line -------------------------------------------------------
+
+parser = cli.create_parser(description=__doc__)
+cli.add_gps_start_stop_arguments(parser)
+cli.add_ifo_option(parser)
+cli.add_frametype_option(parser, required=const.IFO is None,
+                         default=const.IFO is not None and '%s_T' % const.IFO)
+cli.add_nproc_option(parser)
+parser.add_argument('-o', '--output',
+                    default='changes.txt',
+                    help='Path to output data file, default: %(default)s')
+parser.add_argument('-c', '--channels', nargs='*', default=[],
+                    help='process channels matching this string, default is '
+                         'to analyze all relevant channels from frames')
+
+args = parser.parse_args()
+
+# get IFO and frametype
+ifo = args.ifo.upper()
+obs = ifo[0]
+frametype = args.frametype or '%s_T' % ifo
+
+# get paths to frame files
+cache1 = gwdatafind.find_urls(obs, frametype, args.gpsstart-8, args.gpsstart)
+cache2 = gwdatafind.find_urls(obs, frametype, args.gpsend, args.gpsend+1)
+
+# get list of channels to analyze
+print('Determining channels to analyze...')
+available = set(io_gwf.iter_channel_names(cache1[-1]))
+available.intersection_update(io_gwf.iter_channel_names(cache2[0]))
+if args.channels:
+    requested = re.compile('(%s)' % '|'.join(args.channels))
+    channels = [x for x in available if requested.search(x)]
+else:
+    channels = list(available)
+print('  Found {} channels in frames'.format(len(channels)))
+
+# get data from frames
+data1 = get_data(
+    channels, start=args.gpsstart-8, end=args.gpsstart, source=cache1,
+    nproc=args.nproc, verbose='Reading initial data:')
+data2 = get_data(
+    channels, start=args.gpsend, end=args.gpsend+1, source=cache2,
+    nproc=args.nproc, verbose='Reading final data:')
+
+# identify channels that demonstrate change
+messages = []
+for channel in channels:
+    try:
+        xoft1 = data1[channel].value
+        xoft2 = data2[channel].value
+    except KeyError:
+        warnings.warn(
+            '{} could not be read from all frames'.format(channel),
+            UserWarning)
+        continue
+
+    # flat channels
+    if any(numpy.diff(xoft1) != 0):
+        continue
+
+    # dynamic channels
+    value1 = xoft1[-1]
+    value2 = xoft2[0]
+    if value1 == value2:
+        continue
+    else:
+        messages.append('{} changes from {:.4g} to {:.4g}'.format(
+            channel, value1, value2))
+        print(messages[-1])
+
+# write output
+with open(args.output, 'w') as fout:
+    fout.write('\n'.join(messages))
