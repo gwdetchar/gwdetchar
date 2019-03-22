@@ -30,6 +30,8 @@ from gwpy.io import gwf as io_gwf
 from gwdetchar import (cli, const)
 from gwdetchar.io.datafind import get_data
 
+import numpy as np
+
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Andrew Lundgren <andrew.lundgren@ligo.org>, ' \
               'Joshua Smith <joshua.smith@ligo.org>, ' \
@@ -49,6 +51,9 @@ parser.add_argument('-o', '--output', default='changes.csv',
 parser.add_argument('-c', '--channels', nargs='*', default=[],
                     help='process channels matching this string, default is '
                          'to analyze all relevant channels from frames')
+parser.add_argument('-p', '--preview', default=10, type=int,
+                    help='Time (seconds) to test that channel is typically '
+                         'kept constant.')
 
 args = parser.parse_args()
 
@@ -56,9 +61,11 @@ args = parser.parse_args()
 ifo = args.ifo.upper()
 obs = ifo[0]
 frametype = args.frametype or '{}_T'.format(ifo)
+preview_time = max(1, args.preview)
 
 # get paths to frame files
-cache1 = gwdatafind.find_urls(obs, frametype, args.gpsstart-1, args.gpsstart)
+cache1 = gwdatafind.find_urls(obs, frametype, args.gpsstart-preview_time,
+                                args.gpsstart)
 cache2 = gwdatafind.find_urls(obs, frametype, args.gpsend, args.gpsend+1)
 
 # get list of channels to analyze
@@ -73,8 +80,8 @@ print('Found {} channels in frames'.format(len(channels)))
 
 # get data from frames
 data1 = get_data(
-    channels, start=args.gpsstart-1, end=args.gpsstart, source=cache1,
-    nproc=args.nproc, verbose='Reading initial data:')
+    channels, start=args.gpsstart-preview_time, end=args.gpsstart,
+    source=cache1, nproc=args.nproc, verbose='Reading initial data:')
 data2 = get_data(
     channels, start=args.gpsend, end=args.gpsend+1, source=cache2,
     nproc=args.nproc, verbose='Reading final data:')
@@ -88,6 +95,8 @@ value2 = []
 for channel in data1:
     xoft1 = data1[channel].value
     xoft2 = data2[channel].value
+    if np.any(np.diff(xoft1) != 0):
+        continue
     if xoft1[-1] == xoft2[0]:
         continue
     changes.append(channel)
