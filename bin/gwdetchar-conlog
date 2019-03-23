@@ -22,6 +22,7 @@ times
 """
 
 import re
+import numpy
 
 import gwdatafind
 from gwpy.table import Table
@@ -29,8 +30,6 @@ from gwpy.io import gwf as io_gwf
 
 from gwdetchar import (cli, const)
 from gwdetchar.io.datafind import get_data
-
-import numpy as np
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Andrew Lundgren <andrew.lundgren@ligo.org>, ' \
@@ -48,12 +47,17 @@ cli.add_frametype_option(parser, required=const.IFO is None,
 cli.add_nproc_option(parser)
 parser.add_argument('-o', '--output', default='changes.csv',
                     help='Path to output data file, default: %(default)s')
-parser.add_argument('-c', '--channels', nargs='*', default=[],
-                    help='process channels matching this string, default is '
-                         'to analyze all relevant channels from frames')
+parser.add_argument('-c', '--channels', default=None, required=False,
+                    help="file containing columnar list of channels to "
+                         "process, default is to find all relevant channels "
+                         "from frames")
+parser.add_argument('-s', '--search', nargs='*', default=[],
+                    help='process channels matching these regex patterns, '
+                         'can be given multiple times, default is to analyze '
+                         'all relevant channels from frames')
 parser.add_argument('-p', '--preview', default=10, type=int,
                     help='Time (seconds) to test that channel is typically '
-                         'kept constant.')
+                         'kept constant, default: %(default)s')
 
 args = parser.parse_args()
 
@@ -65,47 +69,62 @@ preview_time = max(1, args.preview)
 
 # get paths to frame files
 cache1 = gwdatafind.find_urls(obs, frametype, args.gpsstart-preview_time,
-                                args.gpsstart)
+                              args.gpsstart)
 cache2 = gwdatafind.find_urls(obs, frametype, args.gpsend, args.gpsend+1)
 
 # get list of channels to analyze
-print('Determining channels to analyze...')
+print(' -- Determining channels to analyze...')
 available = set(io_gwf.iter_channel_names(cache1[-1]))
 available &= set(io_gwf.iter_channel_names(cache2[0]))
-channels = [x for x in available if x.endswith('.mean')]
-if args.channels:  # if requested, search for channels matching regex patterns
-    re_requested = re.compile('({})'.format('|'.join(args.channels)))
+if args.channels:
+    allchannels = set(numpy.loadtxt(args.channels, dtype=str, ndmin=1))
+    channels = list(allchannels & available)
+else:
+    channels = [x for x in available if x.endswith('.mean')]
+if args.search:  # if requested, search for channels matching regex patterns
+    re_requested = re.compile('({})'.format('|'.join(args.search)))
     channels = [x for x in channels if re_requested.search(x)]
-print('Found {} channels in frames'.format(len(channels)))
+print(' -- Found {} channels in frames'.format(len(channels)))
 
 # get data from frames
 data1 = get_data(
     channels, start=args.gpsstart-preview_time, end=args.gpsstart,
-    source=cache1, nproc=args.nproc, verbose='Reading initial data:')
+    source=cache1, nproc=args.nproc, verbose=' -- Reading initial data:')
 data2 = get_data(
     channels, start=args.gpsend, end=args.gpsend+1, source=cache2,
-    nproc=args.nproc, verbose='Reading final data:')
+    nproc=args.nproc, verbose=' -- Reading final data:')
+
+print(' -- Analyzing {} channels...'.format(len(data1)))
 
 # initialize columns
 changes = []
 value1 = []
 value2 = []
+diff = []
 
 # identify channels
 for channel in data1:
     xoft1 = data1[channel].value
     xoft2 = data2[channel].value
-    if np.any(np.diff(xoft1) != 0):
+    if numpy.any(numpy.diff(xoft1) != 0):
         continue
     if xoft1[-1] == xoft2[0]:
         continue
     changes.append(channel)
     value1.append(xoft1[-1])
     value2.append(xoft2[0])
-    print('{} changes from {:.4g} to {:.4g}'.format(
-        channel, value1[-1], value2[-1]))
+    diff.append(xoft2[0] - xoft1[-1])
 
-# write output
-table = Table([changes, value1, value2],
-              names=('channel', 'initial_value', 'final_value'))
-table.write(args.output)
+# record output
+print(' -- Analysis complete')
+table = Table([changes, value1, value2, diff],
+              names=('channel', 'initial_value', 'final_value', 'difference'))
+
+# print output
+print(' -- The following {} channels record a state change between '
+      '{} and {}:\n'.format(len(changes), args.gpsstart, args.gpsend))
+print(table)
+
+# save output
+table.write(args.output, overwrite=True)
+print('\n -- Output written to {}'.format(args.output))
