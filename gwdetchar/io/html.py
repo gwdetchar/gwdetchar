@@ -26,6 +26,7 @@ import datetime
 import subprocess
 from getpass import getuser
 from operator import itemgetter
+from collections import OrderedDict
 from shutil import copyfile
 try:
     from pathlib2 import Path
@@ -51,6 +52,76 @@ from ..plot import plot_segments
 from .._version import get_versions
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+__credit__ = 'Alex Urban <alexander.urban@ligo.org>'
+
+# -- observatory context ------------------------------------------------------
+
+OBSERVATORY_MAP = {
+    'G1': {
+        'name': 'GEO',
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/')
+        ])
+    },
+    'H1': {
+        'name': 'LIGO Hanford',
+        'context': 'danger',
+        'links': OrderedDict([
+            ('LHO Summary Pages', 'https://ldas-jobs.ligo-wa.caltech.edu/'
+                                  '~detchar/summary/day/'),
+            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/')
+        ])
+    },
+    'I1': {
+        'name': 'LIGO India',
+        'context': 'success',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/')
+        ])
+    },
+    'K1': {
+        'name': 'KAGRA',
+        'context': 'warning',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/'),
+            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
+        ])
+    },
+    'L1': {
+        'name': 'LIGO Livingston',
+        'context': 'info',
+        'links': OrderedDict([
+            ('LLO Summary Pages', 'https://ldas-jobs.ligo-la.caltech.edu/'
+                                  '~detchar/summary/day/'),
+            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/')
+        ])
+    },
+    'V1': {
+        'name': 'Virgo',
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/'),
+            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/')
+        ])
+    },
+    'Network': {
+        'name': 'Multi-IFO',
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/'),
+            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/'),
+            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/'),
+            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/'),
+            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
+        ])
+    }
+}
 
 # -- HTML URLs ----------------------------------------------------------------
 
@@ -100,7 +171,6 @@ JS_FILES = [
     BOOTSTRAP_LIGO_JS,
     GWDETCHAR_JS,
 ]
-
 
 FORMATTER = HtmlFormatter(noclasses=True)
 
@@ -187,27 +257,29 @@ def finalize_static_urls(static, cssfiles, jsfiles):
     return cssfiles, jsfiles
 
 
-def new_bootstrap_page(*args, **kwargs):
-    """Create a new `~markup.page` with twitter bootstrap CSS and JS headers
+def new_bootstrap_page(**kwargs):
+    """Create a new `~markup.page` with custom twitter bootstrap CSS and
+    JS headers
     """
-    # add bootstrap CSS if needed
-    css = kwargs.pop('css', [])
-    if BOOTSTRAP_CSS not in css:
-        css.insert(0, BOOTSTRAP_CSS)
-    # add jquery and bootstrap JS if needed
-    script = kwargs.pop('script', [])
-    for js in [BOOTSTRAP_JS, JQUERY_JS]:
-        if js not in script:
-            script.insert(0, js)
+    # add bootstrap CSS and JS if needed
+    css = kwargs.get('css', CSS_FILES)
+    script = kwargs.get('script', JS_FILES)
+    # write CSS to static dir
+    css, script = finalize_static_urls(
+        os.path.join(os.path.curdir, 'static'),
+        css,
+        script,
+    )
     # ensure nice formatting on mobile screens
     metainfo = {
         'viewport': 'width=device-width, initial-scale=1.0'}
     # create page and init
     kwargs['css'] = css
     kwargs['script'] = script
-    kwargs['metainfo'] = metainfo
+    kwargs['charset'] = kwargs.get('charset', 'utf-8')
+    kwargs['metainfo'] = kwargs.get('metainfo', metainfo)
     page = markup.page()
-    page.init(*args, **kwargs)
+    page.init(**kwargs)
     return page
 
 
@@ -223,7 +295,7 @@ def write_param(param, value):
 
 
 def render_code(code, language):
-    """Render a black of code with syntax highlighting
+    """Render a block of code with syntax highlighting
 
     Parameters
     ----------

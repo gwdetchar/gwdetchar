@@ -38,75 +38,6 @@ from ..io import html as htmlio
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
-# -- give context for ifo names
-
-OBSERVATORY_MAP = {
-    'G1': {
-        'name': 'GEO',
-        'context': 'default',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/')
-        ])
-    },
-    'H1': {
-        'name': 'LIGO Hanford',
-        'context': 'danger',
-        'links': OrderedDict([
-            ('LHO Summary Pages', 'https://ldas-jobs.ligo-wa.caltech.edu/'
-                                  '~detchar/summary/day/'),
-            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/')
-        ])
-    },
-    'I1': {
-        'name': 'LIGO India',
-        'context': 'success',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/')
-        ])
-    },
-    'K1': {
-        'name': 'KAGRA',
-        'context': 'warning',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/'),
-            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
-        ])
-    },
-    'L1': {
-        'name': 'LIGO Livingston',
-        'context': 'info',
-        'links': OrderedDict([
-            ('LLO Summary Pages', 'https://ldas-jobs.ligo-la.caltech.edu/'
-                                  '~detchar/summary/day/'),
-            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/')
-        ])
-    },
-    'V1': {
-        'name': 'Virgo',
-        'context': 'default',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/'),
-            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/')
-        ])
-    },
-    'Network': {
-        'name': 'Multi-IFO',
-        'context': 'default',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/'),
-            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/'),
-            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/'),
-            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/'),
-            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
-        ])
-    }
-}
-
 
 # -- HTML construction --------------------------------------------------------
 
@@ -227,7 +158,7 @@ def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
     page.li('<a href="about">About this scan</a>')
     page.li('', class_='divider')
     page.li('External', class_='dropdown-header')
-    for name, link in OBSERVATORY_MAP[ifo]['links'].items():
+    for name, link in htmlio.OBSERVATORY_MAP[ifo]['links'].items():
         page.li()
         if 'Summary' in name:
             day = str(tconvert(gpstime).date()).replace('-', '')
@@ -326,11 +257,11 @@ def wrap_html(func):
         # (but only on the main results page)
         if about:
             page.add(write_summary(ifo, gpstime, incomplete=refresh,
-                     context=OBSERVATORY_MAP[ifo]['context']))
+                     context=htmlio.OBSERVATORY_MAP[ifo]['context']))
             write_summary_table(toc, correlated)
             if correlated:
                 page.add(write_ranking(toc, primary))
-            kwargs['context'] = OBSERVATORY_MAP[ifo]['context']
+            kwargs['context'] = htmlio.OBSERVATORY_MAP[ifo]['context']
         # write content
         page.div(id_='main')
         # insert inner html directly
@@ -341,6 +272,7 @@ def wrap_html(func):
         close_page(page, index, about=about)
         return index
     return decorated_func
+
 
 # -- Utilities ----------------------------------------------------------------
 
@@ -457,7 +389,7 @@ def write_summary(
     page.tbody()
     page.tr()
     page.td("<b>Interferometer</b>", scope='row')
-    page.td("%s (%s)" % (OBSERVATORY_MAP[ifo]['name'], ifo))
+    page.td("%s (%s)" % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))
     page.tr.close()
     page.tr()
     page.td("<b>UTC Time</b>", scope='row')
