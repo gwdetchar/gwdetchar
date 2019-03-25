@@ -77,10 +77,20 @@ BOOTSTRAP_LIGO_JS = resource_filename(
     '_static/bootstrap-ligo.min.js',
 )
 
+GWDETCHAR_CSS = resource_filename(
+    'gwdetchar',
+    '_static/gwdetchar-omega.min.css',
+)
+GWDETCHAR_JS = resource_filename(
+    'gwdetchar',
+    '_static/gwdetchar-omega.min.js',
+)
+
 CSS_FILES = [
     BOOTSTRAP_CSS,
     FANCYBOX_CSS,
     BOOTSTRAP_LIGO_CSS,
+    GWDETCHAR_CSS
 ]
 JS_FILES = [
     JQUERY_JS,
@@ -88,6 +98,7 @@ JS_FILES = [
     BOOTSTRAP_JS,
     FANCYBOX_JS,
     BOOTSTRAP_LIGO_JS,
+    GWDETCHAR_JS,
 ]
 
 

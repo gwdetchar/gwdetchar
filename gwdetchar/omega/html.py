@@ -107,14 +107,6 @@ OBSERVATORY_MAP = {
     }
 }
 
-# -- set up default JS and CSS files
-
-OMEGA_CSS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.css')
-OMEGA_JS = resource_filename('gwdetchar', '_static/gwdetchar-omega.min.js')
-
-CSS_FILES = htmlio.CSS_FILES + [OMEGA_CSS]
-JS_FILES = htmlio.JS_FILES + [OMEGA_JS]
-
 
 # -- HTML construction --------------------------------------------------------
 
@@ -159,9 +151,9 @@ def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
         the structured markup to open an HTML document
     """
     if not css:
-        css = CSS_FILES
+        css = htmlio.CSS_FILES
     if not script:
-        script = JS_FILES
+        script = htmlio.JS_FILES
 
     # write CSS to static dir
     css, script = htmlio.finalize_static_urls(
