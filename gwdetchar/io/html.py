@@ -79,11 +79,11 @@ BOOTSTRAP_LIGO_JS = resource_filename(
 
 GWDETCHAR_CSS = resource_filename(
     'gwdetchar',
-    '_static/gwdetchar-omega.min.css',
+    '_static/gwdetchar.min.css',
 )
 GWDETCHAR_JS = resource_filename(
     'gwdetchar',
-    '_static/gwdetchar-omega.min.js',
+    '_static/gwdetchar.min.js',
 )
 
 CSS_FILES = [
@@ -448,8 +448,7 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     return page()
 
 
-def write_footer(about=None, date=None, class_=False,
-                 linkstyle='color:#000;'):
+def write_footer(about=None, date=None, link=None, linkstyle='color:#eee;'):
     """Write a <footer> for a bootstrap page
 
     Parameters
@@ -461,27 +460,33 @@ def write_footer(about=None, date=None, class_=False,
         the datetime representing when this analysis was generated, defaults
         to `~datetime.datetime.now`
 
+    link : `str`, optional
+        HTML link to software name and version
+
+    linkstyle : `str`, optional
+        style options for rendering `link`
+
     Returns
     -------
     page : `~MarkupPy.markup.page`
         the markup object containing the footer HTML
     """
     page = markup.page()
-    if class_:
-        page.twotags.append('footer')
-        markup.element('footer', case=page.case, parent=page)(class_='footer')
+    page.twotags.append('footer')
+    markup.element('footer', case=page.case, parent=page)(class_='footer')
     page.div(class_='container')
     # write user/time for analysis
     if date is None:
         date = datetime.datetime.now().replace(second=0, microsecond=0)
-    version = get_versions()['version']
-    commit = get_versions()['full-revisionid']
-    url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
-    link = markup.oneliner.a('gwdetchar version {}'.format(version), href=url,
-                              target='_blank', style=linkstyle)
+    if link is None:
+        version = get_versions()['version']
+        commit = get_versions()['full-revisionid']
+        url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
+        link = markup.oneliner.a('gwdetchar version {}'.format(version),
+                                 href=url, target='_blank', style=linkstyle)
     page.div(class_='row')
     page.div(class_='col-md-12')
-    page.p('These results were obtained using {link} by {user} at '
+    page.p('These results were obtained using {link} by user {user} at '
            '{date}.'.format(link=link, user=getuser(), date=date))
     # link to 'about'
     if about is not None:
@@ -489,8 +494,7 @@ def write_footer(about=None, date=None, class_=False,
     page.div.close()  # col-md-12
     page.div.close()  # row
     page.div.close()  # container
-    if class_:
-        markup.element('footer', case=page.case, parent=page).close()
+    markup.element('footer', case=page.case, parent=page).close()
     return page()
 
 

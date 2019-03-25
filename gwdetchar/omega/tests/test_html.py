@@ -51,13 +51,13 @@ HTML_HEADER = """<!DOCTYPE HTML>
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="static/gwdetchar-omega.min.css" rel="stylesheet" type="text/css" media="all" />
+<link href="static/gwdetchar.min.css" rel="stylesheet" type="text/css" media="all" />
 <script src="https://code.jquery.com/jquery-1.12.3.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js" type="text/javascript"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js" type="text/javascript"></script>
 <script src="static/bootstrap-ligo.min.js" type="text/javascript"></script>
-<script src="static/gwdetchar-omega.min.js" type="text/javascript"></script>
+<script src="static/gwdetchar.min.js" type="text/javascript"></script>
 </head>
 <body>
 <header class="navbar navbar-fixed-top navbar-l1">
@@ -115,7 +115,7 @@ HTML_CLOSE = """</div>
 <div class="container">
 <div class="row">
 <div class="col-md-12">
-<p>These results were obtained using <a style="color:#eee;" href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">gwdetchar version %s</a> by {user} at {date}.</p>
+<p>These results were obtained using <a style="color:#eee;" href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">gwdetchar version %s</a> by user {user} at {date}.</p>
 </div>
 </div>
 </div>
@@ -277,7 +277,7 @@ def test_init_page(tmpdir):
 def test_close_page(tmpdir):
     # test simple content
     target = os.path.join(str(tmpdir), 'test.html')
-    date = datetime.datetime.now()
+    date = datetime.datetime.now().replace(second=0, microsecond=0)
     page = html.close_page(html.markup.page(), target, date=date)
     assert parse_html(str(page)) == parse_html(
         HTML_CLOSE.format(user=getuser(), date=str(date)))

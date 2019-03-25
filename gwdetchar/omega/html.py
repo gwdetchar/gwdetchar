@@ -271,8 +271,7 @@ def close_page(page, target, about=None, date=None):
         `~datetime.datetime.now`
     """
     page.div.close()  # container
-    page.add(htmlio.write_footer(about=about, date=date, class_=True,
-                                 linkstyle='color:#eee;'))
+    page.add(htmlio.write_footer(about=about))
     if not page._full:
         page.body.close()
         page.html.close()

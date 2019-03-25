@@ -64,7 +64,7 @@ HTML_FOOTER = """<footer class="footer">
 <div class="container">
 <div class="row">
 <div class="col-md-12">
-<p>These results were obtained using <a style="color:#000;" href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">gwdetchar version %s</a> by {user} at {date}.</p>
+<p>These results were obtained using <a style="color:#eee;" href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">gwdetchar version %s</a> by user {user} at {date}.</p>
 </div>
 </div>
 </div>
@@ -123,7 +123,8 @@ def test_finalize_static_urls(tmpdir):
             'bootstrap.min.css',  # nopep8
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
             'jquery.fancybox.min.css',  # nopep8
-        'static/bootstrap-ligo.min.css']
+        'static/bootstrap-ligo.min.css',
+        'static/gwdetchar.min.css']
     assert js == [
         'https://code.jquery.com/jquery-1.12.3.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/'
@@ -131,7 +132,8 @@ def test_finalize_static_urls(tmpdir):
         'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
             'jquery.fancybox.min.js',  # nopep8
-        'static/bootstrap-ligo.min.js']
+        'static/bootstrap-ligo.min.js',
+        'static/gwdetchar.min.js']
     shutil.rmtree(str(tmpdir), ignore_errors=True)
 
 
@@ -236,7 +238,7 @@ def test_write_flag_html_with_plots(tmpdir):
 
 def test_write_footer():
     date = datetime.datetime.now()
-    out = html.write_footer(date=date, class_=True)
+    out = html.write_footer(date=date)
     assert parse_html(str(out)) == parse_html(
         HTML_FOOTER.format(user=getuser(), date=date))
 
