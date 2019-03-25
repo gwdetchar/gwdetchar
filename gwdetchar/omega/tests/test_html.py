@@ -45,8 +45,9 @@ COMMIT = get_versions()['full-revisionid']
 HTML_HEADER = """<!DOCTYPE HTML>
 <html lang="en">
 <head>
-<meta http-equiv="refresh" content="60">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta http-equiv="refresh" content="60" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta content="width=device-width, initial-scale=1.0" name="viewport" />
 <base href="{base}" />
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
@@ -109,19 +110,6 @@ Links <b class="caret"></b>
 <div class="container">
 </body>
 </html>"""  # nopep8
-
-HTML_CLOSE = """</div>
-<footer class="footer">
-<div class="container">
-<div class="row">
-<div class="col-md-12">
-<p>These results were obtained using <a style="color:#eee;" href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">gwdetchar version %s</a> by user {user} at {date}.</p>
-</div>
-</div>
-</div>
-</footer>
-</body>
-</html>""" % (COMMIT, VERSION)  # nopep8
 
 CONFIGURATION = u"""
 [primary]
@@ -272,19 +260,6 @@ def test_init_page(tmpdir):
     assert parse_html(str(page)) == parse_html(
         HTML_HEADER.format(base=base, ifo='L1', gps=0))
     shutil.rmtree(base, ignore_errors=True)
-
-
-def test_close_page(tmpdir):
-    # test simple content
-    target = os.path.join(str(tmpdir), 'test.html')
-    date = datetime.datetime.now().replace(second=0, microsecond=0)
-    page = html.close_page(html.markup.page(), target, date=date)
-    assert parse_html(str(page)) == parse_html(
-        HTML_CLOSE.format(user=getuser(), date=str(date)))
-    assert os.path.isfile(target)
-    with open(target, 'r') as fp:
-        assert fp.read() == str(page)
-    shutil.rmtree(target, ignore_errors=True)
 
 
 def test_toggle_link():

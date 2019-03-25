@@ -48,11 +48,12 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 VERSION = get_versions()['version']
 COMMIT = get_versions()['full-revisionid']
 
-NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'>
+NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+<base href="{base}" />
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
@@ -64,7 +65,6 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitiona
 <script src="static/bootstrap-ligo.min.js" type="text/javascript"></script>
 <script src="static/gwdetchar.min.js" type="text/javascript"></script>
 </head>
-<body>
 </body>
 </html>"""  # nopep8
 
@@ -77,6 +77,11 @@ HTML_FOOTER = """<footer class="footer">
 </div>
 </div>
 </footer>""" % (COMMIT, VERSION)  # nopep8
+
+HTML_CLOSE = """</div>
+%s
+</body>
+</html>""" % HTML_FOOTER  # nopep8
 
 FLAG_CONTENT = """<div class="panel panel-warning">
 <div class="panel-heading">
@@ -146,8 +151,10 @@ def test_finalize_static_urls(tmpdir):
 
 
 def test_new_bootstrap_page():
-    page = html.new_bootstrap_page()
-    assert parse_html(str(page)) == parse_html(NEW_BOOTSTRAP_PAGE)
+    base = os.path.abspath(os.path.curdir)
+    page = html.new_bootstrap_page(base=base)
+    assert parse_html(str(page)) == parse_html(
+        NEW_BOOTSTRAP_PAGE.format(base=base))
 
 
 def test_write_param():
@@ -249,6 +256,18 @@ def test_write_footer():
     out = html.write_footer(date=date)
     assert parse_html(str(out)) == parse_html(
         HTML_FOOTER.format(user=getuser(), date=date))
+
+
+def test_close_page(tmpdir):
+    target = os.path.join(str(tmpdir), 'test.html')
+    date = datetime.datetime.now()
+    page = html.close_page(html.markup.page(), target, date=date)
+    assert parse_html(str(page)) == parse_html(
+        HTML_CLOSE.format(user=getuser(), date=str(date)))
+    assert os.path.isfile(target)
+    with open(target, 'r') as fp:
+        assert fp.read() == str(page)
+    shutil.rmtree(target, ignore_errors=True)
 
 
 @mock.patch("{}.Path.is_dir".format(html.Path.__module__))

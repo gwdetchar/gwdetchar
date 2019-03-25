@@ -277,7 +277,4 @@ if args.html:
     page.tbody.close()
     page.table.close()
     # close and write
-    page.add(htmlio.write_footer())
-    page.div.close()
-    with open(args.html, 'w') as fp:
-        print(str(page), file=fp)
+    htmlio.close_page(page, args.html)

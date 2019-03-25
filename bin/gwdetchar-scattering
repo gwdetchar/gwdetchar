@@ -508,9 +508,6 @@ if args.verbose:
     gprint("%s written" % segfile)
 
 # write HTML
-page.add(htmlio.write_footer())
-page.div.close()
-with open('index.html', 'w') as fp:
-    fp.write(str(page))
+htmlio.close_page(page, args.html)
 if args.verbose:
     gprint("-- index.html written, all done --")

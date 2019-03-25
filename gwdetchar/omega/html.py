@@ -41,8 +41,8 @@ __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 # -- HTML construction --------------------------------------------------------
 
-def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
-              base=os.path.curdir, **kwargs):
+def init_page(ifo, gpstime, toc={}, refresh=False, base=os.path.curdir,
+              **kwargs):
     """Initialise a new `markup.page`
     This method constructs an HTML page with the following structure
     .. code-block:: html
@@ -63,16 +63,16 @@ def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
     ----------
     ifo : `str`
         the interferometer prefix
+
     gpstime : `float`
         the central GPS time of the analysis
+
     toc : `dict`
         metadata dictionary for navbar table of contents
+
     refresh : `bool`
         Boolean switch to enable periodic page refresh
-    css : `list`, optional
-        the list of stylesheets to link in the `<head>`
-    script : `list`, optional
-        the list of javascript files to link in the `<head>`
+
     base : `str`, optional, default '.'
         the path for the `<base>` tag to link in the `<head>`
 
@@ -81,41 +81,10 @@ def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
     page : `markup.page`
         the structured markup to open an HTML document
     """
-    if not css:
-        css = htmlio.CSS_FILES
-    if not script:
-        script = htmlio.JS_FILES
+    # open a new page
+    page = htmlio.new_bootstrap_page(base=base, refresh=refresh, **kwargs)
 
-    # write CSS to static dir
-    css, script = htmlio.finalize_static_urls(
-        os.path.join(os.path.curdir, 'static'),
-        css,
-        script,
-    )
-
-    # create page
-    page = markup.page()
-    page.header.append('<!DOCTYPE HTML>')
-    page.html(lang='en')
-    page.head()
-    if refresh:
-        page.add('<meta http-equiv="refresh" content="60">')
-    page.add('<meta content="width=device-width, initial-scale=1.0" '
-             'name="viewport">')
-    page.base(href=base)
-    page._full = True
-
-    # link files
-    for f in css:
-        page.link(href=f, rel='stylesheet', type='text/css', media='all')
-    for f in script:
-        page.script('', src=f, type='text/javascript')
-
-    # add other attributes
-    for key in kwargs:
-        getattr(page, key)(kwargs[key])
-    # finalize header
-    page.head.close()
+    # set up page body
     page.body()
     # write banner
     page.add('<header class="navbar navbar-fixed-top navbar-%s">'
@@ -177,40 +146,6 @@ def init_page(ifo, gpstime, toc={}, refresh=False, css=None, script=None,
     return page
 
 
-def close_page(page, target, about=None, date=None):
-    """Close an HTML document with markup then write to disk
-    This method writes the closing markup to complement the opening
-    written by `init_page`, something like:
-    .. code-block:: html
-       </div>
-       <footer>
-           <!-- some stuff -->
-       </footer>
-       </body>
-       </html>
-
-    Parameters
-    ----------
-    page : `markup.page`
-        the markup object to close
-    target : `str`
-        the output filename for HTML
-    about : `str`, optional
-        the path of the 'about' page to link in the footer
-    date : `datetime.datetime`, optional
-        the timestamp to place in the footer, defaults to
-        `~datetime.datetime.now`
-    """
-    page.div.close()  # container
-    page.add(htmlio.write_footer(about=about))
-    if not page._full:
-        page.body.close()
-        page.html.close()
-    with open(target, 'w') as f:
-        f.write(page())
-    return page
-
-
 def wrap_html(func):
     """Decorator to wrap a function with `init_page` and `close_page` calls
     This allows inner HTML methods to be written with minimal arguments
@@ -269,7 +204,7 @@ def wrap_html(func):
         page.div.close()  # main
         # close page
         index = os.path.join(outdir, 'index.html')
-        close_page(page, index, about=about)
+        htmlio.close_page(page, index, about=about)
         return index
     return decorated_func
 
@@ -283,8 +218,10 @@ def toggle_link(plottype, channel, pranges):
     ----------
     plottype : `str`
         the type of plot to toggle toward
+
     channel : `OmegaChannel`
         the channel object corresponding to the plots shown
+
     pranges : `list` of `int`s
         a list of ranges for the time axis of each plot
 
@@ -310,8 +247,10 @@ def write_summary_table(blocks, correlated, base=os.path.curdir):
     ----------
     blocks : `dict` of `OmegaChannel`
         the channel blocks scanned in the analysis
+
     correlated : `bool`
         Boolean switch to determine if cross-correlation is included
+
     base : `str`
         the path for the `<base>` tag to link in the `<head>`
     """
@@ -359,15 +298,20 @@ def write_summary(
     ----------
     ifo : `str`
         the interferometer prefix
+
     gpstime : `float`
         the central GPS time of the analysis
+
     incomplete : `bool`
         boolean switch to determine whether the scan is still in progress
+
     context : `str`, optional
         the bootstrap context class for this result, see the bootstrap
         docs for more details
+
     header : `str`, optional
         the text for the section header (``<h2``>)
+
     tableclass : `str`, optional
         the ``class`` for the summary ``<table>``
 
@@ -438,10 +382,13 @@ def write_ranking(toc, primary, thresh=6.5,
     ----------
     toc : `dict`
         metadata dictionary for navbar table of contents
+
     primary : `str`
         the name of the primary channel
+
     thresh : `float`
         the minimum correlation amplitude for appearing in this table
+
     tableclass : `str`, optional
         the ``class`` for the summary ``<table>``
 
@@ -551,12 +498,15 @@ def write_block(blockkey, block, context,
     ----------
     blockkey: `str`
         the key labeling the channel block
+
     block : `dict` of `OmegaChannel`
         a list of channels and their analysis attributes
+
     context : `str`
         the type of Bootstrap ``<panel>`` object to use, color-coded by GWO
         standards (must be one of 'default', 'primary', 'success', 'info',
         'warning', or 'danger')
+
     tableclass : `str`, optional
         the ``class`` for the summary ``<table>``
 
@@ -681,10 +631,13 @@ def write_qscan_page(blocks, context):
     ----------
     ifo : `str`
         the prefix of the interferometer used in this analysis
+
     gpstime  : `float`
         the central GPS time of the analysis
+
     blocks : `dict` of `OmegaChannel`
         the channel blocks scanned in the analysis
+
     context : `str`, optional
         the type of Bootstrap ``<panel>`` object to use, color-coded by
         GWO standard
@@ -711,10 +664,13 @@ def write_null_page(reason, context='default'):
     ----------
     ifo : `str`
         the prefix of the interferometer used in this analysis
+
     gpstime  : `float`
         the central GPS time of the analysis
+
     reason : `str`
         the explanation for this null result
+
     context : `str`, optional
         the bootstrap context class for this result, see the bootstrap
         docs for more details
@@ -740,10 +696,13 @@ def write_about_page(configfiles):
     ----------
     ifo : `str`
         the prefix of the interferometer used in this analysis
+
     gpstime  : `float`
         the central GPS time of the analysis
+
     configfiles : `list` of `str`
         list of paths of the configuration files to embed
+
     outdir : `str`, optional
         the output directory for the HTML
 

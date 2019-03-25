@@ -760,9 +760,5 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
     page.div.close()  # panel-collapse
     page.div.close()  # panel
 page.div.close()  # panel-group
-page.add(htmlio.write_footer())
-page.div.close()  # container
-with open('index.html', 'w') as f:
-    print(str(page), file=f)
-
+htmlio.close_page(page, 'index.html')  # save and close
 print("-- Process Completed")

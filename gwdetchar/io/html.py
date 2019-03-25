@@ -257,29 +257,43 @@ def finalize_static_urls(static, cssfiles, jsfiles):
     return cssfiles, jsfiles
 
 
-def new_bootstrap_page(**kwargs):
+def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
+                       **kwargs):
     """Create a new `~markup.page` with custom twitter bootstrap CSS and
     JS headers
     """
-    # add bootstrap CSS and JS if needed
+    # get kwargs with sensible defaults
     css = kwargs.get('css', CSS_FILES)
     script = kwargs.get('script', JS_FILES)
+    base = os.path.abspath(base)
     # write CSS to static dir
     css, script = finalize_static_urls(
         os.path.join(os.path.curdir, 'static'),
         css,
         script,
     )
-    # ensure nice formatting on mobile screens
-    metainfo = {
-        'viewport': 'width=device-width, initial-scale=1.0'}
-    # create page and init
-    kwargs['css'] = css
-    kwargs['script'] = script
-    kwargs['charset'] = kwargs.get('charset', 'utf-8')
-    kwargs['metainfo'] = kwargs.get('metainfo', metainfo)
+    # create page
     page = markup.page()
-    page.init(**kwargs)
+    page.header.append('<!DOCTYPE HTML>')
+    page.html(lang=lang)
+    page.head()
+    if refresh:  # force-refresh if requested
+        page.meta(http_equiv='refresh', content='60')
+    # ensure nice formatting on most devices
+    page.meta(http_equiv='Content-Type', content='text/html; charset=utf-8')
+    page.meta(content='width=device-width, initial-scale=1.0', name='viewport')
+    page.base(href=base)
+    page._full = True
+    # link files
+    for f in css:
+        page.link(href=f, rel='stylesheet', type='text/css', media='all')
+    for f in script:
+        page.script('', src=f, type='text/javascript')
+    # add other attributes
+    for key in kwargs:
+        getattr(page, key)(kwargs[key])
+    # finalize header
+    page.head.close()
     return page
 
 
@@ -567,6 +581,45 @@ def write_footer(about=None, date=None, link=None, linkstyle='color:#eee;'):
     page.div.close()  # row
     page.div.close()  # container
     markup.element('footer', case=page.case, parent=page).close()
+    return page()
+
+
+def close_page(page, target, about=None, date=None):
+    """Close an HTML document with markup then write to disk
+
+    This method writes the closing markup to complement the opening
+    written by `init_page`, something like:
+
+    .. code-block:: html
+       </div>
+       <footer>
+           <!-- some stuff -->
+       </footer>
+       </body>
+       </html>
+
+    Parameters
+    ----------
+    page : `markup.page`
+        the markup object to close
+
+    target : `str`
+        the output filename for HTML
+
+    about : `str`, optional
+        the path of the 'about' page to link in the footer
+
+    date : `datetime.datetime`, optional
+        the timestamp to place in the footer, defaults to
+        `~datetime.datetime.now`
+    """
+    page.div.close()  # container
+    page.add(write_footer(about=about, date=date))
+    if not page._full:
+        page.body.close()
+        page.html.close()
+    with open(target, 'w') as f:
+        f.write(page())
     return page()
 
 
