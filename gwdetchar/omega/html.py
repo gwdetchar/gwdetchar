@@ -185,7 +185,7 @@ def navbar(ifo, gpstime, toc={}):
     page.li('<a href="about">About this scan</a>')
     page.li('', class_='divider')
     page.li('External', class_='dropdown-header')
-    for name, link in htmlio.OBSERVATORY_MAP[ifo]['links'].items():
+    for name, link in OBSERVATORY_MAP[ifo]['links'].items():
         page.li()
         if 'Summary' in name:
             day = str(tconvert(gpstime).date()).replace('-', '')
@@ -249,11 +249,11 @@ def wrap_html(func):
         # (but only on the main results page)
         if about:
             page.add(write_summary(ifo, gpstime, incomplete=refresh,
-                     context=htmlio.OBSERVATORY_MAP[ifo]['context']))
+                     context=OBSERVATORY_MAP[ifo]['context']))
             write_summary_table(toc, correlated)
             if correlated:
                 page.add(write_ranking(toc, primary))
-            kwargs['context'] = htmlio.OBSERVATORY_MAP[ifo]['context']
+            kwargs['context'] = OBSERVATORY_MAP[ifo]['context']
         # write content
         page.div(id_='main')
         # insert inner html directly
@@ -390,7 +390,7 @@ def write_summary(
     page.tbody()
     page.tr()
     page.td("<b>Interferometer</b>", scope='row')
-    page.td("%s (%s)" % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))
+    page.td("%s (%s)" % (OBSERVATORY_MAP[ifo]['name'], ifo))
     page.tr.close()
     page.tr()
     page.td("<b>UTC Time</b>", scope='row')
