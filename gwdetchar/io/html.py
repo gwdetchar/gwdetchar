@@ -484,7 +484,8 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     return page()
 
 
-def write_footer(about=None, link=None, issues=None, linkstyle='color:#eee;'):
+def write_footer(about=None, link=None, issues=None, content=None,
+                 linkstyle='color:#eee;'):
     """Write a <footer> for a bootstrap page
 
     Parameters
@@ -497,6 +498,9 @@ def write_footer(about=None, link=None, issues=None, linkstyle='color:#eee;'):
 
     issues : `str`, optional
         HTML link to issue report page
+
+    content : `str` or `~MarkupPy.markup.page`, optional
+        additional footer content
 
     linkstyle : `str`, optional
         style options for rendering `link`
@@ -533,6 +537,11 @@ def write_footer(about=None, link=None, issues=None, linkstyle='color:#eee;'):
     # link to 'about'
     if about is not None:
         page.a('How was this page generated?', href=about, style=linkstyle)
+    # extra content
+    if isinstance(content, markup.page):
+        page.add(str(content))
+    elif content is not None:
+        page.p(str(content))
     page.div.close()  # col-md-12
     page.div.close()  # row
     page.div.close()  # container
