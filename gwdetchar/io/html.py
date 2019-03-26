@@ -26,7 +26,6 @@ import datetime
 import subprocess
 from getpass import getuser
 from operator import itemgetter
-from collections import OrderedDict
 from shutil import copyfile
 try:
     from pathlib2 import Path
@@ -53,75 +52,6 @@ from .._version import get_versions
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credit__ = 'Alex Urban <alexander.urban@ligo.org>'
-
-# -- observatory context ------------------------------------------------------
-
-OBSERVATORY_MAP = {
-    'G1': {
-        'name': 'GEO',
-        'context': 'default',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/')
-        ])
-    },
-    'H1': {
-        'name': 'LIGO Hanford',
-        'context': 'danger',
-        'links': OrderedDict([
-            ('LHO Summary Pages', 'https://ldas-jobs.ligo-wa.caltech.edu/'
-                                  '~detchar/summary/day/'),
-            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/')
-        ])
-    },
-    'I1': {
-        'name': 'LIGO India',
-        'context': 'success',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/')
-        ])
-    },
-    'K1': {
-        'name': 'KAGRA',
-        'context': 'warning',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/'),
-            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
-        ])
-    },
-    'L1': {
-        'name': 'LIGO Livingston',
-        'context': 'info',
-        'links': OrderedDict([
-            ('LLO Summary Pages', 'https://ldas-jobs.ligo-la.caltech.edu/'
-                                  '~detchar/summary/day/'),
-            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/')
-        ])
-    },
-    'V1': {
-        'name': 'Virgo',
-        'context': 'default',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/'),
-            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/')
-        ])
-    },
-    'Network': {
-        'name': 'Multi-IFO',
-        'context': 'default',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/'),
-            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/'),
-            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/'),
-            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/'),
-            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
-        ])
-    }
-}
 
 # -- HTML URLs ----------------------------------------------------------------
 

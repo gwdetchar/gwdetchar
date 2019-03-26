@@ -38,10 +38,79 @@ from ..io import html as htmlio
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
+# -- give context for ifo names
+
+OBSERVATORY_MAP = {
+    'G1': {
+        'name': 'GEO',
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/')
+        ])
+    },
+    'H1': {
+        'name': 'LIGO Hanford',
+        'context': 'danger',
+        'links': OrderedDict([
+            ('LHO Summary Pages', 'https://ldas-jobs.ligo-wa.caltech.edu/'
+                                  '~detchar/summary/day/'),
+            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/')
+        ])
+    },
+    'I1': {
+        'name': 'LIGO India',
+        'context': 'success',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/')
+        ])
+    },
+    'K1': {
+        'name': 'KAGRA',
+        'context': 'warning',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/'),
+            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
+        ])
+    },
+    'L1': {
+        'name': 'LIGO Livingston',
+        'context': 'info',
+        'links': OrderedDict([
+            ('LLO Summary Pages', 'https://ldas-jobs.ligo-la.caltech.edu/'
+                                  '~detchar/summary/day/'),
+            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/')
+        ])
+    },
+    'V1': {
+        'name': 'Virgo',
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/'),
+            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/')
+        ])
+    },
+    'Network': {
+        'name': 'Multi-IFO',
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/'),
+            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/'),
+            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/'),
+            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/'),
+            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
+        ])
+    }
+}
+
 
 # -- HTML construction --------------------------------------------------------
 
-def navbar_banner(ifo, gpstime, toc={}):
+def navbar(ifo, gpstime, toc={}):
     """Initialise a new `markup.page`
     This method constructs an HTML page with the following structure
     .. code-block:: html
@@ -173,8 +242,8 @@ def wrap_html(func):
             if os.path.basename(about) == 'index.html':
                 about = about[:-10]
         # open page
-        navbar = navbar_banner(ifo, gpstime, toc=toc)
-        page = htmlio.new_bootstrap_page(refresh=refresh, navbar=navbar,
+        banner = navbar(ifo, gpstime, toc=toc)
+        page = htmlio.new_bootstrap_page(refresh=refresh, navbar=banner,
                                          **initargs)
         # write analysis summary
         # (but only on the main results page)
