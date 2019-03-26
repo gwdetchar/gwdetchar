@@ -258,9 +258,24 @@ def finalize_static_urls(static, cssfiles, jsfiles):
 
 
 def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
-                       **kwargs):
+                       navbar=None, **kwargs):
     """Create a new `~markup.page` with custom twitter bootstrap CSS and
     JS headers
+
+    Parameters
+    ----------
+    base : `str`
+        relative path to the base directory where the page is located
+
+    lang : `str`, optional
+        language of the page, default: en
+
+    refresh : `bool`, optional
+        boolean switch to enable periodic page refresh, default: False
+
+    navbar : `str`, optional
+        HTML enconding of a floating navbar, will be ignored if not given,
+        default: None
     """
     # get kwargs with sensible defaults
     css = kwargs.get('css', CSS_FILES)
@@ -295,6 +310,8 @@ def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
     page.head.close()
     # open body and container
     page.body()
+    if navbar is not None:
+        page.add(navbar)
     page.div(class_='container')
     return page
 

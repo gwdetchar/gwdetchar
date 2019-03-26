@@ -41,8 +41,7 @@ __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 # -- HTML construction --------------------------------------------------------
 
-def init_page(ifo, gpstime, toc={}, refresh=False, base=os.path.curdir,
-              **kwargs):
+def navbar_banner(ifo, gpstime, toc={}):
     """Initialise a new `markup.page`
     This method constructs an HTML page with the following structure
     .. code-block:: html
@@ -70,22 +69,12 @@ def init_page(ifo, gpstime, toc={}, refresh=False, base=os.path.curdir,
     toc : `dict`
         metadata dictionary for navbar table of contents
 
-    refresh : `bool`
-        Boolean switch to enable periodic page refresh
-
-    base : `str`, optional, default '.'
-        the path for the `<base>` tag to link in the `<head>`
-
     Returns
     -------
     page : `markup.page`
         the structured markup to open an HTML document
     """
-    # open a new page
-    page = htmlio.new_bootstrap_page(base=base, refresh=refresh, **kwargs)
-
-    # set up page body
-    page.body()
+    page = markup.page()
     # write banner
     page.add('<header class="navbar navbar-fixed-top navbar-%s">'
              % ifo.lower())
@@ -140,10 +129,7 @@ def init_page(ifo, gpstime, toc={}, refresh=False, base=os.path.curdir,
     page.add('</nav>')
     page.div.close()  # container
     page.add('</header>')  # navbar
-
-    # open container
-    page.div(class_='container')
-    return page
+    return page()
 
 
 def wrap_html(func):
@@ -187,7 +173,9 @@ def wrap_html(func):
             if os.path.basename(about) == 'index.html':
                 about = about[:-10]
         # open page
-        page = init_page(ifo, gpstime, toc=toc, refresh=refresh, **initargs)
+        navbar = navbar_banner(ifo, gpstime, toc=toc)
+        page = htmlio.new_bootstrap_page(refresh=refresh, navbar=navbar,
+                                         **initargs)
         # write analysis summary
         # (but only on the main results page)
         if about:

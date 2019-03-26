@@ -42,26 +42,7 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 VERSION = get_versions()['version']
 COMMIT = get_versions()['full-revisionid']
 
-HTML_HEADER = """<!DOCTYPE HTML>
-<html lang="en">
-<head>
-<meta http-equiv="refresh" content="60" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta content="width=device-width, initial-scale=1.0" name="viewport" />
-<base href="{base}" />
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="static/gwdetchar.min.css" rel="stylesheet" type="text/css" media="all" />
-<script src="https://code.jquery.com/jquery-1.12.3.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js" type="text/javascript"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js" type="text/javascript"></script>
-<script src="static/bootstrap-ligo.min.js" type="text/javascript"></script>
-<script src="static/gwdetchar.min.js" type="text/javascript"></script>
-</head>
-<body>
-<header class="navbar navbar-fixed-top navbar-l1">
+HTML_HEADER = """<header class="navbar navbar-fixed-top navbar-l1">
 <div class="container">
 <div class="navbar-header">
 <button class="navbar-toggle" data-toggle="collapse" type="button" data-target=".navbar-collapse">
@@ -106,10 +87,7 @@ Links <b class="caret"></b>
 </ul>
 </nav>
 </div>
-</header>
-<div class="container">
-</body>
-</html>"""  # nopep8
+</header>"""  # nopep8
 
 CONFIGURATION = u"""
 [primary]
@@ -253,13 +231,10 @@ Eventgram view <span class="caret"></span>
 
 # -- unit tests ---------------------------------------------------------------
 
-def test_init_page(tmpdir):
-    base = str(tmpdir)
-    os.chdir(base)
-    page = html.init_page('L1', 0, toc=ANALYZED, refresh=True, base=base)
-    assert parse_html(str(page)) == parse_html(
-        HTML_HEADER.format(base=base, ifo='L1', gps=0))
-    shutil.rmtree(base, ignore_errors=True)
+def test_navbar_banner():
+    page = html.navbar_banner('L1', 0, toc=ANALYZED)
+    assert parse_html(str(page)) == parse_html(HTML_HEADER.format(
+        ifo='L1', gps='0'))
 
 
 def test_toggle_link():

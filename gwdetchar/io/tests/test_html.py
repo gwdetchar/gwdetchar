@@ -51,6 +51,7 @@ COMMIT = get_versions()['full-revisionid']
 NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <html lang="en">
 <head>
+<meta http-equiv="refresh" content="60" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 <base href="{base}" />
@@ -65,6 +66,8 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <script src="static/bootstrap-ligo.min.js" type="text/javascript"></script>
 <script src="static/gwdetchar.min.js" type="text/javascript"></script>
 </head>
+<body>
+<div class="container">
 </body>
 </html>"""  # nopep8
 
@@ -152,7 +155,7 @@ def test_finalize_static_urls(tmpdir):
 
 def test_new_bootstrap_page():
     base = os.path.abspath(os.path.curdir)
-    page = html.new_bootstrap_page(base=base)
+    page = html.new_bootstrap_page(base=base, refresh=True)
     assert parse_html(str(page)) == parse_html(
         NEW_BOOTSTRAP_PAGE.format(base=base))
 
