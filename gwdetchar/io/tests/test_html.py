@@ -256,7 +256,7 @@ def test_write_flag_html_with_plots(tmpdir):
 
 
 def test_write_footer():
-    date = datetime.datetime.now().strftime('%H:%m on %B %d %Y')
+    date = datetime.datetime.now().strftime('%H:%m %Z on %d %B %Y')
     out = html.write_footer()
     assert parse_html(str(out)) == parse_html(
         HTML_FOOTER.format(user=getuser(), date=date))
@@ -264,7 +264,7 @@ def test_write_footer():
 
 def test_close_page(tmpdir):
     target = os.path.join(str(tmpdir), 'test.html')
-    date = datetime.datetime.now().strftime('%H:%m on %B %d %Y')
+    date = datetime.datetime.now().strftime('%H:%m %Z on %d %B %Y')
     page = html.close_page(html.markup.page(), target)
     assert parse_html(str(page)) == parse_html(
         HTML_CLOSE.format(user=getuser(), date=str(date)))

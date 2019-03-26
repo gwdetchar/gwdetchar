@@ -21,8 +21,6 @@
 
 import os
 import shutil
-import datetime
-from getpass import getuser
 
 try:  # python 3.x
     from io import StringIO
@@ -231,8 +229,8 @@ Eventgram view <span class="caret"></span>
 
 # -- unit tests ---------------------------------------------------------------
 
-def test_navbar_banner():
-    page = html.navbar_banner('L1', 0, toc=ANALYZED)
+def test_navbar():
+    page = html.navbar('L1', 0, toc=ANALYZED)
     assert parse_html(str(page)) == parse_html(HTML_HEADER.format(
         ifo='L1', gps='0'))
 

@@ -522,7 +522,7 @@ def write_footer(about=None, link=None, issues=None, linkstyle='color:#eee;'):
                                   target='_blank', style=linkstyle)
     page.div(class_='row')
     page.div(class_='col-md-12')
-    date = datetime.datetime.now().strftime('%H:%m on %B %d %Y')
+    date = datetime.datetime.now().strftime('%H:%m %Z on %d %B %Y')
     page.p('This page was created by {user} at {date}.'.format(
         user=getuser(), date=date))
     page.p('{link} | {issues}'.format(link=link, issues=issues))
