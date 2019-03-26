@@ -19,6 +19,7 @@
 """Test suite for `gwdetchar.cli`
 """
 
+import logging
 import argparse
 try:
     from importlib import reload
@@ -28,6 +29,12 @@ except ImportError:  # python < 3
 import pytest
 
 from .. import (cli, __version__ as gwdetchar_version, const as _const)
+
+
+def test_logger():
+    logger = cli.logger()
+    assert isinstance(logger, logging.Logger)
+    assert logger.name == 'gwdetchar.cli'
 
 
 @pytest.fixture

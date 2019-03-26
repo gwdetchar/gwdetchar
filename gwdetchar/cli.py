@@ -19,13 +19,57 @@
 """Command-line interface utilities for `gwdetchar`
 """
 
+import sys
 import argparse
+import coloredlogs
+import logging
+import datetime
+from pytz import reference
 
 from gwpy.time import to_gps
 
 from . import (const, __version__)
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+__credit__ = 'Alex Urban <alexander.urban@ligo.org>'
+
+# global variables
+
+LEVEL_STYLES = {
+    'critical': {'color': 9, 'bold': True},
+    'debug': {'color': 14},
+    'error': {'color': 'red'},
+    'info': {'color': 10},
+    'notice': {'color': 'magenta'},
+    'spam': {'color': 'green', 'faint': True},
+    'success': {'color': 'green', 'bold': True},
+    'verbose': {'color': 'blue'},
+    'warning': {'color': 13},
+}
+
+FIELD_STYLES = {
+    'levelname': {'color': 39},
+    'asctime': {'color': 27},
+    'name': {'color': 12},
+}
+
+NOW = datetime.datetime.now()
+TIMEZONE = reference.LocalTimezone().tzname(NOW)
+
+DATEFMT = '%Y-%m-%d %H:%M {}'.format(TIMEZONE)
+FMT = '%(name)s %(asctime)s %(levelname)+8s: %(message)s'
+
+
+# -- logging and parsing utilities --------------------------------------------
+
+def logger(name=__name__, level='DEBUG'):
+    """Construct a logger utility for stdout/stderr messages
+    """
+    logger = logging.getLogger(name)
+    coloredlogs.install(
+        level=level, logger=logger, stream=sys.stdout, fmt=FMT,
+        datefmt=DATEFMT, level_styles=LEVEL_STYLES, field_styles=FIELD_STYLES)
+    return logger
 
 
 def create_parser(**kwargs):

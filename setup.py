@@ -64,6 +64,7 @@ install_requires = [
     'pandas',
     'pycondor',
     'pytz',
+    'coloredlogs',
     'scikit-learn',
     'scipy>=1.2.0',
     'setuptools',

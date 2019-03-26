@@ -105,6 +105,9 @@ lsig.add_argument('-l', '--line-size-aux', default=0.75, type=float,
 
 args = parser.parse_args()
 
+# set up logger
+logger = cli.logger(name=os.path.basename(__file__))
+
 # set TeX settings
 tex_settings = get_gwpy_tex_settings()
 rcParams.update(tex_settings)
@@ -118,7 +121,7 @@ auto_xlabel = ('Time [hours] from '
                + ' UTC (%d)' % start)
 
 # get primary channel frametype
-primary = args.primary_channel.format(ifo=args.ifo)                             
+primary = args.primary_channel.format(ifo=args.ifo)
 range_is_primary = 'EFFECTIVE_RANGE_MPC' in args.primary_channel
 if args.primary_frametype is None:
     try:
@@ -127,7 +130,7 @@ if args.primary_frametype is None:
     except KeyError as exc:
         raise type(exc)("Could not determine primary channel's frametype, "
                         "please specify with --primary-frametype")
-        
+
 
 if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
@@ -140,9 +143,9 @@ if args.band_pass:
     except TypeError:
         flower, fupper = None
 
-    print("-- Loading primary channel data")
+    logger.info("-- Loading primary channel data")
     bandts = get_data(
-        primary, start-pad, end+pad, verbose='Reading primary:',
+        primary, start-pad, end+pad, verbose='Reading primary:'.rjust(30),
         obs=args.ifo[0], frametype=args.primary_frametype, nproc=args.nproc)
     if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
         raise ValueError("bandpass frequency is out of range for this "
@@ -150,7 +153,7 @@ if args.band_pass:
                              args.band_pass, bandts.sample_rate))
 
     # get darm BLRMS
-    print("-- Filtering data")
+    logger.debug("-- Filtering data")
     if args.trend_type == 'minute':
         stride = 60
     else:
@@ -172,12 +175,13 @@ if args.band_pass:
 
 else:
     # load primary channel data
-    print("-- Loading primary channel data")
+    logger.info("-- Loading primary channel data")
     primaryts = get_data(primary, start, end, frametype=args.primary_frametype,
-                         obs=args.ifo[0], verbose='Reading:', nproc=args.nproc)
+                         obs=args.ifo[0], verbose='Reading:'.rjust(30),
+                         nproc=args.nproc)
 
 if args.remove_outliers:
-    print("-- Removing outliers above %f sigma" % args.remove_outliers)
+    logger.debug("-- Removing outliers above %f sigma" % args.remove_outliers)
     gwlasso.remove_outliers(primaryts, args.remove_outliers)
 
 primary_mean = numpy.mean(primaryts.value)
@@ -192,7 +196,7 @@ def descaler(l, *coef):
 
 
 # get aux data
-print("-- Loading auxiliary channel data")
+logger.info("-- Loading auxiliary channel data")
 if args.channel_file is None:
     host, port = io_nds2.host_resolution_order(args.ifo)[0]
     channels = ChannelList.query_nds2('*.mean', host=host, port=port,
@@ -201,7 +205,7 @@ else:
     with open(args.channel_file, 'r') as f:
         channels = [name.rstrip('\n') for name in f]
 nchan = len(channels)
-print("Identified %d channels" % nchan)
+logger.debug("Identified %d channels" % nchan)
 
 if args.trend_type == 'minute':
     frametype = '%s_M' % args.ifo  # for minute trends
@@ -209,36 +213,36 @@ else:
     frametype = '%s_T' % args.ifo  # for second trends
 
 auxdata = get_data(
-    channels, start, end, verbose='Reading:', obs=args.ifo[0],
+    channels, start, end, verbose='Reading:'.rjust(30), obs=args.ifo[0],
     frametype=frametype, nproc=args.nproc, pad=0)
 
 # -- removes flat data to be re-introdused later
 
-print('-- Pre-processing auxiliary channel data')
+logger.info('-- Pre-processing auxiliary channel data')
 
 auxdata = gwlasso.remove_flat(auxdata)
 flattab = Table(data=(list(set(channels) - set(auxdata.keys())),),
                 names=('Channels',))
-print('Removed {0} channels with flat data'.format(len(flattab)))
-print('{0} channels remaining'.format(len(auxdata)))
+logger.debug('Removed {0} channels with flat data'.format(len(flattab)))
+logger.debug('{0} channels remaining'.format(len(auxdata)))
 
 # -- remove bad data
 
-print("Removing any channels with bad data...")
+logger.info("Removing any channels with bad data...")
 nbefore = len(auxdata)
 auxdata = gwlasso.remove_bad(auxdata)
 nafter = len(auxdata)
-print('Removed {0} channels with bad data'.format(nbefore - nafter))
-print('{0} channels remaining'.format(nafter))
+logger.debug('Removed {0} channels with bad data'.format(nbefore - nafter))
+logger.debug('{0} channels remaining'.format(nafter))
 data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 
 # -- perform lasso regression -------------------------------------------------
 
 # create model
-print('-- Fitting data to target')
+logger.info('-- Fitting data to target')
 target = scale(primaryts.value)
 model = gwlasso.fit(data, target, alpha=args.alpha)
-print('Alpha:', model.alpha)
+logger.info('Alpha:', model.alpha)
 
 # restructure results for convenience
 allresults = Table(
@@ -256,9 +260,10 @@ nonzerodata = {name: auxdata[name] for name in results['Channel']}
 nonzerocoef = {name: coeff for name, coeff in results.as_array()}
 
 # print results
-print('Found {} channels with |Lasso coefficient| >= {}'.format(
-    len(results), args.threshold))
+logger.info('Found {} channels with |Lasso coefficient| >= {}:\n\n'.format(
+            len(results), args.threshold))
 print(results)
+print('\n\n')
 
 # convert to pandas
 set_option('max_colwidth', 200)
@@ -363,7 +368,7 @@ plot3 = gwplot.save_figure(
 
 # -- process aux channels, making plots
 
-print("-- Processing channels")
+logger.info("-- Processing channels")
 counter = multiprocessing.Value('i', 0)
 p4 = (.1, .1, .9, .95)  # global plot defaults for plot4, timeseries subplots
 
@@ -392,10 +397,10 @@ def process_channel(input_,):
             with counter.get_lock():
                 counter.value += 1
             pc = 100 * counter.value / len(nonzerodata)
-            print("Completed [%d/%d] %3d%% %-50s"
-                  % (counter.value, len(nonzerodata), pc,
-                     '(%s)' % str(chan)),
-                  end='\r')
+            logger.info("Completed [%d/%d] %3d%% %-50s"
+                        % (counter.value, len(nonzerodata), pc,
+                           '(%s)' % str(chan)),
+                        end='\r')
             sys.stdout.flush()
             return chan, lassocoef, plot4, plot5, plot6, ts
 
@@ -467,10 +472,10 @@ def process_channel(input_,):
     with counter.get_lock():
         counter.value += 1
         pc = 100 * counter.value / len(nonzerodata)
-        print("Completed [%d/%d] %3d%% %-50s"
-              % (counter.value, len(nonzerodata), pc,
-                 '(%s)' % str(chan)),
-              end='\r')
+        logger.info("Completed [%d/%d] %3d%% %-50s"
+                    % (counter.value, len(nonzerodata), pc,
+                       '(%s)' % str(chan)),
+                    end='\r')
         sys.stdout.flush()
     return chan, lassocoef, plot4, plot5, plot6, ts
 
@@ -556,16 +561,16 @@ def generate_cluster(input_,):
     with counter.get_lock():
         counter.value += 1
         pc = 100 * counter.value / len(nonzerodata)
-        print("Completed [%d/%d] %3d%% %-50s"
-              % (counter.value, len(nonzerodata), pc,
-                 '(%s)' % str(currentchan)),
-              end='\r')
+        logger.info("Completed [%d/%d] %3d%% %-50s"
+                    % (counter.value, len(nonzerodata), pc,
+                       '(%s)' % str(currentchan)),
+                    end='\r')
         sys.stdout.flush()
     return plot7, plot7_legend, plot7_list
 
 
 if args.no_cluster is False:
-    print("-- Generating clusters")
+    logger.info("-- Generating clusters")
     pool = multiprocessing.Pool(nprocplot)
     clusters = pool.map(generate_cluster, enumerate(results))
 
@@ -687,10 +692,10 @@ img2_legend = htmlio.FancyPlot(plot2_legend)
 page.add(htmlio.scaffold_plots([img2, img2_legend], nperrow=2))
 page.div.close()  # channel-summation
 
-page.div(class_='container', id_='channels-and-primary')                           
-img3 = htmlio.FancyPlot(plot3)                                                  
-img3_legend = htmlio.FancyPlot(plot3_legend)                                    
-page.add(htmlio.scaffold_plots([img3, img3_legend], nperrow=2))                 
+page.div(class_='container', id_='channels-and-primary')
+img3 = htmlio.FancyPlot(plot3)
+img3_legend = htmlio.FancyPlot(plot3_legend)
+page.add(htmlio.scaffold_plots([img3, img3_legend], nperrow=2))
 page.div.close()  # channels-and-primary
 
 page.div.close()  # model-body
@@ -760,4 +765,4 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
     page.div.close()  # panel
 page.div.close()  # panel-group
 htmlio.close_page(page, 'index.html')  # save and close
-print("-- Process Completed")
+logger.info("-- Process Completed")

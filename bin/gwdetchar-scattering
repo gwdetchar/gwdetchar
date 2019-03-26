@@ -37,7 +37,6 @@ import gwtrigfind
 
 from gwpy.plot import Plot
 from gwpy.plot.tex import label_to_latex
-from gwpy.utils import gprint
 from gwpy.table import EventTable
 from gwpy.table.filters import in_segmentlist
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
@@ -99,10 +98,16 @@ parser.add_argument('-o', '--output-dir', type=os.path.abspath,
                     default=os.curdir,
                     help='output directory for analysis, default: %(default)s')
 parser.add_argument('-v', '--verbose', action='store_true', default=False,
-                    help='print verbose output, default: %(default)s')
+                    help='log verbose output, default: %(default)s')
 cli.add_nproc_option(parser)
 
 args = parser.parse_args()
+
+# set up logger
+logger = cli.logger(
+    name=os.path.basename(__file__),
+    level='DEBUG' if args.verbose else 'INFO',
+)
 
 if args.frequency_threshold.is_integer():
     args.frequency_threshold = int(args.frequency_threshold)
@@ -134,23 +139,21 @@ if args.state_flag is not None:
             state.active[i] = type(seg)(
                 seg[0]+args.segment_start_pad, seg[1]-args.segment_end_pad)
         else:
-            if args.verbose:
-                gprint("Segment length {} shorter than padding length {}, "
-                       "skipping this segment".format(abs(seg), padding))
+            logger.debug(
+                "Segment length {} shorter than padding length {}, "
+                "skipping this segment".format(abs(seg), padding))
     state.coalesce()
     statea = state.active
     livetime = float(abs(statea))
-    if args.verbose:
-        gprint("Downloaded %d segments for %s [%.2fs livetime]"
-               % (len(statea), args.state_flag, livetime))
+    logger.debug("Downloaded %d segments for %s [%.2fs livetime]"
+                 % (len(statea), args.state_flag, livetime))
 else:
     statea = SegmentList([span])
 
 # -- load h(t) ----------------------------------------------------------------
 
 args.main_channel = args.main_channel.format(IFO=args.ifo)
-if args.verbose:
-    gprint("Loading Omicron triggers for %s..." % args.main_channel, end=' ')
+logger.debug("Loading Omicron triggers for %s..." % args.main_channel, end=' ')
 
 if args.gpsstart >= 1230336018:  # Jan 1 2019
     ext = "h5"
@@ -202,8 +205,7 @@ else:  # no files (no livetime?)
     trigs = EventTable(names=names)
 
 highsnrtrigs = trigs[trigs['snr'] >= 8]
-if args.verbose:
-    gprint("%d read" % len(trigs))
+logger.debug("%d read" % len(trigs))
 
 # -- prepare HTML -------------------------------------------------------------
 
@@ -217,7 +219,7 @@ page.p("This analysis searched for evidence of beam scattering based on the "
        "0264-9381/27/19/194011\" target=\"_blank\">Accadia et al. (2010)</a>.")
 page.div.close()
 page.add(htmlio.write_arguments(
-    [], start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag)) 
+    [], start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag))
 
 # link segments file
 page.h2('Segments')
@@ -225,7 +227,7 @@ page.p()
 page.add('The full output segments are recorded in HDF5 format here:')
 page.a(os.path.basename(segfile), href=segfile, target='_blank')
 page.p.close()
-# print state segments
+# record state segments
 if args.state_flag is not None:
     page.p('This analysis was executed over the following segments:')
     page.div(class_='panel-group', id_='accordion1')
@@ -244,16 +246,15 @@ page.div(class_='panel-group', id_='accordion1')
 allchannels = ['%s:%s' % (args.ifo, c) for optic in args.optic for
                c in scattering.OPTIC_MOTION_CHANNELS[optic]]
 
-if args.verbose:
-    print("Reading all data:")
+logger.info("Reading all data:")
 alldata = []
 n = len(statea)
 for i, seg in enumerate(statea):
-    msg = "    {0}/{1} {2}: ".format(
+    msg = "{0}/{1} {2}:".format(
         str(i).rjust(len(str(n))),
         n,
         str(seg),
-    ) if args.verbose else False
+    ).rjust(30) if args.verbose else False
     alldata.append(
         get_data(allchannels, seg[0], seg[1], frametype=args.frametype,
                  obs=args.ifo[0], verbose=msg, nproc=args.nproc).resample(128))
@@ -261,8 +262,7 @@ for i, seg in enumerate(statea):
 scatter_segments = DataQualityDict()
 
 for i, channel in enumerate(sorted(alldata[0].keys())):
-    if args.verbose:
-        gprint("-- Processing %s --------------------" % channel)
+    logger.debug("-- Processing %s" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
     optic = channel.split('-')[1].split('_')[0]
     flag = '%s:DCH-%s_SCATTERING_GE_%s_HZ:1' % (args.ifo, optic, tstr)
@@ -288,8 +288,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     fringecolors = [None] * len(scattering.FREQUENCY_MULTIPLIERS)
     # loop over state segments and find scattering fringes
     for j, seg in enumerate(statea):
-        if args.verbose:
-            gprint("Processing segment [%d .. %d)..." % seg)
+        logger.debug("Processing segment [%d .. %d)..." % seg)
         ts = alldata[j][channel]
         # get raw data and plot
         line = axes['position'].plot(ts, color=linecolor)[0]
@@ -319,11 +318,10 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
                                      'edgecolor': 'gray', 'height': 0.4},
                               height=0.8, y=0, label=' ')
         scatter_segments[channel] += scatter
-        if args.verbose:
-            gprint("    Found %d scattering segments" % (len(scatter.active)))
-    if args.verbose:
-        gprint("Completed channel, found %d segments in total."
-               % len(scatter_segments[channel].active))
+        logger.debug(
+            "    Found %d scattering segments" % (len(scatter.active)))
+    logger.debug("Completed channel, found %d segments in total."
+                 % len(scatter_segments[channel].active))
 
     # calculate efficiency and deadtime of veto
     deadtime = abs(scatter_segments[channel].active)
@@ -331,28 +329,24 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
         deadtimepc = deadtime / livetime * 100
     except ZeroDivisionError:
         deadtimepc = 0.
-    if args.verbose:
-        gprint("Deadtime: %.2f%% (%.2f/%ds)"
-               % (deadtimepc, deadtime, livetime))
+    logger.info("Deadtime: %.2f%% (%.2f/%ds)"
+                % (deadtimepc, deadtime, livetime))
     efficiency = in_segmentlist(highsnrtrigs[names[0]],
                                 scatter_segments[channel].active).sum()
     try:
         efficiencypc = efficiency / len(highsnrtrigs) * 100
     except ZeroDivisionError:
         efficiencypc = 0.
-    if args.verbose:
-        gprint("Efficiency (SNR>=8): %.2f%% (%d/%d)"
-               % (efficiencypc, efficiency, len(highsnrtrigs)))
+    logger.info("Efficiency (SNR>=8): %.2f%% (%d/%d)"
+                % (efficiencypc, efficiency, len(highsnrtrigs)))
     if deadtimepc == 0.:
         effdt = 0
     else:
         effdt = efficiencypc/deadtimepc
-    if args.verbose:
-        gprint("Efficiency/Deadtime: %.2f" % effdt)
+    logger.info("Efficiency/Deadtime: %.2f" % effdt)
 
     # finalize plot
-    if args.verbose:
-        gprint("Plotting...", end=' ')
+    logger.debug("Plotting...", end=' ')
     name = label_to_latex(channel) if rcParams["text.usetex"] else channel
     axes['position'].set_title("Scattering evidence in %s" % name)
     axes['position'].set_xlabel('')
@@ -413,8 +407,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
         plot.refresh()
         plot.save(png)
     plot.close()
-    if args.verbose:
-        gprint("%s written." % png)
+    logger.debug("%s written." % png)
 
     # make histogram
     histogram = Plot(figsize=[12, 6])
@@ -439,8 +432,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     hpng = '%s_SCATTERING_HISTOGRAM-%s.png' % (chanstr, gpsstr)
     histogram.save(hpng)
     histogram.close()
-    if args.verbose:
-        gprint("%s written." % hpng)
+    logger.debug("%s written." % hpng)
 
     # write HTML
     if deadtime != 0 and effdt > 2:
@@ -506,10 +498,8 @@ page.div.close()
 
 # write segments
 scatter_segments.write(segfile, path="segments", overwrite=True)
-if args.verbose:
-    gprint("%s written" % segfile)
+logger.debug("%s written" % segfile)
 
 # write HTML
 htmlio.close_page(page, 'index.html')
-if args.verbose:
-    gprint("-- index.html written, all done --")
+logger.info("-- index.html written, all done --")

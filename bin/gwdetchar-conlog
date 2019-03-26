@@ -22,6 +22,8 @@ times
 """
 
 import re
+import os.path
+
 import numpy
 
 import gwdatafind
@@ -61,6 +63,9 @@ parser.add_argument('-p', '--preview', default=10, type=int,
 
 args = parser.parse_args()
 
+# set up logger
+logger = cli.logger(name=os.path.basename(__file__))
+
 # get IFO and frametype
 ifo = args.ifo.upper()
 obs = ifo[0]
@@ -73,7 +78,7 @@ cache1 = gwdatafind.find_urls(obs, frametype, args.gpsstart-preview_time,
 cache2 = gwdatafind.find_urls(obs, frametype, args.gpsend, args.gpsend+1)
 
 # get list of channels to analyze
-print(' -- Determining channels to analyze...')
+logger.info('Determining channels to analyze')
 available = set(io_gwf.iter_channel_names(cache1[-1]))
 available &= set(io_gwf.iter_channel_names(cache2[0]))
 if args.channels:
@@ -84,17 +89,17 @@ else:
 if args.search:  # if requested, search for channels matching regex patterns
     re_requested = re.compile('({})'.format('|'.join(args.search)))
     channels = [x for x in channels if re_requested.search(x)]
-print(' -- Found {} channels in frames'.format(len(channels)))
+logger.debug('Found {} channels in frames'.format(len(channels)))
 
 # get data from frames
 data1 = get_data(
     channels, start=args.gpsstart-preview_time, end=args.gpsstart,
-    source=cache1, nproc=args.nproc, verbose=' -- Reading initial data:')
+    source=cache1, nproc=args.nproc, verbose='Reading initial data:'.rjust(30))
 data2 = get_data(
     channels, start=args.gpsend, end=args.gpsend+1, source=cache2,
-    nproc=args.nproc, verbose=' -- Reading final data:')
+    nproc=args.nproc, verbose='Reading final data:'.rjust(30))
 
-print(' -- Analyzing {} channels...'.format(len(data1)))
+logger.debug('Analyzing {} channels'.format(len(data1)))
 
 # initialize columns
 changes = []
@@ -116,15 +121,16 @@ for channel in data1:
     diff.append(xoft2[0] - xoft1[-1])
 
 # record output
-print(' -- Analysis complete')
+logger.debug('Analysis complete')
 table = Table([changes, value1, value2, diff],
               names=('channel', 'initial_value', 'final_value', 'difference'))
 
-# print output
-print(' -- The following {} channels record a state change between '
-      '{} and {}:\n'.format(len(changes), args.gpsstart, args.gpsend))
+# log output
+logger.info('The following {} channels record a state change between '
+            '{} and {}:\n\n'.format(len(changes), args.gpsstart, args.gpsend))
 print(table)
+print('\n\n')
 
 # save output
 table.write(args.output, overwrite=True)
-print('\n -- Output written to {}'.format(args.output))
+logger.info('Output written to {}'.format(args.output))

@@ -20,8 +20,6 @@
 """Find channels clipping their software saturation limits
 """
 
-from __future__ import print_function
-
 import os
 import sys
 
@@ -73,6 +71,10 @@ parser.add_argument('-v', '--plot', action='store_true', default=False,
 
 args = parser.parse_args()
 
+# set up logger
+logger = cli.logger(name=os.path.basename(__file__))
+
+# get IFO
 ifo = args.ifo.upper()
 site = ifo[0]
 frametype = args.frametype or '%s_R' % ifo
@@ -90,8 +92,8 @@ if args.state_flag:
     for i, seg in enumerate(state.active):
         state.active[i] = type(seg)(seg[0], seg[1]-args.pad_state_end)
     segs = state.active.coalesce()
-    print("Recovered %d seconds of time for %s"
-          % (abs(segs), args.state_flag))
+    logger.debug("Recovered %d seconds of time for %s"
+                 % (abs(segs), args.state_flag))
 else:
     segs = SegmentList([Segment(args.gpsstart, args.gpsend)])
 
@@ -104,17 +106,17 @@ if not os.getenv('LIGO_DATAFIND_SERVER'):
     raise RuntimeError("No LIGO_DATAFIND_SERVER variable set, don't know "
                        "how to discover channels")
 else:
-    print("Finding channels in frames...")
+    logger.debug("Finding channels in frames...")
     if len(cache) == 0:
         raise RuntimeError("No frames recovered for %s in interval [%s, %s)" %
                            (frametype, int(args.gpsstart),
                             int(args.gpsend)))
     allchannels = get_channel_names(cache[0])
-    print("   Found %d channels in frame" % len(allchannels))
+    logger.debug("   Found %d channels in frame" % len(allchannels))
     sys.stdout.flush()
     channels = saturation.find_limit_channels(allchannels, skip=args.skip)
-    print("   Parsed %d channels with '_LIMIT' and '_LIMEN' or '_SWSTAT'"
-          % sum(map(len, channels)))
+    logger.info("   Parsed %d channels with '_LIMIT' and '_LIMEN' or '_SWSTAT'"
+                % sum(map(len, channels)))
 
 
 # -- read channels and check limits -------------------------------------------
@@ -138,7 +140,7 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
     else:
         ngroup = int(
             min(nchans, args.group_size, 2 * 1024**3 / 4. / 16. / dur))
-    print('Processing %s channels in groups of %d:' % (suffix, ngroup))
+    logger.info('Processing %s channels in groups of %d:' % (suffix, ngroup))
     sys.stdout.flush()
     sets = saturation.grouper(clist, ngroup)
     for i, cset in enumerate(sets):
@@ -162,41 +164,36 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
             try:
                 sat = saturations[c]
             except KeyError:
-                print('%40s:      SKIP      [%d/%d]'
-                      % (c, i*ngroup + j + 1, nchans), end='\r')
+                logger.debug('%40s:      SKIP      [%d/%d]'
+                             % (c, i*ngroup + j + 1, nchans), end='\r')
             else:
                 if abs(sat.active):
-                    print('%40s: ---- FAIL ---- [%d/%d]'
-                          % (c, i*ngroup + j + 1, nchans))
+                    logger.debug('%40s: ---- FAIL ---- [%d/%d]'
+                                 % (c, i*ngroup + j + 1, nchans))
                     for seg in sat.active:
-                        print(" " * 42 + str(seg))
+                        logger.debug(" " * 42 + str(seg))
                     bad.add(c)
                 else:
-                    print('%40s:      PASS      [%d/%d]'
-                          % (c, i*ngroup + j + 1, nchans))
+                    logger.debug('%40s:      PASS      [%d/%d]'
+                                 % (c, i*ngroup + j + 1, nchans))
             sys.stdout.flush()
 
-# -- print results and exit ---------------------------------------------------
+# -- log results and exit -----------------------------------------------------
 
-print("\n----------------------------------------------------------------"
-      "-----")
 if len(bad):
-    print("Saturations were found for all of the following:")
+    logger.info("Saturations were found for all of the following:\n\n")
+    for c in bad:
+        print(c)
+    print('\n\n')
 else:
-    print("No software saturations were found in any channels")
-print("---------------------------------------------------------------------")
-for c in bad:
-    print(c)
-if len(bad):
-    print("-------------------------------------------------------------------"
-          "--")
+    logger.info("No software saturations were found in any channels")
 
 # write segments to file
 outfile = ('%s-SOFTWARE_SATURATIONS-%d-%d.h5'
            % (ifo, int(args.gpsstart),
               int(args.gpsend) - int(args.gpsstart)))
 saturations.write(outfile, path="segments", overwrite=True)
-print("Saturation segments written to \n%s" % outfile)
+logger.info("Saturation segments written to \n%s" % outfile)
 
 if args.html:
     if args.plot:
@@ -213,7 +210,7 @@ if args.html:
             % (ifo, int(args.gpsstart), int(args.gpsend)))
     page.p("This analysis searched %d channels for times during which their "
            "OUTPUT value matched the LIMIT value set in software. Only "
-           "those signals achieving saturation are printed in the Segments "
+           "those signals achieving saturation are recorded in the Segments "
            "section below, while all channels for which the LIMIT was active "
            "are included in the Results summary and the output file."
            % sum(map(len, channels)))
@@ -231,7 +228,7 @@ if args.html:
     page.add('The full output segments are recorded in HDF5-format here:')
     page.a(os.path.basename(segfile), href=segfile, target='_blank')
     page.p.close()
-    # print state segments
+    # record state segments
     if args.state_flag:
         page.p('This analysis was executed over the following segments:')
         page.div(class_='panel-group', id_='accordion1')
@@ -241,7 +238,7 @@ if args.html:
             edgecolor='darkgreen', known={
                 'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4}))
         page.div.close()
-    # print saturation segments
+    # record saturation segments
     if len(bad):
         page.p('The following channels indicated a software saturation:')
         page.div(class_='panel-group', id_='accordion2')

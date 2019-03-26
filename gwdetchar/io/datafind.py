@@ -19,8 +19,6 @@
 """gw_data_find wrappers
 """
 
-from __future__ import print_function
-
 import warnings
 
 import gwdatafind

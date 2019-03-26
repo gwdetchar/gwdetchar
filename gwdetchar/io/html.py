@@ -527,9 +527,8 @@ def write_footer(about=None, link=None, issues=None, content=None,
                                   target='_blank', style=linkstyle)
     page.div(class_='row')
     page.div(class_='col-md-12')
-    localtime = reference.LocalTimezone()
     now = datetime.datetime.now()
-    tz = localtime.tzname(now)
+    tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%m {} on %d %B %Y'.format(tz))
     page.p('This page was created by {user} at {date}.'.format(
         user=getuser(), date=date))

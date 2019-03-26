@@ -29,8 +29,6 @@ Submitting the workflow to Condor will result in the scans being processed
 in parallel.
 """
 
-from __future__ import print_function
-
 import os
 import subprocess
 from getpass import getuser
@@ -105,6 +103,10 @@ cargs.add_argument('--condor-command', action='append', default=[],
 
 args = parser.parse_args()
 
+# set up logger
+logger = cli.logger(name=os.path.basename(__file__))
+
+# set up output directory
 outdir = os.path.abspath(os.path.expanduser(args.output_dir))
 
 # parse times
@@ -198,17 +200,17 @@ for t in times:
 
 # write DAG
 dagman.build(fancyname=False)
-print("Workflow generated for {} times".format(len(times)))
+logger.info("Workflow generated for {} times".format(len(times)))
 if args.submit:
     dagman.submit_dag(submit_options="-force")
 else:
-    print(
+    logger.info(
         "Submit to condor via:\n\n"
         "$ condor_submit_dag {0.submit_file}".format(dagman),
     )
 
 if args.submit and args.monitor:
-    print("Monitoring progress of {0.submit_file}".format(dagman))
+    logger.info("Monitoring progress of {0.submit_file}".format(dagman))
     try:
         subprocess.check_call(
             ["pycondor", "monitor", dagman.submit_file],
