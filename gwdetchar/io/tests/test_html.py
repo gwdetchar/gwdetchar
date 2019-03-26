@@ -75,7 +75,7 @@ HTML_FOOTER = """<footer class="footer">
 <div class="container">
 <div class="row">
 <div class="col-md-12">
-<p>This page was created by {user} at {date}</p>
+<p>This page was created by {user} at {date}.</p>
 <p><a href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank" style="color:#eee;">View gwdetchar-%s on GitHub</a> | <a href="https://github.com/gwdetchar/gwdetchar/issues" target="_blank" style="color:#eee;">Report an issue</a></p>
 </div>
 </div>
