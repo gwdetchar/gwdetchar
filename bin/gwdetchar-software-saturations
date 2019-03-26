@@ -206,7 +206,7 @@ if args.html:
         page = htmlio.new_bootstrap_page()
     else:
         page = markup.page()
-    page.div(class_='container')
+        page.div(class_='container')
     # -- header
     page.div(class_='page-header')
     page.h1('%s Software Saturations: %d-%d'

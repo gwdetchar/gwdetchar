@@ -357,7 +357,6 @@ with open('results.txt', 'w') as f:
 # -- write html
 title = '%s Slow Correlations: %d-%d' % (args.ifo, start, end)
 page = htmlio.new_bootstrap_page(title=title)
-page.div(class_='container')
 
 # header
 if flower:

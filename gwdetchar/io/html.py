@@ -265,7 +265,6 @@ def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
     # get kwargs with sensible defaults
     css = kwargs.get('css', CSS_FILES)
     script = kwargs.get('script', JS_FILES)
-    base = os.path.abspath(base)
     # write CSS to static dir
     css, script = finalize_static_urls(
         os.path.join(os.path.curdir, 'static'),
@@ -294,6 +293,9 @@ def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
         getattr(page, key)(kwargs[key])
     # finalize header
     page.head.close()
+    # open body and container
+    page.body()
+    page.div(class_='container')
     return page
 
 

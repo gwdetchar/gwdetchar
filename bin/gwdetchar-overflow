@@ -241,7 +241,7 @@ if args.html:
                 args.ifo, int(args.gpsstart), int(args.gpsend)))
     else:
         page = htmlio.markup.page()
-    page.div(class_='container')
+        page.div(class_='container')
 
     # -- header
     page.div(class_='page-header')
