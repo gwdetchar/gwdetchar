@@ -75,7 +75,8 @@ HTML_FOOTER = """<footer class="footer">
 <div class="container">
 <div class="row">
 <div class="col-md-12">
-<p>These results were obtained using <a style="color:#eee;" href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">gwdetchar version %s</a> by user {user} at {date}.</p>
+<p>This page was created by {user} at {date}</p>
+<p><a href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank" style="color:#eee;">View gwdetchar-%s on GitHub</a> | <a href="https://github.com/gwdetchar/gwdetchar/issues" target="_blank" style="color:#eee;">Report an issue</a></p>
 </div>
 </div>
 </div>
@@ -255,16 +256,16 @@ def test_write_flag_html_with_plots(tmpdir):
 
 
 def test_write_footer():
-    date = datetime.datetime.now()
-    out = html.write_footer(date=date)
+    date = datetime.datetime.now().strftime('%H:%m on %B %d %Y')
+    out = html.write_footer()
     assert parse_html(str(out)) == parse_html(
         HTML_FOOTER.format(user=getuser(), date=date))
 
 
 def test_close_page(tmpdir):
     target = os.path.join(str(tmpdir), 'test.html')
-    date = datetime.datetime.now()
-    page = html.close_page(html.markup.page(), target, date=date)
+    date = datetime.datetime.now().strftime('%H:%m on %B %d %Y')
+    page = html.close_page(html.markup.page(), target)
     assert parse_html(str(page)) == parse_html(
         HTML_CLOSE.format(user=getuser(), date=str(date)))
     assert os.path.isfile(target)

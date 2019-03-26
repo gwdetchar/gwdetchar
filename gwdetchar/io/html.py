@@ -553,7 +553,7 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     return page()
 
 
-def write_footer(about=None, date=None, link=None, linkstyle='color:#eee;'):
+def write_footer(about=None, link=None, issues=None, linkstyle='color:#eee;'):
     """Write a <footer> for a bootstrap page
 
     Parameters
@@ -561,12 +561,11 @@ def write_footer(about=None, date=None, link=None, linkstyle='color:#eee;'):
     about : `str`, optional
         path of about page to link
 
-    date : `datetime.datetime`, optional
-        the datetime representing when this analysis was generated, defaults
-        to `~datetime.datetime.now`
-
     link : `str`, optional
         HTML link to software name and version
+
+    issues : `str`, optional
+        HTML link to issue report page
 
     linkstyle : `str`, optional
         style options for rendering `link`
@@ -581,18 +580,22 @@ def write_footer(about=None, date=None, link=None, linkstyle='color:#eee;'):
     markup.element('footer', case=page.case, parent=page)(class_='footer')
     page.div(class_='container')
     # write user/time for analysis
-    if date is None:
-        date = datetime.datetime.now().replace(second=0, microsecond=0)
     if link is None:
         version = get_versions()['version']
         commit = get_versions()['full-revisionid']
         url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
-        link = markup.oneliner.a('gwdetchar version {}'.format(version),
+        link = markup.oneliner.a('View gwdetchar-{} on GitHub'.format(version),
                                  href=url, target='_blank', style=linkstyle)
+    if issues is None:
+        report = 'https://github.com/gwdetchar/gwdetchar/issues'
+        issues = markup.oneliner.a('Report an issue', href=report,
+                                  target='_blank', style=linkstyle)
     page.div(class_='row')
     page.div(class_='col-md-12')
-    page.p('These results were obtained using {link} by user {user} at '
-           '{date}.'.format(link=link, user=getuser(), date=date))
+    date = datetime.datetime.now().strftime('%H:%m on %B %d %Y')
+    page.p('This page was created by {user} at {date}'.format(
+        user=getuser(), date=date))
+    page.p('{link} | {issues}'.format(link=link, issues=issues))
     # link to 'about'
     if about is not None:
         page.a('How was this page generated?', href=about, style=linkstyle)
@@ -603,7 +606,7 @@ def write_footer(about=None, date=None, link=None, linkstyle='color:#eee;'):
     return page()
 
 
-def close_page(page, target, about=None, date=None):
+def close_page(page, target, **kwargs):
     """Close an HTML document with markup then write to disk
 
     This method writes the closing markup to complement the opening
@@ -624,16 +627,9 @@ def close_page(page, target, about=None, date=None):
 
     target : `str`
         the output filename for HTML
-
-    about : `str`, optional
-        the path of the 'about' page to link in the footer
-
-    date : `datetime.datetime`, optional
-        the timestamp to place in the footer, defaults to
-        `~datetime.datetime.now`
     """
     page.div.close()  # container
-    page.add(write_footer(about=about, date=date))
+    page.add(write_footer(**kwargs))
     if not page._full:
         page.body.close()
         page.html.close()
