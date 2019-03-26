@@ -24,6 +24,7 @@ import os
 import sys
 import datetime
 import subprocess
+from pytz import reference
 from getpass import getuser
 from operator import itemgetter
 from shutil import copyfile
@@ -522,7 +523,10 @@ def write_footer(about=None, link=None, issues=None, linkstyle='color:#eee;'):
                                   target='_blank', style=linkstyle)
     page.div(class_='row')
     page.div(class_='col-md-12')
-    date = datetime.datetime.now().strftime('%H:%m %Z on %d %B %Y')
+    localtime = reference.LocalTimezone()
+    now = datetime.datetime.now()
+    tz = localtime.tzname(now)
+    date = now.strftime('%H:%m {} on %d %B %Y'.format(tz))
     page.p('This page was created by {user} at {date}.'.format(
         user=getuser(), date=date))
     page.p('{link} | {issues}'.format(link=link, issues=issues))

@@ -63,6 +63,7 @@ install_requires = [
     'numpy>=1.10',
     'pandas',
     'pycondor',
+    'pytz',
     'scikit-learn',
     'scipy>=1.2.0',
     'setuptools',
