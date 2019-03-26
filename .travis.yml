@@ -39,7 +39,7 @@ script:
   - python -m coverage run ./setup.py test
   - bash ci/test-bin.sh
   - acorn --silent gwdetchar/_static/bootstrap-ligo.min.js
-  - acorn --silent gwdetchar/_static/gwdetchar-omega.min.js
+  - acorn --silent gwdetchar/_static/gwdetchar.min.js
 
 after_success:
   - python -m pip install ${PIP_FLAGS} coveralls

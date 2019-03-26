@@ -21,8 +21,6 @@
 
 import os
 import shutil
-import datetime
-from getpass import getuser
 
 try:  # python 3.x
     from io import StringIO
@@ -42,25 +40,7 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 VERSION = get_versions()['version']
 COMMIT = get_versions()['full-revisionid']
 
-HTML_HEADER = """<!DOCTYPE HTML>
-<html lang="en">
-<head>
-<meta http-equiv="refresh" content="60">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<base href="{base}" />
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="static/gwdetchar-omega.min.css" rel="stylesheet" type="text/css" media="all" />
-<script src="https://code.jquery.com/jquery-1.12.3.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js" type="text/javascript"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js" type="text/javascript"></script>
-<script src="static/bootstrap-ligo.min.js" type="text/javascript"></script>
-<script src="static/gwdetchar-omega.min.js" type="text/javascript"></script>
-</head>
-<body>
-<header class="navbar navbar-fixed-top navbar-l1">
+HTML_HEADER = """<header class="navbar navbar-fixed-top navbar-l1">
 <div class="container">
 <div class="navbar-header">
 <button class="navbar-toggle" data-toggle="collapse" type="button" data-target=".navbar-collapse">
@@ -105,23 +85,7 @@ Links <b class="caret"></b>
 </ul>
 </nav>
 </div>
-</header>
-<div class="container">
-</body>
-</html>"""  # nopep8
-
-HTML_CLOSE = """</div>
-<footer class="footer">
-<div class="container">
-<div class="row">
-<div class="col-md-12">
-<p>These results were obtained using <a style="color:#eee;" href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">gwdetchar version %s</a> by {user} at {date}.</p>
-</div>
-</div>
-</div>
-</footer>
-</body>
-</html>""" % (COMMIT, VERSION)  # nopep8
+</header>"""  # nopep8
 
 CONFIGURATION = u"""
 [primary]
@@ -265,26 +229,10 @@ Eventgram view <span class="caret"></span>
 
 # -- unit tests ---------------------------------------------------------------
 
-def test_init_page(tmpdir):
-    base = str(tmpdir)
-    os.chdir(base)
-    page = html.init_page('L1', 0, toc=ANALYZED, refresh=True, base=base)
-    assert parse_html(str(page)) == parse_html(
-        HTML_HEADER.format(base=base, ifo='L1', gps=0))
-    shutil.rmtree(base, ignore_errors=True)
-
-
-def test_close_page(tmpdir):
-    # test simple content
-    target = os.path.join(str(tmpdir), 'test.html')
-    date = datetime.datetime.now()
-    page = html.close_page(html.markup.page(), target, date=date)
-    assert parse_html(str(page)) == parse_html(
-        HTML_CLOSE.format(user=getuser(), date=str(date)))
-    assert os.path.isfile(target)
-    with open(target, 'r') as fp:
-        assert fp.read() == str(page)
-    shutil.rmtree(target, ignore_errors=True)
+def test_navbar():
+    page = html.navbar('L1', 0, toc=ANALYZED)
+    assert parse_html(str(page)) == parse_html(HTML_HEADER.format(
+        ifo='L1', gps='0'))
 
 
 def test_toggle_link():

@@ -357,7 +357,6 @@ with open('results.txt', 'w') as f:
 # -- write html
 title = '%s Slow Correlations: %d-%d' % (args.ifo, start, end)
 page = htmlio.new_bootstrap_page(title=title)
-page.div(class_='container')
 
 # header
 if flower:
@@ -471,10 +470,6 @@ for i, (ch, corr1, corr2, plot1, plot2, plot3,
     page.div.close()  # panel-collapse
     page.div.close()  # panel
 page.div.close()  # panel-group
-
-page.add(htmlio.write_footer())
-page.div.close()  # container
-with open('index.html', 'w') as f:
-    print(str(page), file=f)
+htmlio.close_page(page, 'index.html')  # save and close
 
 print("-- Process Completed")

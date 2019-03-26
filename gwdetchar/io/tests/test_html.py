@@ -23,6 +23,7 @@ import os
 import shutil
 import datetime
 import sys
+from pytz import reference
 from getpass import getuser
 try:
     from unittest import mock
@@ -48,15 +49,26 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 VERSION = get_versions()['version']
 COMMIT = get_versions()['full-revisionid']
 
-NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML PUBLIC \'-//W3C//DTD HTML 4.01 Transitional//EN\'>
+NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <html lang="en">
 <head>
+<meta http-equiv="refresh" content="60" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+<base href="{base}" />
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
+<link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
+<link href="static/gwdetchar.min.css" rel="stylesheet" type="text/css" media="all" />
 <script src="https://code.jquery.com/jquery-1.12.3.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js" type="text/javascript"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js" type="text/javascript"></script>
+<script src="static/bootstrap-ligo.min.js" type="text/javascript"></script>
+<script src="static/gwdetchar.min.js" type="text/javascript"></script>
 </head>
 <body>
+<div class="container">
 </body>
 </html>"""  # nopep8
 
@@ -64,11 +76,17 @@ HTML_FOOTER = """<footer class="footer">
 <div class="container">
 <div class="row">
 <div class="col-md-12">
-<p>These results were obtained using <a style="color:#000;" href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">gwdetchar version %s</a> by {user} at {date}.</p>
+<p>This page was created by {user} at {date}.</p>
+<p><a href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank" style="color:#eee;">View gwdetchar-%s on GitHub</a> | <a href="https://github.com/gwdetchar/gwdetchar/issues" target="_blank" style="color:#eee;">Report an issue</a></p>
 </div>
 </div>
 </div>
 </footer>""" % (COMMIT, VERSION)  # nopep8
+
+HTML_CLOSE = """</div>
+%s
+</body>
+</html>""" % HTML_FOOTER  # nopep8
 
 FLAG_CONTENT = """<div class="panel panel-warning">
 <div class="panel-heading">
@@ -123,7 +141,8 @@ def test_finalize_static_urls(tmpdir):
             'bootstrap.min.css',  # nopep8
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
             'jquery.fancybox.min.css',  # nopep8
-        'static/bootstrap-ligo.min.css']
+        'static/bootstrap-ligo.min.css',
+        'static/gwdetchar.min.css']
     assert js == [
         'https://code.jquery.com/jquery-1.12.3.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/'
@@ -131,13 +150,16 @@ def test_finalize_static_urls(tmpdir):
         'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
             'jquery.fancybox.min.js',  # nopep8
-        'static/bootstrap-ligo.min.js']
+        'static/bootstrap-ligo.min.js',
+        'static/gwdetchar.min.js']
     shutil.rmtree(str(tmpdir), ignore_errors=True)
 
 
 def test_new_bootstrap_page():
-    page = html.new_bootstrap_page()
-    assert parse_html(str(page)) == parse_html(NEW_BOOTSTRAP_PAGE)
+    base = os.path.abspath(os.path.curdir)
+    page = html.new_bootstrap_page(base=base, refresh=True)
+    assert parse_html(str(page)) == parse_html(
+        NEW_BOOTSTRAP_PAGE.format(base=base))
 
 
 def test_write_param():
@@ -235,10 +257,28 @@ def test_write_flag_html_with_plots(tmpdir):
 
 
 def test_write_footer():
-    date = datetime.datetime.now()
-    out = html.write_footer(date=date, class_=True)
+    localtime = reference.LocalTimezone()
+    now = datetime.datetime.now()
+    tz = localtime.tzname(now)
+    date = now.strftime('%H:%m {} on %d %B %Y'.format(tz))
+    out = html.write_footer()
     assert parse_html(str(out)) == parse_html(
         HTML_FOOTER.format(user=getuser(), date=date))
+
+
+def test_close_page(tmpdir):
+    target = os.path.join(str(tmpdir), 'test.html')
+    localtime = reference.LocalTimezone()
+    now = datetime.datetime.now()
+    tz = localtime.tzname(now)
+    date = now.strftime('%H:%m {} on %d %B %Y'.format(tz))
+    page = html.close_page(html.markup.page(), target)
+    assert parse_html(str(page)) == parse_html(
+        HTML_CLOSE.format(user=getuser(), date=str(date)))
+    assert os.path.isfile(target)
+    with open(target, 'r') as fp:
+        assert fp.read() == str(page)
+    shutil.rmtree(target, ignore_errors=True)
 
 
 @mock.patch("{}.Path.is_dir".format(html.Path.__module__))

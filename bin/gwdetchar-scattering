@@ -208,7 +208,6 @@ if args.verbose:
 # -- prepare HTML -------------------------------------------------------------
 
 page = htmlio.new_bootstrap_page(title='%s Scattering' % args.ifo)
-page.div(class_='container')
 page.div(class_='page-header')
 page.h1('%s scattering: %d-%d'
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
@@ -500,6 +499,9 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     page.div.close()
     page.div.close()
 
+# close panel group
+page.div.close()
+
 # -- finalize -----------------------------------------------------------------
 
 # write segments
@@ -508,9 +510,6 @@ if args.verbose:
     gprint("%s written" % segfile)
 
 # write HTML
-page.add(htmlio.write_footer())
-page.div.close()
-with open('index.html', 'w') as fp:
-    fp.write(str(page))
+htmlio.close_page(page, 'index.html')
 if args.verbose:
     gprint("-- index.html written, all done --")

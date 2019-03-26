@@ -24,6 +24,7 @@ import os
 import sys
 import datetime
 import subprocess
+from pytz import reference
 from getpass import getuser
 from operator import itemgetter
 from shutil import copyfile
@@ -51,6 +52,7 @@ from ..plot import plot_segments
 from .._version import get_versions
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+__credit__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 # -- HTML URLs ----------------------------------------------------------------
 
@@ -77,10 +79,20 @@ BOOTSTRAP_LIGO_JS = resource_filename(
     '_static/bootstrap-ligo.min.js',
 )
 
+GWDETCHAR_CSS = resource_filename(
+    'gwdetchar',
+    '_static/gwdetchar.min.css',
+)
+GWDETCHAR_JS = resource_filename(
+    'gwdetchar',
+    '_static/gwdetchar.min.js',
+)
+
 CSS_FILES = [
     BOOTSTRAP_CSS,
     FANCYBOX_CSS,
     BOOTSTRAP_LIGO_CSS,
+    GWDETCHAR_CSS
 ]
 JS_FILES = [
     JQUERY_JS,
@@ -88,8 +100,8 @@ JS_FILES = [
     BOOTSTRAP_JS,
     FANCYBOX_JS,
     BOOTSTRAP_LIGO_JS,
+    GWDETCHAR_JS,
 ]
-
 
 FORMATTER = HtmlFormatter(noclasses=True)
 
@@ -176,27 +188,62 @@ def finalize_static_urls(static, cssfiles, jsfiles):
     return cssfiles, jsfiles
 
 
-def new_bootstrap_page(*args, **kwargs):
-    """Create a new `~markup.page` with twitter bootstrap CSS and JS headers
+def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
+                       navbar=None, **kwargs):
+    """Create a new `~markup.page` with custom twitter bootstrap CSS and
+    JS headers
+
+    Parameters
+    ----------
+    base : `str`
+        relative path to the base directory where the page is located
+
+    lang : `str`, optional
+        language of the page, default: en
+
+    refresh : `bool`, optional
+        boolean switch to enable periodic page refresh, default: False
+
+    navbar : `str`, optional
+        HTML enconding of a floating navbar, will be ignored if not given,
+        default: None
     """
-    # add bootstrap CSS if needed
-    css = kwargs.pop('css', [])
-    if BOOTSTRAP_CSS not in css:
-        css.insert(0, BOOTSTRAP_CSS)
-    # add jquery and bootstrap JS if needed
-    script = kwargs.pop('script', [])
-    for js in [BOOTSTRAP_JS, JQUERY_JS]:
-        if js not in script:
-            script.insert(0, js)
-    # ensure nice formatting on mobile screens
-    metainfo = {
-        'viewport': 'width=device-width, initial-scale=1.0'}
-    # create page and init
-    kwargs['css'] = css
-    kwargs['script'] = script
-    kwargs['metainfo'] = metainfo
+    # get kwargs with sensible defaults
+    css = kwargs.get('css', CSS_FILES)
+    script = kwargs.get('script', JS_FILES)
+    # write CSS to static dir
+    css, script = finalize_static_urls(
+        os.path.join(os.path.curdir, 'static'),
+        css,
+        script,
+    )
+    # create page
     page = markup.page()
-    page.init(*args, **kwargs)
+    page.header.append('<!DOCTYPE HTML>')
+    page.html(lang=lang)
+    page.head()
+    if refresh:  # force-refresh if requested
+        page.meta(http_equiv='refresh', content='60')
+    # ensure nice formatting on most devices
+    page.meta(http_equiv='Content-Type', content='text/html; charset=utf-8')
+    page.meta(content='width=device-width, initial-scale=1.0', name='viewport')
+    page.base(href=base)
+    page._full = True
+    # link files
+    for f in css:
+        page.link(href=f, rel='stylesheet', type='text/css', media='all')
+    for f in script:
+        page.script('', src=f, type='text/javascript')
+    # add other attributes
+    for key in kwargs:
+        getattr(page, key)(kwargs[key])
+    # finalize header
+    page.head.close()
+    # open body and container
+    page.body()
+    if navbar is not None:
+        page.add(navbar)
+    page.div(class_='container')
     return page
 
 
@@ -212,7 +259,7 @@ def write_param(param, value):
 
 
 def render_code(code, language):
-    """Render a black of code with syntax highlighting
+    """Render a block of code with syntax highlighting
 
     Parameters
     ----------
@@ -437,8 +484,7 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     return page()
 
 
-def write_footer(about=None, date=None, class_=False,
-                 linkstyle='color:#000;'):
+def write_footer(about=None, link=None, issues=None, linkstyle='color:#eee;'):
     """Write a <footer> for a bootstrap page
 
     Parameters
@@ -446,9 +492,14 @@ def write_footer(about=None, date=None, class_=False,
     about : `str`, optional
         path of about page to link
 
-    date : `datetime.datetime`, optional
-        the datetime representing when this analysis was generated, defaults
-        to `~datetime.datetime.now`
+    link : `str`, optional
+        HTML link to software name and version
+
+    issues : `str`, optional
+        HTML link to issue report page
+
+    linkstyle : `str`, optional
+        style options for rendering `link`
 
     Returns
     -------
@@ -456,30 +507,68 @@ def write_footer(about=None, date=None, class_=False,
         the markup object containing the footer HTML
     """
     page = markup.page()
-    if class_:
-        page.twotags.append('footer')
-        markup.element('footer', case=page.case, parent=page)(class_='footer')
+    page.twotags.append('footer')
+    markup.element('footer', case=page.case, parent=page)(class_='footer')
     page.div(class_='container')
     # write user/time for analysis
-    if date is None:
-        date = datetime.datetime.now().replace(second=0, microsecond=0)
-    version = get_versions()['version']
-    commit = get_versions()['full-revisionid']
-    url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
-    link = markup.oneliner.a('gwdetchar version {}'.format(version), href=url,
-                              target='_blank', style=linkstyle)
+    if link is None:
+        version = get_versions()['version']
+        commit = get_versions()['full-revisionid']
+        url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
+        link = markup.oneliner.a('View gwdetchar-{} on GitHub'.format(version),
+                                 href=url, target='_blank', style=linkstyle)
+    if issues is None:
+        report = 'https://github.com/gwdetchar/gwdetchar/issues'
+        issues = markup.oneliner.a('Report an issue', href=report,
+                                  target='_blank', style=linkstyle)
     page.div(class_='row')
     page.div(class_='col-md-12')
-    page.p('These results were obtained using {link} by {user} at '
-           '{date}.'.format(link=link, user=getuser(), date=date))
+    localtime = reference.LocalTimezone()
+    now = datetime.datetime.now()
+    tz = localtime.tzname(now)
+    date = now.strftime('%H:%m {} on %d %B %Y'.format(tz))
+    page.p('This page was created by {user} at {date}.'.format(
+        user=getuser(), date=date))
+    page.p('{link} | {issues}'.format(link=link, issues=issues))
     # link to 'about'
     if about is not None:
         page.a('How was this page generated?', href=about, style=linkstyle)
     page.div.close()  # col-md-12
     page.div.close()  # row
     page.div.close()  # container
-    if class_:
-        markup.element('footer', case=page.case, parent=page).close()
+    markup.element('footer', case=page.case, parent=page).close()
+    return page()
+
+
+def close_page(page, target, **kwargs):
+    """Close an HTML document with markup then write to disk
+
+    This method writes the closing markup to complement the opening
+    written by `init_page`, something like:
+
+    .. code-block:: html
+       </div>
+       <footer>
+           <!-- some stuff -->
+       </footer>
+       </body>
+       </html>
+
+    Parameters
+    ----------
+    page : `markup.page`
+        the markup object to close
+
+    target : `str`
+        the output filename for HTML
+    """
+    page.div.close()  # container
+    page.add(write_footer(**kwargs))
+    if not page._full:
+        page.body.close()
+        page.html.close()
+    with open(target, 'w') as f:
+        f.write(page())
     return page()
 
 
