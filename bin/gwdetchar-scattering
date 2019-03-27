@@ -124,6 +124,9 @@ os.chdir(args.output_dir)
 
 segfile = '%s-SCATTERING_SEGMENTS_%s_HZ-%s.h5' % (args.ifo, tstr, gpsstr)
 
+logger.info('{} Scattering {}-{}'.format(
+    args.ifo, int(args.gpsstart), int(args.gpsend)))
+
 # -- get state segments -------------------------------------------------------
 
 span = Segment(args.gpsstart, args.gpsend)
@@ -153,7 +156,7 @@ else:
 # -- load h(t) ----------------------------------------------------------------
 
 args.main_channel = args.main_channel.format(IFO=args.ifo)
-logger.debug("Loading Omicron triggers for %s..." % args.main_channel, end=' ')
+logger.debug("Loading Omicron triggers for %s" % args.main_channel)
 
 if args.gpsstart >= 1230336018:  # Jan 1 2019
     ext = "h5"
@@ -246,15 +249,15 @@ page.div(class_='panel-group', id_='accordion1')
 allchannels = ['%s:%s' % (args.ifo, c) for optic in args.optic for
                c in scattering.OPTIC_MOTION_CHANNELS[optic]]
 
-logger.info("Reading all data:")
+logger.info("Reading all data")
 alldata = []
 n = len(statea)
 for i, seg in enumerate(statea):
-    msg = "{0}/{1} {2}:".format(
+    msg = "{0}/{1} {2}:".rjust(30).format(
         str(i).rjust(len(str(n))),
         n,
         str(seg),
-    ).rjust(30) if args.verbose else False
+    ) if args.verbose else False
     alldata.append(
         get_data(allchannels, seg[0], seg[1], frametype=args.frametype,
                  obs=args.ifo[0], verbose=msg, nproc=args.nproc).resample(128))
@@ -262,7 +265,7 @@ for i, seg in enumerate(statea):
 scatter_segments = DataQualityDict()
 
 for i, channel in enumerate(sorted(alldata[0].keys())):
-    logger.debug("-- Processing %s" % channel)
+    logger.info("-- Processing %s" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
     optic = channel.split('-')[1].split('_')[0]
     flag = '%s:DCH-%s_SCATTERING_GE_%s_HZ:1' % (args.ifo, optic, tstr)
@@ -288,7 +291,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     fringecolors = [None] * len(scattering.FREQUENCY_MULTIPLIERS)
     # loop over state segments and find scattering fringes
     for j, seg in enumerate(statea):
-        logger.debug("Processing segment [%d .. %d)..." % seg)
+        logger.debug("Processing segment [%d .. %d)" % seg)
         ts = alldata[j][channel]
         # get raw data and plot
         line = axes['position'].plot(ts, color=linecolor)[0]
@@ -346,7 +349,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     logger.info("Efficiency/Deadtime: %.2f" % effdt)
 
     # finalize plot
-    logger.debug("Plotting...", end=' ')
+    logger.debug("Plotting")
     name = label_to_latex(channel) if rcParams["text.usetex"] else channel
     axes['position'].set_title("Scattering evidence in %s" % name)
     axes['position'].set_xlabel('')
