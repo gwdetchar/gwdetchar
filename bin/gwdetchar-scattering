@@ -249,7 +249,7 @@ page.div(class_='panel-group', id_='accordion1')
 allchannels = ['%s:%s' % (args.ifo, c) for optic in args.optic for
                c in scattering.OPTIC_MOTION_CHANNELS[optic]]
 
-logger.info("Reading all data:")
+logger.info("Reading all data")
 alldata = []
 n = len(statea)
 for i, seg in enumerate(statea):
@@ -263,7 +263,7 @@ for i, seg in enumerate(statea):
                  obs=args.ifo[0], verbose=msg, nproc=args.nproc).resample(128))
 
 scatter_segments = DataQualityDict()
-a = [] # made this change
+a = []
 for i, channel in enumerate(sorted(alldata[0].keys())):
     logger.info("-- Processing %s" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
@@ -321,7 +321,8 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
                                      'edgecolor': 'gray', 'height': 0.4},
                               height=0.8, y=0, label=' ')
         scatter_segments[channel] += scatter
-        logger.debug("    Found %d scattering segments" % (len(scatter.active)))
+        logger.debug(
+            "    Found %d scattering segments" % (len(scatter.active)))
     logger.debug("Completed channel, found %d segments in total."
                  % len(scatter_segments[channel].active))
 
@@ -438,8 +439,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     hpng = '%s_SCATTERING_HISTOGRAM-%s.png' % (chanstr, gpsstr)
     histogram.save(hpng)
     histogram.close()
-    if args.verbose:
-        gprint("%s written." % hpng)
+    logger.debug("%s written." % hpng)
 
     # write HTML
     if deadtime != 0 and effdt > 2:
@@ -497,7 +497,11 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     page.div.close()
     page.div.close()
     page.div.close()
-# Made this change, added the following block to write a csv file.                           
+
+# close panel group
+page.div.close()
+
+# write a csv file.                           
 print(len(a))
 b = [i for i in a if len(i) != 0]
 print(len(b))
