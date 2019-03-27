@@ -102,7 +102,7 @@ else:
     ifo = 'Network'
 gps = numpy.around(float(args.gpstime), 3)
 
-logger.debug("Creating {} omega scan at GPS second {}".format(ifo, gps))
+logger.info("{} Omega Scan {}".format(ifo, gps))
 
 # get default configuration
 if args.config_file is None:
