@@ -140,7 +140,7 @@ for channel in ANALYZED['GW']['channels']:
     channel.stdev = 1
     channel.delay = 0
 
-BLOCK_HTML = """<div class="panel panel-info">
+BLOCK_HTML = """<div class="panel well panel-info">
 <div class="panel-heading clearfix">
 <div class="pull-right">
 <a href="#" class="text-info"><small>[top]</small></a>
