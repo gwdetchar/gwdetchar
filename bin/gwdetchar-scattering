@@ -105,7 +105,7 @@ args = parser.parse_args()
 
 # set up logger
 logger = cli.logger(
-    name = os.path.basename(__file__),
+    name=os.path.basename(__file__),
     level='DEBUG' if args.verbose else 'INFO',
 )
 
@@ -156,7 +156,7 @@ else:
 # -- load h(t) ----------------------------------------------------------------
 
 args.main_channel = args.main_channel.format(IFO=args.ifo)
-logger.debug("Loading Omicron triggers for %s..." % args.main_channel)
+logger.debug("Loading Omicron triggers for %s" % args.main_channel)
 
 if args.gpsstart >= 1230336018:  # Jan 1 2019
     ext = "h5"
@@ -291,7 +291,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     fringecolors = [None] * len(scattering.FREQUENCY_MULTIPLIERS)
     # loop over state segments and find scattering fringes
     for j, seg in enumerate(statea):
-        logger.debug("Processing segment [%d .. %d)..." % seg)
+        logger.debug("Processing segment [%d .. %d)" % seg)
         ts = alldata[j][channel]
         # get raw data and plot
         line = axes['position'].plot(ts, color=linecolor)[0]
@@ -352,7 +352,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     print(len(highsnrtrigs[names[0]]))
 
     # finalize plot
-    logger.debug("Plotting...")
+    logger.debug("Plotting")
     name = label_to_latex(channel) if rcParams["text.usetex"] else channel
     axes['position'].set_title("Scattering evidence in %s" % name)
     axes['position'].set_xlabel('')
