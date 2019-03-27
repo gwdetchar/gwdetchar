@@ -529,7 +529,7 @@ def write_footer(about=None, link=None, issues=None, content=None,
     page.div(class_='col-md-12')
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
-    date = now.strftime('%H:%m {} on %d %B %Y'.format(tz))
+    date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
     page.p('This page was created by {user} at {date}.'.format(
         user=getuser(), date=date))
     page.p('{link} | {issues}'.format(link=link, issues=issues))
