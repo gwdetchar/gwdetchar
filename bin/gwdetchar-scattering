@@ -348,9 +348,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
         effdt = efficiencypc/deadtimepc
     logger.info("Efficiency/Deadtime: %.2f" % effdt)
         
-    a.append(scatter_segments[channel].active) #change
-    
-    
+    a.append(scatter_segments[channel].active)
 
     # finalize plot
     logger.debug("Plotting")
@@ -502,9 +500,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
 page.div.close()
 
 # write a csv file.                           
-
 b = [i for i in a if len(i) != 0]
-
 c = [item for i in b for item in i] # b is a list of list,so flattening it.
 d1 = [i for i in highsnrtrigs[names[0]] for j in c if i in j] # collecting the gpstimes that are within segments.
 e =  [j for i in highsnrtrigs[names[0]] for j in c if i in j] # collecting the segments that contains gpstimes.
