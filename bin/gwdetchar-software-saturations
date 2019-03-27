@@ -83,6 +83,10 @@ frametype = args.frametype or '%s_R' % ifo
 tex_settings = get_gwpy_tex_settings()
 rcParams.update(tex_settings)
 
+# let's go
+logger.info('{} Software Saturations {}-{}'.format(
+    args.ifo, int(args.gpsstart), int(args.gpsend)))
+
 # get segments
 span = Segment(args.gpsstart, args.gpsend)
 if args.state_flag:
@@ -106,7 +110,7 @@ if not os.getenv('LIGO_DATAFIND_SERVER'):
     raise RuntimeError("No LIGO_DATAFIND_SERVER variable set, don't know "
                        "how to discover channels")
 else:
-    logger.debug("Finding channels in frames...")
+    logger.debug("Finding channels in frames")
     if len(cache) == 0:
         raise RuntimeError("No frames recovered for %s in interval [%s, %s)" %
                            (frametype, int(args.gpsstart),
@@ -140,7 +144,7 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
     else:
         ngroup = int(
             min(nchans, args.group_size, 2 * 1024**3 / 4. / 16. / dur))
-    logger.info('Processing %s channels in groups of %d:' % (suffix, ngroup))
+    logger.info('Processing %s channels in groups of %d' % (suffix, ngroup))
     sys.stdout.flush()
     sets = saturation.grouper(clist, ngroup)
     for i, cset in enumerate(sets):
@@ -165,7 +169,7 @@ for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
                 sat = saturations[c]
             except KeyError:
                 logger.debug('%40s:      SKIP      [%d/%d]'
-                             % (c, i*ngroup + j + 1, nchans), end='\r')
+                             % (c, i*ngroup + j + 1, nchans))
             else:
                 if abs(sat.active):
                     logger.debug('%40s: ---- FAIL ---- [%d/%d]'
