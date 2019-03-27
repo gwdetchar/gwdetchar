@@ -136,8 +136,6 @@ An example using many of the above options would look something like this:
   account houses default configurations organized by subsystem.
 """
 
-from __future__ import print_function
-
 import sys
 import ast
 import os.path
@@ -200,7 +198,6 @@ def get_default_configuration(ifo, gpstime):
     """
     # find epoch
     epoch = const.gps_epoch(gpstime, default=const.latest_epoch())
-    print('Identified epoch as %r' % epoch)
     # find and parse configuration file
     if ifo == 'Network':
         return [os.path.expanduser(

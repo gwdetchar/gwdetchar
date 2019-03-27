@@ -19,7 +19,7 @@
 """Plotting routines for Omega scans
 """
 
-from __future__ import (division, print_function)
+from __future__ import division
 
 from matplotlib import (cm, rcParams)
 from gwpy.plot.colors import GW_OBSERVATORY_COLORS

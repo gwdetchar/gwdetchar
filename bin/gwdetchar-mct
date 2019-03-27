@@ -19,8 +19,6 @@
 
 """Find times when an input signal crosses a particular threshold
 """
-from __future__ import print_function
-
 import os
 
 import gwdatafind
@@ -62,10 +60,13 @@ parser.add_argument('-r', '--rate-thresh', default=16., type=float,
                          'segment will not be recorded')
 args = parser.parse_args()
 
+# set up logger
+logger = cli.logger(name=os.path.basename(__file__))
+
 span = Segment(args.gpsstart, args.gpsend)
 
-print('-- Processing channel %s over span %d - %d'
-      % (args.channel, args.gpsstart, args.gpsend))
+logger.info('-- Processing channel %s over span %d - %d'
+            % (args.channel, args.gpsstart, args.gpsend))
 
 if args.state_flag:
     state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
@@ -109,18 +110,18 @@ for thresh in args.threshold:
 # crossings, and if the rate of crossings is less than rate_thresh, write to a
 # sngl_burst table
 for seg in cachesegs:
-    print("Processing {}:".format(seg))
+    logger.debug("Processing {}:".format(seg))
     c = sieve_cache(cache, segment=seg)
     if not c:
-        print("    No {} data files for this segment, "
-              "skipping".format(args.frametype))
+        logger.warning("    No {} data files for this segment, "
+                       "skipping".format(args.frametype))
         continue
     data = get_data(args.channel, seg[0], seg[1], nproc=args.nproc,
-                    source=c, verbose="    Reading data:")
+                    source=c, verbose="Reading data:".rjust(30))
     for thresh in args.threshold:
         times = find_crossings(data, thresh)
         rate = float(times.size)/abs(seg) if times.size else 0
-        print("    Found {} crossings of {}, rate: {} Hz".format(
+        logger.info("    Found {} crossings of {}, rate: {} Hz".format(
             times.size,
             thresh,
             rate,
@@ -139,7 +140,7 @@ n = max(map(len, tables.values()))
 for thresh, outfile in outfiles.items():
     tables[thresh].write(outfile, path="triggers", format="hdf5",
                          overwrite=True)
-    print("{} events written to {}".format(
+    logger.info("{} events written to {}".format(
         str(len(tables[thresh])).rjust(len(str(n))),
         outfile,
     ))

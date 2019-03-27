@@ -20,8 +20,6 @@
 """Find overflows associated with a particular front-end model
 """
 
-from __future__ import print_function
-
 import os.path
 
 import warnings
@@ -37,7 +35,6 @@ import gwdatafind
 from gwpy.io.cache import cache_segments
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
-from gwpy.utils import gprint
 
 from gwdetchar import (cds, cli, const, daq)
 from gwdetchar.io import (html as htmlio)
@@ -92,6 +89,9 @@ parser.add_argument('-u', '--simulink', help='URL of human-readable Simulink '
 
 args = parser.parse_args()
 
+# set up logger
+logger = cli.logger(name=os.path.basename(__file__))
+
 fec_map = args.fec_map
 simulink = args.simulink
 if args.ifo == 'H1':
@@ -131,7 +131,7 @@ if not args.output_file:
     args.output_file = (
         '%s-OVERFLOWS-%d-%d.h5'
         % (args.ifo, int(args.gpsstart), duration))
-    gprint("Set default output file as %s" % args.output_file)
+    logger.debug("Set default output file as %s" % args.output_file)
 
 # set up container
 overflows = DataQualityDict()
@@ -158,11 +158,11 @@ flag_desc = "ADC/DAC Overflow indicated by {0}"
 
 # get channel and find overflows
 for dcuid in args.dcuid:
-    gprint("Processing DCUID %d" % dcuid)
+    logger.info("Processing DCUID %d" % dcuid)
     channel = daq.ligo_accum_overflow_channel(dcuid, args.ifo)
     overflows[channel] = DataQualityFlag(channel, known=cachesegs)
     if args.deep:
-        gprint("    Getting list of overflow channels...", end=' ')
+        logger.debug("    Getting list of overflow channels...", end=' ')
         try:
             channels = daq.ligo_model_overflow_channels(
                 dcuid, args.ifo, args.frametype, gpstime=span[0], nds=args.nds)
@@ -176,14 +176,14 @@ for dcuid in args.dcuid:
                 description=flag_desc.format(chan),
                 isgood=False,
             )
-        gprint("    %d channels found" % len(channel))
+        logger.debug("    %d channels found" % len(channel))
     for seg in cachesegs:
-        gprint("    Processing {}-{}:".format(*seg))
+        logger.debug("    Processing {}-{}:".format(*seg))
         if args.nds:
             read_kw = dict(connection=ndsconnection)
         else:
             read_kw = dict(source=cache, nproc=args.nproc)
-        msg = "        Reading ACCUM_OVERFLOW data: "
+        msg = "Reading ACCUM_OVERFLOW data:".rjust(30)
         data = get_data(
             channel, seg[0], seg[1],
             pad=0., verbose=msg, **read_kw
@@ -193,7 +193,7 @@ for dcuid in args.dcuid:
             cumulative=True,
         )
         overflows[channel] += new
-        gprint("        {} overflows found".format(len(new.active)))
+        logger.info("        {} overflows found".format(len(new.active)))
         if not new.active:
             continue
         # go deep!
@@ -209,7 +209,7 @@ for dcuid in args.dcuid:
                 except KeyError:
                     warnings.warn("Skipping {}".format(ch), UserWarning)
                     continue
-    gprint("    Complete")
+    logger.info("    Complete")
 
 # write output
 table = table_from_segments(
@@ -226,7 +226,7 @@ if args.output_file.endswith((".h5", "hdf", ".hdf5")):
 else:
     table.write(args.output_file, overwrite=True)
     overflows.write(args.output_file, overwrite=True, append=True)
-gprint("Written output to %s" % args.output_file)
+logger.info("Written output to %s" % args.output_file)
 
 # write HTML
 if args.html:
@@ -280,7 +280,7 @@ if args.html:
         page.a(os.path.basename(args.output_file), href=args.output_file,
                target='_blank')
         page.p.close()
-    # print state segments
+    # record state segments
     if args.state_flag:
         page.p('This analysis was executed over the following segments:')
         page.div(class_='panel-group', id_='accordion1')
@@ -290,7 +290,7 @@ if args.html:
             edgecolor='darkgreen', known={
                 'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4}))
         page.div.close()
-    # print overflow segments
+    # record overflow segments
     if sum(abs(s.active) for s in overflows.values()):
         page.p('The following channels indicated an overflow (constant '
                'overflow is yellow, otherwise red):')
@@ -349,4 +349,4 @@ if args.html:
 
     # -- close and write
     htmlio.close_page(page, args.html)
-    gprint("HTML written to %s" % args.html)
+    logger.info("HTML written to %s" % args.html)

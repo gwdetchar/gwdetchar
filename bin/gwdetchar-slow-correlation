@@ -82,6 +82,9 @@ psig.add_argument('-x', '--filter-padding', type=float, default=3.,
 
 args = parser.parse_args()
 
+# set up logger
+logger = cli.logger(name=os.path.basename(__file__))
+
 start = int(args.gpsstart)
 end = int(args.gpsend)
 pad = args.filter_padding
@@ -105,7 +108,7 @@ tex_settings = get_gwpy_tex_settings()
 rcParams.update(tex_settings)
 
 # load data
-print("-- Loading range data")
+logger.info("-- Loading range data")
 rangets = get_data(rangechannel, start, end, frametype=args.range_frametype,
                    obs=args.ifo[0], verbose=True, nproc=args.nproc)
 
@@ -115,12 +118,12 @@ else:
     dstart = start
     dend = end
 
-print("-- Loading h(t) data")
+logger.info("-- Loading h(t) data")
 darmts = get_data(primary, dstart-pad, dend+pad, verbose=True, obs=args.ifo[0],
                   frametype=args.primary_frametype, nproc=args.nproc)
 
 # get darm BLRMS
-print("-- Filtering h(t) data")
+logger.debug("-- Filtering h(t) data")
 if args.trend_type == 'minute':
     stride = 60
 else:
@@ -139,7 +142,7 @@ else:
     darmblrms.name = '%s RMS' % primary
 
 if args.remove_outliers:
-    print("-- Removing outliers above %f sigma" % args.remove_outliers)
+    logger.debug("-- Removing outliers above %f sigma" % args.remove_outliers)
     gwlasso.remove_outliers(darmblrms, args.remove_outliers)
     gwlasso.remove_outliers(rangets, args.remove_outliers)
 
@@ -154,7 +157,7 @@ else:
     corr_s = 0
 
 # create scaled versions of data to compare to each other
-print("-- Creating scaled data")
+logger.debug("-- Creating scaled data")
 rangescaled = rangets.detrend()
 rangerms = numpy.sqrt(sum(rangescaled**2.0)/len(rangescaled))
 darmscaled = darmblrms.detrend()
@@ -165,7 +168,7 @@ if args.trend_type == 'minute':
     darmscaled *= (-rangerms / darmrms)
 
 # get aux data
-print("-- Loading auxiliary channel data")
+logger.info("-- Loading auxiliary channel data")
 host, port = io_nds2.host_resolution_order(args.ifo)[0]
 if args.channel_file is None:
     channels = ChannelList.query_nds2('*.mean', host=host, port=port,
@@ -174,7 +177,7 @@ else:
     with open(args.channel_file, 'r') as f:
         channels = f.read().rstrip('\n').split('\n')
 nchan = len(channels)
-print("Identified %d channels" % nchan)
+logger.debug("Identified %d channels" % nchan)
 if args.trend_type == 'minute':
     frametype = '%s_M' % args.ifo  # for minute trends
 else:
@@ -186,7 +189,7 @@ gpsstub = '%d-%d' % (start, end-start)
 re_delim = re.compile('[:_-]')
 form = '%%.%dd' % len(str(nchan))
 
-print("-- Processing channels")
+logger.info("-- Processing channels")
 counter = multiprocessing.Value('i', 0)
 
 p1 = (.1, .1, .9, .95)
@@ -338,8 +341,9 @@ def process_channel(input_,):
     with counter.get_lock():
         counter.value += 1
         pc = 100 * counter.value / nchan
-        print("Completed [%d/%d] %3d%% %-50s"
-              % (counter.value, nchan, pc, '(%s)' % str(chan)), end='\r')
+        logger.debug("Completed [%d/%d] %3d%% %-50s"
+                     % (counter.value, nchan, pc, '(%s)' % str(chan)),
+                     end='\r')
         sys.stdout.flush()
     return chan, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s
 
@@ -472,4 +476,4 @@ for i, (ch, corr1, corr2, plot1, plot2, plot3,
 page.div.close()  # panel-group
 htmlio.close_page(page, 'index.html')  # save and close
 
-print("-- Process Completed")
+logger.info("-- Process Completed")
