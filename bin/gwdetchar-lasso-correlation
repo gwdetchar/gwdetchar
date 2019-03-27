@@ -120,6 +120,10 @@ auto_xlabel = ('Time [hours] from '
                         Time(start, format='gps', scale='utc').iso)
                + ' UTC (%d)' % start)
 
+# let's go
+logger.info('{} Lasso Correlations {}-{}'.format(
+    args.ifo, int(args.gpsstart), int(args.gpsend)))
+
 # get primary channel frametype
 primary = args.primary_channel.format(ifo=args.ifo)
 range_is_primary = 'EFFECTIVE_RANGE_MPC' in args.primary_channel
@@ -399,8 +403,7 @@ def process_channel(input_,):
             pc = 100 * counter.value / len(nonzerodata)
             logger.info("Completed [%d/%d] %3d%% %-50s"
                         % (counter.value, len(nonzerodata), pc,
-                           '(%s)' % str(chan)),
-                        end='\r')
+                           '(%s)' % str(chan)))
             sys.stdout.flush()
             return chan, lassocoef, plot4, plot5, plot6, ts
 
@@ -474,8 +477,7 @@ def process_channel(input_,):
         pc = 100 * counter.value / len(nonzerodata)
         logger.info("Completed [%d/%d] %3d%% %-50s"
                     % (counter.value, len(nonzerodata), pc,
-                       '(%s)' % str(chan)),
-                    end='\r')
+                       '(%s)' % str(chan)))
         sys.stdout.flush()
     return chan, lassocoef, plot4, plot5, plot6, ts
 
@@ -563,8 +565,7 @@ def generate_cluster(input_,):
         pc = 100 * counter.value / len(nonzerodata)
         logger.info("Completed [%d/%d] %3d%% %-50s"
                     % (counter.value, len(nonzerodata), pc,
-                       '(%s)' % str(currentchan)),
-                    end='\r')
+                       '(%s)' % str(currentchan)))
         sys.stdout.flush()
     return plot7, plot7_legend, plot7_list
 
