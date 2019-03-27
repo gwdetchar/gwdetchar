@@ -166,7 +166,7 @@ for dcuid in args.dcuid:
     channel = daq.ligo_accum_overflow_channel(dcuid, args.ifo)
     overflows[channel] = DataQualityFlag(channel, known=cachesegs)
     if args.deep:
-        logger.debug("    Getting list of overflow channels")
+        logger.debug(" -- Getting list of overflow channels")
         try:
             channels = daq.ligo_model_overflow_channels(
                 dcuid, args.ifo, args.frametype, gpstime=span[0], nds=args.nds)
@@ -180,9 +180,9 @@ for dcuid in args.dcuid:
                 description=flag_desc.format(chan),
                 isgood=False,
             )
-        logger.debug("    %d channels found" % len(channel))
+        logger.debug(" -- %d channels found" % len(channel))
     for seg in cachesegs:
-        logger.debug("    Processing {}-{}".format(*seg))
+        logger.debug(" -- Processing {}-{}".format(*seg))
         if args.nds:
             read_kw = dict(connection=ndsconnection)
         else:
@@ -197,7 +197,7 @@ for dcuid in args.dcuid:
             cumulative=True,
         )
         overflows[channel] += new
-        logger.info("        {} overflows found".format(len(new.active)))
+        logger.info(" -- {} overflows found".format(len(new.active)))
         if not new.active:
             continue
         # go deep!
@@ -213,7 +213,7 @@ for dcuid in args.dcuid:
                 except KeyError:
                     warnings.warn("Skipping {}".format(ch), UserWarning)
                     continue
-    logger.debug("    Complete")
+    logger.debug(" -- Complete")
 
 # write output
 table = table_from_segments(
