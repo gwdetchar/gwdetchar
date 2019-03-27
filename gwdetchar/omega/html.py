@@ -573,7 +573,7 @@ def write_block(blockkey, block, context,
         the formatted HTML for this block
     """
     page = markup.page()
-    page.div(class_='panel panel-%s' % context)
+    page.div(class_='panel well panel-%s' % context)
     # -- make heading
     page.div(class_='panel-heading clearfix')
     # link to top of page
