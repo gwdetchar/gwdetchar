@@ -245,7 +245,7 @@ data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 logger.info('-- Fitting data to target')
 target = scale(primaryts.value)
 model = gwlasso.fit(data, target, alpha=args.alpha)
-logger.info('Alpha:', model.alpha)
+logger.info('Alpha: {}'.format(model.alpha))
 
 # restructure results for convenience
 allresults = Table(
