@@ -100,7 +100,7 @@ if args.ifo:
     ifo = args.ifo
 else:
     ifo = 'Network'
-gps = numpy.around(float(args.gpstime), 3)
+gps = numpy.around(float(args.gpstime), 2)
 
 logger.info("{} Omega Scan {}".format(ifo, gps))
 
