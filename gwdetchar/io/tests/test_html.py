@@ -259,7 +259,7 @@ def test_write_flag_html_with_plots(tmpdir):
 def test_write_footer():
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
-    date = now.strftime('%H:%m {} on %d %B %Y'.format(tz))
+    date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
     out = html.write_footer()
     assert parse_html(str(out)) == parse_html(
         HTML_FOOTER.format(user=getuser(), date=date))
@@ -269,7 +269,7 @@ def test_close_page(tmpdir):
     target = os.path.join(str(tmpdir), 'test.html')
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
-    date = now.strftime('%H:%m {} on %d %B %Y'.format(tz))
+    date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
     page = html.close_page(html.markup.page(), target)
     assert parse_html(str(page)) == parse_html(
         HTML_CLOSE.format(user=getuser(), date=str(date)))

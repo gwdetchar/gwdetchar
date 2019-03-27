@@ -93,6 +93,8 @@ try:
 except TypeError:
     flower, fupper = None
 
+logger.info('{} Slow Correlation {}-{}'.format(args.ifo, start, end))
+
 if args.primary_channel == '{ifo}:GDS-CALIB_STRAIN':
     args.primary_frametype = '%s_HOFT_C00' % args.ifo
 primary = args.primary_channel.format(ifo=args.ifo)
@@ -342,8 +344,7 @@ def process_channel(input_,):
         counter.value += 1
         pc = 100 * counter.value / nchan
         logger.debug("Completed [%d/%d] %3d%% %-50s"
-                     % (counter.value, nchan, pc, '(%s)' % str(chan)),
-                     end='\r')
+                     % (counter.value, nchan, pc, '(%s)' % str(chan)))
         sys.stdout.flush()
     return chan, corr1, corr2, plot1, plot2, plot3, corr1s, corr2s
 
