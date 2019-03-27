@@ -121,8 +121,7 @@ auto_xlabel = ('Time [hours] from '
                + ' UTC (%d)' % start)
 
 # let's go
-logger.info('{} Lasso Correlations {}-{}'.format(
-    args.ifo, int(args.gpsstart), int(args.gpsend)))
+logger.info('{} Lasso Correlations {}-{}'.format(args.ifo, start, end))
 
 # get primary channel frametype
 primary = args.primary_channel.format(ifo=args.ifo)
