@@ -26,6 +26,7 @@ Portfile
 /.cache/
 
 # static files build
+static/
 /gwdetchar/_static
 
 # Installer logs
