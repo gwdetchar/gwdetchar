@@ -506,7 +506,7 @@ d1 = [x for x in highsnrtrigs[names[0]] for y in c if x in y]
 e =  [y for x in highsnrtrigs[names[0]] for y in c if x in y]
 rows = zip(d1, e)    
 data = Table([d1, e], names = ['Gpstime','Segment'])
-data.write('summary.csv')                         
+data.write('summary.csv', overwrite = True)                         
 
 # -- finalize -----------------------------------------------------------------
 
