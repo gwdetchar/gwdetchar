@@ -501,9 +501,9 @@ page.div.close()
 
 # write a csv file.                           
 b = [i for i in a if len(i) != 0]
-c = [item for i in b for item in i] # b is a list of list,so flattening it.
-d1 = [i for i in highsnrtrigs[names[0]] for j in c if i in j] # collecting the gpstimes that are within segments.
-e =  [j for i in highsnrtrigs[names[0]] for j in c if i in j] # collecting the segments that contains gpstimes.
+c = [item for i in b for item in i]
+d1 = [i for i in highsnrtrigs[names[0]] for j in c if i in j]
+e =  [j for i in highsnrtrigs[names[0]] for j in c if i in j]
 rows = zip(d1,e)    
 data = Table([d1,e], names = ['Gpstime','Segment'])
 data.write('summary.csv')                         
