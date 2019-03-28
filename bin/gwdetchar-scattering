@@ -236,7 +236,8 @@ page.p.close()
 #link summary file
 page.h3('Summary')
 page.p()
-page.add('The Scattering summary is recorded in a csv format here:')
+page.add('A summary of triggers that occur during active scattering '
+         'segments is recorded in CSV format here:')
 page.a(os.path.basename(summfile), href=summfile, target='_blank')
 page.p.close()
 
