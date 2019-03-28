@@ -153,7 +153,7 @@ outdir = os.path.abspath(outdir)
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
 os.chdir(outdir)
-logger.debug("Output directory created as {}".format(outdir))
+logger.debug('Output directory created as {}'.format(outdir))
 
 
 # -- Compute Qscan ------------------------------------------------------------
@@ -165,6 +165,15 @@ datadir = 'data'
 for d in [plotdir, aboutdir, datadir]:
     if not os.path.isdir(d):
         os.makedirs(d)
+
+# attempt to checkpoint
+summary = os.path.join(datadir, 'summary.csv')
+if os.path.exists(summary):
+    logger.debug('Checkpointing from {}'.format(
+        os.path.abspath(summary)))
+    completed = Table.read(summary)
+else:
+    completed = []
 
 # set up html output
 logger.debug('Setting up HTML at {}/index.html'.format(outdir))
