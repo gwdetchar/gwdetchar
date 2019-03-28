@@ -356,8 +356,8 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     else:
         effdt = efficiencypc/deadtimepc
     logger.info("Efficiency/Deadtime: %.2f" % effdt)
-    
-    if abs(scatter_segments[channel].active):    
+
+    if abs(scatter_segments[channel].active):
           actives.extend(scatter_segments[channel].active)
 
     # finalize plot
@@ -509,14 +509,15 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
 # close panel group
 page.div.close()
 
-# write a csv file.  
+# write a csv file.
 logger.debug('Writing a summary CSV record')
-
-actives = actives.coalesce() # merge contigous segments 
+actives = actives.coalesce() # merge contiguous segments
 gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
-segs = [tuple(y) for x in highsnrtrigs[names[0]] for y in actives if x in y]
-data = Table([gps, segs], names=['trigger_time', 'segment'])
-data.write(summfile, overwrite=True, fast_writer=False)                         
+segs = [y for x in highsnrtrigs[names[0]] for y in actives if x in y]
+data = Table(
+    [gps, *segs],
+    names=['trigger_time', 'segment_start', 'segment_end'])
+data.write(summfile, overwrite=True)
 
 # -- finalize -----------------------------------------------------------------
 
