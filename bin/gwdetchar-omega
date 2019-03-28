@@ -170,13 +170,23 @@ for d in [plotdir, aboutdir, datadir]:
     if not os.path.isdir(d):
         os.makedirs(d)
 
-# attempt to checkpoint
+# determine checkpoints
 summary = os.path.join(datadir, 'summary.csv')
 if os.path.exists(summary) and not args.disable_checkpoint:
     logger.debug('Checkpointing from {}'.format(
         os.path.abspath(summary)))
     record = Table.read(summary)
     completed = list(record['Channel'])
+    if not args.disable_correlation:
+        try:
+            check_corr = record[0]['Standard Deviation']
+        except KeyError:
+            raise KeyError(
+                'Cross-correlation is not available from this record, '
+                'consider running without correlation or starting from '
+                'scratch with --disable-checkpoint')
+        else:
+            pass
 else:
     record = []
     completed = []
@@ -234,27 +244,21 @@ for block in blocks.values():
 
     # process individual channels
     for channel in block.channels:
-        if channel.name in completed:
+        if channel.name in completed:  # load checkpoint
             logger.info(' -- Checkpointing {} from a previous '
                         'run'.format(channel.name))
-            try:  # attempt to checkpoint
-                cindex = completed.index(channel.name)
-                channel.load_loudest_tile_features(
-                    record[cindex], correlated=correlate is not None)
-            except KeyError:  # cross-correlation not enabled
-                raise KeyError('Cross-correlation is not available from this '
-                               'record, consider starting from scratch with '
-                               '--disable-checkpoint')
-            else:
-                try:  # update analyzed dict
-                    analyzed[channel.section]['channels'].append(channel)
-                except KeyError:
-                    analyzed[channel.section] = {
-                        'name': blocks[channel.section].name,
-                        'channels': [channel]}
-                htmlv['toc'] = analyzed
-                html.write_qscan_page(ifo, gps, analyzed, **htmlv)
-                continue
+            cindex = completed.index(channel.name)
+            channel.load_loudest_tile_features(
+                record[cindex], correlated=correlate is not None)
+            try:  # update analyzed dict
+                analyzed[channel.section]['channels'].append(channel)
+            except KeyError:
+                analyzed[channel.section] = {
+                    'name': blocks[channel.section].name,
+                    'channels': [channel]}
+            htmlv['toc'] = analyzed
+            html.write_qscan_page(ifo, gps, analyzed, **htmlv)
+            continue
 
         try:  # scan the channel
             logger.info(' -- Scanning channel {}'.format(channel.name))
