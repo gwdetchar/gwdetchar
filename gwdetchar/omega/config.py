@@ -322,7 +322,7 @@ class OmegaChannel(Channel):
             delay = (corr.t0 + corr.argmax() * corr.dt).value - gps
             self.delay = int(delay * 1000)  # convert to ms
 
-    def load_loudest_tile_features(table, correlated=False):
+    def load_loudest_tile_features(self, table, correlated=False):
         """Load properties of the loudest time-frequency tile from a table
 
         Parameters
