@@ -181,7 +181,7 @@ else:
     logger.info("-- Loading primary channel data")
     primaryts = get_data(primary, start, end, frametype=args.primary_frametype,
                          obs=args.ifo[0], verbose='Reading:'.rjust(30),
-                         nproc=args.nproc)
+                         nproc=args.nproc).crop(start, end)
 
 if args.remove_outliers:
     logger.debug("-- Removing outliers above %f sigma" % args.remove_outliers)
@@ -217,7 +217,7 @@ else:
 
 auxdata = get_data(
     channels, start, end, verbose='Reading:'.rjust(30), obs=args.ifo[0],
-    frametype=frametype, nproc=args.nproc, pad=0)
+    frametype=frametype, nproc=args.nproc, pad=0).crop(start, end)
 
 # -- removes flat data to be re-introdused later
 
