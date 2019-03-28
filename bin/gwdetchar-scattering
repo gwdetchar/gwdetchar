@@ -503,12 +503,11 @@ page.div.close()
 
 # write a csv file.  
 logger.debug('Writing a summary CSV record')
-#b = [x for x in a if len(x) != 0]
-#c = [item for x in actives for item in x]
-d1 = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
-e =  [y for x in highsnrtrigs[names[0]] for y in actives if x in y]
-rows = zip(d1, e)    
-data = Table([d1, e], names = ['Gpstime','Segment'])
+
+actives = actives.coalesce() # merge contigous segments 
+gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
+segs =  [y for x in highsnrtrigs[names[0]] for y in actives if x in y]
+data = Table([gps, segs], names = ['trigger_time','segment'])
 data.write('summary.csv', overwrite = True)                         
 
 # -- finalize -----------------------------------------------------------------
