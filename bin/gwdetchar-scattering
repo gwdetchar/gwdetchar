@@ -476,7 +476,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
         page.tr()
         page.th('Efficiency<br><small>(SNR&ge;8 and '
                 '%.2f Hz</sub>&ltf<sub>peak</sub>&lt;%.2f Hz)</small>'
-                % (10*1,4 * args.frequency_threshold))
+                % (10,4 * args.frequency_threshold))
         page.td('%d/%d events' % (efficiency, len(highsnrtrigs)))
         page.td('%.2f%%' % efficiencypc)
         page.tr.close()
