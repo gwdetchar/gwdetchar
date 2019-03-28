@@ -232,7 +232,7 @@ page.add('The full output segments are recorded in HDF5 format here:')
 page.a(os.path.basename(segfile), href=segfile, target='_blank')
 page.p.close()
 
-#link summary file
+# link summary file
 page.h3('Summary')
 page.p()
 page.add('A summary of triggers that occur during active scattering '
