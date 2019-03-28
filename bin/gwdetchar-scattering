@@ -184,7 +184,8 @@ else:
     read_kw = {
         "columns": names,
         "selection": [
-            "{0} < peak_frequency < {1}".format(10, args.frequency_threshold * 4),
+            "{0} < peak_frequency < {1}".format(
+                10, args.frequency_threshold * 4),
             ('peak', in_segmentlist, statea),
         ],
         "format": 'ligolw',
@@ -358,7 +359,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     logger.info("Efficiency/Deadtime: %.2f" % effdt)
 
     if abs(scatter_segments[channel].active):
-          actives.extend(scatter_segments[channel].active)
+        actives.extend(scatter_segments[channel].active)
 
     # finalize plot
     logger.debug("Plotting")
@@ -509,9 +510,9 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
 # close panel group
 page.div.close()
 
-# write a csv file.
+# write a csv file
 logger.debug('Writing a summary CSV record')
-actives = actives.coalesce() # merge contiguous segments
+actives = actives.coalesce()  # merge contiguous segments
 gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
 segs = [y for x in highsnrtrigs[names[0]] for y in actives if x in y]
 data = Table(
