@@ -350,7 +350,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     logger.info("Efficiency/Deadtime: %.2f" % effdt)
     
     if abs(scatter_segments[channel].active):    
-          actives.append(scatter_segments[channel].active)
+          actives.extend(scatter_segments[channel].active)
 
     # finalize plot
     logger.debug("Plotting")
@@ -504,9 +504,9 @@ page.div.close()
 # write a csv file.  
 logger.debug('Writing a summary CSV record')
 #b = [x for x in a if len(x) != 0]
-c = [item for x in actives for item in x]
-d1 = [x for x in highsnrtrigs[names[0]] for y in c if x in y]
-e =  [y for x in highsnrtrigs[names[0]] for y in c if x in y]
+#c = [item for x in actives for item in x]
+d1 = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
+e =  [y for x in highsnrtrigs[names[0]] for y in actives if x in y]
 rows = zip(d1, e)    
 data = Table([d1, e], names = ['Gpstime','Segment'])
 data.write('summary.csv', overwrite = True)                         
