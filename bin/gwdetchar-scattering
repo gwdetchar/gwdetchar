@@ -124,7 +124,7 @@ os.chdir(args.output_dir)
 
 segfile = '%s-SCATTERING_SEGMENTS_%s_HZ-%s.h5' % (args.ifo, tstr, gpsstr)
 
-summfile = 'summary.csv'
+summfile = '{}-SCATTERING_SUMMARY-{}.csv'.format(args.ifo, gpsstr)
 
 logger.info('{} Scattering {}-{}'.format(
     args.ifo, int(args.gpsstart), int(args.gpsend)))
