@@ -275,7 +275,7 @@ scatter_segments = DataQualityDict()
 actives = SegmentList()
 
 for i, channel in enumerate(sorted(alldata[0].keys())):
-    logger.info("-- Processing %s" % channel)
+    logger.info("-- Processing %s --" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
     optic = channel.split('-')[1].split('_')[0]
     flag = '%s:DCH-%s_SCATTERING_GE_%s_HZ:1' % (args.ifo, optic, tstr)
@@ -516,7 +516,7 @@ actives = actives.coalesce()  # merge contiguous segments
 gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
 segs = [y for x in highsnrtrigs[names[0]] for y in actives if x in y]
 table = Table(
-    [gps, *segs],
+    [gps].extend(list(zip(*segs))),
     names=['trigger_time', 'segment_start', 'segment_end'])
 logger.info('The following {} triggers fell within active scattering '
             'segments:\n\n'.format(len(table)))
