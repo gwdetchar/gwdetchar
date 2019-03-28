@@ -516,11 +516,12 @@ actives = actives.coalesce()  # merge contiguous segments
 gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
 segs = [y for x in highsnrtrigs[names[0]] for y in actives if x in y]
 table = Table(
-    [gps].extend(list(zip(*segs))),
-    names=['trigger_time', 'segment_start', 'segment_end'])
+    [gps, [seg[0] for seg in segs], [seg[1] for seg in segs]],
+    names=('trigger_time', 'segment_start', 'segment_end'))
 logger.info('The following {} triggers fell within active scattering '
             'segments:\n\n'.format(len(table)))
 print(table)
+print('\n\n')
 table.write(summfile, overwrite=True)
 
 # -- finalize -----------------------------------------------------------------
