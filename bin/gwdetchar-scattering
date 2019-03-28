@@ -377,7 +377,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     axes['fringef'].set_ylabel(r'Frequency [Hz]')
     axes['fringef'].yaxis.tick_right()
     axes['fringef'].yaxis.set_label_position("right")
-    axes['fringef'].set_ylim(0, 2 * args.frequency_threshold)
+    axes['fringef'].set_ylim(10, 4 * args.frequency_threshold)
     axes['fringef'].text(
         0.01, 0.95, 'Calculated fringe frequency',
         transform=axes['fringef'].transAxes, va='top', ha='left',
@@ -402,7 +402,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
         transform=axes['triggers'].transAxes, va='top', ha='left',
         bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
     axes['triggers'].set_ylabel('Frequency [Hz]')
-    axes['triggers'].set_ylim(0, 2 * args.frequency_threshold)
+    axes['triggers'].set_ylim(10, 4 * args.frequency_threshold)
     axes['triggers'].colorbar(cmap='YlGnBu', clim=(3, 100), norm='log',
                               label='Signal-to-noise ratio')
     axes['segments'].set_ylim(-.55, .55)
@@ -428,7 +428,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     # make histogram
     histogram = Plot(figsize=[12, 6])
     ax = histogram.gca()
-    hrange = (0, 2 * args.frequency_threshold)
+    hrange = (10, 4 * args.frequency_threshold)
     for m, color in list(zip(histdata, fringecolors))[::-1]:
         if histdata[m].size:
             ax.hist(
