@@ -29,6 +29,7 @@ except ImportError:  # python 2.7
 import numpy
 from scipy import signal
 
+from gwpy.table import Table
 from gwpy.timeseries import TimeSeries
 
 from .. import (config, core)
@@ -76,6 +77,11 @@ except AttributeError:  # python 2.7
 BLOCKS = CP.get_channel_blocks()
 PRIMARY = BLOCKS['primary']
 GW = BLOCKS['GW']
+
+ROWS = [[0]] * 8
+COLS = ('Q', 'Energy', 'SNR', 'Central Time', 'Central Frequency (Hz)',
+        'Correlation', 'Standard Deviation', 'Delay (ms)')
+TABLE = Table(ROWS, names=COLS)
 
 
 # -- test utilities -----------------------------------------------------------
@@ -202,3 +208,16 @@ def test_save_loudest_tile_features():
     assert channel.corr == numpy.around(glitch.max().value, 1)
     assert channel.delay == 0.0
     assert channel.stdev == glitch.std().value
+
+
+def test_load_loudest_tile_features():
+    channel = GW.channels[0]
+    channel.load_loudest_tile_features(TABLE, correlated=True)
+    assert channel.Q == 0
+    assert channel.energy == 0
+    assert channel.snr == 0
+    assert channel.t == 0
+    assert channel.f == 0
+    assert channel.corr == 0
+    assert channel.delay == 0
+    assert channel.stdev == 0
