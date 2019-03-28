@@ -164,7 +164,7 @@ if args.gpsstart >= 1230336018:  # Jan 1 2019
     read_kw = {
         "columns": names,
         "selection": [
-            "{0} < frequency < {1}".format(10*1, args.frequency_threshold * 4),
+            "{0} < frequency < {1}".format(10, args.frequency_threshold * 4),
             ("time", in_segmentlist, statea),
         ],
         "format": "hdf5",
@@ -183,7 +183,7 @@ else:
     read_kw = {
         "columns": names,
         "selection": [
-            "{0} < peak_frequency < {1}".format(10*1, args.frequency_threshold * 4),
+            "{0} < peak_frequency < {1}".format(10, args.frequency_threshold * 4),
             ('peak', in_segmentlist, statea),
         ],
         "format": 'ligolw',
