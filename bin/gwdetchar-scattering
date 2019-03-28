@@ -264,6 +264,7 @@ for i, seg in enumerate(statea):
 
 scatter_segments = DataQualityDict()
 actives = SegmentList()
+
 for i, channel in enumerate(sorted(alldata[0].keys())):
     logger.info("-- Processing %s" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
