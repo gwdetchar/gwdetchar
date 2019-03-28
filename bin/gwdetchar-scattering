@@ -37,7 +37,7 @@ import gwtrigfind
 
 from gwpy.plot import Plot
 from gwpy.plot.tex import label_to_latex
-from gwpy.table import EventTable
+from gwpy.table import (Table, EventTable)
 from gwpy.table.filters import in_segmentlist
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
@@ -123,6 +123,7 @@ if not os.path.isdir(args.output_dir):
 os.chdir(args.output_dir)
 
 segfile = '%s-SCATTERING_SEGMENTS_%s_HZ-%s.h5' % (args.ifo, tstr, gpsstr)
+summfile = '{}-SCATTERING_SUMMARY-{}.csv'.format(args.ifo, gpsstr)
 
 logger.info('{} Scattering {}-{}'.format(
     args.ifo, int(args.gpsstart), int(args.gpsend)))
@@ -164,7 +165,7 @@ if args.gpsstart >= 1230336018:  # Jan 1 2019
     read_kw = {
         "columns": names,
         "selection": [
-            "frequency < {}".format(args.frequency_threshold * 2),
+            "{0} < frequency < {1}".format(10, args.frequency_threshold * 4),
             ("time", in_segmentlist, statea),
         ],
         "format": "hdf5",
@@ -183,7 +184,7 @@ else:
     read_kw = {
         "columns": names,
         "selection": [
-            "peak_frequency < {}".format(args.frequency_threshold * 2),
+            "{0} < peak_frequency < {1}".format(10, args.frequency_threshold * 4),
             ('peak', in_segmentlist, statea),
         ],
         "format": 'ligolw',
@@ -230,6 +231,13 @@ page.p()
 page.add('The full output segments are recorded in HDF5 format here:')
 page.a(os.path.basename(segfile), href=segfile, target='_blank')
 page.p.close()
+# link summary file
+page.p()
+page.add('A summary of triggers that occur during active scattering '
+         'segments is recorded in CSV format here:')
+page.a(os.path.basename(summfile), href=summfile, target='_blank')
+page.p.close()
+
 # record state segments
 if args.state_flag is not None:
     page.p('This analysis was executed over the following segments:')
@@ -263,6 +271,7 @@ for i, seg in enumerate(statea):
                  obs=args.ifo[0], verbose=msg, nproc=args.nproc).resample(128))
 
 scatter_segments = DataQualityDict()
+actives = SegmentList()
 
 for i, channel in enumerate(sorted(alldata[0].keys())):
     logger.info("-- Processing %s" % channel)
@@ -347,6 +356,9 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     else:
         effdt = efficiencypc/deadtimepc
     logger.info("Efficiency/Deadtime: %.2f" % effdt)
+    
+    if abs(scatter_segments[channel].active):    
+          actives.extend(scatter_segments[channel].active)
 
     # finalize plot
     logger.debug("Plotting")
@@ -472,8 +484,8 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
         page.tr.close()
         page.tr()
         page.th('Efficiency<br><small>(SNR&ge;8 and '
-                'f<sub>peak</sub>&lt;%.2f Hz)</small>'
-                % (2 * args.frequency_threshold))
+                '%.2f Hz</sub>&ltf<sub>peak</sub>&lt;%.2f Hz)</small>'
+                % (10, 4 * args.frequency_threshold))
         page.td('%d/%d events' % (efficiency, len(highsnrtrigs)))
         page.td('%.2f%%' % efficiencypc)
         page.tr.close()
@@ -496,6 +508,15 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
 
 # close panel group
 page.div.close()
+
+# write a csv file.  
+logger.debug('Writing a summary CSV record')
+
+actives = actives.coalesce() # merge contigous segments 
+gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
+segs = [tuple(y) for x in highsnrtrigs[names[0]] for y in actives if x in y]
+data = Table([gps, segs], names=['trigger_time', 'segment'])
+data.write(summfile, overwrite=True, fast_writer=False)                         
 
 # -- finalize -----------------------------------------------------------------
 
