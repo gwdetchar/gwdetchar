@@ -124,6 +124,8 @@ os.chdir(args.output_dir)
 
 segfile = '%s-SCATTERING_SEGMENTS_%s_HZ-%s.h5' % (args.ifo, tstr, gpsstr)
 
+summfile = 'summary.csv'
+
 logger.info('{} Scattering {}-{}'.format(
     args.ifo, int(args.gpsstart), int(args.gpsend)))
 
@@ -230,6 +232,14 @@ page.p()
 page.add('The full output segments are recorded in HDF5 format here:')
 page.a(os.path.basename(segfile), href=segfile, target='_blank')
 page.p.close()
+
+#link summary file
+page.h3('Summary')
+page.p()
+page.add('The Scattering summary is recorded in a csv format here:')
+page.a(os.path.basename(summfile), href=summfile, target='_blank')
+page.p.close()
+
 # record state segments
 if args.state_flag is not None:
     page.p('This analysis was executed over the following segments:')
@@ -506,7 +516,7 @@ logger.debug('Writing a summary CSV record')
 
 actives = actives.coalesce() # merge contigous segments 
 gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
-segs =  [tuple(y) for x in highsnrtrigs[names[0]] for y in actives if x in y]
+segs = [tuple(y) for x in highsnrtrigs[names[0]] for y in actives if x in y]
 data = Table([gps, segs], names=['trigger_time', 'segment'])
 data.write('summary.csv', overwrite=True, fast_writer=False)                         
 
