@@ -518,7 +518,7 @@ actives = actives.coalesce() # merge contigous segments
 gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
 segs = [tuple(y) for x in highsnrtrigs[names[0]] for y in actives if x in y]
 data = Table([gps, segs], names=['trigger_time', 'segment'])
-data.write('summary.csv', overwrite=True, fast_writer=False)                         
+data.write(summfile, overwrite=True, fast_writer=False)                         
 
 # -- finalize -----------------------------------------------------------------
 
