@@ -218,10 +218,11 @@ page = htmlio.new_bootstrap_page(title='%s Scattering' % args.ifo)
 page.div(class_='page-header')
 page.h1('%s scattering: %d-%d'
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
-page.p("This analysis searched for evidence of beam scattering based on the "
-       "velocity of optic motion. The fringe frequency is predicted using "
-       "equation (3) of <a href=\"http://iopscience.iop.org/article/10.1088/"
-       "0264-9381/27/19/194011\" target=\"_blank\">Accadia et al. (2010)</a>.")
+page.p("This analysis searched for evidence of beam scattering between 10-{} "
+       "Hz based on the velocity of optic motion. The fringe frequency is "
+       "predicted using equation (3) of <a href=\"http://iopscience.iop.org/"
+       "article/10.1088/0264-9381/27/19/194011\" target=\"_blank\">Accadia "
+       "et al. (2010)</a>.".format(4 * args.frequency_threshold))
 page.div.close()
 page.add(htmlio.write_arguments(
     [], start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag))
