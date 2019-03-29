@@ -177,16 +177,12 @@ if os.path.exists(summary) and not args.disable_checkpoint:
         os.path.abspath(summary)))
     record = Table.read(summary)
     completed = list(record['Channel'])
-    if not args.disable_correlation:
-        try:
-            check_corr = record[0]['Standard Deviation']
-        except KeyError:
-            raise KeyError(
-                'Cross-correlation is not available from this record, '
-                'consider running without correlation or starting from '
-                'scratch with --disable-checkpoint')
-        else:
-            pass
+    if not args.disable_correlation and ('Standard Deviation'
+                                         not in record.colnames):
+        raise KeyError(
+            'Cross-correlation is not available from this record, '
+            'consider running without correlation or starting from '
+            'scratch with --disable-checkpoint')
 else:
     record = []
     completed = []
