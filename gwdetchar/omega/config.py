@@ -345,7 +345,7 @@ class OmegaChannel(Channel):
         """
         # save parameters
         self.Q = table['Q']
-        self.energy = numpy.around(table['Energy'], 1)
+        self.energy = table['Energy']
         self.snr = table['SNR']
         self.t = table['Central Time']
         self.f = table['Central Frequency (Hz)']

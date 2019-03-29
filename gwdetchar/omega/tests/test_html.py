@@ -59,7 +59,7 @@ HTML_HEADER = """<header class="navbar navbar-fixed-top navbar-l1">
 GW <b class="caret"></b>
 </a>
 <ul class="dropdown-menu" style="max-height: 700px; overflow-y: scroll;">
-<li class="dropdown-header">Gravitational Wave Strain</li>
+<li class="dropdown-header">Gravitational-Wave Strain</li>
 <li>
 <a href="#x1-test-aux">X1:TEST-AUX</a>
 </li>
@@ -100,7 +100,7 @@ channel = X1:TEST-STRAIN
 
 [GW]
 ; name of this block, which contains h(t)
-name = Gravitational Wave Strain
+name = Gravitational-Wave Strain
 q-range = 3.3166,150.0
 frequency-range = 4.0,1024
 resample = 4096
@@ -127,7 +127,7 @@ GW = BLOCKS['GW']
 
 # set analyzed channel list
 ANALYZED = {'GW': {
-    'name': 'Gravitational Wave Strain',
+    'name': 'Gravitational-Wave Strain',
     'channels': GW.channels,
 }}
 for channel in ANALYZED['GW']['channels']:
@@ -145,7 +145,7 @@ BLOCK_HTML = """<div class="panel well panel-info">
 <div class="pull-right">
 <a href="#" class="text-info"><small>[top]</small></a>
 </div>
-<h3 class="panel-title">GW: Gravitational Wave Strain</h3>
+<h3 class="panel-title">GW: Gravitational-Wave Strain</h3>
 </div>
 <ul class="list-group">
 <li class="list-group-item">
