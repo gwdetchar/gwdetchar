@@ -70,9 +70,12 @@ cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
 parser.add_argument('-a', '--state-flag', metavar='FLAG', default=None,
                     help='restrict search to times when FLAG was active')
-parser.add_argument('-t', '--frequency-threshold', type=float, default=40.,
-                    help='critical fringe frequency threshold (in Hertz), '
-                         'default: 10')
+parser.add_argument('-z', '--fmin', metavar='FMIN', type=float, default=10.,
+                    help='minimum frequency (Hz) of triggers, '
+                         'default: %(default)s')
+parser.add_argument('-t', '--frequency-threshold', type=float, default=15.,
+                    help='critical fringe frequency threshold (Hz), '
+                         'default: %(default)s')
 parser.add_argument('-x', '--multiplier-for-threshold', type=int,
                     default=4, choices=scattering.FREQUENCY_MULTIPLIERS,
                     help='fringe frequency multiplier to use when applying '
@@ -109,6 +112,7 @@ logger = cli.logger(
     level='DEBUG' if args.verbose else 'INFO',
 )
 
+multiplier = args.multiplier_for_threshold
 if args.frequency_threshold.is_integer():
     args.frequency_threshold = int(args.frequency_threshold)
 
@@ -165,7 +169,8 @@ if args.gpsstart >= 1230336018:  # Jan 1 2019
     read_kw = {
         "columns": names,
         "selection": [
-            "{0} < frequency < {1}".format(10, args.frequency_threshold * 4),
+            "{0} < frequency < {1}".format(
+                args.fmin, multiplier * args.frequency_threshold),
             ("time", in_segmentlist, statea),
         ],
         "format": "hdf5",
@@ -185,7 +190,7 @@ else:
         "columns": names,
         "selection": [
             "{0} < peak_frequency < {1}".format(
-                10, args.frequency_threshold * 4),
+                args.fmin, multiplier * args.frequency_threshold),
             ('peak', in_segmentlist, statea),
         ],
         "format": 'ligolw',
@@ -216,13 +221,14 @@ logger.debug("%d read" % len(trigs))
 
 page = htmlio.new_bootstrap_page(title='%s Scattering' % args.ifo)
 page.div(class_='page-header')
-page.h1('%s scattering: %d-%d'
+page.h1('%s Scattering: %d-%d'
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
-page.p("This analysis searched for evidence of beam scattering between 10-{} "
-       "Hz based on the velocity of optic motion. The fringe frequency is "
+page.p("This analysis searched for evidence of beam scattering between {} and "
+       "{} Hz based on the velocity of optic motion. The fringe frequency is "
        "predicted using equation (3) of <a href=\"http://iopscience.iop.org/"
        "article/10.1088/0264-9381/27/19/194011\" target=\"_blank\">Accadia "
-       "et al. (2010)</a>.".format(4 * args.frequency_threshold))
+       "et al. (2010)</a>.".format(args.fmin,
+                                   multiplier * args.frequency_threshold))
 page.div.close()
 page.add(htmlio.write_arguments(
     [], start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag))
@@ -318,12 +324,12 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
             histdata[m].resize((histdata[m].size + fm.size,))
             histdata[m][-fm.size:] = fm.value
         # get segments and plot
-        if ((fringef * args.multiplier_for_threshold).value.max() <
+        if ((fringef * multiplier).value.max() <
                 args.frequency_threshold):
             scatter = DataQualityFlag(flag, known=[ts.span])
         else:
             scatter = (
-                fringef * args.multiplier_for_threshold >=
+                fringef * multiplier >=
                 args.frequency_threshold * fringef.unit).to_dqflag(name=flag)
             scatter.active = scatter.active.protract(args.segment_padding)
             scatter.coalesce()
@@ -378,7 +384,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     axes['fringef'].set_ylabel(r'Frequency [Hz]')
     axes['fringef'].yaxis.tick_right()
     axes['fringef'].yaxis.set_label_position("right")
-    axes['fringef'].set_ylim(10, 4 * args.frequency_threshold)
+    axes['fringef'].set_ylim(args.fmin, multiplier * args.frequency_threshold)
     axes['fringef'].text(
         0.01, 0.95, 'Calculated fringe frequency',
         transform=axes['fringef'].transAxes, va='top', ha='left',
@@ -403,13 +409,14 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
         transform=axes['triggers'].transAxes, va='top', ha='left',
         bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
     axes['triggers'].set_ylabel('Frequency [Hz]')
-    axes['triggers'].set_ylim(10, 4 * args.frequency_threshold)
+    axes['triggers'].set_ylim(args.fmin, multiplier * args.frequency_threshold)
     axes['triggers'].colorbar(cmap='YlGnBu', clim=(3, 100), norm='log',
                               label='Signal-to-noise ratio')
     axes['segments'].set_ylim(-.55, .55)
     axes['segments'].text(
         0.01, 0.95,
-        r'Time segments with $f\times4 > %.2f$ Hz' % args.frequency_threshold,
+        r'Time segments with $f\times%d > %.2f$ Hz' % (
+            multiplier, args.frequency_threshold),
         transform=axes['segments'].transAxes, va='top', ha='left',
         bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
     for ax in axes.values():
@@ -420,7 +427,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
         plot.save(png)
     except OverflowError as e:
         warnings.warn(str(e))
-        plot.axes[1].set_ylim(0, args.frequency_threshold * 4)
+        plot.axes[1].set_ylim(0, multiplier * args.frequency_threshold)
         plot.refresh()
         plot.save(png)
     plot.close()
@@ -429,7 +436,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     # make histogram
     histogram = Plot(figsize=[12, 6])
     ax = histogram.gca()
-    hrange = (10, 4 * args.frequency_threshold)
+    hrange = (args.fmin, multiplier * args.frequency_threshold)
     for m, color in list(zip(histdata, fringecolors))[::-1]:
         if histdata[m].size:
             ax.hist(
@@ -455,8 +462,8 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     if deadtime != 0 and effdt > 2:
         context = 'danger'
     elif ((deadtime != 0 and effdt < 2) or
-          (histdata[args.multiplier_for_threshold].size and
-           histdata[args.multiplier_for_threshold].max() >=
+          (histdata[multiplier].size and
+           histdata[multiplier].max() >=
               args.frequency_threshold/2.)):
         context = 'warning'
     else:
@@ -487,7 +494,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
         page.tr()
         page.th('Efficiency<br><small>(SNR&ge;8 and '
                 '%.2f Hz</sub>&ltf<sub>peak</sub>&lt;%.2f Hz)</small>'
-                % (10, 4 * args.frequency_threshold))
+                % (args.fmin, multiplier * args.frequency_threshold))
         page.td('%d/%d events' % (efficiency, len(highsnrtrigs)))
         page.td('%.2f%%' % efficiencypc)
         page.tr.close()
