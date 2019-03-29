@@ -67,6 +67,9 @@ parser.add_argument('--colormap', default='viridis',
 parser.add_argument('-d', '--disable-correlation', action='store_true',
                     default=False, help='disable cross-correlation of aux '
                                         'channels, default: False')
+parser.add_argument('-D', '--disable-checkpoint', action='store_true',
+                    default=False, help='disable checkpointing from previous '
+                                        'runs, default: False')
 parser.add_argument('-t', '--far-threshold', type=float, default=3.171e-8,
                     help='white noise false alarm rate threshold (Hz) for '
                          'processing channels, default: %(default)s')
@@ -189,6 +192,8 @@ arguments.extend(("--far-threshold", str(args.far_threshold)))
 arguments.extend(("--nproc", str(args.nproc)))
 if args.disable_correlation:
     arguments.append("--disable-correlation")
+if args.disable_checkpoint:
+    arguments.append("--disable-checkpoint")
 if args.ignore_state_flags:
     arguments.append("--ignore-state-flags")
 
