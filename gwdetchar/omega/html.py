@@ -110,6 +110,35 @@ OBSERVATORY_MAP = {
 
 # -- HTML construction --------------------------------------------------------
 
+def update_toc(toc, channel, name='GW'):
+    """Add a channel to the page table of contents
+
+    Parameters
+    ----------
+    toc : `dict`
+        dictionary used as table of contents for a bootstrap page
+
+    channel : `OmegaChannel`
+        channel to be added to `toc`
+
+    name : `str`, optional
+        name of a channel's block, default: `'GW'`
+
+    Returns
+    -------
+    out : `dict`
+        the updated dictionary
+    """
+    out = toc
+    try:  # update analyzed dict
+        out[channel.section]['channels'].append(channel)
+    except KeyError:
+        out[channel.section] = {
+            'name': name,
+            'channels': [channel]}
+    return out
+
+
 def navbar(ifo, gpstime, toc={}):
     """Initialise a new `markup.page`
     This method constructs an HTML page with the following structure
@@ -314,7 +343,7 @@ def write_summary_table(blocks, correlated, base=os.path.curdir):
     # record summary data for each channel
     channel, time, freq, Q, energy, snr = ([], [], [], [], [], [])
     if correlated:
-        corr, delay = ([], [])
+        corr, stdev, delay = ([], [], [])
     for block in blocks.values():
         for chan in block['channels']:
             channel.append(chan.name)
@@ -325,13 +354,14 @@ def write_summary_table(blocks, correlated, base=os.path.curdir):
             snr.append(chan.snr)
             if correlated:
                 corr.append(chan.corr)
+                stdev.append(chan.stdev)
                 delay.append(chan.delay)
     # store in a table
     if correlated:
-        data = Table([channel, time, freq, Q, energy, snr, corr, delay],
+        data = Table([channel, time, freq, Q, energy, snr, corr, stdev, delay],
                      names=('Channel', 'Central Time',
                             'Central Frequency (Hz)', 'Q', 'Energy', 'SNR',
-                            'Correlation', 'Delay (ms)'))
+                            'Correlation', 'Standard Deviation', 'Delay (ms)'))
     else:
         data = Table([channel, time, freq, Q, energy, snr], names=(
             'Channel', 'Central Time', 'Central Frequency (Hz)', 'Q', 'Energy',

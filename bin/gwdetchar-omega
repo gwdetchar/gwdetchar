@@ -51,6 +51,7 @@ import sys
 import warnings
 import numpy
 
+from gwpy.table import Table
 from gwpy.time import to_gps
 
 from matplotlib import use
@@ -80,6 +81,9 @@ parser.add_argument('-f', '--config-file', action='append', default=None,
 parser.add_argument('-d', '--disable-correlation', action='store_true',
                     default=False, help='disable cross-correlation of aux '
                                         'channels, default: False')
+parser.add_argument('-D', '--disable-checkpoint', action='store_true',
+                    default=False, help='disable checkpointing from previous '
+                                        'runs, default: False')
 parser.add_argument('-s', '--ignore-state-flags', action='store_true',
                     default=False, help='ignore state flag definitions in '
                                         'the configuration, default: False')
@@ -153,7 +157,7 @@ outdir = os.path.abspath(outdir)
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
 os.chdir(outdir)
-logger.debug("Output directory created as {}".format(outdir))
+logger.debug('Output directory created as {}'.format(outdir))
 
 
 # -- Compute Qscan ------------------------------------------------------------
@@ -165,6 +169,23 @@ datadir = 'data'
 for d in [plotdir, aboutdir, datadir]:
     if not os.path.isdir(d):
         os.makedirs(d)
+
+# determine checkpoints
+summary = os.path.join(datadir, 'summary.csv')
+if os.path.exists(summary) and not args.disable_checkpoint:
+    logger.debug('Checkpointing from {}'.format(
+        os.path.abspath(summary)))
+    record = Table.read(summary)
+    completed = list(record['Channel'])
+    if not args.disable_correlation and ('Standard Deviation'
+                                         not in record.colnames):
+        raise KeyError(
+            'Cross-correlation is not available from this record, '
+            'consider running without correlation or starting from '
+            'scratch with --disable-checkpoint')
+else:
+    record = []
+    completed = []
 
 # set up html output
 logger.debug('Setting up HTML at {}/index.html'.format(outdir))
@@ -217,9 +238,21 @@ for block in blocks.values():
         chans, start, end, frametype=block.frametype, source=block.source,
         nproc=args.nproc, verbose='Reading block:'.rjust(30))
 
-    # scan individual channels
+    # process individual channels
     for channel in block.channels:
-        try:
+        if channel.name in completed:  # load checkpoint
+            logger.info(' -- Checkpointing {} from a previous '
+                        'run'.format(channel.name))
+            cindex = completed.index(channel.name)
+            channel.load_loudest_tile_features(
+                record[cindex], correlated=correlate is not None)
+            analyzed = html.update_toc(analyzed, channel,
+                                       name=blocks[channel.section].name)
+            htmlv['toc'] = analyzed
+            html.write_qscan_page(ifo, gps, analyzed, **htmlv)
+            continue
+
+        try:  # scan the channel
             logger.info(' -- Scanning channel {}'.format(channel.name))
             series = omega.scan(
                 gps, channel, data[channel.name].astype('float64'), fftlength,
@@ -248,11 +281,8 @@ for block in blocks.values():
         else:
             channel.save_loudest_tile_features(series[3])
 
-        try:  # update analyzed dict
-            analyzed[channel.section]['channels'].append(channel)
-        except KeyError:
-            analyzed[channel.section] = {'name': blocks[channel.section].name,
-                                         'channels': [channel]}
+        analyzed = html.update_toc(analyzed, channel,
+                                   name=blocks[channel.section].name)
         htmlv['toc'] = analyzed
         html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 

@@ -322,6 +322,38 @@ class OmegaChannel(Channel):
             delay = (corr.t0 + corr.argmax() * corr.dt).value - gps
             self.delay = int(delay * 1000)  # convert to ms
 
+    def load_loudest_tile_features(self, table, correlated=False):
+        """Load properties of the loudest time-frequency tile from a table
+
+        Parameters
+        ----------
+        table : `~gwpy.table.Table`
+            table of properties of the loudest time-frequency tile
+
+        correlated : `bool`, optional
+            boolean switch to determine if cross-correlation properties are
+            included, default: `False`
+
+        Notes
+        -----
+        Attributes stored in-place include `Q`, `energy`, `snr`, `t`, and `f`,
+        all corresponding to the columns contained in `table`.
+
+        If `correlated` is not `None` then the maximum correlation amplitude,
+        relative time delay, and standard deviation are stored as attributes
+        `corr`, `delay`, and `stdev`, respectively.
+        """
+        # save parameters
+        self.Q = table['Q']
+        self.energy = table['Energy']
+        self.snr = table['SNR']
+        self.t = table['Central Time']
+        self.f = table['Central Frequency (Hz)']
+        if correlated:
+            self.corr = table['Correlation']
+            self.stdev = table['Standard Deviation']
+            self.delay = table['Delay (ms)']
+
 
 class OmegaChannelList(object):
     """A conceptual list of `OmegaChannel` objects with common signal

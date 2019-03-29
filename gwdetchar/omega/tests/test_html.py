@@ -100,7 +100,7 @@ channel = X1:TEST-STRAIN
 
 [GW]
 ; name of this block, which contains h(t)
-name = Gravitational Wave Strain
+name = Gravitational-Wave Strain
 q-range = 3.3166,150.0
 frequency-range = 4.0,1024
 resample = 4096
@@ -228,6 +228,15 @@ Eventgram view <span class="caret"></span>
 
 
 # -- unit tests ---------------------------------------------------------------
+
+def test_update_toc():
+    toc = html.update_toc(dict(), GW.channels[0], GW.name)
+    assert toc.keys() == ANALYZED.keys()
+    assert toc['GW'].keys() == ANALYZED['GW'].keys()
+    assert len(toc['GW']['channels']) == len(ANALYZED['GW']['channels'])
+    assert toc['GW']['channels'][0].name == ANALYZED['GW']['channels'][0].name
+    assert toc['GW']['name'] == ANALYZED['GW']['name']
+
 
 def test_navbar():
     page = html.navbar('L1', 0, toc=ANALYZED)
