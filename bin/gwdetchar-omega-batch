@@ -106,9 +106,6 @@ cargs.add_argument('--condor-command', action='append', default=[],
 
 args = parser.parse_args()
 
-# set up logger
-logger = cli.logger(name=os.path.basename(__file__))
-
 # set up output directory
 outdir = os.path.abspath(os.path.expanduser(args.output_dir))
 
@@ -205,17 +202,17 @@ for t in times:
 
 # write DAG
 dagman.build(fancyname=False)
-logger.info("Workflow generated for {} times".format(len(times)))
+print("Workflow generated for {} times".format(len(times)))
 if args.submit:
     dagman.submit_dag(submit_options="-force")
 else:
-    logger.info(
+    print(
         "Submit to condor via:\n\n"
         "$ condor_submit_dag {0.submit_file}".format(dagman),
     )
 
 if args.submit and args.monitor:
-    logger.info("Monitoring progress of {0.submit_file}".format(dagman))
+    print("Monitoring progress of {0.submit_file}".format(dagman))
     try:
         subprocess.check_call(
             ["pycondor", "monitor", dagman.submit_file],
