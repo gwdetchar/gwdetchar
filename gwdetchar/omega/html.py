@@ -110,6 +110,35 @@ OBSERVATORY_MAP = {
 
 # -- HTML construction --------------------------------------------------------
 
+def update_toc(toc, channel, name='GW'):
+    """Add a channel to the page table of contents
+
+    Parameters
+    ----------
+    toc : `dict`
+        dictionary used as table of contents for a bootstrap page
+
+    channel : `OmegaChannel`
+        channel to be added to `toc`
+
+    name : `str`, optional
+        name of a channel's block, default: `'GW'`
+
+    Returns
+    -------
+    out : `dict`
+        the updated dictionary
+    """
+    out = toc
+    try:  # update analyzed dict
+        out[channel.section]['channels'].append(channel)
+    except KeyError:
+        out[channel.section] = {
+            'name': name,
+            'channels': [channel]}
+    return out
+
+
 def navbar(ifo, gpstime, toc={}):
     """Initialise a new `markup.page`
     This method constructs an HTML page with the following structure

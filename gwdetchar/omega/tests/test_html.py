@@ -59,7 +59,7 @@ HTML_HEADER = """<header class="navbar navbar-fixed-top navbar-l1">
 GW <b class="caret"></b>
 </a>
 <ul class="dropdown-menu" style="max-height: 700px; overflow-y: scroll;">
-<li class="dropdown-header">Gravitational-Wave Strain</li>
+<li class="dropdown-header">Gravitational Wave Strain</li>
 <li>
 <a href="#x1-test-aux">X1:TEST-AUX</a>
 </li>
@@ -127,7 +127,7 @@ GW = BLOCKS['GW']
 
 # set analyzed channel list
 ANALYZED = {'GW': {
-    'name': 'Gravitational-Wave Strain',
+    'name': 'Gravitational Wave Strain',
     'channels': GW.channels,
 }}
 for channel in ANALYZED['GW']['channels']:
@@ -145,7 +145,7 @@ BLOCK_HTML = """<div class="panel well panel-info">
 <div class="pull-right">
 <a href="#" class="text-info"><small>[top]</small></a>
 </div>
-<h3 class="panel-title">GW: Gravitational-Wave Strain</h3>
+<h3 class="panel-title">GW: Gravitational Wave Strain</h3>
 </div>
 <ul class="list-group">
 <li class="list-group-item">
@@ -228,6 +228,15 @@ Eventgram view <span class="caret"></span>
 
 
 # -- unit tests ---------------------------------------------------------------
+
+def test_update_toc():
+    toc = html.update_toc(dict(), GW.channels[0], GW.name)
+    assert toc.keys() == ANALYZED.keys()
+    assert toc['GW'].keys() == ANALYZED['GW'].keys()
+    assert len(toc['GW']['channels']) == len(ANALYZED['GW']['channels'])
+    assert toc['GW']['channels'][0].name == ANALYZED['GW']['channels'][0].name
+    assert toc['GW']['name'] == ANALYZED['GW']['name']
+
 
 def test_navbar():
     page = html.navbar('L1', 0, toc=ANALYZED)

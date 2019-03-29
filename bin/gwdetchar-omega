@@ -246,12 +246,8 @@ for block in blocks.values():
             cindex = completed.index(channel.name)
             channel.load_loudest_tile_features(
                 record[cindex], correlated=correlate is not None)
-            try:  # update analyzed dict
-                analyzed[channel.section]['channels'].append(channel)
-            except KeyError:
-                analyzed[channel.section] = {
-                    'name': blocks[channel.section].name,
-                    'channels': [channel]}
+            analyzed = html.update_toc(analyzed, channel,
+                                       name=blocks[channel.section].name)
             htmlv['toc'] = analyzed
             html.write_qscan_page(ifo, gps, analyzed, **htmlv)
             continue
@@ -285,11 +281,8 @@ for block in blocks.values():
         else:
             channel.save_loudest_tile_features(series[3])
 
-        try:  # update analyzed dict
-            analyzed[channel.section]['channels'].append(channel)
-        except KeyError:
-            analyzed[channel.section] = {'name': blocks[channel.section].name,
-                                         'channels': [channel]}
+        analyzed = html.update_toc(analyzed, channel,
+                                   name=blocks[channel.section].name)
         htmlv['toc'] = analyzed
         html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 
