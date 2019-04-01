@@ -56,7 +56,7 @@ FIELD_STYLES = {
 NOW = datetime.datetime.now()
 TIMEZONE = reference.LocalTimezone().tzname(NOW)
 
-DATEFMT = '%Y-%m-%d %H:%M {}'.format(TIMEZONE)
+DATEFMT = '%Y-%m-%d %H:%M:%S {}'.format(TIMEZONE)
 FMT = '%(name)s %(asctime)s %(levelname)+8s: %(message)s'
 
 
