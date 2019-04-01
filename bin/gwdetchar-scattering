@@ -547,8 +547,9 @@ nscans = min(args.omega_scans, len(table))
 if nscans > 0:
     # launch scans
     ind = random.sample(range(0, len(table)), nscans)
-    omegatimes = table['trigger_time'][ind]
-    logger.debug('Collected {} events to omega scan'.format(nscans))
+    omegatimes = [str(t) for t in table['trigger_time'][ind]]
+    logger.debug('Collected {} event times to omega scan: {}'.format(
+        nscans, omegatimes))
     logger.info('Creating workflow for omega scans')
     batch = [find_executable('gwdetchar-omega-batch')] + omegatimes + [
         '--ignore-state-flags',
