@@ -571,6 +571,9 @@ if nscans > 0:
     for t in omegatimes:
         page.div(class_='panel panel-default')
         page.div(class_='panel-heading clearfix')
+        page.div(class_='pull-right')
+        page.a("[full scan]", href='scans', class_='text-dark')
+        page.div.close()  # pull-right
         page.h3(str(t))
         page.div.close()  # panel-heading
         page.div(class_='container')
