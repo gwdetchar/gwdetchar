@@ -547,9 +547,9 @@ nscans = min(args.omega_scans, len(table))
 if nscans > 0:
     # launch scans
     ind = random.sample(range(0, len(table)), nscans)
-    omegatimes = [str(t) for t in table['trigger_time'][ind]]
+    omegatimes = ['%.2f' % t for t in table['trigger_time'][ind]]
     logger.debug('Collected {} event times to omega scan: {}'.format(
-        nscans, omegatimes))
+        nscans, ', '.join(omegatimes)))
     logger.info('Creating workflow for omega scans')
     batch = [find_executable('gwdetchar-omega-batch')] + omegatimes + [
         '--ignore-state-flags',
@@ -569,24 +569,35 @@ if nscans > 0:
 
     # render HTML
     page.h2('Omega Scans')
+    page.p('The following event times correspond to significant Omicron '
+           'triggers that occurr during the scattering segments found above:')
+    page.div(class_='panel well panel-default')
+    page.div(class_='panel-heading clearfix')
+    page.h3(htmlio.cis_link(args.main_channel), class_='panel-title')
+    page.div.close()  # panel-heading
+    page.ul(class_='list-group')
     for t in omegatimes:
-        page.div(class_='panel panel-default')
-        page.div(class_='panel-heading clearfix')
-        page.div(class_='pull-right')
-        page.a("[full scan]", href='scans', class_='text-dark')
-        page.div.close()  # pull-right
-        page.h3(str(t))
-        page.div.close()  # panel-heading
+        page.li(class_='list-group-item')
         page.div(class_='container')
-        chan = args.main_channel.replace(':', '-')
+        page.div(class_='row')
+        page.div(class_='pull-right')
+        page.a("<small>[full scan]</small>",
+           href='scans/{}'.format(t),
+           class_='text-dark')
+        page.div.close()  # pull-right
+        page.h4(t)
+        page.div.close()  # row
+        chanstr = args.main_channel.replace('-', '_').replace(':', '-')
         plots = [
             'scans/{}/plots/{}-qscan_whitened-{}.png'.format(
-                t, chan, dur) for dur in [1, 4, 16]]
+                t, chanstr, dur) for dur in [1, 4, 16]]
         page.add(htmlio.scaffold_plots(
             [htmlio.FancyPlot(plot) for plot in plots],
             nperrow=3))
         page.div.close()  # container
-        page.div.close()  # panel
+        page.li.close()  # list-group-item
+    page.ul.close()  # list-group
+    page.div.close()  # panel
 
 elif args.omega_scans:
     logger.info('No events found during active scattering segments')
