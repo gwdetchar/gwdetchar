@@ -484,8 +484,7 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     return page()
 
 
-def write_footer(about=None, link=None, issues=None, content=None,
-                 linkstyle='color:#eee;'):
+def write_footer(about=None, link=None, issues=None, content=None):
     """Write a <footer> for a bootstrap page
 
     Parameters
@@ -502,9 +501,6 @@ def write_footer(about=None, link=None, issues=None, content=None,
     content : `str` or `~MarkupPy.markup.page`, optional
         additional footer content
 
-    linkstyle : `str`, optional
-        style options for rendering `link`
-
     Returns
     -------
     page : `~MarkupPy.markup.page`
@@ -520,11 +516,11 @@ def write_footer(about=None, link=None, issues=None, content=None,
         commit = get_versions()['full-revisionid']
         url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
         link = markup.oneliner.a('View gwdetchar-{} on GitHub'.format(version),
-                                 href=url, target='_blank', style=linkstyle)
+                                 href=url, target='_blank')
     if issues is None:
         report = 'https://github.com/gwdetchar/gwdetchar/issues'
         issues = markup.oneliner.a('Report an issue', href=report,
-                                  target='_blank', style=linkstyle)
+                                  target='_blank')
     page.div(class_='row')
     page.div(class_='col-md-12')
     now = datetime.datetime.now()
@@ -535,7 +531,7 @@ def write_footer(about=None, link=None, issues=None, content=None,
     page.p('{link} | {issues}'.format(link=link, issues=issues))
     # link to 'about'
     if about is not None:
-        page.a('How was this page generated?', href=about, style=linkstyle)
+        page.a('How was this page generated?', href=about)
     # extra content
     if isinstance(content, markup.page):
         page.add(str(content))
