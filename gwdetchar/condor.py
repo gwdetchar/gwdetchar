@@ -45,6 +45,22 @@ def accounting_epoch(gpstime):
     return epoch
 
 
+def is_valid(tag, path=ACCOUNTING_GROUPS_FILE):
+    """Determine whether an accounting tag is valid, and raise an exception
+    if not
+    """
+    try:
+        valid = validate_accounting_tag(tag, path=path)
+    except EnvironmentError:
+        valid = True  # failed to load condor tags, not important
+    if not valid:
+        listtags = 'cat {0} | json_pp | less'.format(path)
+        raise ValueError("condor accounting tag {0!r} recognised, to see the "
+                         "list of valid groups, run `{1}`".format(
+                             condor_accounting_group, listtags))
+    return valid
+
+
 def validate_accounting_tag(tag, path=ACCOUNTING_GROUPS_FILE):
     """Validate a given accounting tag
 
