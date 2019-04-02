@@ -55,9 +55,9 @@ def is_valid(tag, path=ACCOUNTING_GROUPS_FILE):
         valid = True  # failed to load condor tags, not important
     if not valid:
         listtags = 'cat {0} | json_pp | less'.format(path)
-        raise ValueError("condor accounting tag {0!r} recognised, to see the "
-                         "list of valid groups, run `{1}`".format(
-                             condor_accounting_group, listtags))
+        raise ValueError("condor accounting tag {0!r} not recognised, to see "
+                         "the list of valid groups, please run `{1}`".format(
+                             tag, listtags))
     return valid
 
 

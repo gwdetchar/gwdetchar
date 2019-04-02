@@ -80,7 +80,7 @@ def get_condor_arguments(accounting_group=ACCOUNTING_GROUP,
     if timeout:
         condorcmds.append("periodic_remove = {}".format(
             'CurrentTime-EnteredCurrentStatus > {}'.format(
-                3600 * args.condor_timeout),
+                3600 * timeout),
         ))
     condorcmds.extend(extra_commands)
     return condorcmds

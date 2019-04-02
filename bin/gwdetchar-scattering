@@ -25,11 +25,9 @@ from __future__ import division
 import os.path
 import re
 import random
-import subprocess
 import warnings
 
 from six.moves import StringIO
-from distutils.spawn import find_executable
 
 import numpy
 
@@ -48,6 +46,7 @@ from gwpy.segments import (DataQualityFlag, DataQualityDict,
 from gwdetchar import (cli, const, scattering)
 from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
+from gwdetchar.omega import batch
 from gwdetchar.plot import get_gwpy_tex_settings
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -551,15 +550,10 @@ if nscans > 0:
     logger.debug('Collected {} event times to omega scan: {}'.format(
         nscans, ', '.join(omegatimes)))
     logger.info('Creating workflow for omega scans')
-    batch = [find_executable('gwdetchar-omega-batch')] + omegatimes + [
-        '--ignore-state-flags',
-        '--output-dir', 'scans',
-        '--ifo', args.ifo,
-        '--condor-timeout', str(4),
-        '--submit'
-    ]
-    logger.debug("$ {}".format(" ".join(batch)))
-    subprocess.check_call(cmd)
+    flags = batch.get_command_line_flags(ifo=args.ifo, ignore_state_flags=True)
+    condorcmds = batch.get_condor_arguments(timeout=4, gps=args.gpsstart)
+    dagman = batch.generate_dag(omegatimes, flags=flags, submit=True,
+                                outdir='scans', condor_commands=condorcmds)
     logger.info('Launched {} omega scans to condor, check their progress '
                 'with condor_q'.format(nscans))
 
