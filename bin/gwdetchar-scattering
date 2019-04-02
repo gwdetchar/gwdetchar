@@ -559,11 +559,7 @@ if nscans > 0:
         '--submit'
     ]
     logger.debug("$ {}".format(" ".join(batch)))
-    proc = subprocess.Popen(batch)
-    out, err = proc.communicate()
-    if proc.returncode:
-        raise subprocess.CalledProcessError(
-            proc.returncode, ' '.join(batch))
+    subprocess.check_call(cmd)
     logger.info('Launched {} omega scans to condor, check their progress '
                 'with condor_q'.format(nscans))
 
