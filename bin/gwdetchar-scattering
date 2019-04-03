@@ -546,7 +546,7 @@ nscans = min(args.omega_scans, len(table))
 if nscans > 0:
     # launch scans
     ind = random.sample(range(0, len(table)), nscans)
-    omegatimes = [str(t) for t in table['trigger_time'][ind]]
+    omegatimes = list(table['trigger_time'][ind])
     logger.debug('Collected {} event times to omega scan: {}'.format(
         nscans, ', '.join(omegatimes)))
     logger.info('Creating workflow for omega scans')
@@ -554,8 +554,7 @@ if nscans > 0:
     condorcmds = batch.get_condor_arguments(timeout=4, gps=args.gpsstart)
     dagman = batch.generate_dag(omegatimes, flags=flags, submit=True,
                                 outdir='scans', condor_commands=condorcmds)
-    logger.info('Launched {} omega scans to condor, check their progress '
-                'with condor_q'.format(nscans))
+    logger.info('Launched {} omega scans to condor'.format(nscans))
 
     # render HTML
     page.h2('Omega Scans')

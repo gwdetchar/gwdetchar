@@ -89,7 +89,7 @@ def get_condor_arguments(accounting_group=ACCOUNTING_GROUP,
 def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
                  submit=False, outdir=os.getcwd(), universe='vanilla',
                  condor_commands=get_condor_arguments()):
-    """Construct a Directed Acyclic Graph (DAG)
+    """Construct a Directed Acyclic Graph (DAG) for a batch of omega scans
 
     Parameters
     ----------
@@ -105,7 +105,7 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
         default: `'gwdetchar-omega-batch'`
 
     submit : `bool`, optional
-        whether to submit the DAG to condor, default: `False`
+        submit the DAG to condor, default: `False`
 
     outdir : `str`, optional
         the output directory in which to store files, will result in
@@ -114,8 +114,8 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
     universe : `str`, optional
         condor universe to run in, default: `'vanilla'`
 
-    condor_arguments : `list` of `str`, optional
-        list of Condor settings to process with, defaults to the output of
+    condor_commands : `list` of `str`, optional
+        list of condor settings to process with, defaults to the output of
         `get_condor_arguments`
 
     Returns
@@ -150,6 +150,10 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
     print("Workflow generated for {} times".format(len(times)))
     if submit:
         dagman.submit_dag(submit_options="-force")
+        print(
+            "Submitted to condor, check status via:\n\n"
+            "$ condor_q {}".format(getuser())
+        )
     else:
         print(
             "Submit to condor via:\n\n"

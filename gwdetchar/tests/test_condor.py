@@ -59,3 +59,8 @@ def tagfile():
 ])
 def test_validate_accounting_tag(tagfile, tag, result):
     assert condor.validate_accounting_tag(tag, path=tagfile) == result
+    if result:
+        assert condor.is_valid(tag, path=tagfile) == result
+    else:
+        with pytest.raises(ValueError):
+            condor.is_valid(tag, path=tagfile)
