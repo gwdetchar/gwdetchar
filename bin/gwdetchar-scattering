@@ -22,16 +22,18 @@
 
 from __future__ import division
 
+import logging
 import os.path
 import re
+import random
 import warnings
 
 from six.moves import StringIO
 
 import numpy
 
-from matplotlib import (use, rcParams)
-use('agg')  # noqa
+import matplotlib
+matplotlib.use('agg')  # noqa
 
 import gwtrigfind
 
@@ -45,11 +47,15 @@ from gwpy.segments import (DataQualityFlag, DataQualityDict,
 from gwdetchar import (cli, const, scattering)
 from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
+from gwdetchar.omega import batch
 from gwdetchar.plot import get_gwpy_tex_settings
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+__credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \
+              'Alex Urban <alexander.urban@ligo.org>'
 
 # TeX settings
+rcParams = matplotlib.rcParams
 tex_settings = get_gwpy_tex_settings()
 rcParams.update(tex_settings)
 rcParams.update({
@@ -62,6 +68,9 @@ rcParams.update({
     'image.cmap': 'viridis',
     'svg.fonttype': 'none',
 })
+
+# disable matplotlib logging
+logging.getLogger("matplotlib").setLevel(logging.CRITICAL)
 
 # -- parse command line -------------------------------------------------------
 
@@ -100,6 +109,10 @@ cli.add_frametype_option(parser, default='%s_R' % const.IFO)
 parser.add_argument('-o', '--output-dir', type=os.path.abspath,
                     default=os.curdir,
                     help='output directory for analysis, default: %(default)s')
+parser.add_argument('-w', '--omega-scans', type=int, metavar='NSCAN',
+                    help='generate a workflow of omega scans for active '
+                         'scattering, this will launch automatically to '
+                         'condor, default: None')
 parser.add_argument('-v', '--verbose', action='store_true', default=False,
                     help='log verbose output, default: %(default)s')
 cli.add_nproc_option(parser)
@@ -518,7 +531,7 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
 # close panel group
 page.div.close()
 
-# write a csv file
+# identify triggers during active segments
 logger.debug('Writing a summary CSV record')
 actives = actives.coalesce()  # merge contiguous segments
 gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
@@ -531,6 +544,31 @@ logger.info('The following {} triggers fell within active scattering '
 print(table)
 print('\n\n')
 table.write(summfile, overwrite=True)
+
+# -- launch omega scans -------------------------------------------------------
+
+nscans = min(args.omega_scans, len(table))
+if nscans > 0:
+    # launch scans
+    scandir = 'scans'
+    ind = random.sample(range(0, len(table)), nscans)
+    omegatimes = [str(t) for t in table['trigger_time'][ind]]
+    logger.debug('Collected {} event times to omega scan: {}'.format(
+        nscans, ', '.join(omegatimes)))
+    logger.info('Creating workflow for omega scans')
+    flags = batch.get_command_line_flags(ifo=args.ifo, ignore_state_flags=True)
+    condorcmds = batch.get_condor_arguments(timeout=4, gps=args.gpsstart)
+    dagman = batch.generate_dag(omegatimes, flags=flags, submit=True,
+                                outdir=scandir, condor_commands=condorcmds)
+    logger.info('Launched {} omega scans to condor'.format(nscans))
+    # render HTML
+    page.h2('Omega Scans')
+    page.p('The following event times correspond to significant Omicron '
+           'triggers that occurr during the scattering segments found above:')
+    page.add(htmlio.scaffold_omega_scans(
+        omegatimes, args.main_channel, scandir=scandir))
+elif args.omega_scans:
+    logger.info('No events found during active scattering segments')
 
 # -- finalize -----------------------------------------------------------------
 

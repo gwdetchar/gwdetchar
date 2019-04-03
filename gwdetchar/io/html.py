@@ -484,6 +484,41 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     return page()
 
 
+def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
+                         scandir=os.path.curdir):
+    """Preview a batch of omega scans in HTML
+    """
+    page = markup.page()
+    page.div(class_='panel well panel-default')
+    page.div(class_='panel-heading clearfix')
+    page.h3(cis_link(channel), class_='panel-title')
+    page.div.close()  # panel-heading
+    page.ul(class_='list-group')
+    for t in times:
+        page.li(class_='list-group-item')
+        page.div(class_='container')
+        page.div(class_='row')
+        page.div(class_='pull-right')
+        page.a("[full scan]",
+           href='{}/{}'.format(scandir, t),
+           class_='text-dark')
+        page.div.close()  # pull-right
+        page.h4(t)
+        page.div.close()  # row
+        chanstr = channel.replace('-', '_').replace(':', '-')
+        plots = [
+            '{}/{}/plots/{}-qscan_whitened-{}.png'.format(
+                scandir, t, chanstr, dur) for dur in plot_durations]
+        page.add(scaffold_plots(
+            [FancyPlot(plot) for plot in plots],
+            nperrow=3))
+        page.div.close()  # container
+        page.li.close()  # list-group-item
+    page.ul.close()  # list-group
+    page.div.close()  # panel
+    return page()
+
+
 def write_footer(about=None, link=None, issues=None, content=None):
     """Write a <footer> for a bootstrap page
 

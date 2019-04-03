@@ -117,6 +117,41 @@ FLAG_HTML_NO_SEGMENTS = FLAG_CONTENT.format(
 
 FLAG = DataQualityFlag(known=[(0, 66)], active=[(0, 66)], name='X1:TEST_FLAG')
 
+OMEGA_SCAFFOLD = """<div class="panel well panel-default">
+<div class="panel-heading clearfix">
+<h3 class="panel-title"><a href="https://cis.ligo.org/channel/byname/X1:STRAIN" title="CIS entry for X1:STRAIN" style="font-family: Monaco, &quot;Courier New&quot;, monospace; color: black;" target="_blank">X1:STRAIN</a></h3>
+</div>
+<ul class="list-group">
+<li class="list-group-item">
+<div class="container">
+<div class="row">
+<div class="pull-right">
+<a href="./1126259462" class="text-dark">[full scan]</a>
+</div>
+<h4>1126259462</h4>
+</div>
+<div class="row">
+<div class="col-sm-4">
+<a href="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" id="a_X1-STRAIN_1" title="X1-STRAIN-qscan_whitened-1.png" class="fancybox" target="_blank" data-fancybox-group="images">
+<img id="img_X1-STRAIN_1" alt="X1-STRAIN-qscan_whitened-1.png" class="img-responsive" src="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" />
+</a>
+</div>
+<div class="col-sm-4">
+<a href="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" id="a_X1-STRAIN_4" title="X1-STRAIN-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox-group="images">
+<img id="img_X1-STRAIN_4" alt="X1-STRAIN-qscan_whitened-4.png" class="img-responsive" src="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" />
+</a>
+</div>
+<div class="col-sm-4">
+<a href="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" id="a_X1-STRAIN_16" title="X1-STRAIN-qscan_whitened-16.png" class="fancybox" target="_blank" data-fancybox-group="images">
+<img id="img_X1-STRAIN_16" alt="X1-STRAIN-qscan_whitened-16.png" class="img-responsive" src="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" />
+</a>
+</div>
+</div>
+</div>
+</li>
+</ul>
+</div>"""  # nopep8
+
 
 # -- HTML unit tests ----------------------------------------------------------
 
@@ -254,6 +289,13 @@ def test_write_flag_html_with_plots(tmpdir):
     page = html.write_flag_html(FLAG, span=Segment(0, 66), plotdir='plots')
     assert parse_html(str(page)) == parse_html(FLAG_HTML_WITH_PLOTS)
     shutil.rmtree(str(tmpdir), ignore_errors=True)
+
+
+def test_scaffold_omega_scans():
+    times = [1126259462]
+    channel = 'X1:STRAIN'
+    page = html.scaffold_omega_scans(times, channel)
+    assert parse_html(page) == parse_html(OMEGA_SCAFFOLD)
 
 
 def test_write_footer():
