@@ -23,6 +23,7 @@ import pytest
 
 import numpy
 from numpy import testing as nptest
+from six.moves.urllib.error import HTTPError
 
 from gwpy.testing.compat import mock
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
@@ -65,8 +66,8 @@ def test_remove_missing_channels(io_gwf):
         assert channels == ['X1:TEST-STRAIN']
 
 
-@mock.patch('gwpy.timeseries.TimeSeries.fetch', return_value=HOFT)
-def test_get_data_from_NDS(tsfetch):
+@mock.patch('gwpy.timeseries.TimeSeries.get', return_value=HOFT)
+def test_get_data_from_NDS(tsget):
     # retrieve data
     start = 0
     end = 64
@@ -78,9 +79,9 @@ def test_get_data_from_NDS(tsfetch):
     nptest.assert_array_equal(data.value, HOFT.value)
 
 
-@mock.patch('gwpy.timeseries.TimeSeriesDict.fetch',
+@mock.patch('gwpy.timeseries.TimeSeriesDict.get',
             return_value=TimeSeriesDict({'X1:TEST-STRAIN': HOFT}))
-def test_get_data_dict_from_NDS(tsdfetch):
+def test_get_data_dict_from_NDS(tsdget):
     # retrieve data
     start = 33
     end = 64
@@ -94,7 +95,7 @@ def test_get_data_dict_from_NDS(tsdfetch):
 
 @mock.patch('gwpy.timeseries.TimeSeries.read',
             return_value=HOFT.crop(16, 48))
-def test_get_data_from_cache(tsfetch):
+def test_get_data_from_cache(tsget):
     # retrieve test frame
     start = 16
     end = start + 32
@@ -110,9 +111,9 @@ def test_get_data_from_cache(tsfetch):
 
 @mock.patch('gwdetchar.io.datafind.remove_missing_channels')
 @mock.patch('gwpy.timeseries.TimeSeriesDict.read')
-def test_get_data_dict_from_cache(tsdfetch, remove):
+def test_get_data_dict_from_cache(tsdget, remove):
     # set return values
-    tsdfetch.return_value = TimeSeriesDict({
+    tsdget.return_value = TimeSeriesDict({
         'X1:TEST-STRAIN': HOFT.crop(16, 48)})
     remove.return_value = ['X1:TEST-STRAIN']
     # retrieve test frame
@@ -131,5 +132,5 @@ def test_get_data_dict_from_cache(tsdfetch, remove):
 
 def test_fail_on_no_frametype():
     channel = 'X1:TEST-STRAIN'
-    with pytest.raises(TypeError):
+    with pytest.raises(HTTPError):
         datafind.get_data(channel, start=0, end=32)

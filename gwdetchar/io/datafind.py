@@ -20,6 +20,7 @@
 """
 
 import warnings
+from six.moves.urllib.error import HTTPError
 
 import gwdatafind
 
@@ -153,7 +154,7 @@ def get_data(channel, start, end, obs=None, frametype=None, source=None,
 
     **kwargs : `dict`, optional
         additional keyword arguments to `~gwpy.timeseries.TimeSeries.read`
-        or `~gwpy.timeseries.TimeSeries.fetch`
+        or `~gwpy.timeseries.TimeSeries.get`
 
     Returns
     -------
@@ -168,7 +169,7 @@ def get_data(channel, start, end, obs=None, frametype=None, source=None,
 
     See Also
     --------
-    gwpy.timeseries.TimeSeries.fetch
+    gwpy.timeseries.TimeSeries.get
         for the underlying method to read from an NDS server
     gwpy.timeseries.TimeSeries.read
         for the underlying method to read from a local file cache
@@ -178,23 +179,22 @@ def get_data(channel, start, end, obs=None, frametype=None, source=None,
         series_class = TimeSeriesDict
     else:
         series_class = TimeSeries
-    # construct file cache if none is given
-    if source is None:
-        obs = obs if obs is not None else frametype[0]
-        source = gwdatafind.find_urls(obs, frametype, start, end)
-    # read from frames or NDS
-    if source:
+    try:  # read from frame files
+        source = source or gwdatafind.find_urls(
+            obs or frametype[0], frametype, start, end)
         if isinstance(channel, (list, tuple)):
             channel = remove_missing_channels(channel, source)
         return series_class.read(
             source, channel, start=start, end=end, nproc=nproc,
             verbose=verbose, **kwargs)
-    elif isinstance(channel, str):
-        return series_class.fetch(
+    except (HTTPError, TypeError):  # frame files not found
+        pass
+    if not isinstance(channel, (list, tuple)):
+        return series_class.get(
             channel, start, end, verbose=verbose, **kwargs)
     # if all else fails, process channels in groups of 60
     data = series_class()
     for group in [channel[i:i + 60] for i in range(0, len(channel), 60)]:
-        data.append(series_class.fetch(
+        data.append(series_class.get(
             group, start, end, verbose=verbose, **kwargs))
     return data
