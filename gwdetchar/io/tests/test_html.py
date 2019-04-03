@@ -295,7 +295,6 @@ def test_scaffold_omega_scans():
     times = [1126259462]
     channel = 'X1:STRAIN'
     page = html.scaffold_omega_scans(times, channel)
-    print(page)
     assert parse_html(page) == parse_html(OMEGA_SCAFFOLD)
 
 
