@@ -128,9 +128,3 @@ def test_get_data_dict_from_cache(tsdget, remove):
     assert data[channels[0]].span == Segment(start, end)
     nptest.assert_array_equal(data[channels[0]].value,
                               HOFT.crop(start, end).value)
-
-
-def test_fail_on_no_frametype():
-    channel = 'X1:TEST-STRAIN'
-    with pytest.raises(HTTPError):
-        datafind.get_data(channel, start=0, end=32)
