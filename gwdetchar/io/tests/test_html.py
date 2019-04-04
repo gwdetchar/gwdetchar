@@ -138,6 +138,21 @@ HTML_CLOSE = """</div>
 </body>
 </html>""" % HTML_FOOTER  # nopep8
 
+TABLE = """<table class="table table-hover table-condensed table-responsive" id="test">
+<caption>This is a test table.</caption>
+<thead>
+<tr>
+<th scope="col">Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test</td>
+</tr>
+</tbody>
+</table>
+<button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;test.csv&quot;, &quot;test&quot;)">Export to CSV</button>"""  # nopep8
+
 FLAG_CONTENT = """<div class="panel panel-warning">
 <div class="panel-heading">
 <a class="panel-title" href="#flag0" data-toggle="collapse" data-parent="#accordion">X1:TEST_FLAG</a>
@@ -367,6 +382,15 @@ def test_write_arguments():
     assert '<strong>Command line: </strong>' in page
 
 
+def test_table():
+    headers = ['Test']
+    data = [['test']]
+    caption = 'This is a test table.'
+    page = html.table(headers=headers, data=data, caption=caption,
+                      separator='\n', id='test')
+    assert parse_html(page) == parse_html(TABLE)
+
+
 def test_write_flag_html():
     page = html.write_flag_html(FLAG)
     assert parse_html(str(page)) == parse_html(FLAG_HTML)
@@ -442,14 +466,19 @@ def test_package_list(check_output, is_dir, isdir, cmd):
     ],
 )
 def test_package_table(package_list):
+    print(html.package_table(class_="test", caption="Test"))
     assert parse_html(
         html.package_table(class_="test", caption="Test"),
     ) == parse_html(
-        "<h2>Environment</h2><table class=\"test\"><caption>Test</caption>"
+        "<h2>Environment</h2><table class=\"test\" id=\"package-table\">"
+        "<caption>Test</caption>"
         "<thead>"
         "<tr><th scope=\"col\">Name</th><th scope=\"col\">Version</th></tr>"
         "</thead><tbody>"
         "<tr><td>gwdetchar</td><td>1.2.3</td></tr>"
         "<tr><td>gwpy</td><td>1.0.0</td></tr>"
-        "</tbody></table>",
+        "</tbody></table>"
+        "<button class=\"btn btn-default btn-table\" "
+        "onclick=\"exportTableToCSV(&quot;package-table.csv&quot;, "
+        "&quot;package-table&quot;)\">Export to CSV</button>",
     )
