@@ -209,8 +209,8 @@ def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
         default: None
     """
     # get kwargs with sensible defaults
-    css = kwargs.get('css', CSS_FILES)
-    script = kwargs.get('script', JS_FILES)
+    css = CSS_FILES.extend(kwargs.get('css', []))
+    script = JS_FILES.extend(kwargs.get('script', []))
     # write CSS to static dir
     css, script = finalize_static_urls(
         os.path.join(os.path.curdir, 'static'),
