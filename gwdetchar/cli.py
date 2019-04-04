@@ -59,6 +59,9 @@ TIMEZONE = reference.LocalTimezone().tzname(NOW)
 DATEFMT = '%Y-%m-%d %H:%M:%S {}'.format(TIMEZONE)
 FMT = '%(name)s %(asctime)s %(levelname)+8s: %(message)s'
 
+# disable matplotlib logging
+logging.getLogger("matplotlib").setLevel(logging.CRITICAL)
+
 
 # -- logging and parsing utilities --------------------------------------------
 
