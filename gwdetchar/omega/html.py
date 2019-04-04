@@ -531,16 +531,9 @@ def write_ranking(toc, primary, thresh=6.5,
     tlink = markup.oneliner.a(primary, href='plots/primary.png', **aparams)
     page.p('Below are the top 5 channels ranked by matched-filter correlation '
            'within 100 ms of %s.' % tlink)
-    page.table(class_=tableclass)
-    page.thead()
-    page.tr()
-    for column in entries.keys():
-        page.th(column, scope='col')
-    page.tr.close()
-    page.thead.close()
-    page.tbody()
     # range over channels
     k = 0
+    data = []
     for i in ind_sorted:
         if k > 5:
             break
@@ -553,24 +546,24 @@ def write_ranking(toc, primary, thresh=6.5,
             'style': "font-family: Monaco, \"Courier New\", monospace; "
                      "color: black;",
         }
-        page.tr()
-        page.td(markup.oneliner.a(entries['Channel'][i], **params))
-        page.td(str(entries['GPS Time'][i]))
-        page.td('%.1f Hz' % entries['Frequency'][i])
-        page.td(str(entries['Q'][i]))
-        page.td(str(entries['Energy'][i]))
-        page.td(str(entries['SNR'][i]))
+        row = [
+            markup.oneliner.a(entries['Channel'][i], **params),
+            str(entries['GPS Time'][i]),
+            '%.1f Hz' % entries['Frequency'][i],
+            str(entries['Q'][i]),
+            str(entries['Energy'][i]),
+            str(entries['SNR'][i]),
+        ]
         if entries['Channel'][i] == primary:
-            page.td('&mdash;')
-            page.td('&mdash;')
+            row.extend(['&mdash;', '&mdash;'])
         else:
-            page.td(str(entries['Correlation'][i]))
-            page.td('%s ms' % entries['Delay'][i])
-        page.tr.close()
+            row.extend([str(entries['Correlation'][i]),
+                        '%s ms' % entries['Delay'][i]])
         # increment counter
+        data.append(row)
         k += 1
-    page.tbody.close()
-    page.table.close()
+    page.add(htmlio.table(
+        headers=entries.keys(), data=data, separator='\n', table=tableclass))
     page.div.close()  # col-md-12
     page.div.close()  # row
     return page()
@@ -637,30 +630,18 @@ def write_block(blockkey, block, context,
 
         # summary table
         page.div(class_='col-md-7')
-        page.table(class_=tableclass)
         try:
             columns = ['GPS Time', 'Frequency', 'Q', 'Energy', 'SNR',
                        'Correlation', 'Delay']
-            entries = [str(channel.t), '%s Hz' % channel.f, str(channel.Q),
-                       str(channel.energy), str(channel.snr),
-                       str(channel.corr), '%s ms' % channel.delay]
+            entries = [[str(channel.t), '%s Hz' % channel.f, str(channel.Q),
+                        str(channel.energy), str(channel.snr),
+                        str(channel.corr), '%s ms' % channel.delay]]
         except:
             columns = ['GPS Time', 'Frequency', 'Q', 'Energy', 'SNR']
-            entries = [str(channel.t), '%s Hz' % channel.f, str(channel.Q),
-                       str(channel.energy), str(channel.snr)]
-        page.thead()
-        page.tr()
-        for column in columns:
-            page.th(column, scope='col')
-        page.tr.close()
-        page.thead.close()
-        page.tbody()
-        page.tr()
-        for entry in entries:
-            page.td(entry)
-        page.tr.close()
-        page.tbody.close()
-        page.table.close()
+            entries = [[str(channel.t), '%s Hz' % channel.f, str(channel.Q),
+                        str(channel.energy), str(channel.snr)]]
+        page.add(
+            htmlio.table(columns, entries, separator='\n', table=tableclass))
         page.div.close()  # col-sm-7
 
         # plot toggle buttons
