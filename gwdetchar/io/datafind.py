@@ -187,20 +187,19 @@ def get_data(channel, start, end, frametype=None, source=None,
     else:
         series_class = TimeSeries
 
-    try:  # locate frame files
-        if frametype is not None:
+    if frametype is not None:
+        try:  # locate frame files
             ifo = re.search('[A-Z]1', frametype).group(0)
             obs = ifo[0]
             source = gwdatafind.find_urls(obs, frametype, start, end)
-    except HTMLError:  # frame files not found
-        pass
-    else:  # read from frame files
-        if isinstance(source, list) and isinstance(channel, (list, tuple)):
-            channel = remove_missing_channels(channel, source)
-        if source is not None:
-            return series_class.read(
-                source, channel, start=start, end=end, nproc=nproc,
-                verbose=verbose, **kwargs)
+        except HTMLError:  # frame files not found
+            pass
+    if isinstance(source, list) and isinstance(channel, (list, tuple)):
+        channel = remove_missing_channels(channel, source)
+    if source is not None:  # read from frame files
+        return series_class.read(
+            source, channel, start=start, end=end, nproc=nproc,
+            verbose=verbose, **kwargs)
 
     # read single channel from NDS
     if not isinstance(channel, (list, tuple)):
