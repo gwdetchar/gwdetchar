@@ -19,6 +19,7 @@
 """gw_data_find wrappers
 """
 
+import re
 import warnings
 from six.moves.urllib.error import HTTPError
 
@@ -119,7 +120,7 @@ def remove_missing_channels(channels, gwfcache):
     return list(keep)
 
 
-def get_data(channel, start, end, obs=None, frametype=None, source=None,
+def get_data(channel, start, end, frametype=None, source=None,
              nproc=1, verbose=False, **kwargs):
     """Retrieve data for given channels within a certain time range
 
@@ -134,17 +135,12 @@ def get_data(channel, start, end, obs=None, frametype=None, source=None,
     end : `float`
         GPS end time of requested data
 
-    obs : `str`, optional
-        single-letter name of observatory, defaults to the first letter of
-        `frametype`
-
     frametype : `str`, optional
-        name of frametype in which channel(s) are stored, required if `source`
-        is `None`
+        name of frametype in which channel(s) are stored, default: `None`
 
     source : `str`, `list`, optional
-        `str` path(s) of a LAL-format cache file or individual data file, will
-        supercede `frametype` if given, defaults to `None`
+        path(s) of a LAL-format cache file or individual data file,
+        default: `None`
 
     nproc : `int`, optional
         number of parallel processes to use, uses serial process by default
@@ -167,31 +163,50 @@ def get_data(channel, start, end, obs=None, frametype=None, source=None,
     If `channel` is a `str`, then a `TimeSeries` object will be returned, else
     the result is a `TimeSeriesDict`.
 
+    The `frametype` argument should be used to read from archived frame files,
+    while `source` should be used to read from a local cache or specific data
+    file. If either fails, or if neither is passed, this function will attempt
+    to get data over an NDS server.
+
+    If `frametype` is used to read from the archive, any channels missing
+    from the first or last frame file in the requested time range will be
+    ignored.
+
     See Also
     --------
+    remove_missing_channels
+        a utility that removes channels missing from the frame archive
     gwpy.timeseries.TimeSeries.get
-        for the underlying method to read from an NDS server
+        the underlying method to read data over an NDS server
     gwpy.timeseries.TimeSeries.read
-        for the underlying method to read from a local file cache
+        the underlying method to read data from local files
     """
     # get TimeSeries class
     if isinstance(channel, (list, tuple)):
         series_class = TimeSeriesDict
     else:
         series_class = TimeSeries
-    try:  # read from frame files
-        source = source or gwdatafind.find_urls(
-            obs or frametype[0], frametype, start, end)
-        if isinstance(channel, (list, tuple)):
-            channel = remove_missing_channels(channel, source)
-        return series_class.read(
-            source, channel, start=start, end=end, nproc=nproc,
-            verbose=verbose, **kwargs)
-    except (HTTPError, TypeError):  # frame files not found
+
+    try:  # locate frame files
+        if frametype is not None:
+            ifo = re.search('[A-Z]1', frametype).group(0)
+            obs = ifo[0]
+            source = gwdatafind.find_urls(obs, frametype, start, end)
+    except HTMLError:  # frame files not found
         pass
+    else:  # read from frame files
+        if isinstance(source, list) and isinstance(channel, (list, tuple)):
+            channel = remove_missing_channels(channel, source)
+        if source is not None:
+            return series_class.read(
+                source, channel, start=start, end=end, nproc=nproc,
+                verbose=verbose, **kwargs)
+
+    # read single channel from NDS
     if not isinstance(channel, (list, tuple)):
         return series_class.get(
             channel, start, end, verbose=verbose, **kwargs)
+
     # if all else fails, process channels in groups of 60
     data = series_class()
     for group in [channel[i:i + 60] for i in range(0, len(channel), 60)]:

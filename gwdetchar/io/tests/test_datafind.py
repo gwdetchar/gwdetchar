@@ -72,7 +72,7 @@ def test_get_data_from_NDS(tsget):
     start = 0
     end = 64
     channel = 'X1:TEST-STRAIN'
-    data = datafind.get_data(channel, start, end, source=0)
+    data = datafind.get_data(channel, start, end)
 
     # test data products
     assert isinstance(data, TimeSeries)
@@ -86,7 +86,7 @@ def test_get_data_dict_from_NDS(tsdget):
     start = 33
     end = 64
     channels = ['X1:TEST-STRAIN']
-    data = datafind.get_data(channels, start, end, source=0)
+    data = datafind.get_data(channels, start, end)
 
     # test data products
     assert isinstance(data, TimeSeriesDict)
