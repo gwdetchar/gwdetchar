@@ -192,7 +192,10 @@ def get_data(channel, start, end, frametype=None, source=None,
             ifo = re.search('[A-Z]1', frametype).group(0)
             obs = ifo[0]
             source = gwdatafind.find_urls(obs, frametype, start, end)
-        except HTMLError:  # frame files not found
+        except AttributeError:
+            raise AttributeError(
+                'Could not determine observatory from frametype')
+        except HTTPError:  # frame files not found
             pass
     if isinstance(source, list) and isinstance(channel, (list, tuple)):
         channel = remove_missing_channels(channel, source)
