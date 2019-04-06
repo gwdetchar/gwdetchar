@@ -279,10 +279,15 @@ def get_command_line(language='bash'):
     Parameters
     ----------
     language : `str`, optional
-        language the code is written in, default: `'bash'`
+        type of environment the code is run in, default: `'bash'`
     """
-    commandline = ' '.join(sys.argv)
-    return render_code(commandline, language)
+    if sys.argv[0].endswith('__main__.py'):
+        package = sys.argv[0].rsplit(os.path.sep, 2)[1]
+        commandline = '$ python -m {0} {1}'.format(
+            package, ' '.join(sys.argv[1:]))
+    else:
+        commandline = '$ ' + ' '.join(sys.argv)
+    return render_code(commandline.replace(' --html-only', ''), language)
 
 
 def html_link(href, txt, target="_blank", **params):

@@ -203,6 +203,25 @@ def test_write_param():
         '<p>\n<strong>test: </strong>\ntest\n</p>')
 
 
+def test_get_command_line():
+    testargs = ['gwdetchar-conlog', '-i', 'X1']
+    with mock.patch.object(sys, 'argv', testargs):
+        cmdline = html.get_command_line()
+        assert parse_html(cmdline) == parse_html(
+            '<div class="highlight" style="background: #f8f8f8">'
+            '<pre style="line-height: 125%"><span></span>'
+            '$ gwdetchar-conlog -i X1\n</pre></div>\n')
+
+def test_get_command_line_module():
+    testargs = ['gwdetchar/omega/__main__.py', '--html-only']
+    with mock.patch.object(sys, 'argv', testargs):
+        cmdline = html.get_command_line()
+        assert parse_html(cmdline) == parse_html(
+            '<div class="highlight" style="background: #f8f8f8">'
+            '<pre style="line-height: 125%"><span></span>'
+            '$ python -m omega\n</pre></div>\n')
+
+
 @pytest.mark.parametrize('args, kwargs, result', [
     (('test.html', 'Test link'), {},
      '<a href="test.html" target="_blank">Test link</a>'),
