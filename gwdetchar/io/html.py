@@ -275,11 +275,11 @@ def about_this_page(config, packagelist=True):
     # render config file(s)
     page.h2('Configuration files')
     page.p('The following INI-format configuration file(s) were passed '
-           'on the comand-line and are reproduced in full:')
+           'on the comand-line and are reproduced here in full:')
     if isinstance(config, str):
         with open(config, 'r') as fobj:
             contents = fobj.read()
-        page.add(htmlio.render_code(contents, 'ini'))
+        page.add(render_code(contents, 'ini'))
     elif isinstance(config, list):
         page.div(class_='panel-group', id="accordion")
         for i, cpfile in enumerate(config):

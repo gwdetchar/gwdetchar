@@ -72,6 +72,56 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 </body>
 </html>"""  # nopep8
 
+TEST_CONFIGURATION = """[section]
+key = value"""
+
+ABOUT = """<div class="row">
+<div class="col-md-12">
+<h2>On the command-line</h2>
+<p>This page was generated with the following command-line call:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
+</pre></div>
+
+<h2>Configuration files</h2>
+<p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
+<span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
+</pre></div>
+
+<h2>Environment</h2><table class="table table-hover table-condensed table-responsive"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table>
+</div>
+</div>"""  # nopep8
+
+ABOUT_WITH_CONFIG_LIST = """<div class="row">
+<div class="col-md-12">
+<h2>On the command-line</h2>
+<p>This page was generated with the following command-line call:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
+</pre></div>
+
+<h2>Configuration files</h2>
+<p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
+<div class="panel-group" id="accordion">
+<div class="panel panel-default">
+<a href="#file0" data-toggle="collapse" data-parent="#accordion">
+<div class="panel-heading">
+<h4 class="panel-title">test.ini</h4>
+</div>
+</a>
+<div id="file0" class="panel-collapse collapse">
+<div class="panel-body">
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
+<span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+</div>
+<h2>Environment</h2><table class="table table-hover table-condensed table-responsive"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table>
+</div>
+</div>"""  # nopep8
+
 HTML_FOOTER = """<footer class="footer">
 <div class="container">
 <div class="row">
@@ -195,6 +245,30 @@ def test_new_bootstrap_page():
     page = html.new_bootstrap_page(base=base, refresh=True)
     assert parse_html(str(page)) == parse_html(
         NEW_BOOTSTRAP_PAGE.format(base=base))
+
+
+@mock.patch(
+    "gwdetchar.io.html.package_list",
+    return_value=[
+        {"name": "gwpy", "version": "1.0.0"},
+        {"name": "gwdetchar", "version": "1.2.3"},
+    ],
+)
+def test_about_this_page(package_list, tmpdir):
+    outdir = str(tmpdir)
+    config_file = os.path.join(outdir, 'test.ini')
+    with open(config_file, 'w') as fobj:
+        fobj.write(TEST_CONFIGURATION)
+    testargs = ['gwdetchar-scattering', '-i', 'X1']
+    with mock.patch.object(sys, 'argv', testargs):
+        # test with a single config file
+        about = html.about_this_page(config_file)
+        assert parse_html(about) == parse_html(ABOUT)
+        # test with a list of config files
+        about = html.about_this_page([config_file])
+        assert parse_html(about) == parse_html(ABOUT_WITH_CONFIG_LIST)
+    # clean up
+    shutil.rmtree(outdir, ignore_errors=True)
 
 
 def test_write_param():
