@@ -247,6 +247,66 @@ def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
     return page
 
 
+def about_this_page(config, packagelist=True):
+    """Write a blurb documenting how a page was generated, including the
+    command-line arguments and configuration files used
+
+    Parameters
+    ----------
+    config : `str`, `list`, optional
+        the absolute path(s) to one or a number of INI files used in this
+        process
+
+    packagelist : `bool`, optional
+        boolean switch to include (`True`) or exclude (`False`) a
+        comprehensive list of system packages
+
+    Returns
+    -------
+    page : :class:`~MarkupPy.markup.page`
+        the HTML page to be inserted into the #main <div>.
+    """
+    page = markup.page()
+    page.div(class_='row')
+    page.div(class_='col-md-12')
+    page.h2('On the command-line')
+    page.p('This page was generated with the following command-line call:')
+    page.add(get_command_line())
+    # render config file(s)
+    page.h2('Configuration files')
+    page.p('The following INI-format configuration file(s) were passed '
+           'on the comand-line and are reproduced in full:')
+    if isinstance(config, str):
+        with open(config, 'r') as fobj:
+            contents = fobj.read()
+        page.add(htmlio.render_code(contents, 'ini'))
+    elif isinstance(config, list):
+        page.div(class_='panel-group', id="accordion")
+        for i, cpfile in enumerate(config):
+            page.div(class_='panel panel-default')
+            page.a(href='#file%d' % i, **{'data-toggle': 'collapse',
+                                          'data-parent': '#accordion'})
+            page.div(class_='panel-heading')
+            page.h4(os.path.basename(cpfile), class_='panel-title')
+            page.div.close()
+            page.a.close()
+            page.div(id_='file%d' % i, class_='panel-collapse collapse')
+            page.div(class_='panel-body')
+            with open(cpfile, 'r') as fobj:                                           
+                contents = fobj.read()
+            page.add(render_code(contents, 'ini'))
+            page.div.close()
+            page.div.close()
+            page.div.close()
+        page.div.close()
+    # render package list
+    if packagelist:
+        page.add(package_table())
+    page.div.close()
+    page.div.close()
+    return page()
+
+
 def write_param(param, value):
     """Format a parameter value with HTML
     """
