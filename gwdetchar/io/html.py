@@ -292,7 +292,7 @@ def about_this_page(config, packagelist=True):
             page.a.close()
             page.div(id_='file%d' % i, class_='panel-collapse collapse')
             page.div(class_='panel-body')
-            with open(cpfile, 'r') as fobj:                                           
+            with open(cpfile, 'r') as fobj:
                 contents = fobj.read()
             page.add(render_code(contents, 'ini'))
             page.div.close()
@@ -565,8 +565,8 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
         page.div(class_='row')
         page.div(class_='pull-right')
         page.a("[full scan]",
-           href='{}/{}'.format(scandir, t),
-           class_='text-dark')
+               href='{}/{}'.format(scandir, t),
+               class_='text-dark')
         page.div.close()  # pull-right
         page.h4(t)
         page.div.close()  # row
@@ -620,7 +620,7 @@ def write_footer(about=None, link=None, issues=None, content=None):
     if issues is None:
         report = 'https://github.com/gwdetchar/gwdetchar/issues'
         issues = markup.oneliner.a('Report an issue', href=report,
-                                  target='_blank')
+                                   target='_blank')
     page.div(class_='row')
     page.div(class_='col-md-12')
     now = datetime.datetime.now()
