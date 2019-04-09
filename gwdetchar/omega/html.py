@@ -799,18 +799,8 @@ def write_about_page(configfiles):
         the path of the HTML written for this analysis
     """
     # set up page
-    page = markup.page()
-    page.h2('On the command line')
-    page.p('This page was generated with the command line call shown below.')
-    page.add(htmlio.get_command_line())
-    page.h2('Configuration file')
-    page.p('Omega scans are configured with INI-format files. The '
-           'configuration files for this analysis are shown below in full.')
-    # range over config files
-    for configfile in configfiles:
-        with open(configfile, 'r') as fobj:
-            inifile = fobj.read()
-        page.add(htmlio.render_code(inifile, 'ini'))
-    # add environment listing
-    page.add(str(htmlio.package_table()))
+    if len(configfiles) == 1:
+        page = htmlio.about_this_page(configfiles[0])
+    else:
+        page = htmlio.about_this_page(configfiles)
     return page
