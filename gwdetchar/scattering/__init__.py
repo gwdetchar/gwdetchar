@@ -16,7 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for :mod:`gwdetchar.lasso`
+"""Methods and utilties for optical scattering
 """
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
+__credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>' \
+              'Joshua Smith <joshua.smith@ligo.org>' \
+              'Andrew Lundgren <andrew.lundgren>@ligo.org>'
+
+# -- imports ------------------------------------------------------------------
+
+# import scattering utils
+from .core import *

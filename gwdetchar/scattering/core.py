@@ -21,6 +21,8 @@
 
 import numpy
 
+from scipy.signal import savgol_filter
+
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 OPTIC_MOTION_CHANNELS = {
@@ -64,11 +66,30 @@ OPTIC_MOTION_CHANNELS = {
 FREQUENCY_MULTIPLIERS = range(1, 5)
 
 
-def get_fringe_frequency(timeseries, multiplier=2.0):
-    """Calculate the scattering fringe frequency from a optic motion timeseries
+def get_fringe_frequency(series, multiplier=2.0):
+    """Predict scattering fringe frequency from the derivative of a timeseries
+
+    Parameters
+    ----------
+    series : `~gwpy.timeseries.TimeSeries`
+        timeseries record of relative motion
+
+    multiplier : `float`
+        harmonic number of fringe frequency
+
+    Returns
+    -------
+    fringef : `~gwpy.timeseries.TimeSeries`
+        timeseries record of fringe frequency
+
+    See Also
+    --------
+    scipy.signal.savgol_filter
+        for an implementation of the Savitzky-Golay filter
     """
-    velocity = timeseries.diff()
-    velocity.override_unit('m/s')  # just so multiplication works
+    velocity = type(series)(numpy.zeros(series.size))
+    velocity.__array_finalize__(series)
+    velocity[:] = savgol_filter(series.value, 5, 2, deriv=1)
     fringef = numpy.abs(multiplier * 2. / 1.064 * velocity *
                         velocity.sample_rate.value)
     fringef.override_unit('Hz')

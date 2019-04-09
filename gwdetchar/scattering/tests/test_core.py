@@ -24,7 +24,7 @@ from numpy import testing as nptest
 
 from gwpy.timeseries import TimeSeries
 
-from .. import scattering
+from .. import core
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
@@ -40,9 +40,9 @@ OPTIC = TimeSeries(numpy.cos(TWOPI*10*TIMES), sample_rate=2048)
 
 def test_get_fringe_frequency():
     # calculate the fringe frequency
-    fringef = scattering.get_fringe_frequency(OPTIC, multiplier=1)
+    fringef = core.get_fringe_frequency(OPTIC, multiplier=1)
     assert str(fringef.unit) == 'Hz'
     assert fringef.sample_rate.value == OPTIC.sample_rate.value
-    assert fringef.size == OPTIC.size - 1
+    assert fringef.size == OPTIC.size
     nptest.assert_almost_equal(
         fringef.value.max() * (1.064 / 2) / TWOPI, 10, decimal=2)

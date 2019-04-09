@@ -18,6 +18,10 @@
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
 """Search for evidence of beam scattering based on optic velocity
+
+This tool identifies time segments when evidence for scattering is strong,
+to compare projected fringes against spectrogram measurements for a specific
+time please use the command-line module: `python gwdetchar.scattering --help`
 """
 
 from __future__ import division
@@ -233,7 +237,7 @@ page.h1('%s Scattering: %d-%d'
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
 page.p("This analysis searched for evidence of beam scattering between {} and "
        "{} Hz based on the velocity of optic motion. The fringe frequency is "
-       "predicted using equation (3) of <a href=\"http://iopscience.iop.org/"
+       "projected using equation (3) of <a href=\"http://iopscience.iop.org/"
        "article/10.1088/0264-9381/27/19/194011\" target=\"_blank\">Accadia "
        "et al. (2010)</a>.".format(args.fmin,
                                    multiplier * args.frequency_threshold))
@@ -569,7 +573,10 @@ if nscans > 0:
     # render HTML
     page.h2('Omega Scans')
     page.p('The following event times correspond to significant Omicron '
-           'triggers that occurr during the scattering segments found above:')
+           'triggers that occurr during the scattering segments found above. '
+           'To compare these against fringe frequency projections, please '
+           'use the scattering module:')
+    page.pre('$ python -m gwdetchar.scattering --help')
     page.add(htmlio.scaffold_omega_scans(
         omegatimes, args.main_channel, scandir=scandir))
 elif args.omega_scans:
