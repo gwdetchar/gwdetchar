@@ -112,7 +112,7 @@ rcParams.update(tex_settings)
 # load data
 logger.info("-- Loading range data")
 rangets = get_data(rangechannel, start, end, frametype=args.range_frametype,
-                   obs=args.ifo[0], verbose=True, nproc=args.nproc)
+                   verbose=True, nproc=args.nproc)
 
 if args.trend_type == 'minute':
     dstart, dend = rangets.span
@@ -121,7 +121,7 @@ else:
     dend = end
 
 logger.info("-- Loading h(t) data")
-darmts = get_data(primary, dstart-pad, dend+pad, verbose=True, obs=args.ifo[0],
+darmts = get_data(primary, dstart-pad, dend+pad, verbose=True,
                   frametype=args.primary_frametype, nproc=args.nproc)
 
 # get darm BLRMS
@@ -185,7 +185,7 @@ if args.trend_type == 'minute':
 else:
     frametype = '%s_T' % args.ifo  # for second trends
 auxdata = get_data(map(str, channels), dstart, dend, verbose=True, pad=0,
-                   obs=args.ifo[0], frametype=frametype, nproc=args.nproc)
+                   frametype=frametype, nproc=args.nproc)
 
 gpsstub = '%d-%d' % (start, end-start)
 re_delim = re.compile('[:_-]')

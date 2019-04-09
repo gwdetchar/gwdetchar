@@ -284,7 +284,7 @@ for i, seg in enumerate(statea):
     ) if args.verbose else False
     alldata.append(
         get_data(allchannels, seg[0], seg[1], frametype=args.frametype,
-                 obs=args.ifo[0], verbose=msg, nproc=args.nproc).resample(128))
+                 verbose=msg, nproc=args.nproc).resample(128))
 
 scatter_segments = DataQualityDict()
 actives = SegmentList()

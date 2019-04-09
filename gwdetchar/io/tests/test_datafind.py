@@ -65,41 +65,46 @@ def test_remove_missing_channels(io_gwf):
         assert channels == ['X1:TEST-STRAIN']
 
 
-@mock.patch('gwpy.timeseries.TimeSeries.fetch', return_value=HOFT)
-def test_get_data_from_NDS(tsfetch):
+@mock.patch('gwpy.timeseries.TimeSeries.get', return_value=HOFT)
+def test_get_data_from_NDS(tsget):
     # retrieve data
     start = 0
     end = 64
     channel = 'X1:TEST-STRAIN'
-    data = datafind.get_data(channel, start, end, source=0)
+    data = datafind.get_data(channel, start, end)
 
     # test data products
     assert isinstance(data, TimeSeries)
     nptest.assert_array_equal(data.value, HOFT.value)
 
 
-@mock.patch('gwpy.timeseries.TimeSeriesDict.fetch',
+@mock.patch('gwpy.timeseries.TimeSeriesDict.get',
             return_value=TimeSeriesDict({'X1:TEST-STRAIN': HOFT}))
-def test_get_data_dict_from_NDS(tsdfetch):
+def test_get_data_dict_from_NDS(tsdget):
     # retrieve data
     start = 33
     end = 64
     channels = ['X1:TEST-STRAIN']
-    data = datafind.get_data(channels, start, end, source=0)
+    data = datafind.get_data(channels, start, end)
 
     # test data products
     assert isinstance(data, TimeSeriesDict)
     nptest.assert_array_equal(data['X1:TEST-STRAIN'].value, HOFT.value)
 
 
-@mock.patch('gwpy.timeseries.TimeSeries.read',
-            return_value=HOFT.crop(16, 48))
-def test_get_data_from_cache(tsfetch):
+@mock.patch('gwdatafind.find_urls')
+@mock.patch('gwpy.timeseries.TimeSeries.read')
+def test_get_data_from_cache(tsget, find_data):
+    # set return values
+    find_data.return_value = ['test.gwf']
+    tsget.return_value = HOFT.crop(16, 48)
+
     # retrieve test frame
     start = 16
     end = start + 32
     channel = 'X1:TEST-STRAIN'
-    data = datafind.get_data(channel, start, end, source=True)
+    frametype = 'X1_TEST'
+    data = datafind.get_data(channel, start, end, frametype=frametype)
 
     # test data products
     assert isinstance(data, TimeSeries)
@@ -108,13 +113,15 @@ def test_get_data_from_cache(tsfetch):
     nptest.assert_array_equal(data.value, HOFT.crop(start, end).value)
 
 
+@mock.patch('gwdatafind.find_urls')
 @mock.patch('gwdetchar.io.datafind.remove_missing_channels')
 @mock.patch('gwpy.timeseries.TimeSeriesDict.read')
-def test_get_data_dict_from_cache(tsdfetch, remove):
+def test_get_data_dict_from_cache(tsdget, remove, find_data):
     # set return values
-    tsdfetch.return_value = TimeSeriesDict({
+    tsdget.return_value = TimeSeriesDict({
         'X1:TEST-STRAIN': HOFT.crop(16, 48)})
     remove.return_value = ['X1:TEST-STRAIN']
+    find_data.return_value = ['test.gwf']
     # retrieve test frame
     start = 16
     end = start + 32
@@ -129,7 +136,8 @@ def test_get_data_dict_from_cache(tsdfetch, remove):
                               HOFT.crop(start, end).value)
 
 
-def test_fail_on_no_frametype():
+def test_get_data_bad_frametype():
     channel = 'X1:TEST-STRAIN'
-    with pytest.raises(TypeError):
-        datafind.get_data(channel, start=0, end=32)
+    with pytest.raises(AttributeError) as exc:
+        datafind.get_data(channel, start=0, end=32, frametype='bad_frametype')
+    assert 'Could not determine observatory' in str(exc.value)
