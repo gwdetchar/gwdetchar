@@ -209,8 +209,8 @@ def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
         default: None
     """
     # get kwargs with sensible defaults
-    css = CSS_FILES + kwargs.get('css', [])
-    script = JS_FILES + kwargs.get('script', [])
+    css = kwargs.get('css', CSS_FILES)
+    script = kwargs.get('script', JS_FILES)
     # write CSS to static dir
     css, script = finalize_static_urls(
         os.path.join(os.path.curdir, 'static'),
@@ -527,7 +527,7 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
 
     Returns
     -------
-    table : `markup.page`
+    table : `~MarkupPy.markup.page`
         a formatted HTML page object containing the `<table>`
     """
     class_.setdefault('table',
@@ -563,7 +563,7 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
     page.tbody.close()
     page.table.close()
     # add export button
-    if id is not None:
+    if id:
         page.button(
             'Export to CSV', class_='btn btn-default btn-table',
             onclick="exportTableToCSV('{name}.csv', '{name}')".format(
