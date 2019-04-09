@@ -70,8 +70,9 @@ def highpass(series, f_low, order=12, analog=False, ftype='sos'):
     gwpy.timeseries.TimeSeries.filter
     """
     corner = f_low / 1.5
-    wn = 2 * corner * series.dt.to('s').value
-    hpfilt = butter(order, wn, btype='highpass', analog=analog, output=ftype)
+    fs = series.sample_rate.to('Hz').value
+    hpfilt = butter(order, corner, btype='highpass', analog=analog,
+                    output=ftype, fs=fs)
     hpseries = series.filter(hpfilt, filtfilt=True)
     return hpseries
 
