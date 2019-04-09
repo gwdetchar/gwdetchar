@@ -138,21 +138,6 @@ HTML_CLOSE = """</div>
 </body>
 </html>""" % HTML_FOOTER  # nopep8
 
-TABLE = """<table class="table table-hover table-condensed table-responsive" id="test">
-<caption>This is a test table.</caption>
-<thead>
-<tr>
-<th scope="col">Test</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>test</td>
-</tr>
-</tbody>
-</table>
-<button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;test.csv&quot;, &quot;test&quot;)">Export to CSV</button>"""  # nopep8
-
 FLAG_CONTENT = """<div class="panel panel-warning">
 <div class="panel-heading">
 <a class="panel-title" href="#flag0" data-toggle="collapse" data-parent="#accordion">X1:TEST_FLAG</a>
@@ -386,9 +371,14 @@ def test_table():
     headers = ['Test']
     data = [['test']]
     caption = 'This is a test table.'
-    page = html.table(headers=headers, data=data, caption=caption,
-                      separator='\n', id='test')
-    assert parse_html(page) == parse_html(TABLE)
+    page = html.table(headers=headers, data=data, caption=caption, id='test')
+    assert parse_html(page) == parse_html(
+        '<table class="table table-hover table-condensed table-responsive" '
+        'id="test"><caption>This is a test table.</caption><thead><tr>'
+        '<th scope="col">Test</th></tr></thead><tbody><tr><td>test</td></tr>'
+        '</tbody></table><button class="btn btn-default btn-table" '
+        'onclick="exportTableToCSV(&quot;test.csv&quot;, &quot;test&quot;)">'
+        'Export to CSV</button>')
 
 
 def test_write_flag_html():
@@ -466,7 +456,6 @@ def test_package_list(check_output, is_dir, isdir, cmd):
     ],
 )
 def test_package_table(package_list):
-    print(html.package_table(class_="test", caption="Test"))
     assert parse_html(
         html.package_table(class_="test", caption="Test"),
     ) == parse_html(
