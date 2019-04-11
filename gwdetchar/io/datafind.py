@@ -22,7 +22,11 @@
 import re
 import warnings
 from six.moves.urllib.error import HTTPError
-from json.decoder import JSONDecodeError
+
+try:  # python >= 3
+    from json.decoder import JSONDecodeError
+except ImportError:  # python == 2.7
+    JSONDecodeError = ValueError
 
 import gwdatafind
 
