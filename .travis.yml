@@ -42,9 +42,9 @@ script:
   - acorn --silent gwdetchar/_static/gwdetchar.min.js
 
 after_success:
-  - python -m pip install ${PIP_FLAGS} coveralls
+  - python -m pip install ${PIP_FLAGS} codecov
   - python -m coverage report
-  - coveralls
+  - python -m codecov --flags $(uname) python${TRAVIS_PYTHON_VERSION/./}
 
 cache:
   pip: true
