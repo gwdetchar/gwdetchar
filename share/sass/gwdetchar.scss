@@ -17,27 +17,20 @@
  * along with GWDetChar.  If not, see <http://www.gnu.org/licenses/>
  */
 
-html {
-		position: relative;
-		min-height: 100%;
-}
-
 body {
-		margin-bottom: 166px;
-		min-height: 100%;
 		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 		font-weight: 300;
 }
 
 h1, h2, h3, h4, h5, h6 {
-		font-weight: normal;
+		font-weight: 300;
 }
 
 h4 {
 		word-break: break-all;
 }
 
-h4::before {
+h2::before, h3::before, h4::before, h5::before, h6::before {
 		display: block;
 		content: "";
 		margin-top: -70px;
@@ -48,6 +41,30 @@ h4::before {
 
 a {
 		cursor: pointer;
+}
+
+img {
+		margin: 0 auto;
+}
+
+.navbar {
+		.ifo-links  {
+				.dropdown-header {
+						padding-left: 20px;
+						padding-right: 20px;
+						white-space: normal;;
+				}
+				@media (min-width: 768px) {
+						position: absolute;
+						right: 0;
+				}
+		}
+}
+
+.dropdown-1-col {
+		white-space: nowrap;
+		max-height: 700px;
+		overflow-y: scroll;
 }
 
 .container {
@@ -62,14 +79,6 @@ a {
 		@media (min-width: 1200px) {
 				max-width: 1400px;
 		}
-}
-
-.with-margin {
-		margin-bottom: 15px;
-}
-
-.fancybox-skin {
-		background: white;
 }
 
 .btn {

@@ -38,76 +38,6 @@ from ..io import html as htmlio
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
-# -- give context for ifo names
-
-OBSERVATORY_MAP = {
-    'G1': {
-        'name': 'GEO',
-        'context': 'default',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/')
-        ])
-    },
-    'H1': {
-        'name': 'LIGO Hanford',
-        'context': 'danger',
-        'links': OrderedDict([
-            ('LHO Summary Pages', 'https://ldas-jobs.ligo-wa.caltech.edu/'
-                                  '~detchar/summary/day/'),
-            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/')
-        ])
-    },
-    'I1': {
-        'name': 'LIGO India',
-        'context': 'success',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/')
-        ])
-    },
-    'K1': {
-        'name': 'KAGRA',
-        'context': 'warning',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/'),
-            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
-        ])
-    },
-    'L1': {
-        'name': 'LIGO Livingston',
-        'context': 'info',
-        'links': OrderedDict([
-            ('LLO Summary Pages', 'https://ldas-jobs.ligo-la.caltech.edu/'
-                                  '~detchar/summary/day/'),
-            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/')
-        ])
-    },
-    'V1': {
-        'name': 'Virgo',
-        'context': 'default',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/'),
-            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/')
-        ])
-    },
-    'Network': {
-        'name': 'Multi-IFO',
-        'context': 'default',
-        'links': OrderedDict([
-            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
-                                      '~detchar/summary/day/'),
-            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG/'),
-            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG/'),
-            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo/'),
-            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl/')
-        ])
-    }
-}
-
-
 # -- HTML construction --------------------------------------------------------
 
 def update_toc(toc, channel, name='GW'):
@@ -141,20 +71,6 @@ def update_toc(toc, channel, name='GW'):
 
 def navbar(ifo, gpstime, toc={}):
     """Initialise a new `markup.page`
-    This method constructs an HTML page with the following structure
-    .. code-block:: html
-        <html>
-        <head>
-            <!-- some stuff -->
-        </head>
-        <body>
-        <div class="container">
-        <div class="page-header">
-        <h1>IFO</h1>
-        <h3>GPSTIME</h3>
-        </div>
-        </div>
-        <div class="container">
 
     Parameters
     ----------
@@ -172,62 +88,16 @@ def navbar(ifo, gpstime, toc={}):
     page : `markup.page`
         the structured markup to open an HTML document
     """
-    page = markup.page()
-    # write banner
-    page.add('<header class="navbar navbar-fixed-top navbar-%s">'
-             % ifo.lower())
-    page.div(class_='container')
-    page.div(class_='navbar-header')
-    page.add('<button class="navbar-toggle" data-toggle="collapse" '
-             'type="button" data-target=".navbar-collapse">')
-    page.add('<span class="icon-bar"></span>')
-    page.add('<span class="icon-bar"></span>')
-    page.add('<span class="icon-bar"></span>')
-    page.add('</button>')
-    page.div(ifo, class_='navbar-brand')
-    page.div(gpstime, class_='navbar-brand')
-    page.div.close()  # navbar-header
-    page.add('<nav class="collapse navbar-collapse">')
-    page.ul(class_='nav navbar-nav')
-    page.li('<a href="#">Summary</a>')
+    (brand, class_) = htmlio.get_brand(ifo, 'Omega Scan',
+                                       gpstime, about='about')
+    # channel navigation
+    links = [['Summary', '#']]
     for key, block in toc.items():
-        page.li(class_='dropdown')
-        page.add('<a class="dropdown-toggle" data-toggle="dropdown">')
-        page.add('%s <b class="caret"></b>' % key)
-        page.add('</a>')
-        page.ul(class_='dropdown-menu', style='max-height: 700px; '
-                                              'overflow-y: scroll;')
-        page.li(block['name'], class_='dropdown-header')
-        for chan in block['channels']:
-            page.li()
-            chanid = chan.name.lower().replace(':', '-')
-            page.a(chan.name, href='#%s' % chanid)
-            page.li.close()
-        page.ul.close()
-        page.li.close()
-    page.li(class_='dropdown')
-    page.add('<a class="dropdown-toggle" data-toggle="dropdown">')
-    page.add('Links <b class="caret"></b>')
-    page.add('</a>')
-    page.ul(class_='dropdown-menu')
-    page.li('Internal', class_='dropdown-header')
-    page.li('<a href="about">About this scan</a>')
-    page.li('', class_='divider')
-    page.li('External', class_='dropdown-header')
-    for name, link in OBSERVATORY_MAP[ifo]['links'].items():
-        page.li()
-        if 'Summary' in name:
-            day = str(tconvert(gpstime).date()).replace('-', '')
-            link = '/'.join([link, day])
-        page.a(name, href=link, target='_blank')
-        page.li.close()
-    page.ul.close()
-    page.li.close()
-    page.ul.close()
-    page.add('</nav>')
-    page.div.close()  # container
-    page.add('</header>')  # navbar
-    return page()
+        channels = [[c.name, '#%s' % c.name.lower().replace(':', '-')]
+                    for c in block['channels']]
+        links.append([key, [[block['name'], channels]]])
+    # return navbar
+    return htmlio.navbar(links, brand=brand, class_=class_)
 
 
 def wrap_html(func):
@@ -278,11 +148,11 @@ def wrap_html(func):
         # (but only on the main results page)
         if about:
             page.add(write_summary(ifo, gpstime, incomplete=refresh,
-                     context=OBSERVATORY_MAP[ifo]['context']))
+                     context=htmlio.OBSERVATORY_MAP[ifo]['context']))
             write_summary_table(toc, correlated)
             if correlated:
                 page.add(write_ranking(toc, primary))
-            kwargs['context'] = OBSERVATORY_MAP[ifo]['context']
+            kwargs['context'] = htmlio.OBSERVATORY_MAP[ifo]['context']
         # write content
         page.div(id_='main')
         # insert inner html directly
@@ -420,7 +290,7 @@ def write_summary(
     page.tbody()
     page.tr()
     page.td("<b>Interferometer</b>", scope='row')
-    page.td("%s (%s)" % (OBSERVATORY_MAP[ifo]['name'], ifo))
+    page.td("%s (%s)" % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))
     page.tr.close()
     page.tr()
     page.td("<b>UTC Time</b>", scope='row')

@@ -232,7 +232,14 @@ logger.debug("%d read" % len(trigs))
 
 # -- prepare HTML -------------------------------------------------------------
 
-page = htmlio.new_bootstrap_page(title='%s Scattering' % args.ifo)
+links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Segments']]
+if args.omega_scans:
+    links.append(('Omega Scans', '#omega-scans'))
+(brand, class_) = htmlio.get_brand(args.ifo, 'Scattering', args.gpsstart)
+navbar = htmlio.navbar(links, class_=class_, brand=brand)
+page = htmlio.new_bootstrap_page(
+    title='%s Scattering' % args.ifo,
+    navbar=navbar)
 page.div(class_='page-header')
 page.h1('%s Scattering: %d-%d'
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
@@ -247,7 +254,7 @@ page.add(htmlio.write_arguments(
     [], start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag))
 
 # link segments file
-page.h2('Segments')
+page.h2('Segments', id_='segments')
 page.p()
 page.add('Full output segments are recorded in HDF5 format here:')
 page.a(os.path.basename(segfile), href=segfile, target='_blank')
@@ -584,7 +591,7 @@ if nscans > 0:
                                 outdir=scandir, condor_commands=condorcmds)
     logger.info('Launched {} omega scans to condor'.format(nscans))
     # render HTML
-    page.h2('Omega Scans')
+    page.h2('Omega Scans', id_='omega-scans')
     page.p('The following event times correspond to significant Omicron '
            'triggers that occur during the scattering segments found above. '
            'To compare these against fringe frequency projections, please '

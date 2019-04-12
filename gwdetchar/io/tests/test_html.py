@@ -26,6 +26,7 @@ import datetime
 import sys
 from pytz import reference
 from getpass import getuser
+from MarkupPy import markup
 try:
     from unittest import mock
 except ImportError:  # python < 3
@@ -250,6 +251,71 @@ def test_new_bootstrap_page():
         NEW_BOOTSTRAP_PAGE.format(base=base))
 
 
+def test_navbar():
+    navbar = html.navbar(['test'], collapse=False)
+    assert parse_html(navbar) == parse_html(
+        '<header class="navbar navbar-fixed-top">\n'
+        '<div class="container">\n<div class="navbar-header">\n'
+        '</div>\n<nav>\n<ul class="nav navbar-nav">\n<li>\ntest\n</li>\n'
+        '</ul>\n</nav>\n</div>\n</header>')
+
+
+def test_dropdown():
+    menu = html.dropdown('test', [])
+    assert parse_html(str(menu)) == parse_html(
+        '<a href="#" class="dropdown-toggle" data-toggle="dropdown">\n'
+        'test\n<b class="caret"></b>\n</a>\n<ul class="dropdown-menu">\n</ul>')
+
+    menu = html.dropdown('test', ['test', '#'], active=0)
+    assert parse_html(str(menu)) == parse_html(
+        '<a href="#" class="dropdown-toggle" data-toggle="dropdown">\n'
+        'test\n<b class="caret"></b>\n</a>\n<ul class="dropdown-menu">\n'
+        '<li class="active">\ntest\n</li>\n<li>\n#\n</li>\n</ul>')
+
+    menu = html.dropdown('test', ['test', '#'], active=[0, 1])
+    assert parse_html(str(menu)) == parse_html(
+        '<a href="#" class="dropdown-toggle" data-toggle="dropdown">\n'
+        'test\n<b class="caret"></b>\n</a>\n<ul class="dropdown-menu">\n'
+        '<li>\ntest\n</li>\n<li>\n#\n</li>\n</ul>')
+
+
+def test_dropdown_link():
+    page = markup.page()
+    html.dropdown_link(page, None)
+    assert parse_html(str(page)) == parse_html(
+        '<li class="divider">\n</li>')
+
+    page = markup.page()
+    html.dropdown_link(page, 'test', active=True)
+    assert parse_html(str(page)) == parse_html(
+        '<li class="active">\ntest\n</li>')
+
+    page = markup.page()
+    html.dropdown_link(page, 'test')
+    assert parse_html(str(page)) == parse_html(
+        '<li>\ntest\n</li>')
+
+
+def test_get_brand():
+    (brand, class_) = html.get_brand('H1', 'Test', 0, about='about')
+    assert class_ == 'navbar navbar-fixed-top navbar-h1'
+    assert parse_html(brand) == parse_html(
+        '<div class="navbar-brand">H1</div>\n'
+        '<div class="navbar-brand">Test</div>\n'
+        '<div class="btn-group pull-right ifo-links">\n'
+        '<a class="navbar-brand dropdown-toggle" href="#" '
+        'data-toggle="dropdown">\nLinks\n<b class="caret"></b>\n</a>\n'
+        '<ul class="dropdown-menu">\n'
+        '<li class="dropdown-header">Internal</li>\n'
+        '<li>\n<a href="about">About this page</a>\n</li>\n'
+        '<li class="divider"></li>\n'
+        '<li class="dropdown-header">External</li>\n'
+        '<li>\n<a href="https://ldas-jobs.ligo-wa.caltech.edu/~detchar/'
+        'summary/day/19800106" target="_blank">LHO Summary Pages</a>\n'
+        '</li>\n<li>\n<a href="https://alog.ligo-wa.caltech.edu/aLOG" '
+        'target="_blank">LHO Logbook</a>\n</li>\n</ul>\n</div>')
+
+
 @mock.patch(
     "gwdetchar.io.html.package_list",
     return_value=[
@@ -368,7 +434,7 @@ def test_scaffold_plots():
 
 def test_write_arguments():
     page = html.write_arguments([('test', 'test')], 0, 1, flag='X1:TEST')
-    assert '<h2>Parameters</h2>' in page
+    assert '<h2 id="parameters">Parameters</h2>' in page
     assert '<strong>Start time: </strong>\n0 (1980-01-06 00:00:00)' in page
     assert '<strong>End time: </strong>\n1 (1980-01-06 00:00:01)' in page
     assert '<strong>State flag: </strong>\nX1:TEST' in page

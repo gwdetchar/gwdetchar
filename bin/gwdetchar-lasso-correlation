@@ -619,7 +619,10 @@ def style_table(html_table):
 
 # write html
 title = '%s Lasso Slow Correlations: %d-%d' % (args.ifo, start, end)
-page = htmlio.new_bootstrap_page(title=title)
+links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Model', 'Results']]
+(brand, class_) = htmlio.get_brand(args.ifo, 'Lasso', start)
+navbar = htmlio.navbar(links, class_=class_, brand=brand)
+page = htmlio.new_bootstrap_page(title=title, navbar=navbar)
 
 page.div(class_='page-header')
 page.h1(title)
@@ -644,7 +647,7 @@ if args.band_pass:
          'Flow = {} Hz, Fhigh = {} Hz '.format(flower, fupper)))
 page.add(htmlio.write_arguments(content, start=start, end=end))
 
-page.h2('Model Information')
+page.h2('Model Information', id_='model')
 
 page.div(class_='model')
 page.div(class_='model-body')
@@ -703,7 +706,7 @@ page.div.close()  # model-body
 page.div.close()  # model
 
 # results
-page.h2('Top Channels')
+page.h2('Top Channels', id_='results')
 
 page.div(class_='panel-group', id_='results')
 

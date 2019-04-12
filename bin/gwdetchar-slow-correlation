@@ -361,7 +361,10 @@ with open('results.txt', 'w') as f:
 
 # -- write html
 title = '%s Slow Correlations: %d-%d' % (args.ifo, start, end)
-page = htmlio.new_bootstrap_page(title=title)
+links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Results']]
+(brand, class_) = htmlio.get_brand(args.ifo, 'Slow Correlations', start)
+navbar = htmlio.navbar(links, class_=class_, brand=brand)
+page = htmlio.new_bootstrap_page(title=title, navbar=navbar)
 
 # header
 if flower:
@@ -387,7 +390,7 @@ contents = [
 page.add(htmlio.write_arguments(content, start=start, end=end))
 
 # results
-page.h2('Results')
+page.h2('Results', id_='results')
 r_blrms = "<i>r<sub>blrms</sub> </i>"
 r_range = "<i>r<sub>range</sub> </i>"
 r = "<i>r</i>"

@@ -204,7 +204,12 @@ if args.html:
         args.plot = os.path.dirname(args.html)
     segfile = os.path.relpath(outfile, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
-        page = htmlio.new_bootstrap_page()
+        links = [(s, '#%s' % s.lower())
+                 for s in ['Parameters', 'Segments', 'Results']]
+        (brand, class_) = htmlio.get_brand(ifo, 'Software Saturations',
+                                           args.gpsstart)
+        navbar = htmlio.navbar(links, class_=class_, brand=brand)
+        page = htmlio.new_bootstrap_page(navbar=navbar)
     else:
         page = markup.page()
         page.div(class_='container')
@@ -226,7 +231,7 @@ if args.html:
     page.add(htmlio.write_arguments(
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
     # -- segments
-    page.h2('Segments')
+    page.h2('Segments', id_='segments')
     # link output file
     page.p()
     page.add('Full output segments are recorded in HDF5 format here:')
@@ -258,7 +263,7 @@ if args.html:
         page.p('No software saturations were found')
         page.div.close()
     # -- results table
-    page.h2('Results summary')
+    page.h2('Results summary', id_='results')
     page.table(class_='table table-striped table-hover')
     # write table header
     page.thead()
