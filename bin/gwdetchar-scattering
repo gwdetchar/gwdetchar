@@ -559,10 +559,12 @@ if statea:
 # identify triggers during active segments
 logger.debug('Writing a summary CSV record')
 actives = actives.coalesce()  # merge contiguous segments
-gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
-freq = [x for x in highsnrtrigs[names[1]] for y in actives if x in y]
-snr = [x for x in highsnrtrigs[names[2]] for y in actives if x in y]
-segs = [y for x in highsnrtrigs[names[0]] for y in actives if x in y]
+ind = [i for i, trigtime in enumerate(highsnrtrigs[names[0]])
+       if trigtime in actives]
+gps = highsnrtrigs[names[0]][ind]
+freq = highsnrtrigs[names[1]][ind]
+snr = highsnrtrigs[names[2]][ind]
+segs = [y for x in gps for y in actives if x in y]
 table = Table(
     [gps, freq, snr, [seg[0] for seg in segs], [seg[1] for seg in segs]],
     names=('trigger_time', 'trigger_frequency', 'trigger_snr',
