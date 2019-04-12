@@ -741,9 +741,10 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
         page.p('Lasso coefficient below the threshold of %g.'
                % (args.threshold))
     else:
-        for p in (plot4, plot5, plot6):
-            pimg = htmlio.FancyPlot(p)
-            page.add(htmlio.fancybox_img(pimg))
+        plot4 = htmlio.FancyPlot(plot4)
+        plot5 = htmlio.FancyPlot(plot5)
+        plot6 = htmlio.FancyPlot(plot6)
+        page.add(htmlio.scaffold_plots([plot4, plot5, plot6]))
         if args.no_cluster is False:
             if clusters[i][0] is None:
                 page.p("<font size = '3'><br />No channels were highly"
