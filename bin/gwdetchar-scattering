@@ -58,6 +58,19 @@ __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \
               'Alex Urban <alexander.urban@ligo.org>'
 
+# global variables
+SCATTER_CAPTION = 'Evidence for scattering in {CHANNEL}. Top: longitudinal ' \
+                  'optic motion; second row: projected fringe frequency of ' \
+                  'the first four harmonics; third row: time-frequency ' \
+                  'scatter plot of Omicron triggers, coloured by signal-to-' \
+                  'noise ratio; bottom: known (small) and active (large) ' \
+                  'time segments when one harmonic is above the frequency ' \
+                  'threshold.'
+HIST_CAPTION = 'Cumulative histogram of the total time with fringe ' \
+               'frequency above a given value. The first (red), second ' \
+               '(green), third (gold), and fourth (blue) harmonics are ' \
+               'shown for {CHANNEL}.'
+
 # TeX settings
 tex_settings = get_gwpy_tex_settings()
 rcParams.update(tex_settings)
@@ -489,16 +502,18 @@ for i, channel in enumerate(sorted(channels)):
               args.frequency_threshold/2.)):
         context = 'warning'
     else:
-        context = 'default'
+        continue
     page.div(class_='panel panel-%s' % context)
     page.div(class_='panel-heading')
     page.a(channel, class_="panel-title", href='#flag%s' % i,
            **{'data-toggle': 'collapse', 'data-parent': '#accordion'})
     page.div.close()
     page.div(id_='flag%s' % i, class_='panel-collapse collapse')
-    img = htmlio.FancyPlot(png)
+    img = htmlio.FancyPlot(
+        png, caption=SCATTER_CAPTION.format(CHANNEL=channel))
     page.add(htmlio.fancybox_img(img))
-    himg = htmlio.FancyPlot(hpng)
+    himg = htmlio.FancyPlot(
+        hpng, caption=HIST_CAPTION.format(CHANNEL=channel))
     page.add(htmlio.fancybox_img(himg))
     page.div(class_='panel-body')
     segs = StringIO()
