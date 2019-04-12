@@ -506,6 +506,71 @@ def write_arguments(content, start, end, flag=None, section='Parameters',
     return page()
 
 
+def table(headers, data, caption=None, separator='', id=None, **class_):
+    """Write a <table> with one row of headers and many rows of data
+
+    Parameters
+    ----------
+    headers : `list`
+        list of column header names
+
+    data : `list` of `lists`
+        list of column data lists, for ``m`` rows and ``n`` columns, this
+        should have dimensions ``m x n``
+
+    caption : `str`, optional
+        content for this table's `<caption>`
+
+    **class_
+        class attribute declarations for each tag used in the table,
+        any of `table`, `thead`, `tbody`, `tr`, `th`, `td`, `caption`
+
+    Returns
+    -------
+    table : `~MarkupPy.markup.page`
+        a formatted HTML page object containing the `<table>`
+    """
+    class_.setdefault('table',
+                      'table table-hover table-condensed table-responsive')
+    # unwrap class declarations (so we don't get empty class attributes)
+    kwargs = {}
+    for tag in ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption']:
+        try:
+            kwargs[tag] = {'class_': class_.pop(tag)}
+        except KeyError:
+            kwargs[tag] = {}
+    # create table and add caption
+    page = markup.page(separator=separator)
+    if id is not None:
+        kwargs['table']['id_'] = id
+    page.table(**kwargs['table'])
+    if caption:
+        page.caption(caption, **kwargs['caption'])
+    # write headers
+    page.thead(**kwargs['thead'])
+    page.tr(**kwargs['tr'])
+    for th in headers:
+        page.th(th, scope='col', **kwargs['th'])
+    page.tr.close()
+    page.thead.close()
+    # write body
+    page.tbody(**kwargs['tbody'])
+    for row in data:
+        page.tr(**kwargs['tr'])
+        for td in row:
+            page.td(td, **kwargs['td'])
+        page.tr.close()
+    page.tbody.close()
+    page.table.close()
+    # add export button
+    if id:
+        page.button(
+            'Export to CSV', class_='btn btn-default btn-table',
+            onclick="exportTableToCSV('{name}.csv', '{name}')".format(
+                name=id))
+    return page()
+
+
 def write_flag_html(flag, span=None, id=0, parent='accordion',
                     context='warning', title=None, plotdir=None,
                     plot_func=plot_segments, **kwargs):
@@ -704,6 +769,7 @@ def package_table(
         h2="Environment",
         class_="table table-hover table-condensed table-responsive",
         caption="Table of packages installed in the production environment",
+        id_="package-table",
 ):
     """Write a table listing packages installed in the current environment
 
@@ -726,27 +792,12 @@ def package_table(
         cols = ("name", "version", "channel", "build_string")
     else:  # pip list installed
         cols = ("name", "version")
-
     # create page and write <table>
     page = markup.page(separator="")
     if h2 is not None:
         page.h2(h2)
-    page.table(class_=class_)
-    if caption is not None:
-        page.caption(caption)
-    page.thead()
-    page.tr()
-    for head in cols:
-        page.th(head.title(), scope="col")
-    page.tr.close()
-    page.thead.close()
-    page.tbody()
-    for pkg in sorted(pkgs, key=itemgetter("name")):
-        page.tr()
-        for col in cols:
-            page.td(pkg[col.lower()])
-        page.tr.close()
-    page.tbody.close()
-    page.table.close()
-
+    headers = [head.title() for head in cols]
+    data = [[pkg[col.lower()] for col in cols]
+            for pkg in sorted(pkgs, key=itemgetter("name"))]
+    page.add(table(headers, data, caption=caption, id=id_, table=class_))
     return page()

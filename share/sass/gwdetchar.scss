@@ -87,6 +87,11 @@ a {
 		}
 }
 
+.btn-table {
+		margin-top: -15px;
+		margin-bottom: 15px;
+}
+
 .desktop-only {
 		@media(max-width:991px) {
 				display:none;

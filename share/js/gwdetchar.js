@@ -17,6 +17,7 @@
  * along with GWDetChar.  If not, see <http://www.gnu.org/licenses/>
  */
 
+// expand fancybox plots
 $(document).ready(function() {
   $(".fancybox").fancybox({
     nextEffect: 'none',
@@ -25,6 +26,7 @@ $(document).ready(function() {
   });
 });
 
+// expose alternative image types
 function showImage(channelName, tRanges, imageType, captions) {
   for (var tIndex in tRanges) {
     var idBase = channelName + "_" + tRanges[tIndex];
@@ -37,3 +39,34 @@ function showImage(channelName, tRanges, imageType, captions) {
     document.getElementById("img_" + idBase).alt = fileBase + ".png";
   };
 };
+
+// download a CSV table
+function downloadCSV(csv, filename) {
+  var csvFile;
+  var downloadLink;
+  // set download attributes
+  csvFile = new Blob([csv], {type: "text/csv"});
+  downloadLink = document.createElement("a");
+  downloadLink.download = filename;
+  downloadLink.href = window.URL.createObjectURL(csvFile);
+  downloadLink.style.display = "none";
+  document.body.appendChild(downloadLink);
+  // download action
+  downloadLink.click();
+}
+
+// export a table to CSV
+function exportTableToCSV(filename, tableId) {
+  var csv = [];
+  var table = document.getElementById(tableId);
+  var rows = table.querySelectorAll("table tr");
+  // get table rows
+  for (var i = 0; i < rows.length; i++) {
+    var row = [], cols = rows[i].querySelectorAll("td, th");
+    for (var j = 0; j < cols.length; j++)
+        row.push(cols[j].innerText);
+    csv.push(row.join(","));
+  }
+  // download CSV record
+  downloadCSV(csv.join("\n"), filename);
+}

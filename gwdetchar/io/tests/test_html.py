@@ -88,7 +88,7 @@ ABOUT = """<div class="row">
 <span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
 </pre></div>
 
-<h2>Environment</h2><table class="table table-hover table-condensed table-responsive"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table>
+<h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;package-table.csv&quot;, &quot;package-table&quot;)">Export to CSV</button>
 </div>
 </div>"""  # nopep8
 
@@ -118,7 +118,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 </div>
 </div>
 </div>
-<h2>Environment</h2><table class="table table-hover table-condensed table-responsive"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table>
+<h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;package-table.csv&quot;, &quot;package-table&quot;)">Export to CSV</button>
 </div>
 </div>"""  # nopep8
 
@@ -367,6 +367,20 @@ def test_write_arguments():
     assert '<strong>Command line: </strong>' in page
 
 
+def test_table():
+    headers = ['Test']
+    data = [['test']]
+    caption = 'This is a test table.'
+    page = html.table(headers=headers, data=data, caption=caption, id='test')
+    assert parse_html(page) == parse_html(
+        '<table class="table table-hover table-condensed table-responsive" '
+        'id="test"><caption>This is a test table.</caption><thead><tr>'
+        '<th scope="col">Test</th></tr></thead><tbody><tr><td>test</td></tr>'
+        '</tbody></table><button class="btn btn-default btn-table" '
+        'onclick="exportTableToCSV(&quot;test.csv&quot;, &quot;test&quot;)">'
+        'Export to CSV</button>')
+
+
 def test_write_flag_html():
     page = html.write_flag_html(FLAG)
     assert parse_html(str(page)) == parse_html(FLAG_HTML)
@@ -445,11 +459,15 @@ def test_package_table(package_list):
     assert parse_html(
         html.package_table(class_="test", caption="Test"),
     ) == parse_html(
-        "<h2>Environment</h2><table class=\"test\"><caption>Test</caption>"
+        "<h2>Environment</h2><table class=\"test\" id=\"package-table\">"
+        "<caption>Test</caption>"
         "<thead>"
         "<tr><th scope=\"col\">Name</th><th scope=\"col\">Version</th></tr>"
         "</thead><tbody>"
         "<tr><td>gwdetchar</td><td>1.2.3</td></tr>"
         "<tr><td>gwpy</td><td>1.0.0</td></tr>"
-        "</tbody></table>",
+        "</tbody></table>"
+        "<button class=\"btn btn-default btn-table\" "
+        "onclick=\"exportTableToCSV(&quot;package-table.csv&quot;, "
+        "&quot;package-table&quot;)\">Export to CSV</button>",
     )
