@@ -49,5 +49,5 @@ proposing additions/changes.
    :target: https://pypi.org/project/gwdetchar/
 .. |Build Status| image:: https://travis-ci.org/gwdetchar/gwdetchar.svg?branch=master
    :target: https://travis-ci.org/gwdetchar/gwdetchar
-.. |Coverage Status| image:: https://coveralls.io/repos/github/gwdetchar/gwdetchar/badge.svg?branch=master
-   :target: https://coveralls.io/github/gwdetchar/gwdetchar?branch=master
+.. |Coverage Status| image:: https://codecov.io/gh/gwdetchar/gwdetchar/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/gwdetchar/gwdetchar
