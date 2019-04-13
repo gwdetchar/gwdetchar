@@ -157,7 +157,7 @@ if args.state_flag is not None:
         else:
             logger.debug(
                 "Segment length {} shorter than padding length {}, "
-                "skipping this segment".format(abs(seg), padding))
+                "skipping segment {}-{}".format(abs(seg), padding, *seg))
     state.coalesce()
     statea = state.active
     livetime = float(abs(statea))

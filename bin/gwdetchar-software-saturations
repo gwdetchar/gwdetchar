@@ -110,13 +110,13 @@ if not os.getenv('LIGO_DATAFIND_SERVER'):
     raise RuntimeError("No LIGO_DATAFIND_SERVER variable set, don't know "
                        "how to discover channels")
 else:
-    logger.debug("Finding channels in frames")
+    logger.debug("Identifying channels in frame files")
     if len(cache) == 0:
         raise RuntimeError("No frames recovered for %s in interval [%s, %s)" %
                            (frametype, int(args.gpsstart),
                             int(args.gpsend)))
     allchannels = get_channel_names(cache[0])
-    logger.debug("   Found %d channels in frame" % len(allchannels))
+    logger.debug("   Found %d channels" % len(allchannels))
     sys.stdout.flush()
     channels = saturation.find_limit_channels(allchannels, skip=args.skip)
     logger.info("   Parsed %d channels with '_LIMIT' and '_LIMEN' or '_SWSTAT'"
