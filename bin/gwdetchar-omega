@@ -231,12 +231,13 @@ for block in blocks.values():
             logger.info(
                 ' -- {} not active, skipping block'.format(block.flag))
             continue
-    # read in `duration` seconds of data centered on gps
-    start = gps - duration/2. - 1
-    end = gps + duration/2. + 1
-    data = get_data(
-        chans, start, end, frametype=block.frametype, source=block.source,
-        nproc=args.nproc, verbose='Reading block:'.rjust(30))
+    # read `duration` seconds of data
+    if not (set(chans) <= set(completed)):
+        start = gps - duration/2. - 1
+        end = gps + duration/2. + 1
+        data = get_data(
+            chans, start, end, frametype=block.frametype, source=block.source,
+            nproc=args.nproc, verbose='Reading block:'.rjust(30))
 
     # process individual channels
     for channel in block.channels:
