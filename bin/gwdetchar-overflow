@@ -280,7 +280,7 @@ if args.html:
     # link XML file
     if args.output_file:
         page.p()
-        page.add('The full output segments are recorded in here:')
+        page.add('Full output segments are recorded in HDF5 format here:')
         page.a(os.path.basename(args.output_file), href=args.output_file,
                target='_blank')
         page.p.close()
