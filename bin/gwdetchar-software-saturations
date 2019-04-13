@@ -234,7 +234,7 @@ if args.html:
     page.p.close()
     # record state segments
     if args.state_flag:
-        page.p('This analysis was executed over the following segments:')
+        page.p('This analysis was done over the following data-quality flag:')
         page.div(class_='panel-group', id_='accordion1')
         page.add(htmlio.write_flag_html(
             state, span, 'state', parent='accordion1', context='success',
