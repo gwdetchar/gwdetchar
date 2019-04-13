@@ -229,7 +229,7 @@ if args.html:
     page.h2('Segments')
     # link output file
     page.p()
-    page.add('The full output segments are recorded in HDF5-format here:')
+    page.add('Full output segments are recorded in HDF5 format here:')
     page.a(os.path.basename(segfile), href=segfile, target='_blank')
     page.p.close()
     # record state segments

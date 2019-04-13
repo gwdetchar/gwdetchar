@@ -244,7 +244,7 @@ page.add(htmlio.write_arguments(
 # link segments file
 page.h2('Segments')
 page.p()
-page.add('The full output segments are recorded in HDF5 format here:')
+page.add('Full output segments are recorded in HDF5 format here:')
 page.a(os.path.basename(segfile), href=segfile, target='_blank')
 page.p.close()
 # link summary file
