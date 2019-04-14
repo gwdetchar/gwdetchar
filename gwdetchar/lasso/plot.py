@@ -78,18 +78,3 @@ def save_figure(fig, pngfile, **kwargs):
             return
     fig.close()
     return pngfile
-
-
-def save_legend(axes, pngfile, loc='center', frameon=False, fontsize='small',
-                **kwargs):
-    """Save a figure with a legend
-    """
-    fig = Plot()
-    leg = fig.legend(*axes.get_legend_handles_labels(), loc=loc,
-                     frameon=frameon, fontsize=fontsize, **kwargs)
-    for line in leg.get_lines():
-        line.set_linewidth(8)
-    fig.canvas.draw_idle()
-    return save_figure(fig, pngfile,
-                       bbox_inches=(leg.get_window_extent().transformed(
-                           fig.dpi_scale_trans.inverted())))
