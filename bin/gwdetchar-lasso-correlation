@@ -295,7 +295,7 @@ xlim = primaryts.span
 cmap = mcm.get_cmap('tab20')
 colors = [cmap(i) for i in numpy.linspace(0, 1, len(nonzerodata)+1)]
 
-plot = Plot(figsize=(12, 6))
+plot = Plot(figsize=(12, 4))
 plot.subplots_adjust(*p1)
 ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
 ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),
@@ -312,7 +312,7 @@ ax.legend(loc='best')
 plot1 = gwplot.save_figure(plot, '%s-LASSO_MODEL-%s.png' % (args.ifo, gpsstub))
 
 # summed contributions
-plot = Plot(figsize=(8, 5))
+plot = Plot(figsize=(8, 4))
 plot.subplots_adjust(*p1)
 ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
 ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),  # primary
@@ -345,7 +345,7 @@ plot2 = gwplot.save_figure(
 
 
 # individual contributions
-plot = Plot(figsize=(8, 5))
+plot = Plot(figsize=(8, 4))
 plot.subplots_adjust(*p1)
 ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
 ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),  # primary
@@ -407,7 +407,7 @@ def process_channel(input_,):
             return chan, lassocoef, plot4, plot5, plot6, ts
 
         # create time series subplots
-        fig = Plot(figsize=(12, 12))
+        fig = Plot(figsize=(12, 8))
         fig.subplots_adjust(*p4)
         ax1 = fig.add_subplot(2, 1, 1, xscale='auto-gps', epoch=start)
         ax1.plot(primaryts, label=primary.replace('_', r'\_'),
@@ -430,7 +430,7 @@ def process_channel(input_,):
         tsscaled = scale(ts.value)
         if lassocoef < 0:
             tsscaled = numpy.negative(tsscaled)
-        fig = Plot(figsize=(12, 6))
+        fig = Plot(figsize=(12, 4))
         fig.subplots_adjust(*p1)
         ax = fig.gca(xscale='auto-gps', epoch=start, xlim=xlim)
         ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),
@@ -451,7 +451,7 @@ def process_channel(input_,):
         primaryReg = linear_model.LinearRegression()
         primaryReg.fit(tsCopy, primarytsCopy)
         primaryFit = primaryReg.predict(tsCopy)
-        fig = Plot(figsize=(12, 6))
+        fig = Plot(figsize=(12, 4))
         fig.subplots_adjust(*p1)
         ax = fig.gca()
         ax.set_xlabel(chan.replace('_', r'\_') + ' [Channel units]')
@@ -526,7 +526,7 @@ def generate_cluster(input_,):
             colors2 = [cmap(i) for i in numpy.linspace(0, 1, ncluster+1)]
 
             # plot
-            fig = Plot(figsize=(8, 5))
+            fig = Plot(figsize=(8, 4))
             fig.subplots_adjust(*p7)
             ax = fig.gca(xscale='auto-gps')
             ax.plot(
@@ -742,9 +742,10 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
                % (args.threshold))
     else:
         plot4 = htmlio.FancyPlot(plot4)
+        page.add(htmlio.fancybox_img(plot4))
         plot5 = htmlio.FancyPlot(plot5)
         plot6 = htmlio.FancyPlot(plot6)
-        page.add(htmlio.scaffold_plots([plot4, plot5, plot6]))
+        page.add(htmlio.scaffold_plots([plot5, plot6], nperrow=2))
         if args.no_cluster is False:
             if clusters[i][0] is None:
                 page.p("<font size = '3'><br />No channels were highly"
