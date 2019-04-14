@@ -752,7 +752,7 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
             page.add('<hr class="row-divider">')
         if args.no_cluster is False:
             if clusters[i][0] is None:
-                page.p("<font size = '3'><br />No channels were highly"
+                page.p("<font size='3'><br />No channels were highly"
                        " correlated with this channel.</font>")
             else:
                 page.div(class_='row', id_='clusters')
@@ -762,9 +762,9 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
                 page.div.close()  # col-md-12
                 page.div.close()  # clusters
                 if clusters[i][1] is not None:
-                    page.p("<font size = '3'><br />Only the first %d highly"
+                    page.p("<font size='3'><br />Only the first %d highly"
                            " correlated channels are reported in this"
-                           " figure. <a href= %s target='_blank'>Here</a>"
+                           " figure. <a href='%s' target='_blank'>Here</a>"
                            " is the full list.</font>"
                            % (max_correlated_channels, clusters[i][1]))
     page.div.close()  # panel-body
