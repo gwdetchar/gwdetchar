@@ -270,7 +270,6 @@ def about_this_page(config, packagelist=True):
     page.div(class_='row')
     page.div(class_='col-md-12')
     page.h2('On the command-line')
-    page.p('This page was generated with the following command-line call:')
     page.add(get_command_line())
     # render config file(s)
     page.h2('Configuration files')
@@ -340,18 +339,28 @@ def get_command_line(language='bash'):
     ----------
     language : `str`, optional
         type of environment the code is run in, default: `'bash'`
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        fully rendered command-line arguments
     """
+    page = markup.page()
+    page.p('This page was generated with the following command-line call:')
     if sys.argv[0].endswith('__main__.py'):
         package = sys.argv[0].rsplit(os.path.sep, 2)[1]
         commandline = '$ python -m {0} {1}'.format(
             package, ' '.join(sys.argv[1:]))
+        page.add(render_code(commandline, language))
     else:
         script = os.path.basename(sys.argv[0])
-        which = '$ which {}'.format(script)
-        commandline = '{0}\n{1}\n\n{2}'.format(
-            which, sys.argv[0],
-            '$ ' + script + ' ' + ' '.join(sys.argv[1:]))
-    return render_code(commandline.replace(' --html-only', ''), language)
+        which = '$ which {0}\n{1}'.format(script, sys.argv[0])
+        commandline = '$ ' + script + ' ' + ' '.join(sys.argv[1:])
+        page.add(render_code(
+            commandline.replace(' --html-only', ''), language))
+        page.p('The following build path was used:')
+        page.add(render_code(which, language))
+    return page()
 
 
 def html_link(href, txt, target="_blank", **params):
@@ -505,7 +514,7 @@ def write_arguments(content, start, end, flag=None, section='Parameters',
     page.p(info)
     for item in content:
         page.add(write_param(*item))
-    page.add(write_param('Command line', ''))
+    page.add(write_param('Command-line', ''))
     page.add(get_command_line())
     return page()
 

@@ -79,10 +79,12 @@ ABOUT = """<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
+</pre></div>
+
+<p>The following build path was used:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ which gwdetchar-scattering
 /opt/bin/gwdetchar-scattering
-
-$ gwdetchar-scattering -i X1
 </pre></div>
 
 <h2>Configuration files</h2>
@@ -99,10 +101,12 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
+</pre></div>
+
+<p>The following build path was used:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ which gwdetchar-scattering
 /opt/bin/gwdetchar-scattering
-
-$ gwdetchar-scattering -i X1
 </pre></div>
 
 <h2>Configuration files</h2>
@@ -288,10 +292,13 @@ def test_get_command_line():
     with mock.patch.object(sys, 'argv', testargs):
         cmdline = html.get_command_line()
         assert parse_html(cmdline) == parse_html(
-            '<div class="highlight" style="background: #f8f8f8">'
-            '<pre style="line-height: 125%"><span></span>'
-            '$ which gwdetchar-conlog\n/opt/bin/gwdetchar-conlog\n\n'
-            '$ gwdetchar-conlog -i X1\n</pre></div>\n')
+            '<p>This page was generated with the following command-line call:'
+            '</p>\n<div class="highlight" style="background: #f8f8f8">'
+            '<pre style="line-height: 125%"><span></span>$ gwdetchar-conlog '
+            '-i X1\n</pre></div>\n\n<p>The following build path was used:'
+            '</p>\n<div class="highlight" style="background: #f8f8f8">'
+            '<pre style="line-height: 125%"><span></span>$ which '
+            'gwdetchar-conlog\n/opt/bin/gwdetchar-conlog\n</pre></div>\n')
 
 
 def test_get_command_line_module():
@@ -299,9 +306,10 @@ def test_get_command_line_module():
     with mock.patch.object(sys, 'argv', testargs):
         cmdline = html.get_command_line()
         assert parse_html(cmdline) == parse_html(
-            '<div class="highlight" style="background: #f8f8f8">'
-            '<pre style="line-height: 125%"><span></span>'
-            '$ python -m omega\n</pre></div>\n')
+            '<p>This page was generated with the following command-line call:'
+            '</p>\n<div class="highlight" style="background: #f8f8f8">'
+            '<pre style="line-height: 125%"><span></span>$ python -m omega '
+            '--html-only\n</pre></div>\n')
 
 
 @pytest.mark.parametrize('args, kwargs, result', [
@@ -372,7 +380,7 @@ def test_write_arguments():
     assert '<strong>End time: </strong>\n1 (1980-01-06 00:00:01)' in page
     assert '<strong>State flag: </strong>\nX1:TEST' in page
     assert '<strong>test: </strong>\ntest' in page
-    assert '<strong>Command line: </strong>' in page
+    assert '<strong>Command-line: </strong>' in page
 
 
 def test_table():
