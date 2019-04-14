@@ -38,6 +38,7 @@ except ImportError:  # python >= 3.6
 from six.moves import StringIO
 from six.moves.urllib.parse import urlparse
 
+from inspect import (getmodule, stack)
 from pkg_resources import resource_filename
 
 from MarkupPy import markup
@@ -348,18 +349,16 @@ def get_command_line(language='bash'):
     page = markup.page()
     page.p('This page was generated with the following command-line call:')
     if sys.argv[0].endswith('__main__.py'):
-        package = sys.argv[0].rsplit(os.path.sep, 2)[1]
-        commandline = '$ python -m {0} {1}'.format(
-            package, ' '.join(sys.argv[1:]))
-        page.add(render_code(commandline, language))
+        module = getmodule(stack()[1][0]).__name__
+        which = sys.argv[0]
+        cmdline = '$ python -m {0} {1}'.format(module, ' '.join(sys.argv[1:]))
     else:
         script = os.path.basename(sys.argv[0])
         which = '$ which {0}\n{1}'.format(script, sys.argv[0])
-        commandline = '$ ' + script + ' ' + ' '.join(sys.argv[1:])
-        page.add(render_code(
-            commandline.replace(' --html-only', ''), language))
-        page.p('The following build path was used:')
-        page.add(render_code(which, language))
+        cmdline = '$ ' + script + ' ' + ' '.join(sys.argv[1:])
+    page.add(render_code(cmdline.replace(' --html-only', ''), language))
+    page.p('The following install path was used:')
+    page.add(render_code(which, language))
     return page()
 
 

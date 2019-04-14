@@ -82,7 +82,7 @@ ABOUT = """<div class="row">
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
 </pre></div>
 
-<p>The following build path was used:</p>
+<p>The following install path was used:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ which gwdetchar-scattering
 /opt/bin/gwdetchar-scattering
 </pre></div>
@@ -104,7 +104,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
 </pre></div>
 
-<p>The following build path was used:</p>
+<p>The following install path was used:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ which gwdetchar-scattering
 /opt/bin/gwdetchar-scattering
 </pre></div>
@@ -295,21 +295,25 @@ def test_get_command_line():
             '<p>This page was generated with the following command-line call:'
             '</p>\n<div class="highlight" style="background: #f8f8f8">'
             '<pre style="line-height: 125%"><span></span>$ gwdetchar-conlog '
-            '-i X1\n</pre></div>\n\n<p>The following build path was used:'
+            '-i X1\n</pre></div>\n\n<p>The following install path was used:'
             '</p>\n<div class="highlight" style="background: #f8f8f8">'
             '<pre style="line-height: 125%"><span></span>$ which '
             'gwdetchar-conlog\n/opt/bin/gwdetchar-conlog\n</pre></div>\n')
 
 
 def test_get_command_line_module():
-    testargs = ['gwdetchar/omega/__main__.py', '--html-only']
+    testargs = ['__main__.py', '--html-only']
     with mock.patch.object(sys, 'argv', testargs):
         cmdline = html.get_command_line()
         assert parse_html(cmdline) == parse_html(
             '<p>This page was generated with the following command-line call:'
             '</p>\n<div class="highlight" style="background: #f8f8f8">'
-            '<pre style="line-height: 125%"><span></span>$ python -m omega '
-            '--html-only\n</pre></div>\n')
+            '<pre style="line-height: 125%"><span></span>$ python -m '
+            'gwdetchar.io.tests.test_html\n</pre></div>\n\n'
+            '<p>The following install path was used:</p>\n'
+            '<div class="highlight" style="background: #f8f8f8">'
+            '<pre style="line-height: 125%"><span></span>__main__.py\n'
+            '</pre></div>\n')
 
 
 @pytest.mark.parametrize('args, kwargs, result', [
