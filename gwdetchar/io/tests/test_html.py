@@ -278,13 +278,15 @@ def test_write_param():
 
 
 def test_get_command_line():
-    testargs = ['gwdetchar-conlog', '-i', 'X1']
+    testargs = ['/opt/bin/gwdetchar-conlog', '-i', 'X1']
     with mock.patch.object(sys, 'argv', testargs):
         cmdline = html.get_command_line()
         assert parse_html(cmdline) == parse_html(
             '<div class="highlight" style="background: #f8f8f8">'
             '<pre style="line-height: 125%"><span></span>'
+            '$ which gwdetchar-conlog\n/opt/bin/gwdetchar-conlog\n\n'
             '$ gwdetchar-conlog -i X1\n</pre></div>\n')
+
 
 def test_get_command_line_module():
     testargs = ['gwdetchar/omega/__main__.py', '--html-only']
