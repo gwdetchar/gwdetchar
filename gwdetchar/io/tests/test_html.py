@@ -79,7 +79,10 @@ ABOUT = """<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ which gwdetchar-scattering
+/opt/bin/gwdetchar-scattering
+
+$ gwdetchar-scattering -i X1
 </pre></div>
 
 <h2>Configuration files</h2>
@@ -96,7 +99,10 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ which gwdetchar-scattering
+/opt/bin/gwdetchar-scattering
+
+$ gwdetchar-scattering -i X1
 </pre></div>
 
 <h2>Configuration files</h2>
@@ -259,7 +265,7 @@ def test_about_this_page(package_list, tmpdir):
     config_file = os.path.join(outdir, 'test.ini')
     with open(config_file, 'w') as fobj:
         fobj.write(TEST_CONFIGURATION)
-    testargs = ['gwdetchar-scattering', '-i', 'X1']
+    testargs = ['/opt/bin/gwdetchar-scattering', '-i', 'X1']
     with mock.patch.object(sys, 'argv', testargs):
         # test with a single config file
         about = html.about_this_page(config_file)
