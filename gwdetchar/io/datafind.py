@@ -23,6 +23,11 @@ import re
 import warnings
 from six.moves.urllib.error import HTTPError
 
+try:  # python >= 3
+    from json.decoder import JSONDecodeError
+except ImportError:  # python == 2.7
+    JSONDecodeError = ValueError
+
 import gwdatafind
 
 from ..const import DEFAULT_SEGMENT_SERVER
@@ -195,7 +200,7 @@ def get_data(channel, start, end, frametype=None, source=None,
         except AttributeError:
             raise AttributeError(
                 'Could not determine observatory from frametype')
-        except HTTPError:  # frame files not found
+        except (HTTPError, JSONDecodeError):  # frame files not found
             pass
     if isinstance(source, list) and isinstance(channel, (list, tuple)):
         channel = remove_missing_channels(channel, source)
