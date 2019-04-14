@@ -346,7 +346,11 @@ def get_command_line(language='bash'):
         commandline = '$ python -m {0} {1}'.format(
             package, ' '.join(sys.argv[1:]))
     else:
-        commandline = '$ ' + ' '.join(sys.argv)
+        script = os.path.basename(sys.argv[0])
+        which = '$ which {}'.format(script)
+        commandline = '{0}\n{1}\n\n{2}'.format(
+            which, sys.argv[0],
+            '$ ' + script + ' ' + ' '.join(sys.argv[1:]))
     return render_code(commandline.replace(' --html-only', ''), language)
 
 
