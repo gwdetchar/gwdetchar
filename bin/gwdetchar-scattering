@@ -599,7 +599,7 @@ if nscans > 0:
     # render HTML
     page.h2('Omega Scans')
     page.p('The following event times correspond to significant Omicron '
-           'triggers that occurr during the scattering segments found above. '
+           'triggers that occur during the scattering segments found above. '
            'To compare these against fringe frequency projections, please '
            'use the scattering module:')
     page.pre('$ python -m gwdetchar.scattering --help')
