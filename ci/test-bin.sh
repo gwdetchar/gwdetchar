@@ -26,6 +26,14 @@ for EXE in bin/*; do
     fi
 done
 
+# test scattering module
+MODULE=gwdetchar.scattering
+echo "$ python -m ${MODULE} --help..."
+python -m coverage run --append --source=gwdetchar -m ${MODULE} --help;
+if [ "$?" -ne 0 ]; then                                                     
+    FAILED+=("${MODULE}")                                                  
+fi
+
 if [ ${#FAILED[@]} -ne 0 ]; then
     echo "---- The following scripts failed: ----"
     for failure in "${FAILED[@]}"; do
