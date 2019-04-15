@@ -556,9 +556,14 @@ if statea:
     # close panel group
     page.div.close()
 
+actives = actives.coalesce()  # merge contiguous segments
+if not actives:
+    page.div(class_='alert alert-info')
+    page.p('No evidence of scattering found in the channels analyzed')
+    page.div.close()
+
 # identify triggers during active segments
 logger.debug('Writing a summary CSV record')
-actives = actives.coalesce()  # merge contiguous segments
 ind = [i for i, trigtime in enumerate(highsnrtrigs[names[0]])
        if trigtime in actives]
 gps = highsnrtrigs[names[0]][ind]
