@@ -264,9 +264,14 @@ if args.state_flag is not None:
         known={'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4}))
     page.div.close()
 
-page.p("The following channels were searched for evidence of scattering "
-       "(yellow = weak evidence, red = strong evidence):")
-page.div(class_='panel-group', id_='accordion1')
+if statea:
+    page.p("The following channels were searched for evidence of scattering "
+           "(yellow = weak evidence, red = strong evidence):")
+    page.div(class_='panel-group', id_='accordion1')
+else:
+    page.div(class_='alert alert-info')
+    page.p('No active analysis segments were found')
+    page.div.close()
 
 # -- find scattering evidence -------------------------------------------------
 
@@ -285,11 +290,15 @@ for i, seg in enumerate(statea):
     alldata.append(
         get_data(allchannels, seg[0], seg[1], frametype=args.frametype,
                  verbose=msg, nproc=args.nproc).resample(128))
+try:
+    channels = alldata[0].keys()
+except IndexError:
+    channels = []
 
 scatter_segments = DataQualityDict()
 actives = SegmentList()
 
-for i, channel in enumerate(sorted(alldata[0].keys())):
+for i, channel in enumerate(sorted(channels)):
     logger.info("-- Processing %s --" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
     optic = channel.split('-')[1].split('_')[0]
@@ -523,8 +532,9 @@ for i, channel in enumerate(sorted(alldata[0].keys())):
     page.div.close()
     page.div.close()
 
-# close panel group
-page.div.close()
+if statea:
+    # close panel group
+    page.div.close()
 
 # identify triggers during active segments
 logger.debug('Writing a summary CSV record')
