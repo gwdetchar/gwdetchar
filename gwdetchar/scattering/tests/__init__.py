@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for :mod:`gwdetchar.lasso`
+"""Tests for :mod:`gwdetchar.scattering`
 """
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
