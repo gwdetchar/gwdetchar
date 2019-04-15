@@ -99,7 +99,7 @@ def main(args=None):
                         help='Output directory for analysis, '
                              'default: %(default)s')
     parser.add_argument('-c', '--colormap', default='viridis',
-                    help='name of colormap to use, default: %(default)s')
+                        help='name of colormap to use, default: %(default)s')
 
     # parse arguments
     args = parser.parse_args(args)
@@ -129,8 +129,8 @@ def main(args=None):
 
     # process channels
     channels = [':'.join([ifo, c]) for c in MOTION_CHANNELS]
-    data = get_data(                                                      
-        channels, start=gpsstart, end=gpsend, frametype=args.aux_frametype,  
+    data = get_data(
+        channels, start=gpsstart, end=gpsend, frametype=args.aux_frametype,
         verbose='Reading auxiliary sensors:'.rjust(30))
     count = 0  # running count of plots written
     for channel in channels:
@@ -155,7 +155,8 @@ def main(args=None):
         output = os.path.join(
             args.output_dir,
             '%s-%s-%s-{}.png' % (
-                channel.replace(':', '-'), gps, args.duration)
+                channel.replace('-', '_').replace(':', '-', 1),
+                gps, args.duration)
         )
         logger.debug('Plotting spectra and projected fringe frequencies')
         plot.spectral_comparison(

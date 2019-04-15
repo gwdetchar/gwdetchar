@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright (C) Alex Urban (2018-)
+# Copyright (C) Alex Urban (2018-2019)
 #
 # This file is part of the GW DetChar python package.
 #
@@ -30,7 +30,7 @@ __credits__ = 'Joshua Smith <joshua.smith@ligo.org>' \
 
 def _format_timeseries(ax, gps, fringe, multipliers=(1, 2, 4, 8),
                        linewidth=1, thresh=None):
-    """Helper tool to format a `~gwpy.timeseries.TimeSeries plot axis
+    """Helper tool to format a `~gwpy.timeseries.TimeSeries` plot axis
     """
     t1 = fringe.t0.value
     t2 = (fringe.t0 + fringe.duration).value

@@ -21,7 +21,8 @@
 
 This tool identifies time segments when evidence for scattering is strong,
 to compare projected fringes against spectrogram measurements for a specific
-time please use the command-line module: `python gwdetchar.scattering --help`
+time please use the command-line module:
+`python -m gwdetchar.scattering --help`
 """
 
 from __future__ import division
