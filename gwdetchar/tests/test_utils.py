@@ -76,6 +76,19 @@ def test_table_from_segments():
     )
 
 
+def test_table_from_segments_empty():
+    segs = DataQualityDict()
+    segs['test'] = DataQualityFlag(
+       active=[]
+    )
+    assert_table_equal(
+        utils.table_from_segments(segs),
+        EventTable(
+            names=("time", "frequency", "start_time", "end_time",
+                   "snr", "channel")
+        )
+    )
+
 
 def test_table_from_times():
     times = numpy.array(range(10), dtype=float)

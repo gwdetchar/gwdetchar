@@ -121,7 +121,10 @@ def table_from_segments(flagdict, sngl_burst=False, snr=10., frequency=100.):
 
     for name, flag in flagdict.items():
         rows.extend(map(partial(row, channel=name), flag.active))
-    table = EventTable(rows=rows, names=names)
+    if rows:
+        table = EventTable(rows=rows, names=names)
+    else:
+        table = EventTable(names=names)
     if sngl_burst:  # add tablename for GWpy's ligolw writer
         table.meta["tablename"] = "sngl_burst"
     return table
