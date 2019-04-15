@@ -60,13 +60,3 @@ def test_save_figure(tmpdir):
     noneplot = plot.save_figure(fig, os.path.join('tgpflk', 'test.png'))
     assert noneplot is None
     shutil.rmtree(base, ignore_errors=True)
-
-
-def test_save_legend(tmpdir):
-    base = str(tmpdir)
-    fig = Plot()
-    ax = fig.gca()
-    ax.plot(SERIES, label=SERIES.name)
-    tsplot = plot.save_legend(ax, os.path.join(base, 'test.png'))
-    assert tsplot == os.path.join(base, 'test.png')
-    shutil.rmtree(base, ignore_errors=True)

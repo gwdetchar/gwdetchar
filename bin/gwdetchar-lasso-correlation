@@ -309,10 +309,12 @@ else:
     ax.set_ylabel('Primary Channel Units')
     ax.set_title('Lasso Model of Primary Channel')
 ax.legend(loc='best')
-plot1 = gwplot.save_figure(plot, '%s-LASSO_MODEL-%s.png' % (args.ifo, gpsstub))
+plot1 = gwplot.save_figure(
+     plot, '%s-LASSO_MODEL-%s.png' % (args.ifo, gpsstub),
+     bbox_inches='tight')
 
 # summed contributions
-plot = Plot(figsize=(8, 4))
+plot = Plot(figsize=(12, 4))
 plot.subplots_adjust(*p1)
 ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
 ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),  # primary
@@ -331,21 +333,14 @@ if range_is_primary:
 else:
     ax.set_ylabel('Primary Channel Units')
 ax.set_title('Summations of Channel Contributions to Model')
-
-# save legend as a separate figure
-#     we save the legend first because save_figure() calls fig.close()
-#     which clears the axes
-plot2_legend = gwplot.save_legend(
-    ax, '%s-LASSO_CHANNEL_SUMMATION_LEGEND-%s.png' % (args.ifo, gpsstub),
-)
-
-# save figure
+ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
 plot2 = gwplot.save_figure(
-    plot, '%s-LASSO_CHANNEL_SUMMATION-%s.png' % (args.ifo, gpsstub))
+    plot, '%s-LASSO_CHANNEL_SUMMATION-%s.png' % (args.ifo, gpsstub),
+    bbox_inches='tight')
 
 
 # individual contributions
-plot = Plot(figsize=(8, 4))
+plot = Plot(figsize=(12, 4))
 plot.subplots_adjust(*p1)
 ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
 ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),  # primary
@@ -363,11 +358,10 @@ if range_is_primary:
 else:
     ax.set_ylabel('Primary Channel Units')
 ax.set_title('Individual Channel Contributions to Model')
-
-plot3_legend = gwplot.save_legend(
-    ax, '%s-LASSO_CHANNEL_CONTRIBUTIONS_LEGEND-%s.png' % (args.ifo, gpsstub))
+ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
 plot3 = gwplot.save_figure(
-    plot, '%s-LASSO_CHANNEL_CONTRIBUTIONS-%s.png' % (args.ifo, gpsstub))
+    plot, '%s-LASSO_CHANNEL_CONTRIBUTIONS-%s.png' % (args.ifo, gpsstub),
+    bbox_inches='tight')
 
 # -- process aux channels, making plots
 
@@ -412,6 +406,7 @@ def process_channel(input_,):
         ax1 = fig.add_subplot(2, 1, 1, xscale='auto-gps', epoch=start)
         ax1.plot(primaryts, label=primary.replace('_', r'\_'),
                  color='black', linewidth=args.line_size_primary)
+        ax1.set_xlabel(None)
         ax2 = fig.add_subplot(2, 1, 2, sharex=ax1, xlim=xlim)
         ax2.plot(ts, label=chan.replace('_', r'\_'),
                  linewidth=args.line_size_aux)
@@ -424,7 +419,8 @@ def process_channel(input_,):
             ax.legend(loc='best')
         channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
         plot4 = gwplot.save_figure(
-            fig, '%s_TRENDS-%s.png' % (channelstub, gpsstub))
+            fig, '%s_TRENDS-%s.png' % (channelstub, gpsstub),
+            bbox_inches='tight')
 
         # create scaled, sign-corrected, and overlayed timeseries
         tsscaled = scale(ts.value)
@@ -443,7 +439,8 @@ def process_channel(input_,):
             ax.set_ylabel('Primary Channel Units')
         ax.legend(loc='best')
         plot5 = gwplot.save_figure(
-            fig, '%s_COMPARISON-%s.png' % (channelstub, gpsstub))
+            fig, '%s_COMPARISON-%s.png' % (channelstub, gpsstub),
+            bbox_inches='tight')
 
         # scatter plot
         tsCopy = ts.value.reshape(-1, 1)
@@ -468,7 +465,8 @@ def process_channel(input_,):
         ax.plot(ts.value, primaryFit, color='black')
         ax.autoscale_view(tight=False, scalex=True, scaley=True)
         plot6 = gwplot.save_figure(
-            fig, '%s_SCATTER-%s.png' % (channelstub, gpsstub))
+            fig, '%s_SCATTER-%s.png' % (channelstub, gpsstub),
+            bbox_inches='tight')
 
     # increment counter and print status
     with counter.get_lock():
@@ -499,7 +497,6 @@ def generate_cluster(input_,):
     current = input_[0]
     cluster_threshold = args.cluster_coefficient
     plot7 = None
-    plot7_legend = None
     plot7_list = None
 
     if current < len(nonzerodata):
@@ -526,7 +523,7 @@ def generate_cluster(input_,):
             colors2 = [cmap(i) for i in numpy.linspace(0, 1, ncluster+1)]
 
             # plot
-            fig = Plot(figsize=(8, 4))
+            fig = Plot(figsize=(12, 4))
             fig.subplots_adjust(*p7)
             ax = fig.gca(xscale='auto-gps')
             ax.plot(
@@ -549,15 +546,11 @@ def generate_cluster(input_,):
             ax.margins(x=0)
             ax.set_ylabel('Scaled amplitude [arbitrary units]')
             ax.set_title('Highly Correlated Channels')
-
-            plot7_legend = gwplot.save_legend(
-                ax, '%s_CLUSTER_LEGEND-%s.png' % (
-                    re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
-                    gpsstub))
+            ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
             plot7 = gwplot.save_figure(fig, '%s_CLUSTER-%s.png' % (
                 re_delim.sub('_', str(currentchan))
                         .replace('_', '-', 1),
-                gpsstub))
+                gpsstub), bbox_inches='tight')
 
     with counter.get_lock():
         counter.value += 1
@@ -566,7 +559,7 @@ def generate_cluster(input_,):
                     % (counter.value, len(nonzerodata), pc,
                        '(%s)' % str(currentchan)))
         sys.stdout.flush()
-    return plot7, plot7_legend, plot7_list
+    return plot7, plot7_list
 
 
 if args.no_cluster is False:
@@ -666,9 +659,13 @@ page.add(htmlio.write_param(
     '%d (%s)' % (len(zeroed),
                  "<a href= %s target='_blank'>zeroed channel list</a>"
                  % (zerofile))))
+page.div.close()  # model-info
 
+page.div(class_='scaffold well')
+
+page.div(class_='row')
 page.div(class_='results-table', align='center')
-page.p('<br /><br />%s' % style_table(df.to_html(
+page.add(style_table(df.to_html(
     index=True,
     formatters={
         'Lasso coefficient': format_coefficients,
@@ -677,27 +674,31 @@ page.p('<br /><br />%s' % style_table(df.to_html(
     escape=False)))
 page.p.close()
 page.div.close()  # results-table
-page.div.close()  # model-info
+page.div.close()  # row
 
-page.p('<br /><br />')
-
-page.div(class_='container', id_='primary-lasso')
+page.div(class_='row', id_='primary-lasso')
+page.div(class_='col-md-8 col-md-offset-2')
 img1 = htmlio.FancyPlot(plot1)
 page.add(htmlio.fancybox_img(img1))  # primary lasso plot
+page.div.close()  # col-md-8 col-md-offset-2
 page.div.close()  # primary-lasso
+page.add('<hr class="row-divider">')
 
-page.div(class_='container', id_='channel-summation')
+page.div(class_='row', id_='channel-summation')
 img2 = htmlio.FancyPlot(plot2)
-img2_legend = htmlio.FancyPlot(plot2_legend)
-page.add(htmlio.scaffold_plots([img2, img2_legend], nperrow=2))
+page.div(class_='col-md-8 col-md-offset-2')
+page.add(htmlio.fancybox_img(img2))
+page.div.close()  # col-md-8 col-md-offset-2
 page.div.close()  # channel-summation
 
-page.div(class_='container', id_='channels-and-primary')
+page.div(class_='row', id_='channels-and-primary')
 img3 = htmlio.FancyPlot(plot3)
-img3_legend = htmlio.FancyPlot(plot3_legend)
-page.add(htmlio.scaffold_plots([img3, img3_legend], nperrow=2))
+page.div(class_='col-md-8 col-md-offset-2')
+page.add(htmlio.fancybox_img(img3))
+page.div.close()  # col-md-8 col-md-offset-2
 page.div.close()  # channels-and-primary
 
+page.div.close()  # scaffold well
 page.div.close()  # model-body
 page.div.close()  # model
 
@@ -741,27 +742,31 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
         page.p('Lasso coefficient below the threshold of %g.'
                % (args.threshold))
     else:
-        plot4 = htmlio.FancyPlot(plot4)
-        page.add(htmlio.fancybox_img(plot4))
-        plot5 = htmlio.FancyPlot(plot5)
-        plot6 = htmlio.FancyPlot(plot6)
-        page.add(htmlio.scaffold_plots([plot5, plot6], nperrow=2))
+        for image in [plot4, plot5, plot6]:
+            img = htmlio.FancyPlot(image)
+            page.div(class_='row')
+            page.div(class_='col-md-8 col-md-offset-2')
+            page.add(htmlio.fancybox_img(img))
+            page.div.close()  # col-md-8 col-md-offset-2
+            page.div.close()  # row
+            page.add('<hr class="row-divider">')
         if args.no_cluster is False:
             if clusters[i][0] is None:
-                page.p("<font size = '3'><br />No channels were highly"
+                page.p("<font size='3'><br />No channels were highly"
                        " correlated with this channel.</font>")
             else:
-                page.div(class_='container', id_='clusters')
+                page.div(class_='row', id_='clusters')
+                page.div(class_='col-md-12')
                 cimg = htmlio.FancyPlot(clusters[i][0])
-                cimg_legend = htmlio.FancyPlot(clusters[i][1])
-                page.add(htmlio.scaffold_plots([cimg, cimg_legend], nperrow=2))
+                page.add(htmlio.fancybox_img(cimg))
+                page.div.close()  # col-md-12
                 page.div.close()  # clusters
-                if clusters[i][2] is not None:
-                    page.p("<font size = '3'><br />Only the first %d highly"
+                if clusters[i][1] is not None:
+                    page.p("<font size='3'><br />Only the first %d highly"
                            " correlated channels are reported in this"
-                           " figure. <a href= %s target='_blank'>Here</a>"
+                           " figure. <a href='%s' target='_blank'>Here</a>"
                            " is the full list.</font>"
-                           % (max_correlated_channels, clusters[i][2]))
+                           % (max_correlated_channels, clusters[i][1]))
     page.div.close()  # panel-body
     page.div.close()  # panel-collapse
     page.div.close()  # panel
