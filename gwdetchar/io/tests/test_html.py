@@ -20,6 +20,7 @@
 """
 
 import os
+import sys
 import shutil
 import datetime
 import sys
@@ -82,11 +83,7 @@ ABOUT = """<div class="row">
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
 </pre></div>
 
-<p>The following install path was used:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ which gwdetchar-scattering
-/opt/bin/gwdetchar-scattering
-</pre></div>
-
+<p>The install path used was <code>{}</code>.</p>
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
@@ -95,7 +92,7 @@ ABOUT = """<div class="row">
 
 <h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;package-table.csv&quot;, &quot;package-table&quot;)">Export to CSV</button>
 </div>
-</div>"""  # nopep8
+</div>""".format(sys.prefix)  # nopep8
 
 ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <div class="col-md-12">
@@ -104,11 +101,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
 </pre></div>
 
-<p>The following install path was used:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ which gwdetchar-scattering
-/opt/bin/gwdetchar-scattering
-</pre></div>
-
+<p>The install path used was <code>{}</code>.</p>
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
 <div class="panel-group" id="accordion">
@@ -130,7 +123,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 </div>
 <h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;package-table.csv&quot;, &quot;package-table&quot;)">Export to CSV</button>
 </div>
-</div>"""  # nopep8
+</div>""".format(sys.prefix)  # nopep8
 
 HTML_FOOTER = """<footer class="footer">
 <div class="container">
@@ -295,10 +288,8 @@ def test_get_command_line():
             '<p>This page was generated with the following command-line call:'
             '</p>\n<div class="highlight" style="background: #f8f8f8">'
             '<pre style="line-height: 125%"><span></span>$ gwdetchar-conlog '
-            '-i X1\n</pre></div>\n\n<p>The following install path was used:'
-            '</p>\n<div class="highlight" style="background: #f8f8f8">'
-            '<pre style="line-height: 125%"><span></span>$ which '
-            'gwdetchar-conlog\n/opt/bin/gwdetchar-conlog\n</pre></div>\n')
+            '-i X1\n</pre></div>\n\n<p>The install path used was <code>{}'
+            '</code>.</p>'.format(sys.prefix))
 
 
 def test_get_command_line_module():
@@ -310,10 +301,8 @@ def test_get_command_line_module():
             '</p>\n<div class="highlight" style="background: #f8f8f8">'
             '<pre style="line-height: 125%"><span></span>$ python -m '
             'gwdetchar.io.tests.test_html\n</pre></div>\n\n'
-            '<p>The following install path was used:</p>\n'
-            '<div class="highlight" style="background: #f8f8f8">'
-            '<pre style="line-height: 125%"><span></span>__main__.py\n'
-            '</pre></div>\n')
+            '<p>The install path used was <code>{}</code>.</p>'.format(
+                sys.prefix))
 
 
 @pytest.mark.parametrize('args, kwargs, result', [

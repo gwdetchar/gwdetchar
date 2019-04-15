@@ -350,15 +350,12 @@ def get_command_line(language='bash'):
     page.p('This page was generated with the following command-line call:')
     if sys.argv[0].endswith('__main__.py'):
         module = getmodule(stack()[1][0]).__name__
-        which = sys.argv[0]
         cmdline = '$ python -m {0} {1}'.format(module, ' '.join(sys.argv[1:]))
     else:
         script = os.path.basename(sys.argv[0])
-        which = '$ which {0}\n{1}'.format(script, sys.argv[0])
-        cmdline = '$ ' + script + ' ' + ' '.join(sys.argv[1:])
+        cmdline = ' '.join(['$', script, ' '.join(sys.argv[1:])])
     page.add(render_code(cmdline.replace(' --html-only', ''), language))
-    page.p('The following install path was used:')
-    page.add(render_code(which, language))
+    page.p('The install path used was <code>{}</code>.'.format(sys.prefix))
     return page()
 
 
