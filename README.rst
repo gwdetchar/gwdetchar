@@ -3,7 +3,7 @@ characterisation and data quality.
 
 |PyPI version| |DOI| |License| |Supported Python versions|
 
-|Build Status| |Coverage Status|
+|Build Status| |Coverage Status| |Documentation Status|
 
 ------------
 Installation
@@ -51,3 +51,5 @@ proposing additions/changes.
    :target: https://travis-ci.org/gwdetchar/gwdetchar
 .. |Coverage Status| image:: https://codecov.io/gh/gwdetchar/gwdetchar/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/gwdetchar/gwdetchar
+.. |Documentation Status| image:: https://readthedocs.org/projects/gwdetchar/badge/?version=latest
+   :target: https://gwdetchar.readthedocs.io/en/latest/?badge=latest

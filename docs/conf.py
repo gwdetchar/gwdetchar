@@ -17,12 +17,8 @@ import os
 import glob
 import sphinx_rtd_theme
 
+sys.path.insert(0, os.path.abspath('..'))
 from gwdetchar import __version__ as gwdetchar_version
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
 
 # -- General configuration ------------------------------------------------
 
