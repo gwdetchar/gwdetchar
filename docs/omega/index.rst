@@ -1,23 +1,31 @@
-###############
-Omega utilities
-###############
-
-The :mod:`gwdetchar.omega` module provides utilities for processing data through, and understanding configurations for, the `Omega GW burst detection pipeline <https://trac.ligo.caltech.edu/omega/>`_, used extensively for characterisation of noise in LIGO.
-
-===========
+###########
 Omega scans
-===========
+###########
 
-.. currentmodule:: gwdetchar.omega.scan
+The :mod:`gwdetchar.omega` module provides a python implementation of the Omega gravitational-wave burst detection pipeline, used extensively for characterisation of transient noise in LIGO. This pipeline is designed around the `Q-transform`_ and is used to analyze hundreds of channels.
+
+.. currentmodule:: gwdetchar.omega
 
 The omega pipeline provides a 'scan' utility to make high-resolution Q-transform spectrograms of a configurable group of channels, to study the morphology and source of specific transient events (glitches).
 
-:mod:`gwdetchar.omega.scan` provides the following helper functions/classes
+The :mod:`gwdetchar.omega` module provides the following helper functions:
 
 .. autosummary::
 
-   OmegaChannelList
-   run
+   highpass
+   whiten
+   conditioner
+   primary
+   cross_correlate
+   scan
+
+The :mod:`gwdetchar.omega.plot` module also provides functions for plotting omega scan data products:
+
+.. autosummary::
+
+   plot.timeseries_plot
+   plot.spectral_plot
+   plot.write_qscan_plots
 
 ======================
 Command-line utilities
@@ -25,45 +33,52 @@ Command-line utilities
 
 GWDetChar provides two command-line utilities for running omega scans, taking care of data discovery and (optionally) configuration discovery for you.
 
----
-wdq
----
+.. note::
 
-The `wdq` tool is a simple wrapper around the main `wpipeline scan` utility for generating Omega 'scans'. The simplest usage is as follows
+   For users working on any of the LIGO Data Grid (LDG) computer clusters, a standard set of configuration files are maintained and discoverable by default with `gwdetchar-omega`. For information about how to write custom configuration files, see the :mod:`gwdetchar.omega.config` module.
 
-.. code-block:: bash
+---------------
+gwdetchar-omega
+---------------
 
-   wdq <gps-time>
-
-for example
+The `gwdetchar-omega` tool is a Q-transform utility for generating omega scans. The simplest usage is as follows:
 
 .. code-block:: bash
 
-   wdq 1126259461.5
+   gwdetchar-omega -i <interferometer> <gps-time>
 
-For a full explanation of the available command-line argument and options, you can run
-
-.. command-output:: wdq --help
-
----------
-wdq-batch
----------
-
-`wdq-batch` is a wrapper around `wdq` to build a workflow for executing multiple omega scans easily. This tool will generate both a `Condor <https://research.cs.wisc.edu/htcondor/>`_ workflow (a DAG), and a simple shell script (`.sh`) to process multiple times either in parallel or in series.
-The simplest usage is much the same as for `wdq`, but with multiple times:
+For example,
 
 .. code-block:: bash
 
-   wdq-batch <gps-time-1> <gps-time-2> <gps-time-3> ...
+   gwdetchar-omega -i L1 1126259461.5
+
+For a full explanation of the available command-line arguments and options, you can run
+
+.. command-output:: gwdetchar-omega --help
+
+---------------------
+gwdetchar-omega-batch
+---------------------
+
+`gwdetchar-omega-batch` is a wrapper around `gwdetchar-omega` to build a workflow for executing multiple omega scans easily. This tool will generate a `Condor <https://research.cs.wisc.edu/htcondor/>`_ workflow (a Directed Acyclic Graph, or DAG) to process multiple times either in parallel or in series.
+The simplest usage is much the same as for `gwdetchar-omega`, but with multiple times:
+
+.. code-block:: bash
+
+   gwdetchar-omega-batch -i <interferometer> <gps-time-1> <gps-time-2> <gps-time-3> ...
 
 Alternatively, you can pass all of the times in a single file:
 
 .. code-block:: bash
 
-   wdq-batch mytimes.txt
+   gwdetchar-omega-batch -i L1 mytimes.txt
 
 where `mytimes.txt` should contain a single column of GPS times.
 
-For a full explanation of the available command-line argument and options, you can run
+For a full explanation of the available command-line arguments and options, you can run
 
-.. command-output:: wdq-batch --help
+.. command-output:: gwdetchar-omega-batch --help
+
+
+.. _Q-transform: https://gwpy.github.io/docs/stable/examples/timeseries/qscan.html

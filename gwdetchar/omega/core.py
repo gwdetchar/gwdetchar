@@ -120,11 +120,11 @@ def whiten(series, fftlength, overlap=None, method='median', window='hann',
                          detrend=detrend, method=method).detrend(detrend)
 
 
-# -- Omega scans --------------------------------------------------------------
+# -- omega scans --------------------------------------------------------------
 
 def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
                 **kwargs):
-    """Condition some input data for an Omega scan
+    """Condition some input data for an omega scan
 
     Parameters
     ----------
