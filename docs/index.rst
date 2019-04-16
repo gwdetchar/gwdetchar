@@ -74,6 +74,7 @@ Package documentation
    saturation/index
    scattering/index
    omega/index
+   conlog/index
    api/index
 
 
