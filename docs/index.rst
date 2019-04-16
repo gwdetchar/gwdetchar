@@ -70,6 +70,7 @@ Package documentation
 .. toctree::
    :maxdepth: 1
 
+   daq/index
    scattering/index
    omega/index
    api/index
