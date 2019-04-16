@@ -77,6 +77,7 @@ Package documentation
    omega/index
    conlog/index
    html/index
+   data/index
    api/index
 
 
