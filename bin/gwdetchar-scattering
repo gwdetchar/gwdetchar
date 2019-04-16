@@ -489,16 +489,18 @@ for i, channel in enumerate(sorted(channels)):
               args.frequency_threshold/2.)):
         context = 'warning'
     else:
-        context = 'default'
+        continue
     page.div(class_='panel panel-%s' % context)
     page.div(class_='panel-heading')
     page.a(channel, class_="panel-title", href='#flag%s' % i,
            **{'data-toggle': 'collapse', 'data-parent': '#accordion'})
     page.div.close()
     page.div(id_='flag%s' % i, class_='panel-collapse collapse')
-    img = htmlio.FancyPlot(png)
+    img = htmlio.FancyPlot(
+        png, caption=scattering.SCATTER_CAPTION.format(CHANNEL=channel))
     page.add(htmlio.fancybox_img(img))
-    himg = htmlio.FancyPlot(hpng)
+    himg = htmlio.FancyPlot(
+        hpng, caption=scattering.HIST_CAPTION.format(CHANNEL=channel))
     page.add(htmlio.fancybox_img(himg))
     page.div(class_='panel-body')
     segs = StringIO()
@@ -541,14 +543,24 @@ if statea:
     # close panel group
     page.div.close()
 
+actives = actives.coalesce()  # merge contiguous segments
+if not actives:
+    page.div(class_='alert alert-info')
+    page.p('No evidence of scattering found in the channels analyzed')
+    page.div.close()
+
 # identify triggers during active segments
 logger.debug('Writing a summary CSV record')
-actives = actives.coalesce()  # merge contiguous segments
-gps = [x for x in highsnrtrigs[names[0]] for y in actives if x in y]
-segs = [y for x in highsnrtrigs[names[0]] for y in actives if x in y]
+ind = [i for i, trigtime in enumerate(highsnrtrigs[names[0]])
+       if trigtime in actives]
+gps = highsnrtrigs[names[0]][ind]
+freq = highsnrtrigs[names[1]][ind]
+snr = highsnrtrigs[names[2]][ind]
+segs = [y for x in gps for y in actives if x in y]
 table = Table(
-    [gps, [seg[0] for seg in segs], [seg[1] for seg in segs]],
-    names=('trigger_time', 'segment_start', 'segment_end'))
+    [gps, freq, snr, [seg[0] for seg in segs], [seg[1] for seg in segs]],
+    names=('trigger_time', 'trigger_frequency', 'trigger_snr',
+           'segment_start', 'segment_end'))
 logger.info('The following {} triggers fell within active scattering '
             'segments:\n\n'.format(len(table)))
 print(table)
@@ -574,7 +586,7 @@ if nscans > 0:
     # render HTML
     page.h2('Omega Scans')
     page.p('The following event times correspond to significant Omicron '
-           'triggers that occurr during the scattering segments found above. '
+           'triggers that occur during the scattering segments found above. '
            'To compare these against fringe frequency projections, please '
            'use the scattering module:')
     page.pre('$ python -m gwdetchar.scattering --help')
