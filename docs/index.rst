@@ -71,6 +71,7 @@ Package documentation
    :maxdepth: 1
 
    daq/index
+   saturation/index
    scattering/index
    omega/index
    api/index
