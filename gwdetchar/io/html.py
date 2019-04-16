@@ -49,7 +49,7 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
-from gwpy.time import (from_gps, tconvert)
+from gwpy.time import from_gps
 
 from ..plot import plot_segments
 from .._version import get_versions
@@ -541,7 +541,7 @@ def get_brand(ifo, name, gps, about=None):
     page.li('External', class_='dropdown-header')
     for name, url in OBSERVATORY_MAP[ifo]['links'].items():
         if 'Summary' in name:
-            day = str(tconvert(gps).date()).replace('-', '')
+            day = from_gps(gps).strftime(r"%Y%m%d")
             url = '/'.join([url, day])
         page.li()
         page.a(name, href=url, target='_blank')
