@@ -22,26 +22,7 @@
 This utility can be used to process an arbitrary list of detector channels
 with minimal effort in finding data. The input should be an INI-formatted
 configuration file that lists processing options and channels in contextual
-blocks, e.g.:
-
-```ini
-[GW]
-name = Gravitational Wave Strain
-q-range = 3.3166,150
-frequency-range = 4,2048
-resample = 4096
-frametype = H1_HOFT_C00
-state-flag = H1:DMT-GRD_ISC_LOCK_NOMINAL:1
-duration = 64
-fftlength = 8
-max-mismatch = 0.2
-snr-threshold = 5
-always-plot = True
-plot-time-durations = 1,4,16
-channels = H1:GDS-CALIB_STRAIN
-```
-
-For more information, see gwdetchar.omega.config.
+blocks. For more information, see gwdetchar.omega.config.
 """
 
 from __future__ import division

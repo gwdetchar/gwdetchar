@@ -17,11 +17,9 @@
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Configuration files for Omega scans
-###################################
-
+#################################
 How to write a configuration file
-=================================
+#################################
 
 `gwdetchar-omega` can be used to process an arbitrary list of channels,
 including primary gravitational wave strain channels and auxiliary sensors,
@@ -30,8 +28,8 @@ blocks using an INI-formatted configuration file that must be passed at
 runtime, which must include processing options for individual blocks. In a
 given block, the following keywords are supported:
 
-[blockkey]
-----------
+Keywords
+--------
 
 =======================  ======================================================
 ``name``                 The full name of this channel block, which will
@@ -65,7 +63,7 @@ given block, the following keywords are supported:
 ``always-plot``          Always analyze this block regardless of channel
                          significance (optional; will be superceded by
                          `state-flag` unless `--ignore-state-flags` is passed)
-``plot-time-durations``  Time-axis durations of Omega scan plots (required)
+``plot-time-durations``  Time-axis durations of omega scan plots (required)
 ``channels``             Full list of channels which appear in this block
                          (required)
 =======================  ======================================================
@@ -79,61 +77,61 @@ An example using many of the above options would look something like this:
 
 .. code-block:: ini
 
-  [primary]
-  ; the primary channel, which will be used as a matched-filter
-  f-low = 4.0
-  resample = 4096
-  frametype = L1_HOFT_C00
-  duration = 64
-  fftlength = 8
-  matched-filter-length = 2
-  channel = L1:GDS-CALIB_STRAIN
+   [primary]
+   ; the primary channel, which will be used as a matched-filter
+   f-low = 4.0
+   resample = 4096
+   frametype = L1_HOFT_C00
+   duration = 64
+   fftlength = 8
+   matched-filter-length = 2
+   channel = L1:GDS-CALIB_STRAIN
 
-  [GW]
-  ; name of this block, which contains h(t)
-  name = Gravitational Wave Strain
-  q-range = 3.3166,150.0
-  frequency-range = 4.0,2048
-  resample = 4096
-  frametype = L1_HOFT_C00
-  state-flag = L1:DMT-GRD_ISC_LOCK_NOMINAL:1
-  duration = 64
-  fftlength = 8
-  max-mismatch = 0.2
-  snr-threshold = 5
-  always-plot = True
-  plot-time-durations = 1,4,16
-  channels = L1:GDS-CALIB_STRAIN
+   [GW]
+   ; name of this block, which contains h(t)
+   name = Gravitational Wave Strain
+   q-range = 3.3166,150.0
+   frequency-range = 4.0,2048
+   resample = 4096
+   frametype = L1_HOFT_C00
+   state-flag = L1:DMT-GRD_ISC_LOCK_NOMINAL:1
+   duration = 64
+   fftlength = 8
+   max-mismatch = 0.2
+   snr-threshold = 5
+   always-plot = True
+   plot-time-durations = 1,4,16
+   channels = L1:GDS-CALIB_STRAIN
 
-  [CAL]
-  ; a sub-block of channels with different options, but which should appear
-  ; together with the block `GW` on the output page
-  parent = GW
-  q-range = 3.3166,150
-  frequency-range = 4.0,Inf
-  resample = 4096
-  frametype = L1_R
-  state-flag = L1:DMT-GRD_ISC_LOCK_NOMINAL:1
-  duration = 64
-  fftlength = 8
-  max-mismatch = 0.35
-  snr-threshold = 5.5
-  always-plot = True
-  plot-time-durations = 1,4,16
-  channels = L1:CAL-DELTAL_EXTERNAL_DQ
+   [CAL]
+   ; a sub-block of channels with different options, but which should appear
+   ; together with the block `GW` on the output page
+   parent = GW
+   q-range = 3.3166,150
+   frequency-range = 4.0,Inf
+   resample = 4096
+   frametype = L1_R
+   state-flag = L1:DMT-GRD_ISC_LOCK_NOMINAL:1
+   duration = 64
+   fftlength = 8
+   max-mismatch = 0.35
+   snr-threshold = 5.5
+   always-plot = True
+   plot-time-durations = 1,4,16
+   channels = L1:CAL-DELTAL_EXTERNAL_DQ
 
-  .. note::
+.. note::
 
-  The `blockkey` will appear in the navbar to identify channel blocks on the
-  output page, with a scrollable dropdown list of channels in that block for
-  ease of navigation.
+   The `blockkey` will appear in the navbar to identify channel blocks on the
+   output page, with a scrollable dropdown list of channels in that block for
+   ease of navigation.
 
-  The `primary` block will only be used to design a matched-filter. To process
-  this channel during the Omega scan, it must be included again in a subsequent
-  block.
+   The `primary` block will only be used to design a matched-filter. To process
+   this channel during the omega scan, it must be included again in a
+   subsequent block.
 
-  If running on a LIGO Data Grid (LDG) computer cluster, the `~detchar`
-  account houses default configurations organized by subsystem.
+   If running on a LIGO Data Grid (LDG) computer cluster, the `~detchar`
+   account houses default configurations organized by subsystem.
 """
 
 import sys
@@ -236,7 +234,7 @@ def get_fancyplots(channel, plottype, duration, caption=None):
 # -- channel list objects -----------------------------------------------------
 
 class OmegaChannel(Channel):
-    """Customized `Channel` object for Omega scan analyses
+    """Customized `Channel` object for omega scan analyses
 
     Parameters
     ----------

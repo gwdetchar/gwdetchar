@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utilties for writing Omega scan HTML pages
+"""Utilties for writing omega scan HTML pages
 """
 
 from __future__ import division

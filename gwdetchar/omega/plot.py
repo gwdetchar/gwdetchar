@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Plotting routines for Omega scans
+"""Plotting routines for omega scans
 """
 
 from __future__ import division
@@ -40,7 +40,7 @@ rcParams.update({
 # -- internal formatting tools ------------------------------------------------
 
 def _format_time_axis(ax, gps, span):
-    """Format the time axis of an Omega scan plot
+    """Format the time axis of an omega scan plot
 
     Parameters
     ----------
@@ -61,7 +61,7 @@ def _format_time_axis(ax, gps, span):
 
 
 def _format_frequency_axis(ax):
-    """Format the frequency axis of an Omega scan plot
+    """Format the frequency axis of an omega scan plot
 
     Parameters
     ----------
@@ -74,7 +74,7 @@ def _format_frequency_axis(ax):
 
 
 def _format_color_axis(ax, colormap='viridis', clim=None, norm='linear'):
-    """Format the color axis of an Omega scan spectral plot
+    """Format the color axis of an omega scan spectral plot
 
     Parameters
     ----------
@@ -214,7 +214,7 @@ def spectral_plot(data, gps, span, channel, output, colormap='viridis',
 
 
 def write_qscan_plots(gps, channel, series, colormap='viridis'):
-    """Custom plot utility for a full Omega scan
+    """Custom plot utility for a full omega scan
 
     Parameters
     ----------
