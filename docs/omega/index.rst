@@ -1,12 +1,8 @@
 ###########
-Q-transform
+Omega scans
 ###########
 
 The :mod:`gwdetchar.omega` module provides a python implementation of the Omega gravitational-wave burst detection pipeline, used extensively for characterisation of transient noise in LIGO. This pipeline is designed around the `Q-transform`_ and is used to analyze hundreds of channels.
-
-===========
-Omega scans
-===========
 
 .. currentmodule:: gwdetchar.omega
 
@@ -35,7 +31,7 @@ The :mod:`gwdetchar.omega.plot` module also provides functions for plotting omeg
 Command-line utilities
 ======================
 
-GW-DetChar provides two command-line utilities for running omega scans, taking care of data discovery and (optionally) configuration discovery for you.
+GWDetChar provides two command-line utilities for running omega scans, taking care of data discovery and (optionally) configuration discovery for you.
 
 .. note::
 
@@ -57,7 +53,7 @@ For example,
 
    gwdetchar-omega -i L1 1126259461.5
 
-For a full explanation of the available command-line argument and options, you can run
+For a full explanation of the available command-line arguments and options, you can run
 
 .. command-output:: gwdetchar-omega --help
 
@@ -80,7 +76,7 @@ Alternatively, you can pass all of the times in a single file:
 
 where `mytimes.txt` should contain a single column of GPS times.
 
-For a full explanation of the available command-line argument and options, you can run
+For a full explanation of the available command-line arguments and options, you can run
 
 .. command-output:: gwdetchar-omega-batch --help
 

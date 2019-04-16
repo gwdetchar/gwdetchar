@@ -1,17 +1,17 @@
-.. GW-DetChar documentation master file, created by
+.. GWDetChar documentation master file, created by
    sphinx-quickstart on Mon Apr 15 20:43:29 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 ##########
-GW-DetChar
+GWDetChar
 ##########
 
 |PyPI version| |DOI| |License| |Supported Python versions|
 
 |Build Status| |Coverage Status|
 
-GW-DetChar is a python package for gravitational-wave detector
+GWDetChar is a python package for gravitational-wave detector
 characterisation and data quality. It is designed for use with ground-based
 interferometric detectors such as the Laser Interferometer Gravitational-wave
 Observatory (LIGO), Virgo, and GEO600.
@@ -27,7 +27,7 @@ To get started, simply import the core module:
 Installation
 ============
 
-GW-DetChar is best installed with `conda`_:
+GWDetChar is best installed with `conda`_:
 
 .. code:: bash
 
@@ -51,7 +51,7 @@ before submitting.
 See `the contributions guide`_ for the recommended procedure for
 proposing additions/changes.
 
-The GW-DetChar project is hosted on GitHub:
+The GWDetChar project is hosted on GitHub:
 
 * Issue tickets: https://github.com/gwdetchar/gwdetchar/issues
 * Source code: https://github.com/gwdetchar/gwdetchar
@@ -60,7 +60,7 @@ The GW-DetChar project is hosted on GitHub:
 License
 -------
 
-GW-DetChar is distributed under the `GNU General Public License`_.
+GWDetChar is distributed under the `GNU General Public License`_.
 
 
 =====================
@@ -70,6 +70,7 @@ Package documentation
 .. toctree::
    :maxdepth: 1
 
+   scattering/index
    omega/index
    api/index
 
