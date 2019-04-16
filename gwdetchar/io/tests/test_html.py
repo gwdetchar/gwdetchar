@@ -20,6 +20,7 @@
 """
 
 import os
+import sys
 import shutil
 import datetime
 import sys
@@ -79,12 +80,10 @@ ABOUT = """<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ which gwdetchar-scattering
-/opt/bin/gwdetchar-scattering
-
-$ gwdetchar-scattering -i X1
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
 </pre></div>
 
+<p>The install path used was <code>{}</code>.</p>
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
@@ -93,18 +92,16 @@ $ gwdetchar-scattering -i X1
 
 <h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;package-table.csv&quot;, &quot;package-table&quot;)">Export to CSV</button>
 </div>
-</div>"""  # nopep8
+</div>""".format(sys.prefix)  # nopep8
 
 ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ which gwdetchar-scattering
-/opt/bin/gwdetchar-scattering
-
-$ gwdetchar-scattering -i X1
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ gwdetchar-scattering -i X1
 </pre></div>
 
+<p>The install path used was <code>{}</code>.</p>
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
 <div class="panel-group" id="accordion">
@@ -126,7 +123,7 @@ $ gwdetchar-scattering -i X1
 </div>
 <h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;package-table.csv&quot;, &quot;package-table&quot;)">Export to CSV</button>
 </div>
-</div>"""  # nopep8
+</div>""".format(sys.prefix)  # nopep8
 
 HTML_FOOTER = """<footer class="footer">
 <div class="container">
@@ -288,20 +285,24 @@ def test_get_command_line():
     with mock.patch.object(sys, 'argv', testargs):
         cmdline = html.get_command_line()
         assert parse_html(cmdline) == parse_html(
-            '<div class="highlight" style="background: #f8f8f8">'
-            '<pre style="line-height: 125%"><span></span>'
-            '$ which gwdetchar-conlog\n/opt/bin/gwdetchar-conlog\n\n'
-            '$ gwdetchar-conlog -i X1\n</pre></div>\n')
+            '<p>This page was generated with the following command-line call:'
+            '</p>\n<div class="highlight" style="background: #f8f8f8">'
+            '<pre style="line-height: 125%"><span></span>$ gwdetchar-conlog '
+            '-i X1\n</pre></div>\n\n<p>The install path used was <code>{}'
+            '</code>.</p>'.format(sys.prefix))
 
 
 def test_get_command_line_module():
-    testargs = ['gwdetchar/omega/__main__.py', '--html-only']
+    testargs = ['__main__.py', '--html-only']
     with mock.patch.object(sys, 'argv', testargs):
         cmdline = html.get_command_line()
         assert parse_html(cmdline) == parse_html(
-            '<div class="highlight" style="background: #f8f8f8">'
-            '<pre style="line-height: 125%"><span></span>'
-            '$ python -m omega\n</pre></div>\n')
+            '<p>This page was generated with the following command-line call:'
+            '</p>\n<div class="highlight" style="background: #f8f8f8">'
+            '<pre style="line-height: 125%"><span></span>$ python -m '
+            'gwdetchar.io.tests.test_html\n</pre></div>\n\n'
+            '<p>The install path used was <code>{}</code>.</p>'.format(
+                sys.prefix))
 
 
 @pytest.mark.parametrize('args, kwargs, result', [
@@ -372,7 +373,7 @@ def test_write_arguments():
     assert '<strong>End time: </strong>\n1 (1980-01-06 00:00:01)' in page
     assert '<strong>State flag: </strong>\nX1:TEST' in page
     assert '<strong>test: </strong>\ntest' in page
-    assert '<strong>Command line: </strong>' in page
+    assert '<strong>Command-line: </strong>' in page
 
 
 def test_table():
