@@ -8,7 +8,7 @@ The :mod:`gwdetchar.omega` module provides a python implementation of the Omega 
 
 The omega pipeline provides a 'scan' utility to make high-resolution Q-transform spectrograms of a configurable group of channels, to study the morphology and source of specific transient events (glitches).
 
-:mod:`gwdetchar.omega` provides the following helper functions:
+The :mod:`gwdetchar.omega` module provides the following helper functions:
 
 .. autosummary::
 

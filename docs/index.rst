@@ -72,9 +72,11 @@ Package documentation
 
    daq/index
    saturation/index
+   lasso/index
    scattering/index
    omega/index
    conlog/index
+   html/index
    api/index
 
 
