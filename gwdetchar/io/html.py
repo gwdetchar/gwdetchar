@@ -27,6 +27,7 @@ import subprocess
 from pytz import reference
 from getpass import getuser
 from operator import itemgetter
+from collections import OrderedDict
 from shutil import copyfile
 try:
     from pathlib2 import Path
@@ -35,6 +36,7 @@ except ImportError:  # python >= 3.6
     #       but doesn't work very well
     from pathlib import Path
 
+from six import string_types
 from six.moves import StringIO
 from six.moves.urllib.parse import urlparse
 
@@ -55,7 +57,77 @@ from .._version import get_versions
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credit__ = 'Alex Urban <alexander.urban@ligo.org>'
 
-# -- HTML URLs ----------------------------------------------------------------
+# -- navigation toggle
+
+NAVBAR_TOGGLE = """<button class="navbar-toggle" data-toggle="collapse" type="button" data-target=".navbar-collapse">
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>"""  # noqa: E501
+
+# -- give context for ifo names
+
+OBSERVATORY_MAP = {
+    'G1': {
+        'name': 'GEO',
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day')])
+    },
+    'H1': {
+        'name': 'LIGO Hanford',
+        'context': 'danger',
+        'links': OrderedDict([
+            ('LHO Summary Pages', 'https://ldas-jobs.ligo-wa.caltech.edu/'
+                                  '~detchar/summary/day'),
+            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG')])
+    },
+    'I1': {
+        'name': 'LIGO India',
+        'context': 'success',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day')])
+    },
+    'K1': {
+        'name': 'KAGRA',
+        'context': 'warning',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day'),
+            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl')])
+    },
+    'L1': {
+        'name': 'LIGO Livingston',
+        'context': 'info',
+        'links': OrderedDict([
+            ('LLO Summary Pages', 'https://ldas-jobs.ligo-la.caltech.edu/'
+                                  '~detchar/summary/day'),
+            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG')])
+    },
+    'V1': {
+        'name': 'Virgo',
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day/'),
+            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo')])
+    },
+    'Network': {
+        'name': 'Multi-IFO',
+        'context': 'default',
+        'links': OrderedDict([
+            ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
+                                      '~detchar/summary/day'),
+            ('LHO Logbook', 'https://alog.ligo-wa.caltech.edu/aLOG'),
+            ('LLO Logbook', 'https://alog.ligo-la.caltech.edu/aLOG'),
+            ('Virgo Logbook', 'https://logbook.virgo-gw.eu/virgo'),
+            ('KAGRA Logbook', 'http://klog.icrr.u-tokyo.ac.jp/osl')])
+    }
+}
+
+# -- HTML URLs
 
 JQUERY_JS = "https://code.jquery.com/jquery-1.12.3.min.js"
 
@@ -246,6 +318,238 @@ def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
         page.add(navbar)
     page.div(class_='container')
     return page
+
+
+def navbar(links, class_='navbar navbar-fixed-top', brand=None, collapse=True):
+    """Construct a navigation bar in bootstrap format
+
+    Parameters
+    ----------
+    links : `list`
+        list of either (text, URL) tuples or  :class:`~MarkupPy.markup.page`
+        objects. Tuples will be written in ``<a>`` tags while `pages` will
+        be copied directly. Both will be enclosed in a <li> element inside
+        the navbar
+
+    class_ : `str`, optional
+        navbar object class, default: `'navbar navbar-fixed-top'`
+
+    brand : `str` or `~MarkupPy.markup.page`, optional
+        branding for the navigation bar, default: None
+
+    collapse : `bool`, optional
+        whether to toggle all dropdown menus, default: True
+
+    Returns
+    -------
+    page : :class:`~MarkupPy.markup.page`
+        navbar HTML `page` object
+    """
+    # page setup
+    page = markup.page()
+    page.twotags.extend((
+        "footer",
+        "header",
+        "nav",
+    ))
+    markup.element('header', parent=page)(class_=class_)
+    page.div(class_="container")
+
+    # ---- non-collapable part (<div class="navbar-header">) ----
+
+    page.div(class_="navbar-header")
+    # add collapsed menu toggle
+    if collapse:
+        page.add(NAVBAR_TOGGLE)
+    # add branding (generic non-collapsed content)
+    if brand:
+        page.add(str(brand))
+    page.div.close()  # navbar-header
+    if collapse:
+        page.nav(class_="collapse navbar-collapse")
+    else:
+        page.nav()
+
+    # ---- collapsable part (<nav>) ----
+
+    if links:
+        page.ul(class_='nav navbar-nav')
+        for i, link in enumerate(links):
+            if (isinstance(link, (list, tuple)) and
+                    isinstance(link[1], string_types)):
+                page.li()
+                text, link = link
+                page.a(text, href=link)
+            elif (isinstance(link, (list, tuple)) and
+                  isinstance(link[1], (list, tuple))):
+                page.li(class_='dropdown')
+                page.add(dropdown(*link))
+            else:
+                page.li()
+                page.add(str(link))
+            page.li.close()
+        page.ul.close()
+
+    page.nav.close()
+    page.div.close()
+    markup.element('header', parent=page).close()
+    return page()
+
+
+def dropdown(text, links, active=None, class_='dropdown-toggle'):
+    """Construct a dropdown menu in bootstrap format
+
+    Parameters
+    ----------
+    text : `str`
+        dropdown menu header
+
+    links : `list`
+        list of (Link text, linkurl) tuples or dict of such tuples for
+        grouped dropdowns
+
+    active : `int` or `list` of `ints`, optional
+        collection of links to make active, default: None
+
+    class_ : `str`, optional
+        object class of the dropdown menu, default: `'dropdown-toggle'`
+
+    Returns
+    -------
+    page : :class:`~MarkupPy.markup.page`
+        HTML element with the following grammar::
+        .. code:: html
+            <a>text</a>
+            <ul>
+                <li>link</li>
+                <li>link</li>
+            </ul>
+    """
+    page = markup.page()
+    # dropdown header
+    page.a(href='#', class_=class_, **{'data-toggle': 'dropdown'})
+    page.add(text)
+    page.b('', class_='caret')
+    page.a.close()
+
+    # work out columns
+    ngroup = sum([isinstance(x, (tuple, list)) and len(x) and
+                 isinstance(x[1], (tuple, list)) for x in links])
+    if ngroup < 1:
+        column = ''
+    else:
+        ncol = min(ngroup, 4)
+        column = 'col-xs-12 col-sm-%d' % (12 // ncol)
+
+    # dropdown elements
+    if column:
+        page.ul(class_='dropdown-menu dropdown-%d-col row' % ncol)
+    else:
+        page.ul(class_='dropdown-menu')
+    for i, link in enumerate(links):
+        if isinstance(active, int) and i == active:
+            active_ = True
+        elif isinstance(active, (list, tuple)) and i == active[0]:
+            active_ = active[1]
+        else:
+            active_ = False
+        dropdown_link(page, link, active=active_, class_=column)
+    page.ul.close()
+    return page()
+
+
+def dropdown_link(page, link, active=False, class_=''):
+    """Format links within a dropdown menu
+
+    Parameters
+    ----------
+    page : `~MarkupPy.markup.page`
+        a `page` object to format in-place
+
+    link : `~MarkupPy.markup.page` or `list`
+        the link(s) to format
+
+    active : `bool`, optional
+        boolean switch to enable (`True`) or disable (`False`) an active link,
+        default: `False`
+
+    class_ : `str`, optional
+        object class of the link, default: `''`
+    """
+    if link is None:
+        page.li(class_='divider')
+    elif active is True:
+        page.li(class_='active')
+    else:
+        page.li()
+    if isinstance(link, (tuple, list)):
+        if isinstance(link[1], (tuple, list)):
+            page.ul(class_=class_ + ' list-unstyled')
+            page.li(link[0], class_='dropdown-header')
+            for j, link2 in enumerate(link[1]):
+                dropdown_link(page, link2,
+                              active=(type(active) is int and active == j))
+            page.ul.close()
+        else:
+            page.a(link[0], href=link[1])
+    elif link is not None:
+        page.add(str(link))
+    page.li.close()
+
+
+def get_brand(ifo, name, gps, about=None):
+    """Return a brand for navigation bar formatting
+
+    Parameters
+    ----------
+    ifo : `str`
+        interferometer prefix for color-coding, e.g. `'L1'`
+
+    name : `str`
+        name of the analysis, e.g. `'Scattering'`
+
+    gps : `float`
+        GPS second of the analysis
+
+    about : `str`, optional
+        relative path to the `about` page for this analysis, default: None
+
+    Returns
+    -------
+    brand : `~MarkupPy.markup.page`
+        the navbar brand `page` object
+
+    class_ : `str`
+        object class of the navbar
+    """
+    page = markup.page()
+    page.div(ifo, class_='navbar-brand')
+    page.div(name, class_='navbar-brand')
+    page.div(class_='btn-group pull-right ifo-links')
+    page.a(class_='navbar-brand dropdown-toggle', href='#',
+           **{'data-toggle': 'dropdown'})
+    page.add('Links')
+    page.b('', class_='caret')
+    page.a.close()
+    page.ul(class_='dropdown-menu')
+    if about is not None:
+        page.li('Internal', class_='dropdown-header')
+        page.li()
+        page.a('About this page', href=about)
+        page.li.close()
+        page.li('', class_='divider')
+    page.li('External', class_='dropdown-header')
+    for name, url in OBSERVATORY_MAP[ifo]['links'].items():
+        if 'Summary' in name:
+            day = from_gps(gps).strftime(r"%Y%m%d")
+            url = '/'.join([url, day])
+        page.li()
+        page.a(name, href=url, target='_blank')
+        page.li.close()
+    page.ul.close()
+    page.div.close()  # btn-group pull-right
+    class_ = 'navbar navbar-fixed-top navbar-{}'.format(ifo.lower())
+    return (page(), class_)
 
 
 def about_this_page(config, packagelist=True):
@@ -490,7 +794,8 @@ def scaffold_plots(plots, nperrow=3):
 
 
 def write_arguments(content, start, end, flag=None, section='Parameters',
-                    info='This analysis used the following parameters:'):
+                    info='This analysis used the following parameters:',
+                    id_='parameters'):
     """Render an informative section with run parameters in HTML
 
     Parameters
@@ -506,7 +811,7 @@ def write_arguments(content, start, end, flag=None, section='Parameters',
     if flag is not None:
         content.insert(2, ('State flag', flag))
     page = markup.page()
-    page.h2(section)
+    page.h2(section, id_=id_)
     page.p(info)
     for item in content:
         page.add(write_param(*item))

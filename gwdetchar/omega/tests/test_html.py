@@ -40,7 +40,7 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 VERSION = get_versions()['version']
 COMMIT = get_versions()['full-revisionid']
 
-HTML_HEADER = """<header class="navbar navbar-fixed-top navbar-l1">
+HTML_HEADER = """<header class="navbar navbar-fixed-top navbar-{ifo}">
 <div class="container">
 <div class="navbar-header">
 <button class="navbar-toggle" data-toggle="collapse" type="button" data-target=".navbar-collapse">
@@ -48,44 +48,54 @@ HTML_HEADER = """<header class="navbar navbar-fixed-top navbar-l1">
 <span class="icon-bar"></span>
 <span class="icon-bar"></span>
 </button>
-<div class="navbar-brand">{ifo}</div>
-<div class="navbar-brand">{gps}</div>
+<div class="navbar-brand">{IFO}</div>
+<div class="navbar-brand">Omega Scan</div>
+<div class="btn-group pull-right ifo-links">
+<a class="navbar-brand dropdown-toggle" href="#" data-toggle="dropdown">
+Links
+<b class="caret"></b>
+</a>
+<ul class="dropdown-menu">
+<li class="dropdown-header">Internal</li>
+<li>
+<a href="about">About this page</a>
+</li>
+<li class="divider"></li>
+<li class="dropdown-header">External</li>
+<li>
+<a href="https://ldas-jobs.ligo-la.caltech.edu/~detchar/summary/day/19800106" target="_blank">LLO Summary Pages</a>
+</li>
+<li>
+<a href="https://alog.ligo-la.caltech.edu/aLOG" target="_blank">LLO Logbook</a>
+</li>
+</ul>
+</div>
 </div>
 <nav class="collapse navbar-collapse">
 <ul class="nav navbar-nav">
-<li><a href="#">Summary</a></li>
+<li>
+<a href="#">Summary</a>
+</li>
 <li class="dropdown">
-<a class="dropdown-toggle" data-toggle="dropdown">
-GW <b class="caret"></b>
+<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+GW
+<b class="caret"></b>
 </a>
-<ul class="dropdown-menu" style="max-height: 700px; overflow-y: scroll;">
+<ul class="dropdown-menu dropdown-1-col row">
+<li>
+<ul class="col-xs-12 col-sm-12 list-unstyled">
 <li class="dropdown-header">Gravitational-Wave Strain</li>
 <li>
 <a href="#x1-test-aux">X1:TEST-AUX</a>
 </li>
 </ul>
 </li>
-<li class="dropdown">
-<a class="dropdown-toggle" data-toggle="dropdown">
-Links <b class="caret"></b>
-</a>
-<ul class="dropdown-menu">
-<li class="dropdown-header">Internal</li>
-<li><a href="about">About this scan</a></li>
-<li class="divider"></li>
-<li class="dropdown-header">External</li>
-<li>
-<a href="https://ldas-jobs.ligo-la.caltech.edu/~detchar/summary/day//19800106" target="_blank">LLO Summary Pages</a>
-</li>
-<li>
-<a href="https://alog.ligo-la.caltech.edu/aLOG/" target="_blank">LLO Logbook</a>
-</li>
 </ul>
 </li>
 </ul>
 </nav>
 </div>
-</header>"""  # nopep8
+</header>"""  # noqa: E501
 
 CONFIGURATION = u"""
 [primary]
@@ -241,7 +251,7 @@ def test_update_toc():
 def test_navbar():
     page = html.navbar('L1', 0, toc=ANALYZED)
     assert parse_html(str(page)) == parse_html(HTML_HEADER.format(
-        ifo='L1', gps='0'))
+        ifo='l1', IFO='L1'))
 
 
 def test_toggle_link():

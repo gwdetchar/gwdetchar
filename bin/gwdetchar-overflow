@@ -240,9 +240,15 @@ if args.html:
         args.output_file = os.path.relpath(
             args.output_file, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
+        links = [(s, '#%s' % s.lower())
+                 for s in ['Parameters', 'Segments', 'Results']]
+        (brand, class_) = htmlio.get_brand(args.ifo, 'Overflows',
+                                           args.gpsstart)
+        navbar = htmlio.navbar(links, class_=class_, brand=brand)
         page = htmlio.new_bootstrap_page(
             title='%s Overflows: %d-%d' % (
-                args.ifo, int(args.gpsstart), int(args.gpsend)))
+                args.ifo, int(args.gpsstart), int(args.gpsend)),
+            navbar=navbar)
     else:
         page = htmlio.markup.page()
         page.div(class_='container')
@@ -276,7 +282,7 @@ if args.html:
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
 
     # -- segments
-    page.h2('Segments')
+    page.h2('Segments', id_='segments')
     # link XML file
     if args.output_file:
         page.p()
@@ -322,7 +328,7 @@ if args.html:
         page.div.close()
 
     # -- results table
-    page.h2('Results summary')
+    page.h2('Results summary', id_='results')
     page.table(class_='table table-striped table-hover')
     # write table header
     page.thead()
