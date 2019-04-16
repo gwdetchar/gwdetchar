@@ -24,7 +24,18 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>' \
               'Joshua Smith <joshua.smith@ligo.org>' \
               'Andrew Lundgren <andrew.lundgren>@ligo.org>'
 
-# -- imports ------------------------------------------------------------------
-
 # import scattering utils
 from .core import *
+
+# global figure captions
+SCATTER_CAPTION = 'Evidence for scattering in {CHANNEL}. Top: longitudinal ' \
+                  'optic motion; second row: projected fringe frequency of ' \
+                  'the first four harmonics; third row: time-frequency ' \
+                  'scatter plot of Omicron triggers, coloured by signal-to-' \
+                  'noise ratio; bottom: known (small) and active (large) ' \
+                  'time segments when one harmonic is above the frequency ' \
+                  'threshold.'
+HIST_CAPTION = 'Cumulative histogram of the total time with fringe ' \
+               'frequency above a given value. The first (red), second ' \
+               '(green), third (gold), and fourth (blue) harmonics are ' \
+               'shown for {CHANNEL}.'
