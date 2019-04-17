@@ -53,8 +53,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'GWDetChar'
-copyright = u'2015-2019, The LIGO Scientific Collaboration and The Virgo Collaboration'
-author = 'Duncan Macleod, Alex Urban'
+copyright = u'2015, Alex Urban and Duncan Macleod'
+author = 'Alex Urban, Duncan Macleod'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -137,7 +137,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -207,7 +207,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'GWDetChar.tex', u'GWDetChar Documentation',
-   u'The LIGO Scientific Collaboration and The Virgo Collaboration', 'manual'),
+   u'Alex Urban and Duncan Macleod', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -237,7 +237,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'gwdetchar', u'GWDetChar Documentation',
-     [u'The LIGO Scientific Collaboration and The Virgo Collaboration'], 1)
+     [u'Alex Urban and Duncan Macleod'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -251,7 +251,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'GWDetChar', u'GWDetChar Documentation',
-   u'The LIGO Scientific Collaboration and The Virgo Collaboration', 'GWDetChar', 'One line description of project.',
+   u'Alex Urban and Duncan Macleod', 'GWDetChar', 'One line description of project.',
    'Miscellaneous'),
 ]
 

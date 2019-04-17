@@ -1,5 +1,5 @@
 #################
-HTML Construction
+HTML construction
 #################
 
 .. currentmodule:: gwdetchar

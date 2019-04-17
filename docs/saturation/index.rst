@@ -1,5 +1,5 @@
 ####################
-Software Saturations
+Software saturations
 ####################
 
 The LIGO real-time controls system is a sophisticated collection of control loops designed to hold the arm cavities in resonance, each control loop typically featuring a large number of digital filters. To avoid instability by accidentally actuating too strongly, many of these filter banks are assigned a set of hard limits in the front-end control software. We can keep track of times when those limits are saturated by analyzing the readback channels from filter banks.

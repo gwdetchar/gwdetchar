@@ -417,13 +417,14 @@ def dropdown(text, links, active=None, class_='dropdown-toggle'):
     Returns
     -------
     page : :class:`~MarkupPy.markup.page`
-        HTML element with the following grammar::
+        HTML element with the following grammar:
         .. code:: html
-            <a>text</a>
-            <ul>
-                <li>link</li>
-                <li>link</li>
-            </ul>
+
+           <a>text</a>
+           <ul>
+               <li>link</li>
+               <li>link</li>
+           </ul>
     """
     page = markup.page()
     # dropdown header
@@ -1029,7 +1030,8 @@ def close_page(page, target, **kwargs):
     This method writes the closing markup to complement the opening
     written by `init_page`, something like:
 
-    .. code-block:: html
+    .. code:: html
+
        </div>
        <footer>
            <!-- some stuff -->

@@ -1,5 +1,5 @@
 #################
-LASSO Correlation
+LASSO correlation
 #################
 
 The least absolute shrinkage and selection operator (LASSO) is a regression technique using machine learning that tracks slow correlations among a large collection of time-domain data streams. For gravitational-wave detector characterisation, this technique is used to find correlations between environmental sensors and any noise in the primary strain channel.
