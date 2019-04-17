@@ -17,7 +17,6 @@ import os
 import glob
 import sphinx_rtd_theme
 
-sys.path.insert(0, os.path.abspath('..'))
 from gwdetchar import __version__ as gwdetchar_version
 
 # -- General configuration ------------------------------------------------
