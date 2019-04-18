@@ -5,7 +5,7 @@ characterisation and data quality.
 
 |Build Status| |Coverage Status| |Documentation Status|
 
-<https://gwdetchar.readthedocs.io>
+https://gwdetchar.readthedocs.io
 
 ------------
 Installation
