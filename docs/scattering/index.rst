@@ -12,6 +12,10 @@ The :mod:`gwdetchar.scattering` module provides the following functions:
 
    get_fringe_frequency
 
+.. note::
+
+   OSEMs directly measure only the translational (linear) motion of optics, typically on the scale of microns. To measure velocity, :mod:`gwdetchar.scattering` uses a `Savitzky-Golay filter <https://en.wikipedia.org/wiki/Savitzky–Golay_filter>`_ to take smoothed time derivatives.
+
 The :mod:`gwdetchar.scattering.plot` module also provides functions for comparing fringe frequency projections against high-resolution Q-transform spectrograms:
 
 .. autosummary::
