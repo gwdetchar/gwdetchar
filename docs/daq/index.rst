@@ -16,7 +16,7 @@ The :mod:`gwdetchar.daq` module provides the following functions:
    ligo_model_overflow_channels
    find_crossings
 
-Another module, :mod:`gwdetchar.cds`, is used to find mappings between front-end controllers.
+Another module, :mod:`gwdetchar.cds`, is used to find mappings between front-end data collection units.
 
 ======================
 Command-line utilities
@@ -30,7 +30,7 @@ Command-line utilities
 gwdetchar-overflow
 ------------------
 
-The `gwdetchar-overflow` tool searches for overflows in a given time range over a given set of controllers from the front-end computing system. The simplest usage is as follows:
+The `gwdetchar-overflow` tool searches for overflows in a given time range over a given set of data collection unit identifiers (DCUIDs) from the front-end computing system. The simplest usage is as follows:
 
 .. code-block:: bash
 
