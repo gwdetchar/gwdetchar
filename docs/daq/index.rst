@@ -34,13 +34,13 @@ The `gwdetchar-overflow` tool searches for overflows in a given time range over 
 
 .. code-block:: bash
 
-   gwdetchar-overflow -i <interferometer> <gps-start-time> <gps-end-time>
+   gwdetchar-overflow -i <interferometer> <gps-start-time> <gps-end-time> <DCUIDs>
 
 For example,
 
 .. code-block:: bash
 
-   gwdetchar-overflow -i H1 1126259442 1126259502
+   gwdetchar-overflow -i H1 1126259442 1126259502 8 10 19 29 30 88 97 98
 
 For a full explanation of the available command-line arguments and options, you can run
 
