@@ -1,6 +1,6 @@
-#########
-GWDetChar
-#########
+############################################
+Gravitational-wave Detector Characterisation
+############################################
 
 GWDetChar is a python package for for gravitational-wave detector
 characterisation and data quality.
