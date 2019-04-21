@@ -3,13 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-##########
+#########
 GWDetChar
-##########
+#########
 
-|PyPI version| |DOI| |License| |Supported Python versions|
+|PyPI version| |Conda version|
 
-|Build Status| |Coverage Status|
+|DOI| |License| |Supported Python versions|
+
+|Build Status| |Coverage Status| |Documentation Status|
 
 GWDetChar is a python package for gravitational-wave detector
 characterisation and data quality. It is designed for use with ground-based
@@ -100,6 +102,8 @@ Sitemap
 
 .. |PyPI version| image:: https://badge.fury.io/py/gwdetchar.svg
    :target: http://badge.fury.io/py/gwdetchar
+.. |Conda version| image:: https://img.shields.io/conda/vn/conda-forge/gwdetchar.svg
+   :target: https://anaconda.org/conda-forge/gwdetchar/
 .. |DOI| image:: https://zenodo.org/badge/36960054.svg
    :target: https://zenodo.org/badge/latestdoi/36960054
 .. |License| image:: https://img.shields.io/pypi/l/gwdetchar.svg
@@ -110,3 +114,5 @@ Sitemap
    :target: https://travis-ci.org/gwdetchar/gwdetchar
 .. |Coverage Status| image:: https://codecov.io/gh/gwdetchar/gwdetchar/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/gwdetchar/gwdetchar
+.. |Documentation Status| image:: https://readthedocs.org/projects/gwdetchar/badge/?version=latest
+   :target: https://gwdetchar.readthedocs.io/en/latest/?badge=latest
