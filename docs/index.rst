@@ -3,13 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-##########
-GWDetChar
-##########
+############################################
+Gravitational-wave Detector Characterisation
+############################################
 
-|PyPI version| |DOI| |License| |Supported Python versions|
+|PyPI version| |Conda version|
 
-|Build Status| |Coverage Status|
+|DOI| |License| |Supported Python versions|
 
 GWDetChar is a python package for gravitational-wave detector
 characterisation and data quality. It is designed for use with ground-based
@@ -39,6 +39,11 @@ but can also be installed with `pip`_:
 
    python -m pip install gwdetchar
 
+Note, users with `LIGO.ORG` credentials have access to a software
+container with a regularly-updated build of GWDetChar. For more
+information please refer to the
+`LSCSoft Conda <https://docs.ligo.org/lscsoft/conda/>`_ documentation.
+
 
 ============
 Contributing
@@ -63,12 +68,9 @@ License
 GWDetChar is distributed under the `GNU General Public License`_.
 
 
-=====================
-Package documentation
-=====================
-
 .. toctree::
    :maxdepth: 1
+   :hidden:
 
    daq/index
    saturation/index
@@ -81,15 +83,6 @@ Package documentation
    api/index
 
 
-=======
-Sitemap
-=======
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-
 .. _PEP 0008: https://www.python.org/dev/peps/pep-0008/
 .. _pep8: https://pypi.python.org/pypi/pep8
 .. _the contributions guide: https://github.com/gwdetchar/gwdetchar/blob/master/CONTRIBUTING.md
@@ -100,13 +93,11 @@ Sitemap
 
 .. |PyPI version| image:: https://badge.fury.io/py/gwdetchar.svg
    :target: http://badge.fury.io/py/gwdetchar
+.. |Conda version| image:: https://img.shields.io/conda/vn/conda-forge/gwdetchar.svg
+   :target: https://anaconda.org/conda-forge/gwdetchar/
 .. |DOI| image:: https://zenodo.org/badge/36960054.svg
    :target: https://zenodo.org/badge/latestdoi/36960054
 .. |License| image:: https://img.shields.io/pypi/l/gwdetchar.svg
    :target: https://choosealicense.com/licenses/gpl-3.0/
 .. |Supported Python versions| image:: https://img.shields.io/pypi/pyversions/gwdetchar.svg
    :target: https://pypi.org/project/gwdetchar/
-.. |Build Status| image:: https://travis-ci.org/gwdetchar/gwdetchar.svg?branch=master
-   :target: https://travis-ci.org/gwdetchar/gwdetchar
-.. |Coverage Status| image:: https://codecov.io/gh/gwdetchar/gwdetchar/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/gwdetchar/gwdetchar
