@@ -39,6 +39,11 @@ but can also be installed with `pip`_:
 
    python -m pip install gwdetchar
 
+Note, users with `LIGO.ORG` credentials have access to a LIGO software
+container with a regularly-updated build of GWSumm. For more
+information please refer to the
+`LSCSoft Conda <https://docs.ligo.org/lscsoft/conda/>`_ documentation.
+
 
 ============
 Contributing
@@ -63,12 +68,9 @@ License
 GWDetChar is distributed under the `GNU General Public License`_.
 
 
-=====================
-Package documentation
-=====================
-
 .. toctree::
    :maxdepth: 1
+   :hidden:
 
    daq/index
    saturation/index
@@ -79,15 +81,6 @@ Package documentation
    html/index
    data/index
    api/index
-
-
-=======
-Sitemap
-=======
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 
 
 .. _PEP 0008: https://www.python.org/dev/peps/pep-0008/

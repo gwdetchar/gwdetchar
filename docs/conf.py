@@ -60,7 +60,7 @@ author = 'Alex Urban, Duncan Macleod'
 # built documents.
 #
 # The short X.Y version.
-version = '{0}.{1}'.format(*gwdetchar_version.split('.'))
+version = gwdetchar_version
 # The full version, including alpha/beta/rc tags.
 release = gwdetchar_version
 
