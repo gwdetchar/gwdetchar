@@ -36,7 +36,8 @@ pip-delete-this-directory.txt
 # Sphinx documentation
 /docs/_build
 /docs/_generated
-/docs/api/gwdetchar*rst
+/docs/api/modules.rst
+/docs/api/gwdetchar*
 
 # Version information
 /gwdetchar/version.py
