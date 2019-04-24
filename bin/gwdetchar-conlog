@@ -44,8 +44,9 @@ __credits__ = 'Andrew Lundgren <andrew.lundgren@ligo.org>, ' \
 parser = cli.create_parser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
-cli.add_frametype_option(parser, required=const.IFO is None,
-                         default='{}_T'.format(const.IFO))
+cli.add_frametype_option(parser,
+                         help='the frametype name, defaults to second trends '
+                              'for the selected interferometer')
 cli.add_nproc_option(parser)
 parser.add_argument('-o', '--output', default='changes.csv',
                     help='Path to output data file, default: %(default)s')
