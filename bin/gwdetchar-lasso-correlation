@@ -38,6 +38,7 @@ from pandas import set_option
 
 from gwpy.plot import Plot
 from gwpy.time import Time
+from gwpy.timeseries import TimeSeriesDict
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
@@ -215,9 +216,15 @@ if args.trend_type == 'minute':
 else:
     frametype = '%s_T' % args.ifo  # for second trends
 
-auxdata = get_data(
-    channels, start, end, verbose='Reading:'.rjust(30),
-    frametype=frametype, nproc=args.nproc, pad=0).crop(start, end)
+# read aux channels
+auxdata = TimeSeriesDict()
+tleft = numpy.arange(start, end, 7200)
+for i, t1 in enumerate(tleft):
+    t2 = t1 + min(t1 + 7200, end)
+    verbose = ('Reading (%s/%s):' % (i + 1, tleft.size)).rjust(30)
+    auxdata.append(get_data(  # read auxiliary data in 2-hour blocks
+        channels, t1, t1 + t2, verbose=verbose, frametype=frametype,
+        nproc=args.nproc, pad=0).crop(start, end))
 
 # -- removes flat data to be re-introdused later
 
@@ -570,53 +577,6 @@ if args.no_cluster is False:
 channelsfile = '%s-CHANNELS-%s.txt' % (args.ifo, gpsstub)
 numpy.savetxt(channelsfile, channels, fmt='%s')
 
-
-# format results table
-def format_indices(value):
-    return "<div style='text-align:center;'>{}</div>".format(value)
-
-
-def format_channels(value):
-    return ("<div style='text-align:left;"
-            "font-family:monospace,monospace;'>{}</div>".format(value))
-
-
-def format_coefficients(value):
-    return "<div style='text-align:left;'>{}</div>".format(value)
-
-
-def style_table(html_table):
-    html_table = (
-        html_table.replace(
-            '<table',
-            ("<table style="
-             "'border-collapse:collapse;"
-             "border-style:hidden;"
-             "width:85%; '"))
-        .replace(
-            '<tr>',
-            ('''<tr style='''
-             '''"border-left:0 !important;'''
-             '''border-right:0 !important;"'''
-             '''onmouseover="this.style.backgroundColor='f2f2f2';"'''
-             '''onmouseout="this.style.backgroundColor='';">'''))
-        .replace(
-            '<th>',
-            ("<th style="
-             "'border-left:0 !important;"
-             "border-right:0 !important;"
-             "padding-left:10px;"
-             "padding-right:10px;"
-             "padding-top:5px; "
-             "padding-bottom:5px;'>"))
-        .replace(
-            '<td>',
-            ("<td style = "
-             "'border-left:0 !important;"
-             "border-right:0 !important;'>")))
-    return html_table
-
-
 # write html
 title = '%s Lasso Slow Correlations: %d-%d' % (args.ifo, start, end)
 links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Model', 'Results']]
@@ -667,17 +627,22 @@ page.div.close()  # model-info
 page.div(class_='scaffold well')
 
 page.div(class_='row')
-page.div(class_='results-table', align='center')
-page.add(style_table(df.to_html(
-    index=True,
+page.div(class_='col-md-10 col-md-offset-1', id_='results-table')
+page.p('Below are the top {} mean minute-trend channels, ranked by '
+        'Lasso correlation with the primary.'.format(df.shape[0]))
+page.add(df.to_html(
+    classes=('table', 'table-condensed', 'table-hover', 'table-responsive'),
     formatters={
-        'Lasso coefficient': format_coefficients,
-        'Channel': format_channels,
-        '__index__': format_indices},
-    escape=False)))
-page.p.close()
+        'Lasso coefficient': lambda x: "%.4f" % x,
+        'Channel': lambda x: str(htmlio.cis_link(x.split('.')[0])),
+        '__index__': lambda x: "%d" % x
+    },
+    escape=False,
+    border=0))
+page.div.close()  # col-md-10 col-md-offset-1
 page.div.close()  # results-table
 page.div.close()  # row
+page.add('<hr class="row-divider">')
 
 page.div(class_='row', id_='primary-lasso')
 page.div(class_='col-md-8 col-md-offset-2')
