@@ -32,16 +32,16 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 def test_write_status(tmpdir):
     outdir = str(tmpdir)
+    nagiosfile = os.path.join(outdir, 'nagios.json')
     core.write_status(
         'This is a test success message',
         0,
         timeout=42,
         tmessage='This is a test timeout message',                       
-        outdir=outdir
+        nagiosfile=nagiosfile,
     )
     # test output
-    filepath = os.path.join(outdir, 'nagios.json')
-    with open(filepath, 'r') as fobj:
+    with open(nagiosfile, 'r') as fobj:
         status = json.load(fobj)
     assert isinstance(status['created_gps'], int)
     assert isinstance(status['status_intervals'], list)

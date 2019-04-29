@@ -19,7 +19,6 @@
 """Utilities for providing status updates to Nagios
 """
 
-import os
 import json
 
 from gwpy.time import to_gps
@@ -29,8 +28,7 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 # -- utilities ----------------------------------------------------------------
 
-def write_status(message, code, timeout=0, tmessage=None,
-                 outdir=os.path.curdir):
+def write_status(message, code, timeout=0, tmessage=None, nagiosfile=None):
     """Write a Nagios status file in JSON format
 
     Parameters
@@ -47,13 +45,13 @@ def write_status(message, code, timeout=0, tmessage=None,
     tmessage : `str`, optional
         timeout message
 
-    outdir : `str`, optional
-        output directory where JSON file will be written
+    nagiosfile : `str`, optional
+        full path to a JSON status file, defaults to ``nagios.json``
 
     Notes
     -----
-    This function will write an output file called ``nagios.json`` to the
-    given output directory, then exit without returning.
+    This function will write an output to the requested location, then exit
+    without returning.
     """
     # status dictionary
     status = {
@@ -72,6 +70,6 @@ def write_status(message, code, timeout=0, tmessage=None,
             "num_status": 3,
         })
     # get output file and write
-    nagiosfile = os.path.join(outdir, 'nagios.json')
+    nagiosfile = nagiosfile or 'nagios.json'
     with open(nagiosfile, 'w') as fileobj:
         json.dump(status, fileobj)

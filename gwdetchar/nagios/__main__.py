@@ -44,7 +44,7 @@ def main(args=None):  # pragma: no-cover
                         help='timeout length in seconds, default: no timeout')
     parser.add_argument('-m', '--timeout-message', default='Process timed out',
                         help='Error message upon timeout')
-    parser.add_argument('-o', '--output-dir', default=os.path.curdir,
+    parser.add_argument('-o', '--output-file', default='nagios.json',
                         help='output directory for JSON file, '
                              'default: %(default)s')
 
@@ -54,14 +54,14 @@ def main(args=None):  # pragma: no-cover
     message = args.message
     timeout = args.timeout
     tmessage = args.timeout_message
-    outdir = args.output_dir
+    nagiosfile = args.output_file
 
     # write nagios file
     write_status(message, code, timeout=timeout,
-                 tmessage=tmessage, outdir=outdir)
+                 tmessage=tmessage, nagiosfile=nagiosfile)
 
     # log file path
-    abspath = os.path.join(outdir, 'nagios.json')
+    abspath = os.path.abspath(nagiosfile)
     logger.info('Status written to {}'.format(abspath))
 
 
