@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright (C) Duncan Macleod (2015)
+# Copyright (C) Alex Urban (2019)
 #
 # This file is part of the GW DetChar python package.
 #
@@ -23,7 +23,7 @@ import os
 import json
 import shutil
 
-from .. import nagios
+from .. import core
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
@@ -32,7 +32,7 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 def test_write_status(tmpdir):
     outdir = str(tmpdir)
-    nagios.write_status(
+    core.write_status(
         'This is a test success message',
         0,
         timeout=42,

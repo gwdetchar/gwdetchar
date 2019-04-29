@@ -27,7 +27,7 @@ for EXE in bin/*; do
 done
 
 # loop over python modules
-modules = (
+modules=(
     gwdetchar.nagios
     gwdetchar.scattering
 )

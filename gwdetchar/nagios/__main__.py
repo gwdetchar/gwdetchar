@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright (C) Duncan Macleod (2015)
+# Copyright (C) Alex Urban (2019)
 #
 # This file is part of the GW DetChar python package.
 #
@@ -16,70 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utilities for providing status updates to Nagios
+"""Command-line utility for providing status updates to Nagios
 """
 
 import os
 import sys
-import json
 
-from gwpy.time import to_gps
-
-from . import cli
+from .. import cli
+from .core import *
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 logger = cli.logger('gwdetchar.nagios')
-
-
-# -- utilities ----------------------------------------------------------------
-
-def write_status(message, code, timeout=0, tmessage=None,
-                 outdir=os.path.curdir):
-    """Write a Nagios status file in JSON format
-
-    Parameters
-    ----------
-    message : `str`
-        status message for Nagios
-
-    code : `int`
-        exit code for process
-
-    timeout : `int`, optional
-        timeout length, in seconds
-
-    tmessage : `str`, optional
-        timeout message
-
-    outdir : `str`, optional
-        output directory where JSON file will be written
-
-    Notes
-    -----
-    This function will write an output file called ``nagios.json`` to the
-    given output directory, then exit without returning.
-    """
-    # status dictionary
-    status = {
-        "created_gps": int(to_gps('now')),
-        "status_intervals": [{
-            "start_sec": 0,
-            "txt_status": message,
-            "num_status": code
-        }],
-    }
-    # update timeout information
-    if timeout:
-        status["status_intervals"].append({
-            "start_sec": timeout,
-            "txt_status": tmessage,
-            "num_status": 3,
-        })
-    # get output file and write
-    nagiosfile = os.path.join(outdir, 'nagios.json')
-    with open(nagiosfile, 'w') as fileobj:
-        json.dump(status, fileobj)
 
 
 # -- main routine ---------------------------------------------------------
@@ -87,10 +35,10 @@ def write_status(message, code, timeout=0, tmessage=None,
 def main(args=None):  # pragma: no-cover
     # define command-line arguments
     parser = cli.create_parser(description=__doc__)
-    parser.add_argument('code', type=int, required=True,
+    parser.add_argument('code', type=int,
                         help='exit code for Nagios, should be one of: '
                              '0 (success), 1 (warning), or 2 (critical)')
-    parser.add_argument('message', type=str, required=True,
+    parser.add_argument('message', type=str,
                         help='status message for Nagios')
     parser.add_argument('-t', '--timeout', type=int, default=0,
                         help='timeout length in seconds, default: no timeout')
