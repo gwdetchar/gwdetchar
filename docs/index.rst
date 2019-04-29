@@ -80,6 +80,7 @@ GWDetChar is distributed under the `GNU General Public License`_.
    conlog/index
    html/index
    data/index
+   nagios/index
    api/index
 
 
