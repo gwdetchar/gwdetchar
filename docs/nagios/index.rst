@@ -10,8 +10,8 @@ reading local JavaScript Object Notation (JSON) files containing status
 updates written at runtime.
 
 This python module provides an interface to writing status updates for Nagios,
-intended for use by downstream consumers of GWDetChar. For more information,
-see https://monitor.ligo.org.
+intended for use by downstream consumers of GWDetChar. For live checks of
+all LIGO service automation, see https://monitor.ligo.org.
 
 Python module
 =============
@@ -26,6 +26,6 @@ a status file in JSON format that Nagios can parse:
 On the command-line
 ===================
 
-If needed, Nagios status files can also be made from the command-line:
+If needed, Nagios status files can also be generated from the command-line:
 
 .. command-output:: python -m gwdetchar.nagios --help
