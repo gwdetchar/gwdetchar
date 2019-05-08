@@ -45,7 +45,7 @@ def main(args=None):  # pragma: no-cover
     parser.add_argument('-m', '--timeout-message', default='Process timed out',
                         help='Error message upon timeout')
     parser.add_argument('-o', '--output-file', default='nagios.json',
-                        help='output directory for JSON file, '
+                        help='full path to the output JSON file, '
                              'default: %(default)s')
 
     # parse arguments
