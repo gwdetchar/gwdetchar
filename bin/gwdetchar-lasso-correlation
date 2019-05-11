@@ -38,7 +38,6 @@ from pandas import set_option
 
 from gwpy.plot import Plot
 from gwpy.time import Time
-from gwpy.timeseries import TimeSeriesDict
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
@@ -217,14 +216,9 @@ else:
     frametype = '%s_T' % args.ifo  # for second trends
 
 # read aux channels
-auxdata = TimeSeriesDict()
-tleft = numpy.arange(start, end, 7200)
-for i, t1 in enumerate(tleft):
-    t2 = t1 + min(t1 + 7200, end)
-    verbose = ('Reading (%s/%s):' % (i + 1, tleft.size)).rjust(30)
-    auxdata.append(get_data(  # read auxiliary data in 2-hour blocks
-        channels, t1, t1 + t2, verbose=verbose, frametype=frametype,
-        nproc=args.nproc, pad=0).crop(start, end))
+auxdata = get_data(
+    channels, start, end, verbose='Reading:'.rjust(30),
+    frametype=frametype, nproc=args.nproc, pad=0).crop(start, end)
 
 # -- removes flat data to be re-introdused later
 
