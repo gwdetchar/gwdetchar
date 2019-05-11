@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""gw_data_find wrappers
+"""Data discovery utilities
 """
 
 import re

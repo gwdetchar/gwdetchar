@@ -184,7 +184,7 @@ if args.trend_type == 'minute':
     frametype = '%s_M' % args.ifo  # for minute trends
 else:
     frametype = '%s_T' % args.ifo  # for second trends
-auxdata = get_data(map(str, channels), dstart, dend, verbose=True, pad=0,
+auxdata = get_data(list(map(str, channels)), dstart, dend, verbose=True, pad=0,
                    frametype=frametype, nproc=args.nproc)
 
 gpsstub = '%d-%d' % (start, end-start)
