@@ -70,7 +70,6 @@ install_requires = [
     'scikit-learn',
     'scipy>=1.2.0',
     'setuptools',
-    'six',
     'pathlib2 ; python_version < \'3.6\'',
     'pygments',
 ]

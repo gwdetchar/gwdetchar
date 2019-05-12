@@ -21,7 +21,7 @@
 
 import re
 import warnings
-from six.moves.urllib.error import HTTPError
+from urllib.error import HTTPError
 from json.decoder import JSONDecodeError
 
 import gwdatafind
