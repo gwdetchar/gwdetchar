@@ -21,15 +21,10 @@
 
 import re
 import sys
-from functools import partial
-try:  # python 3.x
-    from io import StringIO
-    from html.parser import HTMLParser
-except:  # python 2.7
-    from cStringIO import StringIO
-    from HTMLParser import HTMLParser
-
 import numpy
+from io import StringIO
+from functools import partial
+from html.parser import HTMLParser
 
 from gwpy.table import EventTable
 

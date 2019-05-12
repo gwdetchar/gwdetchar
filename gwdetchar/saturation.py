@@ -20,11 +20,7 @@
 """
 
 import re
-
-try:  # python 3.x
-    from itertools import zip_longest
-except ImportError:  # python 2.7
-    from itertools import izip_longest as zip_longest
+from itertools import zip_longest
 
 import numpy
 from astropy.units import Quantity
