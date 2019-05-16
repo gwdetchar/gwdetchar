@@ -745,7 +745,7 @@ def fancybox_img(img, linkparams=dict(), **params):
     aparams.update(linkparams)
     # this is to avoid problems discovered in lasso when image creation fails
     # but caller fails to detect it
-    if img:
+    if img and os.path.exists(img):
         img = str(img)
         substrings = os.path.basename(img).split('-')
         channel = '%s-%s' % tuple(substrings[:2])
