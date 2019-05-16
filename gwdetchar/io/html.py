@@ -743,22 +743,27 @@ def fancybox_img(img, linkparams=dict(), **params):
         'data-fancybox-group': 'images',
     }
     aparams.update(linkparams)
-    img = str(img)
-    substrings = os.path.basename(img).split('-')
-    channel = '%s-%s' % tuple(substrings[:2])
-    duration = substrings[-1].split('.')[0]
-    page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
-    imgparams = {
-        'alt': os.path.basename(img),
-        'class_': 'img-responsive',
-    }
-    if img.endswith('.svg') and os.path.isfile(img.replace('.svg', '.png')):
-        imgparams['src'] = img.replace('.svg', '.png')
+    # this is to avoid problems discovered in lasso when image creation fails
+    # but caller fails to detect it
+    if img:
+        img = str(img)
+        substrings = os.path.basename(img).split('-')
+        channel = '%s-%s' % tuple(substrings[:2])
+        duration = substrings[-1].split('.')[0]
+        page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
+        imgparams = {
+            'alt': os.path.basename(img),
+            'class_': 'img-responsive',
+        }
+        if img.endswith('.svg') and os.path.isfile(img.replace('.svg', '.png')):
+            imgparams['src'] = img.replace('.svg', '.png')
+        else:
+            imgparams['src'] = img
+        imgparams.update(params)
+        page.img(id_='img_%s_%s' % (channel, duration), **imgparams)
+        page.a.close()
     else:
-        imgparams['src'] = img
-    imgparams.update(params)
-    page.img(id_='img_%s_%s' % (channel, duration), **imgparams)
-    page.a.close()
+        page.add('fancy-box mage was requested but no file specified.')
     return page()
 
 
