@@ -86,6 +86,9 @@ parser.add_argument('-c', '--fec-map', help='URL of human-readable FEC map, '
                                             'default: infer from IFO')
 parser.add_argument('-u', '--simulink', help='URL of human-readable Simulink '
                                              'model, default: infer from IFO')
+parser.add_argument('-d', '--daqsvn',
+                    help='URL of the front-end data gathering configuration, '
+                         'default: internal LIGO DAQ subversion repository')
 
 args = parser.parse_args()
 
@@ -94,6 +97,8 @@ logger = cli.logger(name=os.path.basename(__file__))
 
 fec_map = args.fec_map
 simulink = args.simulink
+daqsvn = args.daqsvn or ('https://daqsvn.ligo-la.caltech.edu/websvn/'
+                         'listing.php?repname=daq_maps')
 if args.ifo == 'H1':
     if not fec_map:
         fec_map = 'https://lhocds.ligo-wa.caltech.edu/exports/detchar/fec/'
@@ -269,6 +274,11 @@ if args.html:
 
     # -- paramters
     content = [('DCUIDs', ' '.join(map(str, args.dcuid)))]
+    if daqsvn:
+        content.append((
+            'FEC configuration',
+            ('<a href="{0}" target="_blank" title="{1} FEC configuration">'
+             '{0}</a>').format(daqsvn, args.ifo)))
     if fec_map:
         content.append((
             'FEC map', '<a href="{0}" target="_blank" title="{1} FEC '
