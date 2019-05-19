@@ -24,7 +24,7 @@ import shutil
 
 from gwpy.segments import DataQualityFlag
 
-from matplotlib import use
+from matplotlib import (use, rcParams)
 use('agg')
 
 from .. import plot
@@ -36,6 +36,22 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 FLAG = DataQualityFlag(known=[(0, 66)], active=[(16, 42)],
                        name='X1:TEST-FLAG:1')
+
+
+# -- test utilities -----------------------------------------------------------
+
+def test_texify():
+    name = 'X1:TEST-CHANNEL_NAME'
+
+    # test without LaTeX
+    assert plot.texify(name) == name
+
+    # test with LaTeX
+    rcParams['text.usetex'] = True
+    assert plot.texify(name) == name.replace('_', '\\_')
+
+    # null use case
+    assert plot.texify(None) == ''
 
 
 # -- make sure plots run end-to-end -------------------------------------------

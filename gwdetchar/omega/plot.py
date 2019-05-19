@@ -20,6 +20,8 @@
 """
 
 from matplotlib import (cm, rcParams)
+
+from gwpy.plot.tex import label_to_latex
 from gwpy.plot.colors import GW_OBSERVATORY_COLORS
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -139,7 +141,7 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
     ax.set_yscale('linear')
     ax.set_ylabel(ylabel)
     # set title
-    title = r'$\mathtt{%s}$ at %.3f' % (channel.replace('_', '\_'), gps)
+    title = r'$\mathtt{%s}$ at %.3f' % (label_to_latex(channel), gps)
     ax.set_title(title, y=1.1)
     # save plot and close
     plot.savefig(output, bbox_inches='tight')
@@ -204,7 +206,7 @@ def spectral_plot(data, gps, span, channel, output, colormap='viridis',
     _format_color_axis(ax, colormap=colormap, clim=clim, norm=norm)
     # set title
     title = r'$\mathtt{%s}$ at %.3f with $Q$ of %.1f' \
-            % (channel.replace('_', '\_'), gps, Q)
+            % (label_to_latex(channel), gps, Q)
     ax.set_title(title, y=1.05)
     # save plot and close
     plot.savefig(output, bbox_inches='tight')
