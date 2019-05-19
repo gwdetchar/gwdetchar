@@ -209,7 +209,7 @@ def descaler(l, *coef):
 
 # get aux channels, selected for non-flat data
 logger.info("-- Loading auxiliary channel data")
-preview = 900 if args.trend_type == 'minute' else 10
+preview = 600 if args.trend_type == 'minute' else 10
 frametype = ('%s_M' % args.ifo if args.trend_type == 'minute'
              else '%s_T' % args.ifo)
 allchannels = list(numpy.loadtxt(

@@ -267,7 +267,7 @@ def downselect(frametype, start, end, preview=10, channels=[],
     available &= set(io_gwf.iter_channel_names(cache2[0]))
     channels = list(set(channels) & available) or list(available)
     if search:  # select channels matching regex patterns
-        requested = re.compile('({})'.format('|'.join(args.search)))
+        requested = re.compile('({})'.format('|'.join(search)))
         channels = [c for c in channels if requested.search(c)]
     # get preview data from frames
     data1 = get_data(channels, start-preview, start, source=cache1,
