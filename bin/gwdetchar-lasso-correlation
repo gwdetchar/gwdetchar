@@ -19,8 +19,8 @@
 
 import os
 import re
-import multiprocessing
 import sys
+import multiprocessing
 
 import numpy
 
@@ -274,7 +274,7 @@ print(results)
 print('\n\n')
 
 # convert to pandas
-set_option('max_colwidth', 200)
+set_option('max_colwidth', -1)
 df = results.to_pandas()
 df.index += 1
 
