@@ -36,13 +36,14 @@ from pandas import set_option
 
 from gwpy.plot import Plot
 from gwpy.time import Time
+from gwpy.utils.env import bool_env
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
 from gwdetchar import (cli, lasso as gwlasso)
 from gwdetchar.lasso import plot as gwplot
-from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
+from gwdetchar.io import html as htmlio
 
 
 # default frametypes
@@ -366,7 +367,8 @@ p4 = (.1, .1, .9, .95)  # global plot defaults for plot4, timeseries subplots
 
 
 def process_channel(input_,):
-    gwplot.configure_mpl()
+    if bool_env("GWPY_USETEX", False):
+        gwplot.configure_mpl()
     chan = input_[1][0]
     ts = input_[1][1]
     lassocoef = nonzerocoef[chan]
@@ -486,7 +488,8 @@ max_correlated_channels = 20
 
 
 def generate_cluster(input_,):
-    gwplot.configure_mpl()
+    if bool_env("GWPY_USETEX", False):
+        gwplot.configure_mpl()
     currentchan = input_[1][0]
     currentts = input_[1][5]
     current = input_[0]

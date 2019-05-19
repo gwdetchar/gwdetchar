@@ -20,9 +20,9 @@
 """
 
 import os
+import atexit
 import shutil
 import tempfile
-import atexit
 import warnings
 
 from matplotlib import rcParams
@@ -37,7 +37,7 @@ __credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
 # -- plotting utilities -------------------------------------------------------
 
 def configure_mpl():
-    """Configure Matplotlib while processing channels with `gwdetchar.lasso`
+    """Configure Matplotlib with LaTeX when using multiprocessing
     """
     import matplotlib
     matplotlib.use('agg')
