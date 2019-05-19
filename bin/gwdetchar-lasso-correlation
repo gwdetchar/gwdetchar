@@ -614,6 +614,7 @@ page.add(htmlio.write_param(
     '%d (%s)' % (len(zeroed),
                  "<a href= %s target='_blank'>zeroed channel list</a>"
                  % (zerofile))))
+page.add('<hr class="row-divider">')
 
 page.div(class_='row')
 page.div(class_='col-md-10 col-md-offset-1', id_='results-table')
@@ -653,6 +654,7 @@ page.div(class_='col-md-8 col-md-offset-2')
 page.add(htmlio.fancybox_img(img3))
 page.div.close()  # col-md-8 col-md-offset-2
 page.div.close()  # channels-and-primary
+page.add('<hr class="row-divider">')
 
 # results
 page.h2('Top Channels', id_='results')
