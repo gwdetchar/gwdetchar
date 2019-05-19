@@ -25,7 +25,7 @@ import sys
 import numpy
 from scipy.stats import spearmanr
 
-from matplotlib import (use, rcParams)
+from matplotlib import use
 use('agg')
 import matplotlib.pyplot as plt
 

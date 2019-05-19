@@ -36,7 +36,6 @@ from pandas import set_option
 
 from gwpy.plot import Plot
 from gwpy.time import Time
-from gwpy.utils.env import bool_env
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
@@ -47,7 +46,7 @@ from gwdetchar.io import html as htmlio
 
 
 # LaTeX use
-USETEX = bool_env("GWPY_USETEX", False)
+USETEX = rcParams["text.usetex"]
 
 # default frametypes
 DEFAULT_FRAMETYPE = {

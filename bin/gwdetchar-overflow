@@ -25,7 +25,7 @@ import os.path
 import warnings
 import tqdm
 
-from matplotlib import (use, rcParams)
+from matplotlib import use
 use('agg')  # noqa
 
 import h5py

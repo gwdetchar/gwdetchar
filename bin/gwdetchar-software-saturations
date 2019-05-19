@@ -23,7 +23,7 @@
 import os
 import sys
 
-from matplotlib import (use, rcParams)
+from matplotlib import use
 use('agg')
 
 import gwdatafind
