@@ -36,14 +36,15 @@ from pandas import set_option
 
 from gwpy.plot import Plot
 from gwpy.time import Time
-from gwpy.detector import ChannelList
-from gwpy.io import nds2 as io_nds2
 
-from gwdetchar import (cli, lasso as gwlasso)
 from gwdetchar.lasso import plot as gwplot
-from gwdetchar.io.datafind import get_data
+from gwdetchar import (cli, lasso as gwlasso)
+from gwdetchar.io.datafind import (get_data, downselect)
 from gwdetchar.io import html as htmlio
 from gwdetchar.plot import texify
+
+# LaTeX use
+USETEX = rcParams["text.usetex"]
 
 # LaTeX use
 USETEX = rcParams["text.usetex"]
@@ -70,7 +71,12 @@ parser.add_argument('-J', '--nproc-plot', type=int, default=None,
 parser.add_argument('-o', '--output-dir', default=os.curdir,
                     help='output directory for plots')
 parser.add_argument('-f', '--channel-file', type=os.path.abspath,
-                    help='path for channel file')
+                    help='path to a file containing a list of channels')
+parser.add_argument('-s', '--search', nargs='*',
+                    default=['.*.rms$', '.*.mean$'],
+                    help='process channels matching these regex patterns, '
+                         'can be given multiple times, default is to analyze '
+                         'all RMS and mean channels from frames')
 parser.add_argument('-T', '--trend-type', default='minute',
                     choices=['second', 'minute'],
                     help='type of trend for correlation')
@@ -137,8 +143,10 @@ if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
 os.chdir(args.output_dir)
 
-# multiprocessing for plots
-nprocplot = (args.nproc_plot or args.nproc) if USETEX else 1
+if USETEX:  # multiprocessing for plots
+    nprocplot = args.nproc_plot or args.nproc
+else:
+    nprocplot = 1
 
 # bandpass primary
 if args.band_pass:
@@ -199,45 +207,37 @@ def descaler(l, *coef):
         return [((x * primary_std) + primary_mean) for x in l]
 
 
-# get aux data
+# get aux channels, selected for non-flat data
 logger.info("-- Loading auxiliary channel data")
-if args.channel_file is None:
-    host, port = io_nds2.host_resolution_order(args.ifo)[0]
-    channels = ChannelList.query_nds2('*.mean', host=host, port=port,
-                                      type='m-trend')
-else:
-    with open(args.channel_file, 'r') as f:
-        channels = [name.rstrip('\n') for name in f]
+preview = 900 if args.trend_type == 'minute' else 10
+frametype = ('%s_M' % args.ifo if args.trend_type == 'minute'
+             else '%s_T' % args.ifo)
+allchannels = list(numpy.loadtxt(
+    args.channel_file, dtype=str, ndmin=1)) if args.channel_file else []
+channels, _, _, _, allchannels = downselect(
+    frametype, start, end, preview=preview, channels=allchannels,
+    search=args.search, dynamic=True, nproc=args.nproc)
 nchan = len(channels)
 logger.debug("Identified %d channels" % nchan)
-
-if args.trend_type == 'minute':
-    frametype = '%s_M' % args.ifo  # for minute trends
-else:
-    frametype = '%s_T' % args.ifo  # for second trends
 
 # read aux channels
 auxdata = get_data(
     channels, start, end, verbose='Reading:'.rjust(30),
     frametype=frametype, nproc=args.nproc, pad=0).crop(start, end)
 
-# -- removes flat data to be re-introdused later
-
+# account for flat data
 logger.info('-- Pre-processing auxiliary channel data')
-
-auxdata = gwlasso.remove_flat(auxdata)
-flattab = Table(data=(list(set(channels) - set(auxdata.keys())),),
+flattab = Table(data=(list(set(allchannels) - set(auxdata.keys())),),
                 names=('Channels',))
 logger.debug('Removed {0} channels with flat data'.format(len(flattab)))
 logger.debug('{0} channels remaining'.format(len(auxdata)))
 
-# -- remove bad data
-
-logger.info("Removing any channels with bad data...")
+# remove and account for invalid data
+logger.info("Removing channels with invalid data")
 nbefore = len(auxdata)
 auxdata = gwlasso.remove_bad(auxdata)
 nafter = len(auxdata)
-logger.debug('Removed {0} channels with bad data'.format(nbefore - nafter))
+logger.debug('Removed {0} channels with invalid data'.format(nbefore - nafter))
 logger.debug('{0} channels remaining'.format(nafter))
 data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
 
@@ -605,10 +605,6 @@ page.add(htmlio.write_arguments(content, start=start, end=end))
 
 page.h2('Model Information', id_='model')
 
-page.div(class_='model')
-page.div(class_='model-body')
-
-page.div(class_='model-info')
 page.add(htmlio.write_param('Model', 'Lasso'))
 page.add(htmlio.write_param(
     'Non-zero coefficients', '%d' % numpy.count_nonzero(model.coef_)))
@@ -618,9 +614,6 @@ page.add(htmlio.write_param(
     '%d (%s)' % (len(zeroed),
                  "<a href= %s target='_blank'>zeroed channel list</a>"
                  % (zerofile))))
-page.div.close()  # model-info
-
-page.div(class_='scaffold well')
 
 page.div(class_='row')
 page.div(class_='col-md-10 col-md-offset-1', id_='results-table')
@@ -630,7 +623,7 @@ page.add(df.to_html(
     classes=('table', 'table-condensed', 'table-hover', 'table-responsive'),
     formatters={
         'Lasso coefficient': lambda x: "%.4f" % x,
-        'Channel': lambda x: str(htmlio.cis_link(x.split('.')[0])),
+        'Channel': lambda x: str(htmlio.cis_link(x)),
         '__index__': lambda x: "%d" % x
     },
     escape=False,
@@ -660,10 +653,6 @@ page.div(class_='col-md-8 col-md-offset-2')
 page.add(htmlio.fancybox_img(img3))
 page.div.close()  # col-md-8 col-md-offset-2
 page.div.close()  # channels-and-primary
-
-page.div.close()  # scaffold well
-page.div.close()  # model-body
-page.div.close()  # model
 
 # results
 page.h2('Top Channels', id_='results')

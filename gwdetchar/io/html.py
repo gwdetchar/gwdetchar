@@ -708,13 +708,14 @@ def cis_link(channel, **params):
     html : `str`
     """
     kwargs = {
-        'title': "CIS entry for %s" % channel,
+        'title': "CIS entry for %s" % channel.split('.')[0],
         'style': "font-family: Monaco, \"Courier New\", monospace; "
                  "color: black;",
     }
     kwargs.update(params)
-    return html_link("https://cis.ligo.org/channel/byname/%s" % channel,
-                     channel, **kwargs)
+    return html_link(
+        "https://cis.ligo.org/channel/byname/%s" % channel.split('.')[0],
+        channel, **kwargs)
 
 
 def fancybox_img(img, linkparams=dict(), **params):

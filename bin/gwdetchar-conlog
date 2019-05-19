@@ -21,17 +21,12 @@
 times
 """
 
-import re
 import os.path
 
-import numpy
-
-import gwdatafind
 from gwpy.table import Table
-from gwpy.io import gwf as io_gwf
 
 from gwdetchar import (cli, const)
-from gwdetchar.io.datafind import get_data
+from gwdetchar.io.datafind import downselect
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Andrew Lundgren <andrew.lundgren@ligo.org>, ' \
@@ -68,58 +63,19 @@ args = parser.parse_args()
 logger = cli.logger(name=os.path.basename(__file__))
 
 # get IFO and frametype
-ifo = args.ifo.upper()
-obs = ifo[0]
-frametype = args.frametype or '{}_T'.format(ifo)
+frametype = args.frametype or '{}_T'.format(args.ifo.upper())
 preview_time = max(1, args.preview)
 
-# get paths to frame files
-cache1 = gwdatafind.find_urls(obs, frametype, args.gpsstart-preview_time,
-                              args.gpsstart)
-cache2 = gwdatafind.find_urls(obs, frametype, args.gpsend, args.gpsend+1)
-
-# get list of channels to analyze
-logger.info('Determining channels to analyze')
-available = set(io_gwf.iter_channel_names(cache1[-1]))
-available &= set(io_gwf.iter_channel_names(cache2[0]))
+# read channel list
 if args.channels:
-    allchannels = set(numpy.loadtxt(args.channels, dtype=str, ndmin=1))
-    channels = list(allchannels & available)
-else:
-    channels = [x for x in available if x.endswith('.mean')]
-if args.search:  # if requested, search for channels matching regex patterns
-    re_requested = re.compile('({})'.format('|'.join(args.search)))
-    channels = [x for x in channels if re_requested.search(x)]
-logger.debug('Found {} channels in frames'.format(len(channels)))
+    channels = list(numpy.loadtxt(args.channels, dtype=str, ndmin=1))
+    logger.debug('Found {} channels to analyze'.format(len(channels)))
 
-# get data from frames
-data1 = get_data(
-    channels, start=args.gpsstart-preview_time, end=args.gpsstart,
-    source=cache1, nproc=args.nproc, verbose='Reading initial data:'.rjust(30))
-data2 = get_data(
-    channels, start=args.gpsend, end=args.gpsend+1, source=cache2,
-    nproc=args.nproc, verbose='Reading final data:'.rjust(30))
-
-logger.debug('Analyzing {} channels'.format(len(data1)))
-
-# initialize columns
-changes = []
-value1 = []
-value2 = []
-diff = []
-
-# identify channels
-for channel in data1:
-    xoft1 = data1[channel].value
-    xoft2 = data2[channel].value
-    if numpy.any(numpy.diff(xoft1) != 0):
-        continue
-    if xoft1[-1] == xoft2[0]:
-        continue
-    changes.append(channel)
-    value1.append(xoft1[-1])
-    value2.append(xoft2[0])
-    diff.append(xoft2[0] - xoft1[-1])
+# get list of state changes
+logger.info('Determining state changes')
+changes, value1, value2, diff = downselect(
+    frametype, args.gpsstart, args.gpsend, preview=preview_time,
+    channels=channels, search=args.search, dynamic=False, nproc=args.nproc)
 
 # record output
 logger.debug('Analysis complete')
@@ -127,8 +83,8 @@ table = Table([changes, value1, value2, diff],
               names=('channel', 'initial_value', 'final_value', 'difference'))
 
 # log output
-logger.info('The following {} channels record a state change between '
-            '{} and {}:\n\n'.format(len(changes), args.gpsstart, args.gpsend))
+logger.info('The following {0} channels record a state change between {1} '
+            'and {2}:\n\n'.format(len(changes), args.gpsstart, args.gpsend))
 print(table)
 print('\n\n')
 

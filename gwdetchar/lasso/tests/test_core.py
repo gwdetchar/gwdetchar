@@ -79,15 +79,6 @@ def test_find_alpha():
     assert alpha == 0.1
 
 
-def test_remove_flat():
-    # remove flat TimeSeries
-    tsdict = core.remove_flat(TSDICT)
-    assert len(tsdict.keys()) == 2
-    assert 'flat' not in tsdict.keys()
-    nptest.assert_array_equal(tsdict['full'].value, TSDICT['full'].value)
-    nptest.assert_array_equal(tsdict['nan'].value, TSDICT['nan'].value)
-
-
 def test_remove_bad():
     # remove unscalable TimeSeries
     tsdict = core.remove_bad(TSDICT)

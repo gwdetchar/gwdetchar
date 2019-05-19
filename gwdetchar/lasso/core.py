@@ -149,17 +149,6 @@ def find_alpha(data, target):
     return alphas[n_best]
 
 
-def remove_flat(tsdict):
-    """Remove flat timeseries from a `TimeSeriesDict`
-    """
-    outdict = tsdict.copy()
-    for key in tsdict.keys():
-        series = tsdict[key].value
-        if series.min() == series.max():
-            outdict.pop(key)
-    return outdict
-
-
 def remove_bad(tsdict):
     """Remove data that cannot be scaled from a `TimeSeriesDict`
     """

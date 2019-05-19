@@ -20,6 +20,7 @@
 """
 
 import re
+import numpy
 import warnings
 from urllib.error import HTTPError
 from json.decoder import JSONDecodeError
@@ -216,3 +217,74 @@ def get_data(channel, start, end, frametype=None, source=None,
         data.append(series_class.get(
             group, start, end, verbose=verbose, **kwargs))
     return data
+
+
+def downselect(frametype, start, end, preview=10, channels=[],
+               search=[], dynamic=True, **kwargs):
+    """Pare down the full set of channels in a frametype based on
+    properties of the data
+
+    Parameters
+    ----------
+    frametype : `str`
+        name of archived frametype to analyze
+
+    start : `float`
+        GPS start time of requested data
+
+    end : `float`
+        GPS end time of requested data
+
+    preview : `float`, default
+        length of time (seconds) to determine data properties at the
+        beginning, default: 10 seconds
+
+    channels : `list` of `str`, optional
+        list of channel names to select, default: none
+
+    search : `list` of `str`, optional
+        list of regular expression patterns to search for, default: none
+
+    dynamic : `bool`, optional
+        Boolean switch to include (`True`) or exclude (`False`) dynamic
+        data channels, defaults to including them
+
+    **kwargs : `dict`, optional
+        additional keyword arguments to `get_data`
+
+    Returns
+    -------
+    out : `tuple` of `list`
+        a collection of lists corresponding to channel name, initial value,
+        final value, and net difference
+    """
+    # get paths to frame files
+    obs = re.search('[A-Z]1', frametype).group(0)[0]
+    cache1 = gwdatafind.find_urls(obs, frametype, start-preview, start)
+    cache2 = gwdatafind.find_urls(obs, frametype, end, end+preview)
+    # get list of channels to analyze
+    available = set(io_gwf.iter_channel_names(cache1[-1]))
+    available &= set(io_gwf.iter_channel_names(cache2[0]))
+    channels = list(set(channels) & available) or list(available)
+    if search:  # select channels matching regex patterns
+        requested = re.compile('({})'.format('|'.join(args.search)))
+        channels = [c for c in channels if requested.search(c)]
+    # get preview data from frames
+    data1 = get_data(channels, start-preview, start, source=cache1,
+                     verbose='Reading initial preview:'.rjust(30), **kwargs)
+    data2 = get_data(channels, end, end+preview, source=cache2,
+                     verbose='Reading final preview:'.rjust(30), **kwargs)
+    out = ([], [], [], [], channels)
+    # identify channels
+    for channel in channels:
+        xoft1 = data1[channel].value
+        xoft2 = data2[channel].value
+        if not dynamic and any(numpy.diff(xoft1)):
+            continue
+        if xoft1[-1] == xoft2[0]:
+            continue
+        out[0].append(channel)
+        out[1].append(xoft1[-1])
+        out[2].append(xoft2[0])
+        out[3].append(xoft2[0] - xoft1[-1])
+    return out

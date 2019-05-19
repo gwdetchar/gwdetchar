@@ -387,12 +387,12 @@ def test_html_link(args, kwargs, result):
 
 
 def test_cis_link():
-    h1 = parse_html(html.cis_link('X1:TEST-CHANNEL'))
+    h1 = parse_html(html.cis_link('X1:TEST-CHANNEL.mean'))
     h2 = parse_html(
         '<a style="font-family: Monaco, &quot;Courier New&quot;, '
         'monospace; color: black;" href="https://cis.ligo.org/channel/byname/'
         'X1:TEST-CHANNEL" target="_blank" title="CIS entry for '
-        'X1:TEST-CHANNEL">X1:TEST-CHANNEL</a>'
+        'X1:TEST-CHANNEL">X1:TEST-CHANNEL.mean</a>'
     )
     assert h1 == h2
 
