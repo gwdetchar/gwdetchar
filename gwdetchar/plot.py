@@ -27,7 +27,6 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Dan Hoak <daniel.hoak@ligo.org>, ' \
               'Duncan Macleod <duncan.macleod@ligo.org>'
 
-
 # -- plotting utilities -------------------------------------------------------
 
 def texify(text):
