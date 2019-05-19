@@ -29,15 +29,9 @@ from matplotlib import rcParams
 
 from gwpy.plot import Plot
 
-from ..plot import get_gwpy_tex_settings
-
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
               'Josh Smith'
-
-# TeX settings
-tex_settings = get_gwpy_tex_settings()
-rcParams.update(tex_settings)
 
 
 # -- plotting utilities -------------------------------------------------------

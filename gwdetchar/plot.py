@@ -20,40 +20,20 @@
 """
 
 from matplotlib import rcParams
-from gwpy.plot.tex import (has_tex, MACROS as GWPY_TEX_MACROS)
-from gwpy.utils.env import bool_env
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Dan Hoak <daniel.hoak@ligo.org>, ' \
               'Duncan Macleod <duncan.macleod@ligo.org>'
 
-
-def get_gwpy_tex_settings():
-    """Return a dict of rcParams similar to GWPY_TEX_RCPARAMS
-
-    Returns
-    -------
-    rcParams : `dict`
-        a dictionary of matplotlib rcParams
-    """
-    # custom GW-DetChar formatting
-    params = {
-        'font.size': 10,
-        'xtick.labelsize': 18,
-        'ytick.labelsize': 18,
-        'axes.labelsize': 20,
-        'axes.titlesize': 24,
-        'grid.alpha': 0.5,
-    }
-    if has_tex() and bool_env("GWPY_USETEX", True):
-        params.update({
-            'text.usetex': True,
-            'text.latex.preamble': (
-                rcParams.get('text.latex.preamble', []) + GWPY_TEX_MACROS),
-            'font.family': ['serif'],
-            'axes.formatter.use_mathtext': False,
-        })
-    return params
+# custom GW-DetChar formatting
+rcParams.update({
+    'font.size': 10,
+    'xtick.labelsize': 18,
+    'ytick.labelsize': 18,
+    'axes.labelsize': 20,
+    'axes.titlesize': 24,
+    'grid.alpha': 0.5,
+})
 
 
 # -- plotting utilities -------------------------------------------------------

@@ -43,7 +43,6 @@ from gwdetchar import (cli, lasso as gwlasso)
 from gwdetchar.lasso import plot as gwplot
 from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
-from gwdetchar.plot import get_gwpy_tex_settings
 
 
 # default frametypes
@@ -106,10 +105,7 @@ args = parser.parse_args()
 # set up logger
 logger = cli.logger(name=os.path.basename(__file__))
 
-# set TeX settings
-tex_settings = get_gwpy_tex_settings()
-rcParams.update(tex_settings)
-
+# get run params
 start = int(args.gpsstart)
 end = int(args.gpsend)
 pad = args.filter_padding

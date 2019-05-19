@@ -49,15 +49,12 @@ from gwdetchar import (cli, const, scattering)
 from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
 from gwdetchar.omega import batch
-from gwdetchar.plot import get_gwpy_tex_settings
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \
               'Alex Urban <alexander.urban@ligo.org>'
 
-# TeX settings
-tex_settings = get_gwpy_tex_settings()
-rcParams.update(tex_settings)
+# rcParams settings
 rcParams.update({
     'axes.labelsize': 20,
     'figure.subplot.bottom': 0.17,
