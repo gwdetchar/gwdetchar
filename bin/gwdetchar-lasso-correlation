@@ -639,7 +639,6 @@ page.add(df.to_html(
     escape=False,
     border=0))
 page.div.close()  # col-md-10 col-md-offset-1
-page.div.close()  # results-table
 page.div.close()  # row
 page.add('<hr class="row-divider">')
 
