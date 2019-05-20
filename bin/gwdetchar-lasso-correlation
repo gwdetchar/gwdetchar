@@ -690,11 +690,13 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
     page.div(id_='channel%d' % i, class_='panel-collapse collapse')
     page.div(class_='panel-body')
     if lassocoef is None:
-        page.p('The amplitude data for this channel is flat (does not change)'
-               ' for the chosen time period.')
+        message = ("The timeseries record for {} is flat (does not "
+                   "change) for the chosen time period.".format(ch))
+        page.div(message, class_='alert alert-warning')
     elif abs(lassocoef) < args.threshold:
-        page.p('Lasso coefficient below the threshold of %g.'
-               % (args.threshold))
+        message = ("Lasso coefficient for {0} is below the threshold "
+                   "of {1}.".format(ch, args.threshold))
+        page.div(message, class_='alert alert-info')
     else:
         for image in [plot4, plot5, plot6]:
             img = htmlio.FancyPlot(image)
@@ -706,8 +708,9 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
             page.add('<hr class="row-divider">')
         if args.no_cluster is False:
             if clusters[i][0] is None:
-                page.p("<font size='3'><br />No channels were highly"
-                       " correlated with this channel.</font>")
+                message = ("No other channels were found to be highly "
+                           "correlated with {}.".format(ch))
+                page.div(message, class_='alert alert-warning')
             else:
                 page.div(class_='row', id_='clusters')
                 page.div(class_='col-md-12')
