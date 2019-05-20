@@ -20,8 +20,6 @@
 """Setup the gwdetchar package
 """
 
-from __future__ import print_function
-
 import glob
 import os.path
 import sys
@@ -68,7 +66,6 @@ install_requires = [
     'scikit-learn',
     'scipy>=1.2.0',
     'setuptools',
-    'six',
     'pathlib2 ; python_version < \'3.6\'',
     'pygments',
 ]
@@ -116,8 +113,6 @@ setup(name=DISTNAME,
           'Operating System :: Unix',
           'Operating System :: MacOS',
           'Programming Language :: Python',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',

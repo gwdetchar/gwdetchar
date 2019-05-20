@@ -19,7 +19,7 @@
 """Utilities for accessing information from CDS
 """
 
-from six.moves.urllib import request
+from urllib import request
 
 RTDCUID_URL = (
     'https://daqsvn.ligo-la.caltech.edu/websvn/filedetails.php?'

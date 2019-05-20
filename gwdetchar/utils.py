@@ -21,13 +21,9 @@
 
 import re
 import sys
+from io import StringIO
 from functools import partial
-try:  # python 3.x
-    from io import StringIO
-    from html.parser import HTMLParser
-except:  # python 2.7
-    from cStringIO import StringIO
-    from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 import numpy
 

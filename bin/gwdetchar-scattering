@@ -25,14 +25,11 @@ time please use the command-line module:
 `python -m gwdetchar.scattering --help`
 """
 
-from __future__ import division
-
-import os.path
 import re
 import random
+import os.path
 import warnings
-
-from six.moves import StringIO
+from io import StringIO
 
 import numpy
 

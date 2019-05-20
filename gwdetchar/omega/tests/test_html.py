@@ -21,11 +21,7 @@
 
 import os
 import shutil
-
-try:  # python 3.x
-    from io import StringIO
-except ImportError:  # python 2.7
-    from cStringIO import StringIO
+from io import StringIO
 
 from .. import (config, html)
 from ..._version import get_versions
@@ -127,10 +123,7 @@ channels = X1:TEST-AUX
 
 CONFIG_FILE = StringIO(CONFIGURATION)
 CP = config.OmegaConfigParser(ifo='X1')
-try:  # python 3.x
-    CP.read_file(CONFIG_FILE)
-except AttributeError:  # python 2.7
-    CP.readfp(CONFIG_FILE)
+CP.read_file(CONFIG_FILE)
 BLOCKS = CP.get_channel_blocks()
 PRIMARY = BLOCKS['primary']
 GW = BLOCKS['GW']

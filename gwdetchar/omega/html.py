@@ -19,8 +19,6 @@
 """Utilties for writing omega scan HTML pages
 """
 
-from __future__ import division
-
 import os
 import numpy
 from functools import wraps
