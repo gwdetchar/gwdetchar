@@ -45,7 +45,6 @@ from gwdetchar.io.datafind import get_data
 from gwdetchar.io import html as htmlio
 from gwdetchar.plot import texify
 
-
 # LaTeX use
 USETEX = rcParams["text.usetex"]
 
@@ -138,10 +137,8 @@ if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
 os.chdir(args.output_dir)
 
-if USETEX:  # multiprocessing for plots
-    nprocplot = args.nproc_plot or args.nproc
-else:
-    nprocplot = 1
+# multiprocessing for plots
+nprocplot = (args.nproc_plot or args.nproc) if USETEX else 1
 
 # bandpass primary
 if args.band_pass:
