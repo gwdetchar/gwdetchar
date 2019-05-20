@@ -43,12 +43,13 @@ FLAG = DataQualityFlag(known=[(0, 66)], active=[(16, 42)],
 def test_texify():
     name = 'X1:TEST-CHANNEL_NAME'
 
-    # test without LaTeX
-    assert plot.texify(name) == name
-
     # test with LaTeX
     rcParams['text.usetex'] = True
     assert plot.texify(name) == name.replace('_', '\\_')
+
+    # test without LaTeX
+    rcParams['text.usetex'] = False
+    assert plot.texify(name) == name
 
     # null use case
     assert plot.texify(None) == ''
