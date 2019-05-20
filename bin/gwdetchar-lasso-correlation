@@ -59,9 +59,7 @@ DEFAULT_FRAMETYPE = {
 
 # -- parse command line -------------------------------------------------------
 
-parser = cli.create_parser(
-    description=__doc__,
-    formatter_class=cli.argparse.ArgumentDefaultsHelpFormatter)
+parser = cli.create_parser(description=__doc__)
 cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
 cli.add_nproc_option(parser, default=1)
@@ -119,10 +117,6 @@ logger = cli.logger(name=os.path.basename(__file__))
 start = int(args.gpsstart)
 end = int(args.gpsend)
 pad = args.filter_padding
-auto_xlabel = ('Time [hours] from '
-               + re.sub(r'\.0+', '',
-                        Time(start, format='gps', scale='utc').iso)
-               + ' UTC (%d)' % start)
 
 # let's go
 logger.info('{} Lasso Correlations {}-{}'.format(args.ifo, start, end))
