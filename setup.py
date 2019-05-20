@@ -29,10 +29,6 @@ from setuptools import (setup, find_packages)
 # local setup utilities
 from _setup_utils import CMDCLASS as cmdclass
 
-# enforce python version
-if sys.version < '3.5':
-    raise ImportError("Python versions older than 3.5 are not supported.")
-
 # set basic metadata
 PACKAGENAME = 'gwdetchar'
 DISTNAME = 'gwdetchar'
