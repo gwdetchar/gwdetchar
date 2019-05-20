@@ -21,10 +21,11 @@
 
 import re
 import sys
-import numpy
 from io import StringIO
 from functools import partial
 from html.parser import HTMLParser
+
+import numpy
 
 from gwpy.table import EventTable
 
