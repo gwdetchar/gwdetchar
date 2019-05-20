@@ -24,9 +24,11 @@ import os
 import sys
 import datetime
 import subprocess
+from io import StringIO
 from pytz import reference
 from getpass import getuser
 from operator import itemgetter
+from urllib.parse import urlparse
 from collections import OrderedDict
 from shutil import copyfile
 try:
@@ -35,10 +37,6 @@ except ImportError:  # python >= 3.6
     # NOTE: we do it this was around because pathlib exists for py35,
     #       but doesn't work very well
     from pathlib import Path
-
-from six import string_types
-from six.moves import StringIO
-from six.moves.urllib.parse import urlparse
 
 from inspect import (getmodule, stack)
 from pkg_resources import resource_filename
@@ -376,7 +374,7 @@ def navbar(links, class_='navbar navbar-fixed-top', brand=None, collapse=True):
         page.ul(class_='nav navbar-nav')
         for i, link in enumerate(links):
             if (isinstance(link, (list, tuple)) and
-                    isinstance(link[1], string_types)):
+                    isinstance(link[1], str)):
                 page.li()
                 text, link = link
                 page.a(text, href=link)

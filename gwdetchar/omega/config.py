@@ -137,17 +137,13 @@ An example using many of the above options would look something like this:
 import sys
 import ast
 import os.path
+import configparser
 import numpy
 
 from gwpy.detector import Channel
 
 from .. import const
 from ..io.html import FancyPlot
-
-try:  # python 3.x
-    import configparser
-except ImportError:  # python 2.x
-    import ConfigParser as configparser
 
 if sys.version_info < (3, 7):
     from collections import OrderedDict

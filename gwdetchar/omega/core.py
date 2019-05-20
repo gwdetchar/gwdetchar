@@ -19,8 +19,6 @@
 """Core utilities for implementing omega scans
 """
 
-from __future__ import division
-
 from scipy.signal import butter
 
 from gwpy.segments import Segment
