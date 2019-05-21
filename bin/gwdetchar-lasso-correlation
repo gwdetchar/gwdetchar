@@ -721,7 +721,7 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
                             'Pearson Coefficient': lambda x: "%.4f" % x,
                             'Channel': lambda x: str(htmlio.cis_link(x)),
                             '__index__': lambda x: "%d" % x,
-                        }
+                        },
                         escape=False,
                         border=0))
     page.div.close()  # panel-body
