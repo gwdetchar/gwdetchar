@@ -507,14 +507,12 @@ def generate_cluster(input_,):
                     cluster.append([i, ts_, pcorr, chan_, stub])
 
         if cluster:
-            # write cluster table to file
+            # save clustered channels to a dataframe
             cluster = sorted(cluster, key=lambda x: abs(x[2]), reverse=True)
-            clustertab = Table(data=list(zip(*cluster))[2:4],
-                               names=('Channel', 'Pearson Coefficient'))
-            plot7_list = '%s_CLUSTER_LIST-%s.txt' % (
-                re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
-                gpsstub)
-            clustertab.write(plot7_list, format='ascii', overwrite=True)
+            clustertab = Table(
+                data=list(zip(*cluster))[2:4],
+                names=('Channel', 'Pearson Coefficient'),
+            ).to_pandas()
 
             ncluster = min(len(cluster), max_correlated_channels)
             colors2 = [cmap(i) for i in numpy.linspace(0, 1, ncluster+1)]
@@ -556,7 +554,7 @@ def generate_cluster(input_,):
                     % (counter.value, len(nonzerodata), pc,
                        '(%s)' % str(currentchan)))
         sys.stdout.flush()
-    return plot7, plot7_list
+    return plot7, clustertab
 
 
 if args.no_cluster is False:
@@ -619,7 +617,7 @@ page.add(df.to_html(
     formatters={
         'Lasso coefficient': lambda x: "%.4f" % x,
         'Channel': lambda x: str(htmlio.cis_link(x)),
-        '__index__': lambda x: "%d" % x
+        '__index__': lambda x: "%d" % x,
     },
     escape=False,
     border=0))
@@ -713,11 +711,19 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
                 page.div.close()  # col-md-12
                 page.div.close()  # clusters
                 if clusters[i][1] is not None:
-                    page.p("<font size='3'><br />Only the first %d highly"
-                           " correlated channels are reported in this"
-                           " figure. <a href='%s' target='_blank'>Here</a>"
-                           " is the full list.</font>"
-                           % (max_correlated_channels, clusters[i][1]))
+                    page.p("Only the first {} highly-correlated channels "
+                           "are reported in this figure, the full list is "
+                           "shown below.".format(max_correlated_channels))
+                    page.add(clusters[i][1].to_html(
+                        classes=('table', 'table-condensed', 'table-hover',
+                                 'table-responsive'),
+                        formatters={
+                            'Pearson Coefficient': lambda x: "%.4f" % x,
+                            'Channel': lambda x: str(htmlio.cis_link(x)),
+                            '__index__': lambda x: "%d" % x,
+                        }
+                        escape=False,
+                        border=0))
     page.div.close()  # panel-body
     page.div.close()  # panel-collapse
     page.div.close()  # panel
