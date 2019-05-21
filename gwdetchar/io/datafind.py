@@ -263,8 +263,8 @@ def downselect(frametype, start, end, preview=10, channels=[],
     cache1 = gwdatafind.find_urls(obs, frametype, start-preview, start)
     cache2 = gwdatafind.find_urls(obs, frametype, end, end+preview)
     # get list of channels to analyze
-    available = set(io_gwf.iter_channel_names(cache1[-1]))
-    available &= set(io_gwf.iter_channel_names(cache2[0]))
+    available = set(io_gwf.iter_channel_names(cache1[-1])) &
+        set(io_gwf.iter_channel_names(cache2[0]))
     channels = list(set(channels) & available) or list(available)
     if search:  # select channels matching regex patterns
         requested = re.compile('({})'.format('|'.join(search)))
@@ -274,17 +274,12 @@ def downselect(frametype, start, end, preview=10, channels=[],
                      verbose='Reading initial preview:'.rjust(30), **kwargs)
     data2 = get_data(channels, end, end+preview, source=cache2,
                      verbose='Reading final preview:'.rjust(30), **kwargs)
-    out = ([], [], [], [], channels)
     # identify channels
-    for channel in channels:
-        xoft1 = data1[channel].value
-        xoft2 = data2[channel].value
-        if not dynamic and any(numpy.diff(xoft1)):
-            continue
-        if xoft1[-1] == xoft2[0]:
-            continue
-        out[0].append(channel)
-        out[1].append(xoft1[-1])
-        out[2].append(xoft2[0])
-        out[3].append(xoft2[0] - xoft1[-1])
-    return out
+    changes = [c for c in channels
+              if (not dynamic and any(numpy.diff(data1[c].value)))
+              or (data1[c].value[-1] == data2[c].value[0])]
+    # record state changes and return
+    initial = [data1[c].value[-1] for c in changes]
+    final = [data2[c].value[0] for c in changes]
+    diff = [y - x for x, y in zip(initial, final)]
+    return (changes, initial, final, diff, channels)

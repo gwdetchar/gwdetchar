@@ -73,13 +73,13 @@ if args.channels:
 
 # get list of state changes
 logger.info('Determining state changes')
-changes, value1, value2, diff = downselect(
+changes, initial, final, diff, _ = downselect(
     frametype, args.gpsstart, args.gpsend, preview=preview_time,
     channels=channels, search=args.search, dynamic=False, nproc=args.nproc)
 
 # record output
 logger.debug('Analysis complete')
-table = Table([changes, value1, value2, diff],
+table = Table([changes, initial, final, diff],
               names=('channel', 'initial_value', 'final_value', 'difference'))
 
 # log output
