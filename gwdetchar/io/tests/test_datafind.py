@@ -35,6 +35,10 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 # global test objects
 
+AUX_NAME = 'X1:TEST-AUX_CHANNEL'
+AUX_CHANNEL = TimeSeries(numpy.heaviside(range(-30, 30), 0),
+                         dt=60, epoch=0, name=AUX_NAME)
+
 HOFT = TimeSeries(
     numpy.random.normal(loc=1, scale=.5, size=16384 * 66),
     sample_rate=16384, epoch=0, name='X1:TEST-STRAIN')
@@ -141,3 +145,22 @@ def test_get_data_bad_frametype():
     with pytest.raises(AttributeError) as exc:
         datafind.get_data(channel, start=0, end=32, frametype='bad_frametype')
     assert 'Could not determine observatory' in str(exc.value)
+
+
+@mock.patch('gwdatafind.find_urls')
+@mock.patch('gwdetchar.io.datafind.get_data')
+@mock.patch('gwpy.io.gwf.iter_channel_names')
+def test_downselect(iterchan, tsdget, find_data):
+    # set return values
+    iterchan.return_value = {AUX_NAME}
+    tsdget.return_value = TimeSeriesDict({AUX_NAME: AUX_CHANNEL})
+    find_data.return_value = ['test.gwf']
+    # recover state change
+    changes, initial, final, diff, channels = datafind.downselect(
+        'X1_T', 0, 3600, search=[AUX_NAME])
+    # test data products
+    assert changes == [AUX_NAME]
+    assert channels == changes
+    assert initial == AUX_CHANNEL.value[-1]
+    assert final == AUX_CHANNEL.value[0]
+    assert diff == [y - x for x, y in zip(initial, final)]
