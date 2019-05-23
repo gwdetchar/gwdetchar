@@ -21,8 +21,9 @@
 
 from matplotlib import (cm, rcParams)
 
-from gwpy.plot.tex import label_to_latex
 from gwpy.plot.colors import GW_OBSERVATORY_COLORS
+
+from ..plot import texify
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -141,7 +142,7 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
     ax.set_yscale('linear')
     ax.set_ylabel(ylabel)
     # set title
-    title = r'$\mathtt{%s}$ at %.3f' % (label_to_latex(channel), gps)
+    title = '%s at %.3f' % (texify(channel), gps)
     ax.set_title(title, y=1.1)
     # save plot and close
     plot.savefig(output, bbox_inches='tight')
@@ -205,8 +206,8 @@ def spectral_plot(data, gps, span, channel, output, colormap='viridis',
     # set colorbar properties
     _format_color_axis(ax, colormap=colormap, clim=clim, norm=norm)
     # set title
-    title = r'$\mathtt{%s}$ at %.3f with $Q$ of %.1f' \
-            % (label_to_latex(channel), gps, Q)
+    title = ('%s at %.3f with $Q$ of %.1f'
+             % (texify(channel), gps, Q))
     ax.set_title(title, y=1.05)
     # save plot and close
     plot.savefig(output, bbox_inches='tight')
