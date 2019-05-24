@@ -27,16 +27,6 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Dan Hoak <daniel.hoak@ligo.org>, ' \
               'Duncan Macleod <duncan.macleod@ligo.org>'
 
-# custom GW-DetChar formatting
-rcParams.update({
-    'font.size': 10,
-    'xtick.labelsize': 18,
-    'ytick.labelsize': 18,
-    'axes.labelsize': 20,
-    'axes.titlesize': 24,
-    'grid.alpha': 0.5,
-})
-
 
 # -- plotting utilities -------------------------------------------------------
 
