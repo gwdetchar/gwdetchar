@@ -51,8 +51,7 @@ def texify(text):
     """
     if rcParams['text.usetex']:
         return label_to_latex(text)
-    else:
-        return text or ''
+    return text or ''
 
 
 def plot_segments(flag, span, facecolor='red', edgecolor='darkred', height=0.8,
