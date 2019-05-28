@@ -21,6 +21,7 @@
 
 import os
 import shutil
+from unittest.mock import patch
 
 from gwpy.segments import DataQualityFlag
 
@@ -44,12 +45,12 @@ def test_texify():
     name = 'X1:TEST-CHANNEL_NAME'
 
     # test with LaTeX
-    rcParams['text.usetex'] = True
-    assert plot.texify(name) == name.replace('_', r'\_')
+    with patch.dict(rcParams, {'text.usetex': True}):
+        assert plot.texify(name) == name.replace('_', r'\_')
 
     # test without LaTeX
-    rcParams['text.usetex'] = False
-    assert plot.texify(name) == name
+    with patch.dict(rcParams, {'text.usetex': False}):
+        assert plot.texify(name) == name
 
     # null use case
     assert plot.texify(None) == ''
