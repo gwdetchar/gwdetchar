@@ -374,7 +374,7 @@ p4 = (.1, .1, .9, .95)  # global plot defaults for plot4, timeseries subplots
 
 def process_channel(input_,):
     if USETEX:
-        gwplot.configure_mpl()
+        gwplot.configure_mpl_tex()
     chan = input_[1][0]
     ts = input_[1][1]
     lassocoef = nonzerocoef[chan]
@@ -494,7 +494,7 @@ max_correlated_channels = 20
 
 def generate_cluster(input_,):
     if USETEX:
-        gwplot.configure_mpl()
+        gwplot.configure_mpl_tex()
     currentchan = input_[1][0]
     currentts = input_[1][5]
     current = input_[0]

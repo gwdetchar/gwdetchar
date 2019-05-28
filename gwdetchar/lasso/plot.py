@@ -36,7 +36,7 @@ __credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
 
 # -- plotting utilities -------------------------------------------------------
 
-def configure_mpl():
+def configure_mpl_tex():
     """Configure Matplotlib with LaTeX when using multiprocessing
     """
     import matplotlib
