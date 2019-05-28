@@ -52,10 +52,6 @@ def test_texify():
     with patch.dict(rcParams, {'text.usetex': False}):
         assert plot.texify(name) == name
 
-    # test without LaTeX
-    rcParams['text.usetex'] = False
-    assert plot.texify(name) == name
-
     # null use case
     assert plot.texify(None) == ''
 
