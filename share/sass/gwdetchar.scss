@@ -48,11 +48,19 @@ img {
 }
 
 .navbar {
+		.navbar-brand,
+		.navbar-text,
+		.navbar-nav > li > a,
+		.navbar-nav > li.disabled > a {
+				font-family: Tahoma, Geneva, sans-serif;
+				font-weight: 500;
+				font-size: 15px;
+		}
 		.ifo-links  {
 				.dropdown-header {
 						padding-left: 20px;
 						padding-right: 20px;
-						white-space: normal;;
+						white-space: normal;
 				}
 				@media (min-width: 768px) {
 						position: absolute;

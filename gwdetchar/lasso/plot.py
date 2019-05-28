@@ -20,30 +20,24 @@
 """
 
 import os
+import atexit
 import shutil
 import tempfile
-import atexit
 import warnings
 
 from matplotlib import rcParams
 
 from gwpy.plot import Plot
 
-from ..plot import get_gwpy_tex_settings
-
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
               'Josh Smith'
 
-# TeX settings
-tex_settings = get_gwpy_tex_settings()
-rcParams.update(tex_settings)
-
 
 # -- plotting utilities -------------------------------------------------------
 
-def configure_mpl():
-    """Configure Matplotlib while processing channels with `gwdetchar.lasso`
+def configure_mpl_tex():
+    """Configure Matplotlib with LaTeX when using multiprocessing
     """
     import matplotlib
     matplotlib.use('agg')

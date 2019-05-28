@@ -19,8 +19,8 @@
 
 import os
 import re
-import multiprocessing
 import sys
+import multiprocessing
 
 import numpy
 
@@ -41,10 +41,12 @@ from gwpy.io import nds2 as io_nds2
 
 from gwdetchar import (cli, lasso as gwlasso)
 from gwdetchar.lasso import plot as gwplot
-from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
-from gwdetchar.plot import get_gwpy_tex_settings
+from gwdetchar.io import html as htmlio
+from gwdetchar.plot import texify
 
+# LaTeX use
+USETEX = rcParams["text.usetex"]
 
 # default frametypes
 DEFAULT_FRAMETYPE = {
@@ -63,7 +65,8 @@ cli.add_gps_start_stop_arguments(parser)
 cli.add_ifo_option(parser)
 cli.add_nproc_option(parser, default=1)
 parser.add_argument('-J', '--nproc-plot', type=int, default=None,
-                    help='number of processes to use for plotting')
+                    help='number of processes to use for plot rendering, '
+                         'will be ignored if not using LaTeX')
 parser.add_argument('-o', '--output-dir', default=os.curdir,
                     help='output directory for plots')
 parser.add_argument('-f', '--channel-file', type=os.path.abspath,
@@ -106,10 +109,7 @@ args = parser.parse_args()
 # set up logger
 logger = cli.logger(name=os.path.basename(__file__))
 
-# set TeX settings
-tex_settings = get_gwpy_tex_settings()
-rcParams.update(tex_settings)
-
+# get run params
 start = int(args.gpsstart)
 end = int(args.gpsend)
 pad = args.filter_padding
@@ -132,12 +132,15 @@ if args.primary_frametype is None:
         raise type(exc)("Could not determine primary channel's frametype, "
                         "please specify with --primary-frametype")
 
-
+# create output directory
 if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
 os.chdir(args.output_dir)
-nprocplot = args.nproc_plot or args.nproc
 
+# multiprocessing for plots
+nprocplot = (args.nproc_plot or args.nproc) if USETEX else 1
+
+# bandpass primary
 if args.band_pass:
     try:
         flower, fupper = args.band_pass
@@ -268,7 +271,7 @@ print(results)
 print('\n\n')
 
 # convert to pandas
-set_option('max_colwidth', 200)
+set_option('max_colwidth', -1)
 df = results.to_pandas()
 df.index += 1
 
@@ -297,7 +300,7 @@ colors = [cmap(i) for i in numpy.linspace(0, 1, len(nonzerodata)+1)]
 plot = Plot(figsize=(12, 4))
 plot.subplots_adjust(*p1)
 ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
-ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),
+ax.plot(times, descaler(target), label=texify(primary),
         color='black', linewidth=args.line_size_primary)
 ax.plot(times, descaler(modelFit), label='Lasso model',
         linewidth=args.line_size_aux)
@@ -316,7 +319,7 @@ plot1 = gwplot.save_figure(
 plot = Plot(figsize=(12, 4))
 plot.subplots_adjust(*p1)
 ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
-ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),  # primary
+ax.plot(times, descaler(target), label=texify(primary),
         color='black', linewidth=args.line_size_primary)
 summed = 0
 for i, name in enumerate(results['Channel']):
@@ -342,7 +345,7 @@ plot2 = gwplot.save_figure(
 plot = Plot(figsize=(12, 4))
 plot.subplots_adjust(*p1)
 ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
-ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),  # primary
+ax.plot(times, descaler(target), label=texify(primary),
         color='black', linewidth=args.line_size_primary)
 for i, name in enumerate(results['Channel']):
     this = descaler(scale(nonzerodata[name].value) * nonzerocoef[name])
@@ -350,7 +353,7 @@ for i, name in enumerate(results['Channel']):
         label = 'Channels 1-{0}'.format(i+1)
     else:
         label = 'Channel 1'
-    ax.plot(times, this, label=name.replace('_', r'\_'), color=colors[i],
+    ax.plot(times, this, label=texify(name), color=colors[i],
             linewidth=args.line_size_aux)
 if range_is_primary:
     ax.set_ylabel('Sensitive range [Mpc]')
@@ -370,7 +373,8 @@ p4 = (.1, .1, .9, .95)  # global plot defaults for plot4, timeseries subplots
 
 
 def process_channel(input_,):
-    gwplot.configure_mpl()
+    if USETEX:
+        gwplot.configure_mpl_tex()
     chan = input_[1][0]
     ts = input_[1][1]
     lassocoef = nonzerocoef[chan]
@@ -403,12 +407,11 @@ def process_channel(input_,):
         fig = Plot(figsize=(12, 8))
         fig.subplots_adjust(*p4)
         ax1 = fig.add_subplot(2, 1, 1, xscale='auto-gps', epoch=start)
-        ax1.plot(primaryts, label=primary.replace('_', r'\_'),
-                 color='black', linewidth=args.line_size_primary)
+        ax1.plot(primaryts, label=texify(primary), color='black',
+                 linewidth=args.line_size_primary)
         ax1.set_xlabel(None)
         ax2 = fig.add_subplot(2, 1, 2, sharex=ax1, xlim=xlim)
-        ax2.plot(ts, label=chan.replace('_', r'\_'),
-                 linewidth=args.line_size_aux)
+        ax2.plot(ts, label=texify(chan), linewidth=args.line_size_aux)
         if range_is_primary:
             ax1.set_ylabel('Sensitive range [Mpc]')
         else:
@@ -428,9 +431,9 @@ def process_channel(input_,):
         fig = Plot(figsize=(12, 4))
         fig.subplots_adjust(*p1)
         ax = fig.gca(xscale='auto-gps', epoch=start, xlim=xlim)
-        ax.plot(times, descaler(target), label=primary.replace('_', r'\_'),
+        ax.plot(times, descaler(target), label=texify(primary),
                 color='black', linewidth=args.line_size_primary)
-        ax.plot(times, descaler(tsscaled), label=chan.replace('_', r'\_'),
+        ax.plot(times, descaler(tsscaled), label=texify(chan),
                 linewidth=args.line_size_aux)
         if range_is_primary:
             ax.set_ylabel('Sensitive range [Mpc]')
@@ -450,7 +453,7 @@ def process_channel(input_,):
         fig = Plot(figsize=(12, 4))
         fig.subplots_adjust(*p1)
         ax = fig.gca()
-        ax.set_xlabel(chan.replace('_', r'\_') + ' [Channel units]')
+        ax.set_xlabel(texify(chan) + ' [Channel units]')
         if range_is_primary:
             ax.set_ylabel('Sensitive range [Mpc]')
         else:
@@ -490,7 +493,8 @@ max_correlated_channels = 20
 
 
 def generate_cluster(input_,):
-    gwplot.configure_mpl()
+    if USETEX:
+        gwplot.configure_mpl_tex()
     currentchan = input_[1][0]
     currentts = input_[1][5]
     current = input_[0]
@@ -527,8 +531,8 @@ def generate_cluster(input_,):
             ax = fig.gca(xscale='auto-gps')
             ax.plot(
                 times, scale(currentts.value)*numpy.sign(input_[1][1]),
-                label=currentchan.replace('_', r'\_'),
-                linewidth=args.line_size_aux, color=colors[0])
+                label=texify(currentchan), linewidth=args.line_size_aux,
+                color=colors[0])
 
             for i in range(0, ncluster):
                 this = cluster[i]
@@ -539,7 +543,7 @@ def generate_cluster(input_,):
                     color=colors2[i+1],
                     linewidth=args.line_size_aux,
                     label=('{0}, r = {1:.2}'.format(
-                        cluster[i][3].replace('_', r'\_'), cluster[i][2])),
+                        texify(cluster[i][3]), cluster[i][2])),
                 )
 
             ax.margins(x=0)
@@ -632,7 +636,6 @@ page.add(df.to_html(
     escape=False,
     border=0))
 page.div.close()  # col-md-10 col-md-offset-1
-page.div.close()  # results-table
 page.div.close()  # row
 page.add('<hr class="row-divider">')
 
