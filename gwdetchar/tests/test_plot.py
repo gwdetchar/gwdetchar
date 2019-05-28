@@ -45,7 +45,7 @@ def test_texify():
 
     # test with LaTeX
     rcParams['text.usetex'] = True
-    assert plot.texify(name) == name.replace('_', '\\_')
+    assert plot.texify(name) == name.replace('_', r'\_')
 
     # test without LaTeX
     rcParams['text.usetex'] = False
