@@ -21,7 +21,7 @@ The :mod:`gwdetchar.lasso.plot` module also provides functions for efficiently w
 
 .. autosummary::
 
-   plot.configure_mpl
+   plot.configure_mpl_tex
    plot.save_figure
 
 ====================

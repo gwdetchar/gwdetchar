@@ -20,50 +20,46 @@
 """
 
 from matplotlib import rcParams
-from gwpy.plot.tex import (has_tex, MACROS as GWPY_TEX_MACROS)
-from gwpy.utils.env import bool_env
+
+from gwpy.plot.tex import label_to_latex
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Dan Hoak <daniel.hoak@ligo.org>, ' \
               'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
-def get_gwpy_tex_settings():
-    """Return a dict of rcParams similar to GWPY_TEX_RCPARAMS
+# -- plotting utilities -------------------------------------------------------
+
+def texify(text):
+    """Helper utility to detect when LaTeX rendering is used, and convert
+    text to a LaTeX-passable representation if necessary
+
+    Parameters
+    ----------
+    text : str
+        text to convert to LaTeX representation
 
     Returns
     -------
-    rcParams : `dict`
-        a dictionary of matplotlib rcParams
+    out : str
+        either a copy or LaTeX representation of `text`
+
+    See Also
+    --------
+    gwpy.plot.tex.label_to_latex
+        the underlying method to convert to a LaTeX representation
     """
-    # custom GW-DetChar formatting
-    params = {
-        'font.size': 10,
-        'xtick.labelsize': 18,
-        'ytick.labelsize': 18,
-        'axes.labelsize': 20,
-        'axes.titlesize': 24,
-        'grid.alpha': 0.5,
-    }
-    if has_tex() and bool_env("GWPY_USETEX", True):
-        params.update({
-            'text.usetex': True,
-            'text.latex.preamble': (
-                rcParams.get('text.latex.preamble', []) + GWPY_TEX_MACROS),
-            'font.family': ['serif'],
-            'axes.formatter.use_mathtext': False,
-        })
-    return params
+    if rcParams['text.usetex']:
+        return label_to_latex(text)
+    return text or ''
 
-
-# -- plotting utilities -------------------------------------------------------
 
 def plot_segments(flag, span, facecolor='red', edgecolor='darkred', height=0.8,
                   known={'alpha': 0.6, 'facecolor': 'lightgray',
                          'edgecolor': 'gray', 'height': 0.4}):
     """Plot the saturation segments contained within a flag
     """
-    name = flag.texname if rcParams["text.usetex"] else flag.name
+    name = texify(flag.name)
     plot = flag.plot(
         figsize=[12, 2], facecolor=facecolor, edgecolor=edgecolor,
         height=height, known=known, label=' ', xlim=span, xscale='auto-gps',

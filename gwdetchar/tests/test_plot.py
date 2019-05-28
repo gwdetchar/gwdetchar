@@ -21,10 +21,11 @@
 
 import os
 import shutil
+from unittest.mock import patch
 
 from gwpy.segments import DataQualityFlag
 
-from matplotlib import use
+from matplotlib import (use, rcParams)
 use('agg')
 
 from .. import plot
@@ -36,6 +37,23 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 FLAG = DataQualityFlag(known=[(0, 66)], active=[(16, 42)],
                        name='X1:TEST-FLAG:1')
+
+
+# -- test utilities -----------------------------------------------------------
+
+def test_texify():
+    name = 'X1:TEST-CHANNEL_NAME'
+
+    # test with LaTeX
+    with patch.dict(rcParams, {'text.usetex': True}):
+        assert plot.texify(name) == name.replace('_', r'\_')
+
+    # test without LaTeX
+    with patch.dict(rcParams, {'text.usetex': False}):
+        assert plot.texify(name) == name
+
+    # null use case
+    assert plot.texify(None) == ''
 
 
 # -- make sure plots run end-to-end -------------------------------------------

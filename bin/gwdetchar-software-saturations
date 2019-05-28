@@ -23,7 +23,7 @@
 import os
 import sys
 
-from matplotlib import (use, rcParams)
+from matplotlib import use
 use('agg')
 
 import gwdatafind
@@ -37,7 +37,6 @@ from gwpy.segments import (Segment, SegmentList,
 
 from gwdetchar import (cli, const, saturation)
 from gwdetchar.io import html as htmlio
-from gwdetchar.plot import get_gwpy_tex_settings
 
 __author__ = 'Dan Hoak <daniel.hoak@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -78,10 +77,6 @@ logger = cli.logger(name=os.path.basename(__file__))
 ifo = args.ifo.upper()
 site = ifo[0]
 frametype = args.frametype or '%s_R' % ifo
-
-# set TeX settings
-tex_settings = get_gwpy_tex_settings()
-rcParams.update(tex_settings)
 
 # let's go
 logger.info('{} Software Saturations {}-{}'.format(

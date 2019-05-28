@@ -43,8 +43,8 @@ SERIES = TimeSeries(DATA, sample_rate=60, unit='Mpc', name='X1:TEST')
 
 # -- make sure plots run end-to-end -------------------------------------------
 
-def test_configure_mpl():
-    plot.configure_mpl()
+def test_configure_mpl_tex():
+    plot.configure_mpl_tex()
     assert os.environ['HOME'] == os.environ['MPLCONFIGDIR']
     assert rcParams['ps.useafm'] is True
     assert rcParams['pdf.use14corefonts'] is True

@@ -39,7 +39,6 @@ use('agg')  # noqa
 import gwtrigfind
 
 from gwpy.plot import Plot
-from gwpy.plot.tex import label_to_latex
 from gwpy.table import (Table, EventTable)
 from gwpy.table.filters import in_segmentlist
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
@@ -48,16 +47,14 @@ from gwpy.segments import (DataQualityFlag, DataQualityDict,
 from gwdetchar import (cli, const, scattering)
 from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
+from gwdetchar.plot import texify
 from gwdetchar.omega import batch
-from gwdetchar.plot import get_gwpy_tex_settings
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \
               'Alex Urban <alexander.urban@ligo.org>'
 
-# TeX settings
-tex_settings = get_gwpy_tex_settings()
-rcParams.update(tex_settings)
+# rcParams settings
 rcParams.update({
     'axes.labelsize': 20,
     'figure.subplot.bottom': 0.17,
@@ -396,7 +393,7 @@ for i, channel in enumerate(sorted(channels)):
 
     # finalize plot
     logger.debug("Plotting")
-    name = label_to_latex(channel) if rcParams["text.usetex"] else channel
+    name = texify(channel)
     axes['position'].set_title("Scattering evidence in %s" % name)
     axes['position'].set_xlabel('')
     axes['position'].set_ylabel(r'Position [\textmu m]')
@@ -426,9 +423,7 @@ for i, channel in enumerate(sorted(channels)):
         c=trigs[names[2]],
         edgecolor='none',
     )
-    name = args.main_channel
-    if rcParams["text.usetex"]:
-        name = label_to_latex(name)
+    name = texify(args.main_channel)
     axes['triggers'].text(
         0.01, 0.95,
         '%s event triggers (Omicron)' % name,

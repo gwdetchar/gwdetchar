@@ -25,7 +25,7 @@ import os.path
 import warnings
 import tqdm
 
-from matplotlib import (use, rcParams)
+from matplotlib import use
 use('agg')  # noqa
 
 import h5py
@@ -39,7 +39,6 @@ from gwpy.segments import (DataQualityFlag, DataQualityDict,
 from gwdetchar import (cds, cli, const, daq)
 from gwdetchar.io import (html as htmlio)
 from gwdetchar.io.datafind import get_data
-from gwdetchar.plot import get_gwpy_tex_settings
 from gwdetchar.utils import table_from_segments
 
 SITE_MAP = {
@@ -111,10 +110,6 @@ if args.ifo == 'L1':
         simulink = 'https://llocds.ligo-la.caltech.edu/daq/simulink/'
 
 span = Segment(args.gpsstart, args.gpsend)
-
-# set TeX settings
-tex_settings = get_gwpy_tex_settings()
-rcParams.update(tex_settings)
 
 # let's go
 logger.info('{} Overflows {}-{}'.format(
