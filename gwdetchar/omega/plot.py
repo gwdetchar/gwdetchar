@@ -142,7 +142,7 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
     ax.set_yscale('linear')
     ax.set_ylabel(ylabel)
     # set title
-    title = '%s at %.3f' % (texify(channel), gps)
+    title = r'$\mathtt{%s}$ at %.3f' % (texify(channel), gps)
     ax.set_title(title, y=1.1)
     # save plot and close
     plot.savefig(output, bbox_inches='tight')
@@ -206,7 +206,7 @@ def spectral_plot(data, gps, span, channel, output, colormap='viridis',
     # set colorbar properties
     _format_color_axis(ax, colormap=colormap, clim=clim, norm=norm)
     # set title
-    title = ('%s at %.3f with $Q$ of %.1f'
+    title = (r'$\mathtt{%s}$ at %.3f with $Q$ of %.1f'
              % (texify(channel), gps, Q))
     ax.set_title(title, y=1.05)
     # save plot and close

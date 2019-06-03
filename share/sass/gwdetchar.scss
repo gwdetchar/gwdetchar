@@ -18,8 +18,9 @@
  */
 
 body {
-		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+		font-family: 'Roboto', sans-serif;
 		font-weight: 300;
+		-webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -52,12 +53,10 @@ img {
 		.navbar-text,
 		.navbar-nav > li > a,
 		.navbar-nav > li.disabled > a {
-				font-family: Tahoma, Geneva, sans-serif;
-				font-weight: 500;
-				font-size: 14px;
-		}
-		.navbar-brand {
-				font-size: 16px;
+				font-family: 'Roboto', sans-serif;
+				font-size:16px;
+				font-weight:400;
+				color:white
 		}
 		.ifo-links  {
 				.dropdown-header {
