@@ -18,16 +18,11 @@
  */
 
 body {
-		font-family: 'Roboto', sans-serif;
+		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 		font-weight: 300;
-		-webkit-font-smoothing: antialiased;
 }
 
-h2, h3, h4, h5, h6 {
-		font-weight: 400;
-}
-
-h1 {
+h1, h2, h3, h4, h5, h6 {
 		font-weight: 300;
 }
 
@@ -58,9 +53,12 @@ img {
 		.navbar-nav > li > a,
 		.navbar-nav > li.disabled > a {
 				font-family: 'Roboto', sans-serif;
-				font-size:16px;
+				font-size:15px;
 				font-weight:400;
 				color:white;
+		}
+		.navbar-brand {
+				font-size:16px;
 		}
 		.ifo-links  {
 				.dropdown-header {
@@ -73,11 +71,6 @@ img {
 						right: 0;
 				}
 		}
-}
-
-.footer {
-		color: white;
-		font-weight: 400;
 }
 
 .dropdown-1-col {
