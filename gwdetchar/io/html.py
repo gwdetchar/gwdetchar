@@ -141,6 +141,9 @@ FANCYBOX_JS = "{0}/jquery.fancybox.min.js".format(_FANCYBOX_CDN)
 MOMENT_JS = (
     "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js")
 
+GOOGLE_FONT_CSS = ("https://fonts.googleapis.com/css?"
+                   "family=Roboto:300,400,400i,700%7CRoboto+Mono")
+
 BOOTSTRAP_LIGO_CSS = resource_filename(
     'gwdetchar',
     '_static/bootstrap-ligo.min.css',
@@ -162,6 +165,7 @@ GWDETCHAR_JS = resource_filename(
 CSS_FILES = [
     BOOTSTRAP_CSS,
     FANCYBOX_CSS,
+    GOOGLE_FONT_CSS,
     BOOTSTRAP_LIGO_CSS,
     GWDETCHAR_CSS
 ]
