@@ -52,9 +52,11 @@ img {
 		.navbar-text,
 		.navbar-nav > li > a,
 		.navbar-nav > li.disabled > a {
-				font-family: Tahoma, Geneva, sans-serif;
-				font-weight: 500;
-				font-size: 14px;
+				font-family: 'Roboto', sans-serif;
+				font-size:15px;
+				font-weight:400;
+				color:white;
+				-webkit-font-smoothing: antialiased;
 		}
 		.navbar-brand {
 				font-size: 16px;
