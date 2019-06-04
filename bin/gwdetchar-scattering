@@ -185,11 +185,15 @@ for i in statea:
 # -- load transmons time series -----------------------------------------------
 
 transmons = ['L1:ASC-X_TR_B_NSUM_OUT_DQ']
+activeseg = SegmentList()
 for i in statea:
   for j in transmons:
       ts = TimeSeries.fetch(str(j),i.start,i.end)
       print(ts.value)
-      print(get_blrms(ts).active)
+      activeseg.extend(get_blrms(ts).active)
+      
+ table = Table([[i[0] for i activeseg],[i[1] for i in activeseg]],names = ('seg_start','seg_end'))
+ print(table)
 
 # -- load h(t) ----------------------------------------------------------------
 
