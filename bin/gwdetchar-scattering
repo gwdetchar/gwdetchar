@@ -52,7 +52,7 @@ from gwdetchar.io.datafind import get_data
 from gwdetchar.plot import texify
 from gwdetchar.omega import batch
 from gwdetchar.scattering import core
-from gwdetchar.scattering.core import get_blrms
+
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \
@@ -186,14 +186,14 @@ for i in statea:
   
 # -- load transmons time series -----------------------------------------------
 
-transmons = ['L1:ASC-X_TR_B_NSUM_OUT_DQ','L1:ASC-X_TR_A_NSUM_OUT_DQ']
+transmons = core.TRANSMONS
 
 for j in transmons:
     activeseg = SegmentList()
     for i in statea:
        ts = TimeSeries.fetch(str(j),i.start,i.end)
        print(ts.value)
-       activeseg.extend(get_blrms(ts).active)
+       activeseg.extend(core.get_blrms(ts).active)
       
     table = Table([[i[0] for i  in activeseg],[i[1] for i in activeseg]],
                names = ('seg_start','seg_end'))
