@@ -172,7 +172,7 @@ if args.state_flag is not None:
 else:
     statea = SegmentList([span])
                     
-print(statea)
+print(statea.active)
 
 # -- load h(t) ----------------------------------------------------------------
 
