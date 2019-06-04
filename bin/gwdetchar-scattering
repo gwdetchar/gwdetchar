@@ -173,7 +173,7 @@ else:
     statea = SegmentList([span])
                     
 for i in statea:
-  print(i)
+  print((i.start,i.end))
 
 
 # -- load h(t) ----------------------------------------------------------------
