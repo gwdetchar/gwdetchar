@@ -189,7 +189,7 @@ for i in statea:
   for j in transmons:
       ts = TimeSeries.fetch(str(j),i.start,i.end)
       print(ts.value)
-      print(get_blrms(ts))
+      print(get_blrms(ts).active)
 
 # -- load h(t) ----------------------------------------------------------------
 
