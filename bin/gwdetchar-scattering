@@ -97,11 +97,11 @@ parser.add_argument('-e', '--segment-end-pad', type=float, default=30.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
 parser.add_argument('-l','--bandpass-low-freq', type=float, default=4.0,
-                     help='the lower limit of the bandpass frequency for
-                     whitened transmons blrms')
+                     help='the lower limit of the bandpass frequency for'
+                    ' whitened transmons blrms')
 parser.add_argument('-h','--bandpass-high-freq', type=float, default=10.0,
-                     help='the upper limit of the bandpass frequency for
-                     whitened transmons blrms')
+                     help='the upper limit of the bandpass frequency for'
+                     'whitened transmons blrms')
 parser.add_argument('-c', '--main-channel',
                     default='{IFO}:GDS-CALIB_STRAIN',
                     help='name of main (h(t)) channel, default: %(default)s')
