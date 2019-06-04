@@ -117,7 +117,7 @@ def get_blrms(series, low=4.0, high=10.0):
 
 
    blrms = series.whiten(4,2).bandpass(low,high).rms(1)
-   thresh = blrms > np.mean(blrms) + 6*np.std(blrms)
+   thresh = blrms > numpy.mean(blrms) + 6*numpy.std(blrms)
    threshflag = thresh.to_dqflag('ascblrms', round = True)
 
    return threshflag
