@@ -38,6 +38,8 @@ use('agg')  # noqa
 
 import gwtrigfind
 
+from gwpy.timeseries import TimeSeries
+
 from gwpy.plot import Plot
 from gwpy.table import (Table, EventTable)
 from gwpy.table.filters import in_segmentlist
