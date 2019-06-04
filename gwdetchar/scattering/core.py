@@ -77,8 +77,8 @@ OPTIC_MOTION_CHANNELS = {
     'TMSY': ['SUS-TMSY_M1_DAMP_L_IN1_DQ'],
 }
 
-transmons = {'ASC-X_TR_A_NSUM_OUT_DQ',
-             'ASC-X_TR_B_NSUM_OUT_DQ'}
+transmons = {'L1:ASC-X_TR_A_NSUM_OUT_DQ',
+             'L1:ASC-X_TR_B_NSUM_OUT_DQ'}
 
 FREQUENCY_MULTIPLIERS = range(1, 5)
 
