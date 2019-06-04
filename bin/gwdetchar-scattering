@@ -187,8 +187,9 @@ for i in statea:
 # -- load transmons time series -----------------------------------------------
 
 transmons = ['L1:ASC-X_TR_B_NSUM_OUT_DQ','L1:ASC-X_TR_A_NSUM_OUT_DQ']
-activeseg = SegmentList()
+
 for j in transmons:
+    activeseg = SegmentList()
     for i in statea:
        ts = TimeSeries.fetch(str(j),i.start,i.end)
        print(ts.value)
