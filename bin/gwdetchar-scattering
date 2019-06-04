@@ -52,6 +52,7 @@ from gwdetchar.io.datafind import get_data
 from gwdetchar.plot import texify
 from gwdetchar.omega import batch
 from gwdetchar.scattering import core
+from gwdetchar.scattering.core import get_blrms
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \
