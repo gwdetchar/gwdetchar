@@ -194,7 +194,7 @@ for i in statea:
       
 table = Table([[i[0] for i  in activeseg],[i[1] for i in activeseg]],
                names = ('seg_start','seg_end'))
- print(table)
+print(table)
 
 # -- load h(t) ----------------------------------------------------------------
 
