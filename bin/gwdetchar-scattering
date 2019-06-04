@@ -51,6 +51,7 @@ from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
 from gwdetchar.plot import texify
 from gwdetchar.omega import batch
+from gwdetchar.scattering import core
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \
@@ -182,11 +183,11 @@ for i in statea:
   
 # -- load transmons time series -----------------------------------------------
 
-transmons = ['L1:ASC-X_TR_B_NSUM_OUT_DQ']
+#transmons = ['L1:ASC-X_TR_B_NSUM_OUT_DQ']
 for i in statea:
   for j in transmons:
       ts = TimeSeries.fetch(str(j),i.start,i.end)
-      print(ts)
+      print(ts.value)
 
 # -- load h(t) ----------------------------------------------------------------
 
