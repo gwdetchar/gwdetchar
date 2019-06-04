@@ -183,7 +183,7 @@ for i in statea:
   
   
 # -- load transmons time series -----------------------------------------------
-print(get_blrms())
+
 transmons = ['L1:ASC-X_TR_B_NSUM_OUT_DQ']
 for i in statea:
   for j in transmons:
