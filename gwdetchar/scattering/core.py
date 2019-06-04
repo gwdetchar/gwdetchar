@@ -77,6 +77,9 @@ OPTIC_MOTION_CHANNELS = {
     'TMSY': ['SUS-TMSY_M1_DAMP_L_IN1_DQ'],
 }
 
+transmons = {'ASC-X_TR_A_NSUM_OUT_DQ',
+             'ASC-X_TR_B_NSUM_OUT_DQ'}
+
 FREQUENCY_MULTIPLIERS = range(1, 5)
 
 
@@ -107,3 +110,14 @@ def get_fringe_frequency(series, multiplier=2.0):
                         velocity.sample_rate.value)
     fringef.override_unit('Hz')
     return fringef
+
+
+
+def get_blrms(series, low=4.0, high=10.0):
+
+
+   blrms = series.whiten(4,2).bandpass(low,high).rms(1)
+   thresh = blrms > np.mean(blrms) + 6*np.std(blrms)
+   threshflag = thresh.to_dqflag('ascblrms', round = True)
+
+   return threshflag
