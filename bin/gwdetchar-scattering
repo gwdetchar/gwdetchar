@@ -192,7 +192,7 @@ for i in statea:
       print(ts.value)
       activeseg.extend(get_blrms(ts).active)
       
- table = Table([[i[0] for i activeseg],[i[1] for i in activeseg]],
+table = Table([[i[0] for i activeseg],[i[1] for i in activeseg]],
                names = ('seg_start','seg_end'))
  print(table)
 
