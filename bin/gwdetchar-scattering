@@ -176,6 +176,16 @@ for i in statea:
   print((i.start,i.end))
 
 
+  
+  
+# -- load transmons time series -----------------------------------------------
+
+transmons = ['L1:ASC-X_TR_B_NSUM_OUT_DQ']
+for i in statea:
+  for j in transmons:
+      ts = TimeSeries.fetch(str(j),i.start,i.end)
+      print(ts)
+
 # -- load h(t) ----------------------------------------------------------------
 
 args.main_channel = args.main_channel.format(IFO=args.ifo)
