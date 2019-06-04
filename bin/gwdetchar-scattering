@@ -149,6 +149,7 @@ logger.info('{} Scattering {}-{}'.format(
 
 span = Segment(args.gpsstart, args.gpsend)
 
+
 # get segments
 if args.state_flag is not None:
     state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
@@ -170,6 +171,8 @@ if args.state_flag is not None:
                  % (len(statea), args.state_flag, livetime))
 else:
     statea = SegmentList([span])
+                    
+print(statea)
 
 # -- load h(t) ----------------------------------------------------------------
 
