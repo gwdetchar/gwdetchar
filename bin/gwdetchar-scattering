@@ -208,7 +208,8 @@ for j in transmons:
       activesegs.append(core.get_activesegs(blrms[i]).active)
       
     print(activesegs)
-    print(type(activesegs[0]))
+    activesegsl = [item for sublist in activesegs for item in sublist]
+    print(type(activesegsl)
       
       
     
