@@ -195,9 +195,10 @@ for j in transmons:
     for i,seg in enumerate(statea):
         ts = TimeSeries.fetch(str(j),seg.start,seg.end)
         #print(ts.value)
-        blrms.append(core.get_blrms(ts))
-        print(blrms[i].name)
-        print(blrms[i].value)
+        blrmsv = core.get_blrms(ts)
+        blrms.append(blrmsv.value)
+        print(blrmsv[i].name)
+        print(blrmsv[i].value)
         
         
     print(blrms) 
