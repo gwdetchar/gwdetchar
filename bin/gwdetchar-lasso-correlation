@@ -46,9 +46,6 @@ from gwdetchar.plot import texify
 # LaTeX use
 USETEX = rcParams["text.usetex"]
 
-# LaTeX use
-USETEX = rcParams["text.usetex"]
-
 # default frametypes
 DEFAULT_FRAMETYPE = {
     'GDS-CALIB_STRAIN': '{ifo}_HOFT_C00',
