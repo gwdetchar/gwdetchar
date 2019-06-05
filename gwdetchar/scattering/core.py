@@ -112,10 +112,13 @@ def get_fringe_frequency(series, multiplier=2.0):
     return fringef
 
 
-def get_blrms(series, low=4.0, high=10.0, stride=1, name='blrms'):
+def get_blrms(series, low=4.0, high=10.0, stride=1):
 
 
     blrms = series.whiten(4, 2).bandpass(low, high).rms(stride)
-    thresh = blrms > numpy.mean(blrms) + 6*numpy.std(blrms)
+    
+def get_activesegs(series, name='scatsegs')
+
+    thresh = series > numpy.mean(series) + 6*numpy.std(series)
     threshflag = thresh.to_dqflag(name, round=True)
     return threshflag
