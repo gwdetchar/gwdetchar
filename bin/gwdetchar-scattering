@@ -192,14 +192,15 @@ transmons = core.TRANSMON_CHANNELS
 
 for j in transmons:
     blrms = []
-    for i in statea:
-        ts = TimeSeries.fetch(str(j),i.start,i.end)
+    for i,seg in enumerate(statea):
+        ts = TimeSeries.fetch(str(j),seg.start,seg.end)
         print(ts.value)
         blrms.append(core.get_blrms(ts))
+        print(blrms[i].name)
         
         
     print(blrms) 
-    print(blrms.name)
+   
         
 #for j in transmons:
 #  activeseg = SegmentList()
