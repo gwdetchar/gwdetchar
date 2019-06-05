@@ -197,7 +197,7 @@ for j in transmons:
         print(ts.value)
         blrms.append(core.get_blrms(ts))
         
-print(blrms) 
+    print(blrms) 
         
 #for j in transmons:
 #  activeseg = SegmentList()
