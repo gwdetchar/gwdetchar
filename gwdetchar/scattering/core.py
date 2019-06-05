@@ -116,7 +116,9 @@ def get_blrms(series, low=4.0, high=10.0, stride=1):
 
 
     blrms = series.whiten(4, 2).bandpass(low, high).rms(stride)
-    
+   
+    return blrms
+ 
 def get_activesegs(series, name='scatsegs')
 
     thresh = series > numpy.mean(series) + 6*numpy.std(series)
