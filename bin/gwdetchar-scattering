@@ -211,7 +211,7 @@ for j in transmons:
     activesegsl = [item for sublist in activesegs for item in sublist]
     print(activesegsl)
     
-    table = Table([[i[0] for i in activesegsl],[i[1] for i in activesegsl]],name = ('seg_start','seg_end'))
+    table = Table([[i[0] for i in activesegsl],[i[1] for i in activesegsl]],names = ('seg_start','seg_end'))
     print(table)
       
       
