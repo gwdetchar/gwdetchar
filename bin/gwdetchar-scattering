@@ -200,7 +200,7 @@ for j in transmons:
         
         
     
-    
+     
     
     for i in range(len(blrms)):
       activesegs.append(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
