@@ -123,6 +123,7 @@ def get_activesegs(series, name='scatsegs'):
     
     ser = TimeSeries([item.value for sublist in series for item in sublist])
     print(ser)
+    print(type(ser))
     thresh = ser > numpy.mean(ser) + 6*numpy.std(ser)
     threshflag = thresh.to_dqflag(name, round=True)
     return threshflag
