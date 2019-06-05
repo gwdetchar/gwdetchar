@@ -20,6 +20,7 @@
 """
 
 import numpy
+from gwpy.timeseries import TimeSeries
 
 from scipy.signal import savgol_filter
 
