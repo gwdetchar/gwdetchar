@@ -188,16 +188,22 @@ for i in statea:
 
 transmons = core.TRANSMONS
 
-for j in transmons:
-    activeseg = SegmentList()
-    for i in statea:
-       ts = TimeSeries.fetch(str(j),i.start,i.end)
-       print(ts.value)
-       activeseg.extend(core.get_blrms(ts).active)
-      
-    table = Table([[i[0] for i  in activeseg],[i[1] for i in activeseg]],
-               names = ('seg_start','seg_end'))
-    print(table)
+#for j in transmons:
+#    blrms = []
+#    for i in statea:
+#       ts = TimeSeries.fetch(str(j),i.start,i.end)
+#       print(ts.value)
+#       blrms.append(core.get_blrms(ts))
+        
+#for j in transmons:
+#  activeseg = SegmentList()
+#  for i in statea:
+#    
+#     activeseg.extend(core.get_activesegs(blrms))
+#      
+#    table = Table([[i[0] for i  in activeseg],[i[1] for i in activeseg]],
+#               names = ('seg_start','seg_end'))
+#    print(table)
 
 # -- load h(t) ----------------------------------------------------------------
 
