@@ -67,8 +67,7 @@ parser.add_argument('-o', '--output-dir', default=os.curdir,
                     help='output directory for plots')
 parser.add_argument('-f', '--channel-file', type=os.path.abspath,
                     help='path to a file containing a list of channels')
-parser.add_argument('-s', '--search', nargs='*',
-                    default=['.*.rms$', '.*.mean$'],
+parser.add_argument('-s', '--search', nargs='*', default=[],
                     help='process channels matching these regex patterns, '
                          'can be given multiple times, default is to analyze '
                          'all RMS and mean channels from frames')
