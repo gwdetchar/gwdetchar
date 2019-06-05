@@ -202,6 +202,16 @@ for j in transmons:
         
         
     print(blrms) 
+    
+    activesegs = SegmentList()
+    for i in range(len(blrms)):
+      activesegs.append(core.get_activesegs(blrms[i]).active)
+      
+    print(activesegs)
+      
+      
+    
+ 
    
         
 #for j in transmons:
