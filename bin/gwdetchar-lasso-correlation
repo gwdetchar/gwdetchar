@@ -39,7 +39,7 @@ from gwpy.time import Time
 
 from gwdetchar.lasso import plot as gwplot
 from gwdetchar import (cli, lasso as gwlasso)
-from gwdetchar.io.datafind import (get_data, downselect)
+from gwdetchar.io.datafind import (get_data, conlog)
 from gwdetchar.io import html as htmlio
 from gwdetchar.plot import texify
 
@@ -208,9 +208,10 @@ frametype = ('%s_M' % args.ifo if args.trend_type == 'minute'
              else '%s_T' % args.ifo)
 allchannels = list(numpy.loadtxt(
     args.channel_file, dtype=str, ndmin=1)) if args.channel_file else []
-channels, _, _, _, allchannels = downselect(
+channels, _, _, _, allchannels = conlog(
     frametype, start, end, preview=preview, channels=allchannels,
-    search=args.search, dynamic=True, nproc=args.nproc)
+    search=args.search, endswith=('rms', 'mean'), dynamic=True,
+    nproc=args.nproc)
 nchan = len(channels)
 logger.debug("Identified %d channels" % nchan)
 

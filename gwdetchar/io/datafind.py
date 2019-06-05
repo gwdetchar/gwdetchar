@@ -219,8 +219,8 @@ def get_data(channel, start, end, frametype=None, source=None,
     return data
 
 
-def downselect(frametype, start, end, preview=10, channels=[],
-               search=[], dynamic=True, **kwargs):
+def conlog(frametype, start, end, preview=10, channels=[],
+           search=[], endswith=(), dynamic=True, **kwargs):
     """Pare down the full set of channels in a frametype based on
     properties of the data
 
@@ -244,6 +244,9 @@ def downselect(frametype, start, end, preview=10, channels=[],
 
     search : `list` of `str`, optional
         list of regular expression patterns to search for, default: none
+
+    endswith : `str` or `tuple` of `str`, optional
+        patterns that analyzed channels must end with, default: none
 
     dynamic : `bool`, optional
         Boolean switch to include (`True`) or exclude (`False`) dynamic
@@ -269,15 +272,21 @@ def downselect(frametype, start, end, preview=10, channels=[],
     if search:  # select channels matching regex patterns
         requested = re.compile('({})'.format('|'.join(search)))
         channels = [c for c in channels if requested.search(c)]
+    if endswith:  # select channels matching end patterns
+        channels = [c for c in channels if c.endswith(endswith)]
     # get preview data from frames
     data1 = get_data(channels, start-preview, start, source=cache1,
                      verbose='Reading initial preview:'.rjust(30), **kwargs)
     data2 = get_data(channels, end, end+preview, source=cache2,
                      verbose='Reading final preview:'.rjust(30), **kwargs)
     # identify channels
-    changes = [c for c in channels
-               if (dynamic and not all(numpy.diff(data1[c].value)))
-               or (data1[c].value[-1] != data2[c].value[0])]
+    if dynamic:
+        changes = [c for c in channels if
+                   (data1[c].value[-1] != data2[c].value[0])]
+    else:
+        changes = [c for c in channels if
+                   not any(numpy.diff(data1[c].value)) and
+                   (data1[c].value[-1] != data2[c].value[0])]
     # record state changes and return
     initial = [data1[c].value[-1] for c in changes]
     final = [data2[c].value[0] for c in changes]

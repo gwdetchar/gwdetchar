@@ -150,14 +150,14 @@ def test_get_data_bad_frametype():
 @mock.patch('gwdatafind.find_urls')
 @mock.patch('gwdetchar.io.datafind.get_data')
 @mock.patch('gwpy.io.gwf.iter_channel_names')
-def test_downselect(iterchan, tsdget, find_data):
+def test_conlog(iterchan, tsdget, find_data):
     # set return values
     iterchan.return_value = {AUX_NAME}
     tsdget.return_value = TimeSeriesDict({AUX_NAME: AUX_CHANNEL})
     find_data.return_value = ['test.gwf']
     # recover state change
-    changes, initial, final, diff, channels = datafind.downselect(
-        'X1_T', 0, 3600, search=[AUX_NAME])
+    changes, initial, final, diff, channels = datafind.conlog(
+        'X1_T', 0, 3600, search=[AUX_NAME], endswith=('CHANNEL'))
     # test data products
     assert changes == [AUX_NAME]
     assert channels == changes

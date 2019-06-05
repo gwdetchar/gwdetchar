@@ -26,7 +26,7 @@ import os.path
 from gwpy.table import Table
 
 from gwdetchar import (cli, const)
-from gwdetchar.io.datafind import downselect
+from gwdetchar.io.datafind import conlog
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Andrew Lundgren <andrew.lundgren@ligo.org>, ' \
@@ -70,12 +70,15 @@ preview_time = max(1, args.preview)
 if args.channels:
     channels = list(numpy.loadtxt(args.channels, dtype=str, ndmin=1))
     logger.debug('Found {} channels to analyze'.format(len(channels)))
+else:
+    channels = []
 
 # get list of state changes
 logger.info('Determining state changes')
-changes, initial, final, diff, _ = downselect(
+changes, initial, final, diff, _ = conlog(
     frametype, args.gpsstart, args.gpsend, preview=preview_time,
-    channels=channels, search=args.search, dynamic=False, nproc=args.nproc)
+    channels=channels, search=args.search, endswith='mean',
+    dynamic=False, nproc=args.nproc)
 
 # record output
 logger.debug('Analysis complete')
