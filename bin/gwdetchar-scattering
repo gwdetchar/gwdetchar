@@ -200,7 +200,7 @@ for j in transmons:
         print(blrms[i].value)
         
         
-    #print(blrms) 
+    print(blrms) 
    
         
 #for j in transmons:
