@@ -209,7 +209,7 @@ for j in transmons:
       
     print(activesegs)
     activesegsl = [item for sublist in activesegs for item in sublist]
-    print(type(activesegsl)
+    print(type(activesegsl))
       
       
     
