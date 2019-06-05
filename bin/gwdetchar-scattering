@@ -186,7 +186,7 @@ for i in statea:
   
 # -- load transmons time series -----------------------------------------------
 
-transmons = core.TRANSMONS
+transmons = core.TRANSMON_CHANNELS
 
 
 
