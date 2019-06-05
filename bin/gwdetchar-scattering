@@ -197,8 +197,8 @@ for j in transmons:
         #print(ts.value)
        # blrmsv = core.get_blrms(ts)
         blrms.append(core.get_blrms(ts))
-        print(blrmsv.name)
-        print(blrmsv.value)
+        #print(blrmsv.name)
+        #print(blrmsv.value)
         
         
     print(blrms) 
