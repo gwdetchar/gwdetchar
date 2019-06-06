@@ -199,6 +199,33 @@ except IndexError:
     channelst = []
     
     
+    
+    
+transmon_segments = DataQualityDict()
+activesegs = SegmentList()
+for i, channel in enumerate(sorted(channelst)):
+    logger.info("-- Processing %s --" % channel)
+    chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
+    optic = channel.split('-')[1].split('_')[0]
+    flag = '%s:ANAYLYSIS_READY_%s:1' % (args.ifo, optic)
+    transmon_segments[channel] = DataQualityFlag(
+        flag,
+        isgood=False,
+        description="Evidence for scattering  in {}"
+      .format(channel),
+    )
+    
+    for j, seg in enumerate(statea):
+        #logger.debug("Processing segment [%d .. %d)" % seg)
+        tst = alldatat[j][channel]
+        
+        
+        print(tst)
+    
+
+    
+    
+
 print(channelst)
 print(alldatat)
 
