@@ -346,6 +346,8 @@ else:
 allchannels = ['%s:%s' % (args.ifo, c) for optic in args.optic for
                c in scattering.OPTIC_MOTION_CHANNELS[optic]]
 
+print(allchannels)
+
 logger.info("Reading all data")
 alldata = []
 n = len(statea)
@@ -362,6 +364,9 @@ try:
     channels = alldata[0].keys()
 except IndexError:
     channels = []
+
+print("PRINTING CHANNELS")
+print(channels)
 
 scatter_segments = DataQualityDict()
 actives = SegmentList()
