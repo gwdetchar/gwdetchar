@@ -203,7 +203,8 @@ except IndexError:
     
 transmon_segments = DataQualityDict()
 activesegs = SegmentList()
-for i, channel in enumerate(sorted(channelst)):
+for i, channel in enumerate(sorted(channelst)):  # This is the loop over channels.
+    blrms = []
     logger.info("-- Processing %s --" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
     optic = channel.split('-')[1].split('_')[0]
@@ -215,12 +216,15 @@ for i, channel in enumerate(sorted(channelst)):
       .format(channel),
     )
     
-    for j, seg in enumerate(statea):
+    for j, seg in enumerate(statea):             # This is the loop over segments in a day.
         #logger.debug("Processing segment [%d .. %d)" % seg)
         tst = alldatat[j][channel]
+        blrms.append(core.get_blrms(tst))
         
         
         print(tst)
+        print(blrms)
+        print("********************")
     
 
     
