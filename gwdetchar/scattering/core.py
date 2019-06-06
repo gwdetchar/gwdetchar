@@ -91,7 +91,7 @@ def get_fringe_frequency(series, multiplier=2.0):
     ----------
     series : `~gwpy.timeseries.TimeSeries`
         timeseries record of relative motion
-
+def
     multiplier : `float`
         harmonic number of fringe frequency
 
