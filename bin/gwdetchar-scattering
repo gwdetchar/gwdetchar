@@ -202,16 +202,16 @@ for j in transmons:
     
      
     
-    #for i in range(len(blrms)):
-    #  activesegs.append(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
-    #  
-    #print(activesegs)
-    ##activesegsl = [item for sublist in activesegs for item in sublist]  ## Flattening the list.
-    #
-    #
-    #table = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],names = ('seg_start','seg_end'))
-    #print(table)
-    #  
+    for i in range(len(blrms)):
+      activesegs.extend(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
+      
+    print(activesegs)
+    #activesegsl = [item for sublist in activesegs for item in sublist]  ## Flattening the list.
+    
+    
+    table = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],names = ('seg_start','seg_end'))
+    print(table)
+      
       
     
  
