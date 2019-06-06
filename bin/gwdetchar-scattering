@@ -197,7 +197,7 @@ for j in transmons:
         ts = TimeSeries.fetch(str(j),seg.start,seg.end)
         blrms.append(core.get_blrms(ts))  ## Getting the blrms
         
-        
+    print(blrms)    
         
     
      
