@@ -217,7 +217,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     )
     
     for j, seg in enumerate(statea):             # This is the loop over segments in a day.
-        #logger.debug("Processing segment [%d .. %d)" % seg)
+        logger.debug("Processing segment [%d .. %d)" % seg)
         tst = alldatat[j][channel]
         blrms.append(core.get_blrms(tst))
         
