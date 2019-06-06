@@ -122,9 +122,6 @@ def get_blrms(series, low=4.0, high=10.0, stride=1):
  
 def get_activesegs(series, name='scatsegs'):
     
-    ser = TimeSeries([item.value for sublist in series for item in sublist])
-    print(ser)
-    print(type(ser))
-    thresh = ser > numpy.mean(ser) + 6*numpy.std(ser)
+    thresh = series > numpy.mean(series) + 6*numpy.std(series)
     threshflag = thresh.to_dqflag(name, round=True)
     return threshflag
