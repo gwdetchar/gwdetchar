@@ -194,7 +194,7 @@ for i, seg in enumerate(statea):
     alldatat.append(get_data(transmons, seg[0], seg[1], frametype=args.frametype,
                  nproc=args.nproc))
 try:
-    channelst = alldata[0].keys()
+    channelst = alldatat[0].keys()
 except IndexError:
     channelst = []
     
