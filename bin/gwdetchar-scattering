@@ -188,32 +188,48 @@ for i in statea:
 
 transmons = core.TRANSMON_CHANNELS
 
+alldatat = []
+
+for i, seg in enumerate(statea):
+    alldatat.append(get_data(transmons, seg[0], seg[1], frametype=args.frametype,
+                 nproc=args.nproc))
+try:
+    channelst = alldata[0].keys()
+except IndexError:
+    channelst = []
+    
+    
+print(channelst)
+print(alldatat)
 
 
-for j in transmons:
-    blrms = []
-    activesegs = SegmentList()
-    for i,seg in enumerate(statea):
-        ts = TimeSeries.fetch(str(j),seg.start,seg.end)
-        blrms.append(core.get_blrms(ts))  ## Getting the blrms
-        
-    print(blrms)    
-        
-    
-     
-    
-    for i in range(len(blrms)):
-      activesegs.extend(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
+
+#for j in transmons:
+#    blrms = []
+#    activesegs = SegmentList()
+#    for i,seg in enumerate(statea):
+#        ts = TimeSeries.fetch(str(j),seg.start,seg.end)
+#        blrms.append(core.get_blrms(ts))  ## Getting the blrms
+#        
+#    print(blrms)    
+#        
+#    
+#     
+#    
+#    for i in range(len(blrms)):
+#      activesegs.extend(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
+#      
+#    print(activesegs)
+#    #activesegsl = [item for sublist in activesegs for item in sublist]  ## Flattening the list.
+#    
+#    
+#    table = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],names = ('seg_start','seg_end'))
+#    print(table)
       
-    print(activesegs)
-    #activesegsl = [item for sublist in activesegs for item in sublist]  ## Flattening the list.
-    
-    
-    table = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],names = ('seg_start','seg_end'))
-    print(table)
       
-      
-    
+ 
+
+
  
    
         
