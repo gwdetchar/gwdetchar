@@ -232,7 +232,9 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     for i in range(len(blrms)):
       scatter = core.get_activesegs(blrms[i], name=flag)
       print("Scatter")
+        print(scatter.name)
       print(scatter)
+    
      # activesegs.extend(scatter.active)
       transmon_segments[channel] += scatter
       #activesegs.extend(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
@@ -243,7 +245,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     print(transmon_segments[channel])
     print(activesegs)
     
-    
+    print(transmon_segments[channel].name)
     #htmlio.write_flag_html(transmon_segments[channel])
       
     
