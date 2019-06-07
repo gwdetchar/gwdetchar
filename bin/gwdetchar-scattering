@@ -246,7 +246,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     print(activesegs)
     
     print(transmon_segments[channel].name)
-    htmlio.write_flag_html(transmon_segments[channel])
+    htmlio.write_flag_html(transmon_segments[channel], plotdir='/home/siddharth.soni/public_html/scatoutput/')
       
     
 
