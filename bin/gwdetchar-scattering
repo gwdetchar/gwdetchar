@@ -251,6 +251,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     
     ## write HTML
     links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Segments']]
+    (brand, class_) = htmlio.get_brand(args.ifo, 'Scattering', args.gpsstart)
     navbar = htmlio.navbar(links, class_=class_, brand=brand)
     page = htmlio.new_bootstrap_page(
             title='%s Transmons: %d-%d' % (
