@@ -266,7 +266,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
         page.p('The following transmon showed evidence of scattering):')
         page.div(class_='panel-group', id_='accordion2')
         page.add(htmlio.write_flag_html(
-                transmon_segments[channel], span, i, parent='accordion2', title=title,
+                transmon_segments[channel], span, i, parent='accordion2', title=transmon_segments[channel].name,
                 context=context, plotdir=''))
     page.div.close()
 
