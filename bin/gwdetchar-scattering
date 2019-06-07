@@ -246,11 +246,12 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     print(activesegs)
     
     print(transmon_segments[channel].name)
-    htmlio.write_flag_html(transmon_segments[channel])
+    #htmlio.write_flag_html(transmon_segments[channel])
     
     
     ## write HTML
-    htmlio.navbar(links, class_=class_, brand=brand)
+    links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Segments']]
+    navbar = htmlio.navbar(links, class_=class_, brand=brand)
     page = htmlio.new_bootstrap_page(
             title='%s Transmons: %d-%d' % (
                 args.ifo, int(args.gpsstart), int(args.gpsend)),
