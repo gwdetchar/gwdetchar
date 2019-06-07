@@ -262,7 +262,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
     page.div.close()
     
-    if abs(transmon_segments[channel]):
+    if abs(transmon_segments[channel].active):
         page.p('The following transmon showed evidence of scattering):')
         page.div(class_='panel-group', id_='accordion2')
         page.add(htmlio.write_flag_html(
