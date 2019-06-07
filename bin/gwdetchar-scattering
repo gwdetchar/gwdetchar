@@ -233,10 +233,12 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
       print("Scatter")
       print(scatter)
       activesegs.extend(scatter.active)
+      transmon_segments[channel] += scatter
       #activesegs.extend(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
       
     
     print("$$$$$$$$$$$$$$$$$$$$$$$$")
+    print(transmon_segments[channel])
     print(activesegs)
       
     
