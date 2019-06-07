@@ -52,6 +52,7 @@ from gwdetchar.io.datafind import get_data
 from gwdetchar.plot import texify
 from gwdetchar.omega import batch
 from gwdetchar.scattering import core
+from gwdetchar.io import html as htmlio
 
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -241,6 +242,9 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     print("$$$$$$$$$$$$$$$$$$$$$$$$")
     print(transmon_segments[channel])
     print(activesegs)
+    
+    
+    htmlio.write_flag_html(flag)
       
     
 
