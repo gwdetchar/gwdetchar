@@ -248,16 +248,25 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     print(transmon_segments[channel].name)
     htmlio.write_flag_html(transmon_segments[channel])
     
-    if abs(transmon_segments[channel].active):
-        page.p('This analysis was done over the following data-quality flag:')
-        page.div(class_='panel-group', id_='accordion1')
-        page.add(htmlio.write_flag_html(
-            transmon_segments[channel], span, 'state', parent='accordion1', context='success',
-            plotdir='', facecolor=(0.2, 0.8, 0.2), edgecolor='darkgreen',
-            known={'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4}))
-        page.div.close()
-      
-    
+    axes['tsegments'].set_ylim(-.55, .55)
+    axes['tsegments'].text(
+        0.01, 0.95,
+        r'Time segments with %s' % (
+             channel),
+        transform=axes['tsegments'].transAxes, va='top', ha='left',
+        bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
+    for ax in axes.values():
+        ax.set_epoch(int(args.gpsstart))
+        ax.set_xlim(*span)
+    png = '%s:TRANSMONS_SCATTERING_%s:1' % (args.ifo, optic)
+    try:
+        plot.save(png)
+    except OverflowError as e:
+        warnings.warn(str(e))
+        plot.axes[1].set_ylim(0, multiplier * args.frequency_threshold)
+        plot.refresh()
+        plot.save(png)
+    plot.close()
 
     
     
