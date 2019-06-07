@@ -188,7 +188,7 @@ for i in statea:
 
 transmons = core.TRANSMON_CHANNELS
 
-alldatat = []
+alldatat = [] # this will contain the timeseries data of transmons
 
 for i, seg in enumerate(statea):
     alldatat.append(get_data(transmons, seg[0], seg[1], frametype=args.frametype,
@@ -201,15 +201,15 @@ except IndexError:
     
     
     
-transmon_segments = DataQualityDict()
+transmon_segments = DataQualityDict() # initiating a dictionary to contain the flag and active segments during that flag.
 
 for i, channel in enumerate(sorted(channelst)):  # This is the loop over channels.
     activesegs = SegmentList()
     blrms = []
     logger.info("-- Processing %s --" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
-    optic = channel.split('-')[1].split('_')[0]
-    flag = '%s:ANAYLYSIS_READY_%s:1' % (args.ifo, optic)
+    optic = '-'.join(transmons.split('-')[1].split('_')[:3])
+    flag = '%s:TRANSMONS_SCATTERING_%s:1' % (args.ifo, optic)
     transmon_segments[channel] = DataQualityFlag(
         flag,
         isgood=False,
