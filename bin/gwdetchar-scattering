@@ -248,25 +248,25 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     print(transmon_segments[channel].name)
     htmlio.write_flag_html(transmon_segments[channel])
     
-    axes['tsegments'].set_ylim(-.55, .55)
-    axes['tsegments'].text(
-        0.01, 0.95,
-        r'Time segments with %s' % (
-             channel),
-        transform=axes['tsegments'].transAxes, va='top', ha='left',
-        bbox={'edgecolor': 'none', 'facecolor': 'white', 'alpha': .5})
-    for ax in axes.values():
-        ax.set_epoch(int(args.gpsstart))
-        ax.set_xlim(*span)
-    png = '%s:TRANSMONS_SCATTERING_%s:1' % (args.ifo, optic)
-    try:
-        plot.save(png)
-    except OverflowError as e:
-        warnings.warn(str(e))
-        plot.axes[1].set_ylim(0, multiplier * args.frequency_threshold)
-        plot.refresh()
-        plot.save(png)
-    plot.close()
+    
+    ## write HTML
+    htmlio.navbar(links, class_=class_, brand=brand)
+    page = htmlio.new_bootstrap_page(
+            title='%s Transmons: %d-%d' % (
+                args.ifo, int(args.gpsstart), int(args.gpsend)),
+            navbar=navbar)
+    page.div(class_='page-header')
+    page.h1('%s Scattering visible in Transmons: %d-%d'
+        % (args.ifo, int(args.gpsstart), int(args.gpsend)))
+    page.div.close()
+    
+    if abs(transmon_segments[channel]):
+        page.p('The following transmon showed evidence of scattering):')
+        page.div(class_='panel-group', id_='accordion2')
+        page.add(htmlio.write_flag_html(
+                transmon_segments[channel], span, i, parent='accordion2', title=title,
+                context=context, plotdir=''))
+    page.div.close()
 
     
     
