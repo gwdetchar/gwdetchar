@@ -232,7 +232,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     for i in range(len(blrms)):
       scatter = core.get_activesegs(blrms[i], name=flag)
       print("Scatter")
-        print(scatter.name)
+      print(scatter.name)
       print(scatter)
     
      # activesegs.extend(scatter.active)
