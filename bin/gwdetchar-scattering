@@ -208,7 +208,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     blrms = []
     logger.info("-- Processing %s --" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
-    optic = '-'.join(transmons.split('-')[1].split('_')[:3])
+    optic = '-'.join(transmons[i].split('-')[1].split('_')[:3])
     flag = '%s:TRANSMONS_SCATTERING_%s:1' % (args.ifo, optic)
     transmon_segments[channel] = DataQualityFlag(
         flag,
