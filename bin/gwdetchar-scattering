@@ -244,7 +244,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     print(activesegs)
     
     
-    htmlio.write_flag_html(flag)
+    htmlio.write_flag_html(transmon_segments[channel])
       
     
 
