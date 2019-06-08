@@ -28,12 +28,8 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 rcParams.update({
-    'xtick.labelsize': 16,
-    'ytick.labelsize': 16,
-    'axes.labelsize': 20,
-    'axes.labelpad': 12,
-    'axes.titlesize': 15,
-    'grid.alpha': 0.5,
+    'axes.labelpad': 10,
+    'axes.titlesize': 16,
 })
 
 
@@ -105,7 +101,7 @@ def _format_color_axis(ax, colormap='viridis', clim=None, norm='linear'):
 # -- utilities ----------------------------------------------------------------
 
 def timeseries_plot(data, gps, span, channel, output, ylabel=None,
-                    figsize=(9, 4.5)):
+                    figsize=(9, 4.25)):
     """Custom plot for a GWPy TimeSeries object
 
     Parameters
@@ -149,7 +145,7 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
 
 
 def spectral_plot(data, gps, span, channel, output, colormap='viridis',
-                  clim=None, nx=1400, norm='linear', figsize=(8, 4.35)):
+                  clim=None, nx=1400, norm='linear', figsize=(9, 4.5)):
     """Custom plot for a GWPy spectrogram or Q-gram
 
     Parameters
