@@ -145,9 +145,6 @@ for channel in ANALYZED['GW']['channels']:
 
 BLOCK_HTML = """<div class="panel well panel-info">
 <div class="panel-heading clearfix">
-<div class="pull-right">
-<a href="#" class="text-info"><small>[top]</small></a>
-</div>
 <h3 class="panel-title">GW: Gravitational-Wave Strain</h3>
 </div>
 <ul class="list-group">
