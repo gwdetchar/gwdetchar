@@ -17,6 +17,21 @@
  * along with GWDetChar.  If not, see <http://www.gnu.org/licenses/>
  */
 
+window.onscroll = function() {scrollAction()};
+
+function scrollAction() {
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    document.getElementById("topBtn").style.display = "block";
+  } else {
+    document.getElementById("topBtn").style.display = "none";
+  }
+}
+
+function topScroll() {
+  document.body.scrollTop = 0; // Safari
+  document.documentElement.scrollTop = 0; // Chrome, Firefox, IE and Opera
+}
+
 // expand fancybox plots
 $(document).ready(function() {
   $(".fancybox").fancybox({
