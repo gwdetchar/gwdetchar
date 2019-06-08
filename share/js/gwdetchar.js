@@ -17,10 +17,11 @@
  * along with GWDetChar.  If not, see <http://www.gnu.org/licenses/>
  */
 
+// include a return-to-top button
 window.onscroll = function() {scrollAction()};
 
 function scrollAction() {
-  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+  if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
     document.getElementById("topBtn").style.display = "block";
   } else {
     document.getElementById("topBtn").style.display = "none";

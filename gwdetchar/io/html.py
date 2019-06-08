@@ -323,10 +323,10 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     page.head.close()
     # open body and container
     page.body()
-    if navbar is not None:
-        page.add(navbar)
     page.button('Top', title='Return to top',
                 onclick='topScroll()', id_='topBtn')
+    if navbar is not None:
+        page.add(navbar)
     page.div(class_='container')
     return page
 
