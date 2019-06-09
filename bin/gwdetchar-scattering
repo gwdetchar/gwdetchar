@@ -504,6 +504,10 @@ for i, channel in enumerate(sorted(channels)):
             histdata[m].resize((histdata[m].size + fm.size,))
             histdata[m][-fm.size:] = fm.value
         # get segments and plot
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print(multiplier)
+        print(fringef*multiplier)
+        print(fringef*multiplier.value.max())
         if ((fringef * multiplier).value.max() <
                 args.frequency_threshold):
             scatter = DataQualityFlag(flag, known=[ts.span])
