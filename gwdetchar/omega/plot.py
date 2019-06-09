@@ -22,14 +22,14 @@
 from matplotlib import (cm, rcParams)
 
 from gwpy.plot.colors import GW_OBSERVATORY_COLORS
-from gwpy.plot.tex import label_to_latex
+
+from ..plot import texify
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 rcParams.update({
-    'axes.labelpad': 10,
-    'axes.titlesize': 16,
+    'savefig.transparent': False,
 })
 
 
@@ -52,7 +52,6 @@ def _format_time_axis(ax, gps, span):
     # set time axis units
     ax.set_xscale('seconds', epoch=gps)
     ax.set_xlim(gps-span/2, gps+span/2)
-    ax.set_xlabel('Time [seconds]')
     ax.grid(True, axis='x', which='major')
 
 
@@ -101,7 +100,7 @@ def _format_color_axis(ax, colormap='viridis', clim=None, norm='linear'):
 # -- utilities ----------------------------------------------------------------
 
 def timeseries_plot(data, gps, span, channel, output, ylabel=None,
-                    figsize=(9, 4.25)):
+                    figsize=(12, 6)):
     """Custom plot for a GWPy TimeSeries object
 
     Parameters
@@ -137,15 +136,15 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
     ax.set_yscale('linear')
     ax.set_ylabel(ylabel)
     # set title
-    title = r'$\mathtt{%s}$ at %.3f' % (label_to_latex(channel), gps)
-    ax.set_title(title, y=1.1)
+    title = texify(channel)
+    ax.set_title(title)
     # save plot and close
-    plot.savefig(output, bbox_inches='tight')
+    plot.savefig(output)
     plot.close()
 
 
 def spectral_plot(data, gps, span, channel, output, colormap='viridis',
-                  clim=None, nx=1400, norm='linear', figsize=(9, 4.5)):
+                  clim=None, nx=1400, norm='linear', figsize=(12, 6)):
     """Custom plot for a GWPy spectrogram or Q-gram
 
     Parameters
@@ -201,11 +200,10 @@ def spectral_plot(data, gps, span, channel, output, colormap='viridis',
     # set colorbar properties
     _format_color_axis(ax, colormap=colormap, clim=clim, norm=norm)
     # set title
-    title = (r'$\mathtt{%s}$ at %.3f with $Q$ of %.1f'
-             % (label_to_latex(channel), gps, Q))
-    ax.set_title(title, y=1.05)
+    title = '{0} with $Q$ of {1:.1f}'.format(texify(channel), Q)
+    ax.set_title(title)
     # save plot and close
-    plot.savefig(output, bbox_inches='tight')
+    plot.savefig(output)
     plot.close()
 
 
