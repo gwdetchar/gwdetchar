@@ -339,13 +339,15 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
         
         
     for i in range(len(blrms)):
-      scatter = core.get_activesegs(blrms[i], name=flag)
+      scattert = core.get_activesegs(blrms[i], name=flag)
+      scattert.active = scattert.active.protract(args.segment_padding)
+            scattert.coalesce()
       print("Scatter")
-      print(scatter.name)
-      print(scatter)
+      print(scattert.name)
+      print(scattert)
     
      # activesegs.extend(scatter.active)
-      transmon_segments[channel] += scatter
+      transmon_segments[channel] += scattert
       #activesegs.extend(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
       
     if abs(transmon_segments[channel].active):
