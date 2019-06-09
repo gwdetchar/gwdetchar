@@ -341,7 +341,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     for i in range(len(blrms)):
       scattert = core.get_activesegs(blrms[i], name=flag)
       scattert.active = scattert.active.protract(args.segment_padding)
-            scattert.coalesce()
+      scattert.coalesce()
       print("Scatter")
       print(scattert.name)
       print(scattert)
