@@ -521,7 +521,7 @@ for i, channel in enumerate(sorted(channels)):
         print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         print(multiplier)
         print(fringef*multiplier)
-        print(fringef*multiplier).value.max())
+        print((fringef*multiplier).value.max())
         if ((fringef * multiplier).value.max() <
                 args.frequency_threshold):
             scatter = DataQualityFlag(flag, known=[ts.span])
