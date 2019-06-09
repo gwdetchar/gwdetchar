@@ -390,7 +390,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
                 transmon_segments[channel], span, i, parent='accordion2', title=transmon_segments[channel].name,
                 context='success', plotdir=''))
     page.div.close()
-
+print(transmon_segments)
 
 # -- prepare HTML -------------------------------------------------------------
 
