@@ -71,7 +71,7 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <script src="static/gwdetchar.min.js" type="text/javascript"></script>
 </head>
 <body>
-<button onclick="topScroll()" id="topBtn" title="Return to top">Top</button>
+<button onclick="topScroll()" id="topBtn" title="Return to top">&#8679;</button>
 <div class="container">
 </body>
 </html>"""  # nopep8

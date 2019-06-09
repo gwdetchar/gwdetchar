@@ -124,17 +124,18 @@ img {
 		@media(min-width:992px) {
 				position: fixed;
 				bottom: 50px;
-				right: 50px;
+				right: 5%;
 				z-index: 99;
 				border-radius: 50%;
 				border: 1px solid #555;
 				outline: none;
 				cursor: pointer;
-				padding: 15px;
-				font-family: 'Roboto', sans-serif;
-				font-size: 15px;
+				padding-left: 9px;
+				padding-right: 9px;
+				-webkit-transition-duration: 0.4s; // Safari
+				transition-duration: 0.4s;
+				font-size: 32px;
 				font-weight: 400;
-				-webkit-font-smoothing: antialiased;
 				background-color: white;
 				color: #555;
 				box-shadow: 0 1px 10px rgba(0, 0, 0, 0.23), 0 1px 10px rgba(0, 0, 0, 0.16);
