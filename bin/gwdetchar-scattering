@@ -352,6 +352,9 @@ for i, channel in enumerate(sorted(channelst)):
     print(transmon_segments[channel])
     print(activesegs)
     
+    tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]], names = ("seg_start","seg_end"))
+    print(table)
+    
     efficiencyt = in_segmentlist(highsnrtrigs[names[0]],
                                 transmon_segments[channel].active).sum()
     try:
