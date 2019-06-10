@@ -18,16 +18,6 @@
  */
 
 // include a return-to-top button
-window.onscroll = function() {scrollAction()};
-
-function scrollAction() {
-  if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-    document.getElementById("topBtn").style.display = "block";
-  } else {
-    document.getElementById("topBtn").style.display = "none";
-  }
-}
-
 $.fn.scrollView = function () {
   return this.each(function () {
     $('html, body').animate({

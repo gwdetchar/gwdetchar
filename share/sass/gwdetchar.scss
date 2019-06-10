@@ -120,8 +120,11 @@ img {
 }
 
 #topBtn {
-		display: none;
+		@media(max-width:991px) {
+				display: none;
+		}
 		@media(min-width:992px) {
+				display: block;
 				position: fixed;
 				bottom: 50px;
 				right: 5%;
