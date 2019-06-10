@@ -377,7 +377,7 @@ for i, channel in enumerate(sorted(channelst)):
                 context='success', plotdir=''))
         page.div.close()
 print(transmon_segments)
-transmon_segments.write(segfile, path="segments",overwrite=True)
+transmon_segments.write(segfile, path="segments")
 
 # -- find scattering evidence -------------------------------------------------
 
