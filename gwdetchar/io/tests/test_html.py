@@ -251,7 +251,7 @@ def test_finalize_static_urls(tmpdir):
 
 def test_new_bootstrap_page():
     base = os.path.abspath(os.path.curdir)
-    page = html.new_bootstrap_page(base=base, refresh=True)
+    page = html.new_bootstrap_page(base=base, topbtn=False, refresh=True)
     assert parse_html(str(page)) == parse_html(
         NEW_BOOTSTRAP_PAGE.format(base=base))
 
