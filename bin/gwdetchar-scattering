@@ -352,6 +352,8 @@ for i, channel in enumerate(sorted(channelst)):
     print(transmon_segments[channel])
     print(activesegs)
     
+    
+    
     tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]], names = ("seg_start","seg_end"))
     print(tablet)
     tablet.write("{}-{}_blrms_{}.csv".format(args.ifo,channel[3:13],gpsstr),overwrite=True)
@@ -375,6 +377,7 @@ for i, channel in enumerate(sorted(channelst)):
                 context='success', plotdir=''))
         page.div.close()
 print(transmon_segments)
+transmon_segments.write(segfile, path="segments")
 
 # -- find scattering evidence -------------------------------------------------
 
