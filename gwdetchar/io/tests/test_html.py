@@ -224,15 +224,17 @@ def test_fancy_plot():
 
 
 def test_finalize_static_urls(tmpdir):
-    static = os.path.join(str(tmpdir), 'static')
-    css, js = html.finalize_static_urls(static, html.CSS_FILES, html.JS_FILES)
+    base = str(tmpdir)
+    static = os.path.join(base, 'static')
+    css, js = html.finalize_static_urls(
+        static, base, html.CSS_FILES, html.JS_FILES)
     assert css == [
         'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/'
             'bootstrap.min.css',  # nopep8
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
             'jquery.fancybox.min.css',  # nopep8
         'https://fonts.googleapis.com/css?'
-	        'family=Roboto:300,400%7CRoboto+Mono',  # nopep8
+            'family=Roboto:300,400%7CRoboto+Mono',  # nopep8
         'static/bootstrap-ligo.min.css',
         'static/gwdetchar.min.css']
     assert js == [
