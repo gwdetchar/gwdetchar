@@ -178,63 +178,9 @@ if args.state_flag is not None:
                  % (len(statea), args.state_flag, livetime))
 else:
     statea = SegmentList([span])
+    
+    
                     
-for i in statea:
-  print((i.start,i.end))
-
-
-  
-  
-# -- load transmons time series -----------------------------------------------
-
-
-    
-    
-
-#print(channelst)
-#print(alldatat)
-
-
-
-#for j in transmons:
-#    blrms = []
-#    activesegs = SegmentList()
-#    for i,seg in enumerate(statea):
-#        ts = TimeSeries.fetch(str(j),seg.start,seg.end)
-#        blrms.append(core.get_blrms(ts))  ## Getting the blrms
-#        
-#    print(blrms)    
-#        
-#    
-#     
-#    
-#    for i in range(len(blrms)):
-#      activesegs.extend(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
-#      
-#    print(activesegs)
-#    #activesegsl = [item for sublist in activesegs for item in sublist]  ## Flattening the list.
-#    
-#    
-#    table = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],names = ('seg_start','seg_end'))
-#    print(table)
-      
-      
- 
-
-
- 
-   
-        
-#for j in transmons:
-#  activeseg = SegmentList()
-#  for i in statea:
-#    
-#     activeseg.extend(core.get_activesegs(blrms))
-#      
-#    table = Table([[i[0] for i  in activeseg],[i[1] for i in activeseg]],
-#               names = ('seg_start','seg_end'))
-#    print(table)
-
 # -- load h(t) ----------------------------------------------------------------
 
 args.main_channel = args.main_channel.format(IFO=args.ifo)
@@ -366,12 +312,10 @@ try:
 except IndexError:
     channelst = []
     
-    
-    
-    
-transmon_segments = DataQualityDict() # initiating a dictionary to contain the flag and active segments during that flag.
+# initiating a dictionary to contain the flag and active segments during that flag.    
+transmon_segments = DataQualityDict() 
 
-for i, channel in enumerate(sorted(channelst)):  # This is the loop over channels.
+for i, channel in enumerate(sorted(channelst)):  
     activesegs = SegmentList()
     blrms = []
     logger.info("-- Processing %s --" % channel)
@@ -385,25 +329,19 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
       .format(channel),
     )
     
-    for j, seg in enumerate(statea):             # This is the loop over segments in a day.
+    for j, seg in enumerate(statea):            
         logger.debug("Processing segment [%d .. %d)" % seg)
         tst = alldatat[j][channel]
         blrms.append(core.get_blrms(tst))
         
         
-        print(tst)
-        print(blrms)
-        print("********************")
-        
+       
         
     for i in range(len(blrms)):
       scattert = core.get_activesegs(blrms[i], name=flag)
       scattert.active = scattert.active.protract(args.segment_padding)
       scattert.coalesce()
-      print("Scatter")
-      print(scattert.name)
-      print(scattert)
-    
+      
      # activesegs.extend(scatter.active)
       transmon_segments[channel] += scattert
       #activesegs.extend(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
@@ -413,10 +351,6 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
     print("$$$$$$$$$$$$$$$$$$$$$$$$")
     print(transmon_segments[channel])
     print(activesegs)
-    
-    print(transmon_segments[channel].name)
-    #htmlio.write_flag_html(transmon_segments[channel])
-    
     
     efficiencyt = in_segmentlist(highsnrtrigs[names[0]],
                                 transmon_segments[channel].active).sum()
@@ -428,19 +362,7 @@ for i, channel in enumerate(sorted(channelst)):  # This is the loop over channel
                 % (efficiencytpc, efficiencyt, len(highsnrtrigs)))
     
     
-    ## write HTML
-   # links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Segments']]
-   # (brand, class_) = htmlio.get_brand(args.ifo, 'Scattering', args.gpsstart)
-   # navbar = htmlio.navbar(links, class_=class_, brand=brand)
-   # page = htmlio.new_bootstrap_page(
-   #         title='%s Transmons: %d-%d' % (
-   #             args.ifo, int(args.gpsstart), int(args.gpsend)),
-   #         navbar=navbar)
-   # page.div(class_='page-header')
-   # page.h1('%s Scattering visible in Transmons: %d-%d'
-   #     % (args.ifo, int(args.gpsstart), int(args.gpsend)))
-   # page.div.close()
-   # 
+   # Plot Segments.
     if abs(transmon_segments[channel].active):
         page.p('The following transmon showed evidence of scattering):')
         page.div(class_='panel-group', id_='accordion2')
