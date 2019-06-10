@@ -147,7 +147,7 @@ os.chdir(args.output_dir)
 segfile = '%s-SCATTERING_SEGMENTS_%s_HZ-%s.h5' % (args.ifo, tstr, gpsstr)
 summfile = '{}-SCATTERING_SUMMARY-{}.csv'.format(args.ifo, gpsstr)
 blrmsxtrb = '{}-BLRMS_X_TR_B-{}.csv'.format(args.ifo, gpsstr)
-blrmsxtra = '{}-BLRMS_X_TR_A-{}.csv'.format(args.ifo, gpsstr)
+blrmsytrb = '{}-BLRMS_Y_TR_B-{}.csv'.format(args.ifo, gpsstr)
 
 logger.info('{} Scattering {}-{}'.format(
     args.ifo, int(args.gpsstart), int(args.gpsend)))
@@ -354,6 +354,7 @@ for i, channel in enumerate(sorted(channelst)):
     
     tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]], names = ("seg_start","seg_end"))
     print(tablet)
+    tablet.write("{}"+channel[3:13]+"blrms"+"{}".format(args.ifo,gpsstr))
     
     efficiencyt = in_segmentlist(highsnrtrigs[names[0]],
                                 transmon_segments[channel].active).sum()
