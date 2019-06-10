@@ -369,9 +369,9 @@ for i, channel in enumerate(sorted(channelst)):
    # Plot Segments.
     if abs(transmon_segments[channel].active):
         page.p('The following transmon showed evidence of scattering):')
-        page.div(class_='panel-group', id_='accordion2')
+        page.div(class_='panel-group', id_='accordion1')
         page.add(htmlio.write_flag_html(
-                transmon_segments[channel], span, i, parent='accordion2', title=transmon_segments[channel].name,
+                transmon_segments[channel], span, i, parent='accordion1', title=transmon_segments[channel].name,
                 context='success', plotdir=''))
     page.div.close()
 print(transmon_segments)
