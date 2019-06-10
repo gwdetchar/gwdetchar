@@ -208,7 +208,7 @@ class FancyPlot(object):
 
 # -- HTML construction --------------------------------------------------------
 
-def finalize_static_urls(static, cssfiles, jsfiles):
+def finalize_static_urls(static, base, cssfiles, jsfiles):
     """Finalise the necessary CSS and javascript files as URLS.
 
     The method parses the lists of files given, copying any local files into
@@ -220,6 +220,9 @@ def finalize_static_urls(static, cssfiles, jsfiles):
     static : `str`
         the target directory for the static files, will be created if
         necessary
+
+    base : `str`
+        the base directory of the website
 
     cssfiles : `list` of `str`
         the list of CSS files to include
@@ -235,7 +238,7 @@ def finalize_static_urls(static, cssfiles, jsfiles):
         the finalised list of javascript files
     """
     static = Path(static).resolve()
-    base = static.parent
+    base = Path(base).resolve()
 
     def _local_url(path):
         """Copy a filepath into the static dir if required
@@ -292,6 +295,7 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     # write CSS to static dir
     css, script = finalize_static_urls(
         os.path.join(path, 'static'),
+        os.path.curdir,
         css,
         script,
     )
