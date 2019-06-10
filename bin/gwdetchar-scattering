@@ -377,7 +377,7 @@ for i, channel in enumerate(sorted(channelst)):
                 context='success', plotdir=''))
         page.div.close()
 print(transmon_segments)
-transmon_segments.write(segfile, path="segments")
+#transmon_segments.write(segfile, path="segments")
 
 # -- find scattering evidence -------------------------------------------------
 
@@ -700,7 +700,8 @@ elif args.omega_scans:
 # -- finalize -----------------------------------------------------------------
 
 # write segments
-scatter_segments.write(segfile, path="segments", overwrite=True)
+all_segments = transmon_segments + scatter_segments
+all_segments.write(segfile, path="segments", overwrite=True)
 logger.debug("%s written" % segfile)
 
 # write HTML
