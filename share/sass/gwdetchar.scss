@@ -113,16 +113,10 @@ img {
 		margin-bottom: 15px;
 }
 
-.desktop-only {
+.btn-float {
 		@media(max-width:991px) {
 				display:none;
-		}
-}
-
-#topBtn {
-		@media(max-width:991px) {
-				display: none;
-		}
+        }
 		@media(min-width:992px) {
 				display: block;
 				position: fixed;
@@ -145,10 +139,16 @@ img {
 		}
 }
 
-#topBtn:hover {
+.btn-float:hover {
 		@media(min-width:992px) {
 				color: white;
 				background-color: #555;
 				border: 1px solid white;
+		}
+}
+
+.desktop-only {
+		@media(max-width:991px) {
+				display:none;
 		}
 }
