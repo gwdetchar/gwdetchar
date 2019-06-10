@@ -328,7 +328,7 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     # open body and container
     page.body()
     if topbtn:
-        page.button('&#8679;', title='Return to top', id_='topBtn',
+        page.button('&#8679;', title='Return to top', class_='btn-float',
                     onclick='$("#topBtn").scrollView();')
     if navbar is not None:
         page.add(navbar)
