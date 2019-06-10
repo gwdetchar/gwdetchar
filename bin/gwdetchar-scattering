@@ -301,7 +301,7 @@ else:
 #____Transmons_______________________________________________________________
 
 transmons = core.TRANSMON_CHANNELS
-
+logger.info("Reading Transmons")
 alldatat = [] # this will contain the timeseries data of transmons
 
 for i, seg in enumerate(statea):
@@ -377,7 +377,7 @@ print(transmon_segments)
 allchannels = ['%s:%s' % (args.ifo, c) for optic in args.optic for
                c in scattering.OPTIC_MOTION_CHANNELS[optic]]
 
-print(allchannels)
+
 
 logger.info("Reading all data")
 alldata = []
