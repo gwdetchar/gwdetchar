@@ -267,7 +267,7 @@ def finalize_static_urls(static, base, cssfiles, jsfiles):
 
 
 def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
-                       refresh=False, navbar=None, **kwargs):
+                       refresh=False, topbtn=True, navbar=None, **kwargs):
     """Create a new `~markup.page` with custom twitter bootstrap CSS and
     JS headers
 
@@ -284,6 +284,10 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
 
     refresh : `bool`, optional
         boolean switch to enable periodic page refresh, default: False
+
+    topbtn : `bool`, optional
+        boolean switch to include or exclude a floating button that scrolls
+        to the top of the page, default: True
 
     navbar : `str`, optional
         HTML enconding of a floating navbar, will be ignored if not given,
@@ -323,6 +327,9 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     page.head.close()
     # open body and container
     page.body()
+    if topbtn:
+        page.button('&#8679;', title='Return to top', id_='topBtn',
+                    onclick='$("#topBtn").scrollView();')
     if navbar is not None:
         page.add(navbar)
     page.div(class_='container')

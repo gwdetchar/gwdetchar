@@ -53,8 +53,8 @@ img {
 		.navbar-nav > li > a,
 		.navbar-nav > li.disabled > a {
 				font-family: 'Roboto', sans-serif;
-				font-size:15px;
-				font-weight:400;
+				font-size: 15px;
+				font-weight: 400;
 				-webkit-font-smoothing: antialiased;
 		}
 		.navbar-brand {
@@ -116,5 +116,39 @@ img {
 .desktop-only {
 		@media(max-width:991px) {
 				display:none;
+		}
+}
+
+#topBtn {
+		@media(max-width:991px) {
+				display: none;
+		}
+		@media(min-width:992px) {
+				display: block;
+				position: fixed;
+				bottom: 20px;
+				right: 20px;
+				z-index: 99;
+				border-radius: 50%;
+				border: 1px solid #555;
+				outline: none;
+				cursor: pointer;
+				padding-left: 9px;
+				padding-right: 9px;
+				-webkit-transition-duration: 0.4s; // Safari
+				transition-duration: 0.4s;
+				font-size: 32px;
+				font-weight: 400;
+				background-color: white;
+				color: #555;
+				box-shadow: 0 1px 10px rgba(0, 0, 0, 0.23), 0 1px 10px rgba(0, 0, 0, 0.16);
+		}
+}
+
+#topBtn:hover {
+		@media(min-width:992px) {
+				color: white;
+				background-color: #555;
+				border: 1px solid white;
 		}
 }

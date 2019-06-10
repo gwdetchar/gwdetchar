@@ -17,12 +17,34 @@
  * along with GWDetChar.  If not, see <http://www.gnu.org/licenses/>
  */
 
-// expand fancybox plots
+// include a return-to-top button
+$.fn.scrollView = function () {
+  return this.each(function () {
+    $('html, body').animate({
+      scrollTop: 0
+    }, 800);
+  });
+}
+
+// all-document actions
 $(document).ready(function() {
+  // expand fancybox plots
   $(".fancybox").fancybox({
     nextEffect: 'none',
     prevEffect: 'none',
     helpers: {title: {type: 'inside'}}
+  });
+  // smooth scrolling on all intra-page links
+  $("a").on('click', function(event) {
+    if (this.hash !== "") {
+      event.preventDefault();
+      var hash = this.hash;
+      $("html, body").animate({
+        scrollTop: $(hash).offset().top
+      }, 800, function(){
+        window.location.hash = hash;
+      });
+    };
   });
 });
 

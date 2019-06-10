@@ -467,16 +467,6 @@ def write_block(blockkey, block, context,
     page.div(class_='panel well panel-%s' % context)
     # -- make heading
     page.div(class_='panel-heading clearfix')
-    # link to top of page
-    page.div(class_='pull-right')
-    if context == 'primary':
-        page.a("<small>[top]</small>", href='#', class_='text-light')
-    elif context == 'default':
-        page.a("<small>[top]</small>", href='#', class_='text-dark')
-    else:
-        page.a("<small>[top]</small>", href='#', class_='text-%s' % context)
-    page.div.close()  # pull-right
-    # heading
     page.h3(': '.join([blockkey, block['name']]), class_='panel-title')
     page.div.close()  # panel-heading
 
