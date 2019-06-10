@@ -263,15 +263,18 @@ def finalize_static_urls(static, cssfiles, jsfiles):
     return cssfiles, jsfiles
 
 
-def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
-                       navbar=None, **kwargs):
+def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
+                       refresh=False, navbar=None, **kwargs):
     """Create a new `~markup.page` with custom twitter bootstrap CSS and
     JS headers
 
     Parameters
     ----------
-    base : `str`
-        relative path to the base directory where the page is located
+    base : `str`, optional
+        relative path to the base directory, default: `.`
+
+    path : `str`, optional
+        path to directory where the page is located, default: `.`
 
     lang : `str`, optional
         language of the page, default: en
@@ -288,7 +291,7 @@ def new_bootstrap_page(base=os.path.curdir, lang='en', refresh=False,
     script = kwargs.pop('script', JS_FILES)
     # write CSS to static dir
     css, script = finalize_static_urls(
-        os.path.join(os.path.curdir, 'static'),
+        os.path.join(path, 'static'),
         css,
         script,
     )
