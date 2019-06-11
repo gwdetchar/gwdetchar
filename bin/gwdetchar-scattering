@@ -319,7 +319,7 @@ try:
 except IndexError:
     channelst = []
 
-transmon_segments = DataQualityDict() 
+transmon_segments = DataQualityDict()
 
 for i, channel in enumerate(sorted(channelst)):  
     activesegs = SegmentList()
@@ -349,9 +349,9 @@ for i, channel in enumerate(sorted(channelst)):
 
     if abs(transmon_segments[channel].active):
         activesegs.extend(transmon_segments[channel].active)
-    
+
       # Reading the active segments in a table and writing to a file.
-        tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],
+        tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]], 
                        names=("seg_start","seg_end"))
         tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo, 
                   channel[7:13], gpsstr), overwrite=True)
