@@ -312,7 +312,7 @@ alldatat = []
 
 for i, seg in enumerate(statea):
     alldatat.append(get_data(transmons, seg[0], seg[1],
-                             frametype=args.frametype, 
+                             frametype=args.frametype,
                              nproc=args.nproc))
 try:
     channelst = alldatat[0].keys()
@@ -338,7 +338,7 @@ for i, channel in enumerate(sorted(channelst)):
         tst = alldatat[j][channel]
         blrms.append(scattering.get_blrms(tst, args.bandpass_low_freq,
         args.bandpass_high_freq))
- 
+
     # Getting active segments from blrms      
     for i in range(len(blrms)):
         threshold = numpy.mean(blrms[i]) + 6*numpy.std(blrms[i])
