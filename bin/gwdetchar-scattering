@@ -98,7 +98,7 @@ parser.add_argument('-s', '--segment-start-pad', type=float, default=30.0,
 parser.add_argument('-e', '--segment-end-pad', type=float, default=30.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
-parser.add_argument('-L', '--bandpass-low-freq', type=float, default=4.0, 
+parser.add_argument('-L', '--bandpass-low-freq', type=float, default=4.0,
                     help='the lower limit of the bandpass frequency for'
                     ' whitened transmons blrms')
 parser.add_argument('-H', '--bandpass-high-freq', type=float, default=10.0,
@@ -291,7 +291,7 @@ if args.state_flag is not None:
         plotdir='', facecolor=(0.2, 0.8, 0.2), edgecolor='darkgreen',
         known={'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4}))
     page.div.close()
-                                              
+    
 if statea:
     page.p("The following channels were searched for evidence of scattering "
            "(yellow = weak evidence, red = strong evidence):")
@@ -354,7 +354,7 @@ for i, channel in enumerate(sorted(channelst)):
                     names = ("seg_start","seg_end"))
       tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo, 
                   channel[7:13], gpsstr), overwrite=True)
-      logger.info("Segments for the %s channel written." %channel)
+      logger.info("Segments for the %s channel written."% channel)
       
     # Efficiency
     efficiencyt = in_segmentlist(highsnrtrigs[names[0]], 
