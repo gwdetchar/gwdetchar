@@ -54,7 +54,6 @@ from gwdetchar.omega import batch
 from gwdetchar.scattering import core
 from gwdetchar.io import html as htmlio
 
-
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \
               'Alex Urban <alexander.urban@ligo.org>'
@@ -285,7 +284,6 @@ page.add('Active segments from the blrms of L1:ASC-Y_TR_B_NSUM_OUT_DQ'
 page.a(os.path.basename(ytrbfile), href=ytrbfile, target='_blank')
 page.p.close()
 
-
 # record state segments
 if args.state_flag is not None:
     page.p('This analysis was done over the following data-quality flag:')
@@ -349,7 +347,6 @@ for i, channel in enumerate(sorted(channelst)):
       scattert.active = scattert.active.protract(args.segment_padding)
       scattert.coalesce()
       transmon_segments[channel] += scattert
-      
       
     if abs(transmon_segments[channel].active):
       activesegs.extend(transmon_segments[channel].active)
