@@ -37,9 +37,6 @@ from matplotlib import (use, rcParams)
 use('agg')  # noqa
 
 import gwtrigfind
-
-from gwpy.timeseries import TimeSeries
-
 from gwpy.plot import Plot
 from gwpy.table import (Table, EventTable)
 from gwpy.table.filters import in_segmentlist
@@ -102,8 +99,8 @@ parser.add_argument('-L', '--bandpass-low-freq', type=float, default=4.0,
                     help='the lower limit of the bandpass frequency for'
                     ' whitened transmons blrms')
 parser.add_argument('-H', '--bandpass-high-freq', type=float, default=10.0,
-                     help='the upper limit of the bandpass frequency for'
-                     'whitened transmons blrms')
+                    help='the upper limit of the bandpass frequency for'
+                    'whitened transmons blrms')
 parser.add_argument('-c', '--main-channel',
                     default='{IFO}:GDS-CALIB_STRAIN',
                     help='name of main (h(t)) channel, default: %(default)s')
@@ -302,7 +299,7 @@ else:
     page.p('No active analysis segments were found')
     page.div.close()
 
-#-- Read Transmons ---------------------------------------------------------
+# -- Read Transmons ---------------------------------------------------------
 
 transmons = ['%s:%s' % (args.ifo, c) for c in scattering.TRANSMON_CHANNELS]
 print(transmons)
@@ -328,11 +325,9 @@ for i, channel in enumerate(sorted(channelst)):
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
     optic = '-'.join(channel.split('-')[1].split('_')[:3])
     flag = '%s:TRANSMONS_SCATTERING_%s:1' % (args.ifo, optic)
-    transmon_segments[channel] = DataQualityFlag(flag,
-                                 isgood=False,
-           description="Evidence for scattering  in {}"
-           .format(channel))
-
+    transmon_segments[channel] = DataQualityFlag(
+       flag, isgood=False, description="Evidence for scattering  in {}"
+       .format(channel))
     for j, seg in enumerate(statea):
         logger.debug("Processing segment [%d .. %d)" % seg)
         tst = alldatat[j][channel]
@@ -350,12 +345,12 @@ for i, channel in enumerate(sorted(channelst)):
     if abs(transmon_segments[channel].active):
         activesegs.extend(transmon_segments[channel].active)
 
-      # Reading the active segments in a table and writing to a file.
+        # Reading the active segments in a table and writing to a file.
         tablet = Table([[i[0] for i in activesegs],
                         [i[1] for i in activesegs]],
                        names=("seg_start", "seg_end"))
         tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo,
-                  channel[7:13], gpsstr), overwrite=True)
+                     channel[7:13], gpsstr), overwrite=True)
         logger.info("Segments for the %s channel written." % channel)
 
     # Efficiency
@@ -368,7 +363,7 @@ for i, channel in enumerate(sorted(channelst)):
     logger.info("Efficiency (SNR>=8): %.2f%% (%d/%d)"
                 % (efficiencytpc, efficiencyt, len(highsnrtrigs)))
 
-   # Plot Segments.
+    # Plot Segments.
     if abs(transmon_segments[channel].active):
         page.div(class_='panel-group', id_='accordion1')
         page.add(htmlio.write_flag_html(
