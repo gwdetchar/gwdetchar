@@ -114,7 +114,7 @@ def get_fringe_frequency(series, multiplier=2.0):
 def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, fftlength=4,
              overlap=2, **kwargs):
     """ Generate blrms for a TimeSeries
-    
+
     Parameters
     ----------
     series  : `~gwpy.timeseries.TimeSeries` of the channel
