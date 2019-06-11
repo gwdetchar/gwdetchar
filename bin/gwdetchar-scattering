@@ -304,7 +304,7 @@ else:
     
 #-- Read Transmons ---------------------------------------------------------
 
-transmons = core.TRANSMON_CHANNELS
+transmons = transmons = ['%s:%s' % (args.ifo, c) for c in scattering.TRANSMON_CHANNELS]
 logger.info("Reading Transmons")
 alldatat = []
 
