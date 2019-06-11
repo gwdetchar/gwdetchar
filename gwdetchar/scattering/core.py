@@ -20,8 +20,6 @@
 """
 
 import numpy
-from gwpy.timeseries import TimeSeries
-
 from scipy.signal import savgol_filter
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -91,7 +89,7 @@ def get_fringe_frequency(series, multiplier=2.0):
     ----------
     series : `~gwpy.timeseries.TimeSeries`
         timeseries record of relative motion
-def
+        
     multiplier : `float`
         harmonic number of fringe frequency
 
@@ -112,6 +110,7 @@ def
     fringef.override_unit('Hz')
     return fringef
 
+
 def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, fftlength=4,
              overlap=2, **kwargs):
     """ Generate blrms for a TimeSeries
@@ -120,7 +119,7 @@ def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, fftlength=4,
     ----------
     series  : `~gwpy.timeseries.TimeSeries` of the channel
             for which blrms are to be computed.
-def
+            
     low : `float`
         lower limit of the bandpass frequency.
     high : `float`
@@ -132,9 +131,11 @@ def
     -------
     blrms : A whitened band passed time series.
      """
-    blrms = series.whiten(4, 2).bandpass(low, high).rms(stride)
-    return blrms
- 
+    wseries = series.whiten(fftlength=fftlength, overlap=overlap, **kwargs)
+    bpseries = wseries.bandpass(flow, fhigh)
+    return bpseries.rms(stride)
+    
+
 def get_segments(series, threshold, name=None):
     """ Generates segments from a series that are above
         some threshold
@@ -149,6 +150,7 @@ def get_segments(series, threshold, name=None):
     --------
     DataQualityFlag
     """
-    thresh = series > numpy.mean(series) + 6*numpy.std(series)
+    thresh = series > threshold
+    name = name or series.name
     threshflag = thresh.to_dqflag(name, round=True)
     return threshflag
