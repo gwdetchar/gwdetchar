@@ -333,11 +333,7 @@ for i, channel in enumerate(sorted(channelst)):
            description="Evidence for scattering  in {}"
            .format(channel))
 
-<<<<<<< HEAD
-    for j, seg in enumerate(statea):    
-=======
     for j, seg in enumerate(statea):
->>>>>>> 907bb95720d15a097ad60e28372d55ca9fdde841
         logger.debug("Processing segment [%d .. %d)" % seg)
         tst = alldatat[j][channel]
         blrms.append(scattering.get_blrms(tst, args.bandpass_low_freq,
