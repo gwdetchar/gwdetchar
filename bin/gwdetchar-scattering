@@ -375,7 +375,7 @@ for i, channel in enumerate(sorted(channelst)):
         page.add(htmlio.write_flag_html(
                 transmon_segments[channel], span, i, parent='accordion1', title=transmon_segments[channel].name,
                 context='success', plotdir=''))
-page.div.close()
+        page.div.close()
 print(transmon_segments)
 
 
