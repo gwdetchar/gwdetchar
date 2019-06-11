@@ -116,7 +116,7 @@ img {
 .btn-float {
 		@media(max-width:991px) {
 				display:none;
-        }
+		}
 		@media(min-width:992px) {
 				display: block;
 				position: fixed;
