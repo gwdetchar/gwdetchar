@@ -138,13 +138,13 @@ def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, fftlength=4,
 def get_segments(series, threshold, name=None):
     """ Generates segments from a series that are above
         some threshold
-        
+    
     Parameters
     ----------
     series  : `~gwpy.timeseries.TimeSeries` of the channel
             for which the segments are to be computed.
     name : name of the flag for the segments.
-    
+
     Returns
     --------
     DataQualityFlag
