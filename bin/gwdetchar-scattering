@@ -285,15 +285,22 @@ if args.state_flag is not None:
         plotdir='', facecolor=(0.2, 0.8, 0.2), edgecolor='darkgreen',
         known={'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4}))
     page.div.close()
-
-
     
+if statea:
+    page.p("The following channels were searched for evidence of scattering "
+           "(yellow = weak evidence, red = strong evidence):")
+    page.div(class_='panel-group', id_='accordion1')
     
-#____Transmons_______________________________________________________________
+else:
+    page.div(class_='alert alert-info')
+    page.p('No active analysis segments were found')
+    page.div.close()
+    
+#-- Read Transmons ---------------------------------------------------------
 
 transmons = core.TRANSMON_CHANNELS
 logger.info("Reading Transmons")
-alldatat = [] # this will contain the timeseries data of transmons
+alldatat = [] 
 
 for i, seg in enumerate(statea):
     alldatat.append(get_data(transmons, seg[0], seg[1], frametype=args.frametype,
@@ -323,32 +330,28 @@ for i, channel in enumerate(sorted(channelst)):
     for j, seg in enumerate(statea):            
         logger.debug("Processing segment [%d .. %d)" % seg)
         tst = alldatat[j][channel]
-        blrms.append(core.get_blrms(tst, args.bandpass_low_freq, args.bandpass_high_freq))
-        
-        
-       
-        
+        blrms.append(core.get_blrms(tst, args.bandpass_low_freq,
+        args.bandpass_high_freq))
+           
+    # Getting active segments from blrms      
     for i in range(len(blrms)):
       scattert = core.get_activesegs(blrms[i], name=flag)
       scattert.active = scattert.active.protract(args.segment_padding)
       scattert.coalesce()
-      
-     # activesegs.extend(scatter.active)
       transmon_segments[channel] += scattert
-      #activesegs.extend(core.get_activesegs(blrms[i]).active) ## Getting the active segments for blrms
+      
       
     if abs(transmon_segments[channel].active):
       activesegs.extend(transmon_segments[channel].active)
-    print("$$$$$$$$$$$$$$$$$$$$$$$$")
-    print(transmon_segments[channel])
-    print(activesegs)
     
-    
-    
-    tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]], names = ("seg_start","seg_end"))
+    # Reading the active segments in a table and writing to a file.
+    tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],
+                    names = ("seg_start","seg_end"))
     print(tablet)
-    tablet.write("{}-{}_blrms_{}.csv".format(args.ifo,channel[3:13],gpsstr),overwrite=True)
+    tablet.write("{}-{}_blrms_{}.csv".format(args.ifo,channel[3:13],gpsstr),
+                 overwrite=True)
     
+    # Efficiency
     efficiencyt = in_segmentlist(highsnrtrigs[names[0]],
                                 transmon_segments[channel].active).sum()
     try:
@@ -357,30 +360,16 @@ for i, channel in enumerate(sorted(channelst)):
         efficiencytpc = 0.
     logger.info("Efficiency (SNR>=8): %.2f%% (%d/%d)"
                 % (efficiencytpc, efficiencyt, len(highsnrtrigs)))
-    
-    
+   
    # Plot Segments.
     if abs(transmon_segments[channel].active):
-        #page.p()
         page.div(class_='panel-group', id_='accordion1')
-        #page.div(class_='panel-heading')
         page.add(htmlio.write_flag_html(
-                transmon_segments[channel], span, i, parent='accordion1', title=transmon_segments[channel].name,
+                transmon_segments[channel], span, i, parent='accordion1', 
+                title=transmon_segments[channel].name,
                 context='success', plotdir=''))
         page.div.close()
-print(transmon_segments)
 
-
-#-------HTML------------
-if statea:
-    page.p("The following channels were searched for evidence of scattering "
-           "(yellow = weak evidence, red = strong evidence):")
-    page.div(class_='panel-group', id_='accordion1')
-    
-else:
-    page.div(class_='alert alert-info')
-    page.p('No active analysis segments were found')
-    page.div.close()
 # -- find scattering evidence -------------------------------------------------
 
 allchannels = ['%s:%s' % (args.ifo, c) for optic in args.optic for
