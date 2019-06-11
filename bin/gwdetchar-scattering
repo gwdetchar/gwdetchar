@@ -349,11 +349,11 @@ for i, channel in enumerate(sorted(channelst)):
         activesegs.extend(transmon_segments[channel].active)
     
       # Reading the active segments in a table and writing to a file.
-       tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],
+        tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],
                     names = ("seg_start","seg_end"))
-       tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo, 
+        tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo, 
                   channel[7:13], gpsstr), overwrite=True)
-       logger.info("Segments for the %s channel written." % channel)
+        logger.info("Segments for the %s channel written." % channel)
       
     # Efficiency
     efficiencyt = in_segmentlist(highsnrtrigs[names[0]], 
