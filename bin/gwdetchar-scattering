@@ -286,15 +286,7 @@ if args.state_flag is not None:
         known={'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4}))
     page.div.close()
 
-if statea:
-    page.p("The following channels were searched for evidence of scattering "
-           "(yellow = weak evidence, red = strong evidence):")
-    page.div(class_='panel-group', id_='accordion1')
-    
-else:
-    page.div(class_='alert alert-info')
-    page.p('No active analysis segments were found')
-    page.div.close()
+
     
     
 #____Transmons_______________________________________________________________
@@ -370,7 +362,7 @@ for i, channel in enumerate(sorted(channelst)):
    # Plot Segments.
     if abs(transmon_segments[channel].active):
         #page.p()
-        #page.div(class_='panel-group', id_='accordion1')
+        page.div(class_='panel-group', id_='accordion1')
         #page.div(class_='panel-heading')
         page.add(htmlio.write_flag_html(
                 transmon_segments[channel], span, i, parent='accordion1', title=transmon_segments[channel].name,
@@ -379,6 +371,16 @@ for i, channel in enumerate(sorted(channelst)):
 print(transmon_segments)
 
 
+#-------HTML------------
+if statea:
+    page.p("The following channels were searched for evidence of scattering "
+           "(yellow = weak evidence, red = strong evidence):")
+    page.div(class_='panel-group', id_='accordion1')
+    
+else:
+    page.div(class_='alert alert-info')
+    page.p('No active analysis segments were found')
+    page.div.close()
 # -- find scattering evidence -------------------------------------------------
 
 allchannels = ['%s:%s' % (args.ifo, c) for optic in args.optic for
