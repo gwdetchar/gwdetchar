@@ -326,13 +326,13 @@ for i, channel in enumerate(sorted(channelst)):
     optic = '-'.join(channel.split('-')[1].split('_')[:3])
     flag = '%s:TRANSMONS_SCATTERING_%s:1' % (args.ifo, optic)
     transmon_segments[channel] = DataQualityFlag(
-       flag, isgood=False, description="Evidence for scattering  in {}"
-       .format(channel))
+        flag, isgood=False, description="Evidence for scattering  in {}"
+        .format(channel))
     for j, seg in enumerate(statea):
         logger.debug("Processing segment [%d .. %d)" % seg)
         tst = alldatat[j][channel]
         blrms.append(scattering.get_blrms(tst, args.bandpass_low_freq,
-        args.bandpass_high_freq))
+                     args.bandpass_high_freq))
 
     # Getting active segments from blrms
     for i in range(len(blrms)):
@@ -367,9 +367,9 @@ for i, channel in enumerate(sorted(channelst)):
     if abs(transmon_segments[channel].active):
         page.div(class_='panel-group', id_='accordion1')
         page.add(htmlio.write_flag_html(
-                transmon_segments[channel], span, i, parent='accordion1',
-                title=transmon_segments[channel].name,
-                context='success', plotdir=''))
+                 transmon_segments[channel], span, i, parent='accordion1',
+                 title=transmon_segments[channel].name,
+                 context='success', plotdir=''))
         page.div.close()
 
 # -- find scattering evidence -------------------------------------------------
