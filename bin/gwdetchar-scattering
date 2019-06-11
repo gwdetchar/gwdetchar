@@ -342,7 +342,7 @@ for i, channel in enumerate(sorted(channelst)):
            
     # Getting active segments from blrms      
     for i in range(len(blrms)):
-        threshold = np.mean(blrms[i]) + 6*np.std(blrms[i])
+        threshold = numpy.mean(blrms[i]) + 6*numpy.std(blrms[i])
         scattert = core.get_segments(blrms[i], threshold, name=flag)
         scattert.active = scattert.active.protract(args.segment_padding)
         scattert.coalesce()
