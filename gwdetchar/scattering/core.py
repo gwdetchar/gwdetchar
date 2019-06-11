@@ -112,16 +112,43 @@ def
     fringef.override_unit('Hz')
     return fringef
 
-
 def get_blrms(series, low=4.0, high=10.0, stride=1):
-
-
+    """ Generate blrms for a TimeSeries
+    
+    Parameters
+    ----------
+    series  : `~gwpy.timeseries.TimeSeries` of the channel
+            for which blrms are to be computed.
+def
+    low : `float`
+        lower limit of the bandpass frequency.
+    high : `float`
+         upper limit of the bandpass frequency.
+    stride: `float`
+           time duration of the stride for rms
+           
+    Returns
+    -------
+    blrms : A whitened band passed time series.
+     """
     blrms = series.whiten(4, 2).bandpass(low, high).rms(stride)
-   
     return blrms
  
 def get_activesegs(series, name):
+    """ Generates segments from a series that are above
+        some threshold
+        
+    Parameters
+    ----------
+    series  : `~gwpy.timeseries.TimeSeries` of the channel
+            for which the segments are to be computed.
+def
+    name : name of the flag for the segments.
     
+    Returns
+    --------
+    DataQualityFlag
+    """
     thresh = series > numpy.mean(series) + 6*numpy.std(series)
     threshflag = thresh.to_dqflag(name, round=True)
     return threshflag
