@@ -359,7 +359,7 @@ for i, channel in enumerate(sorted(channelst)):
         logger.info("Segments for the %s channel written." % channel)
 
     # Efficiency
-    efficiencyt = in_segmentlist(highsnrtrigs[names[0]], 
+    efficiencyt = in_segmentlist(highsnrtrigs[names[0]],
                                  transmon_segments[channel].active).sum()
     try:
         efficiencytpc = efficiencyt / len(highsnrtrigs) * 100
