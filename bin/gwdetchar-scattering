@@ -316,8 +316,7 @@ try:
     channelst = alldatat[0].keys()
 except IndexError:
     channelst = []
-    
-# initiating a dictionary to contain the flag and active segments during that flag.    
+
 transmon_segments = DataQualityDict() 
 
 for i, channel in enumerate(sorted(channelst)):  
@@ -347,14 +346,14 @@ for i, channel in enumerate(sorted(channelst)):
         transmon_segments[channel] += scattert
       
     if abs(transmon_segments[channel].active):
-      activesegs.extend(transmon_segments[channel].active)
+        activesegs.extend(transmon_segments[channel].active)
     
       # Reading the active segments in a table and writing to a file.
       tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],
                     names = ("seg_start","seg_end"))
       tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo, 
                   channel[7:13], gpsstr), overwrite=True)
-      logger.info("Segments for the %s channel written."% channel)
+      logger.info("Segments for the %s channel written." % channel)
       
     # Efficiency
     efficiencyt = in_segmentlist(highsnrtrigs[names[0]], 
