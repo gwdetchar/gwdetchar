@@ -364,6 +364,8 @@ for i, channel in enumerate(sorted(channelst)):
         #page.p()
         page.div(class_='panel-group', id_='accordion1')
         #page.div(class_='panel-heading')
+        page.a(channel, class_="panel-title", href='#flag%s' % i,
+           **{'data-toggle': 'collapse', 'data-parent': '#accordion'})
         page.add(htmlio.write_flag_html(
                 transmon_segments[channel], span, i, parent='accordion1', title=transmon_segments[channel].name,
                 context='success', plotdir=''))
