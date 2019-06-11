@@ -339,7 +339,7 @@ for i, channel in enumerate(sorted(channelst)):
         blrms.append(scattering.get_blrms(tst, args.bandpass_low_freq,
         args.bandpass_high_freq))
 
-    # Getting active segments from blrms      
+    # Getting active segments from blrms
     for i in range(len(blrms)):
         threshold = numpy.mean(blrms[i]) + 6*numpy.std(blrms[i])
         scattert = scattering.get_segments(blrms[i], threshold, name=flag)
