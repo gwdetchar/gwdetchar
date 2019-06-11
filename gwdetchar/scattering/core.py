@@ -118,8 +118,7 @@ def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, fftlength=4,
     Parameters
     ----------
     series  : `~gwpy.timeseries.TimeSeries` of the channel
-            for which blrms are to be computed.
-    
+            for which blrms are to be computed.  
     low : `float`
         lower limit of the bandpass frequency.
     high : `float`
