@@ -301,7 +301,7 @@ else:
     page.div(class_='alert alert-info')
     page.p('No active analysis segments were found')
     page.div.close()
-    
+
 #-- Read Transmons ---------------------------------------------------------
 
 transmons = ['%s:%s' % (args.ifo, c) for c in scattering.TRANSMON_CHANNELS]
@@ -311,7 +311,7 @@ logger.info("Reading Transmons")
 alldatat = []
 
 for i, seg in enumerate(statea):
-    alldatat.append(get_data(transmons, seg[0], seg[1], 
+    alldatat.append(get_data(transmons, seg[0], seg[1],
                              frametype=args.frametype, 
                              nproc=args.nproc))
 try:
@@ -351,7 +351,7 @@ for i, channel in enumerate(sorted(channelst)):
         activesegs.extend(transmon_segments[channel].active)
     
       # Reading the active segments in a table and writing to a file.
-        tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]], 
+        tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],
                        names=("seg_start","seg_end"))
         tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo, 
                   channel[7:13], gpsstr), overwrite=True)
