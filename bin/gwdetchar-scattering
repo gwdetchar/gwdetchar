@@ -354,7 +354,7 @@ for i, channel in enumerate(sorted(channelst)):
         tablet = Table([[i[0] for i in activesegs],
                         [i[1] for i in activesegs]],
                        names=("seg_start", "seg_end"))
-        tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo, 
+        tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo,
                   channel[7:13], gpsstr), overwrite=True)
         logger.info("Segments for the %s channel written." % channel)
 
@@ -372,8 +372,8 @@ for i, channel in enumerate(sorted(channelst)):
     if abs(transmon_segments[channel].active):
         page.div(class_='panel-group', id_='accordion1')
         page.add(htmlio.write_flag_html(
-                transmon_segments[channel], span, i, parent='accordion1', 
-                title=transmon_segments[channel].name, 
+                transmon_segments[channel], span, i, parent='accordion1',
+                title=transmon_segments[channel].name,
                 context='success', plotdir=''))
         page.div.close()
 
