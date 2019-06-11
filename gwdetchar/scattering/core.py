@@ -76,7 +76,7 @@ OPTIC_MOTION_CHANNELS = {
     'TMSY': ['SUS-TMSY_M1_DAMP_L_IN1_DQ'],
 }
 
-TRANSMON_CHANNELS = ['ASC-X_TR_B_NSUM_OUT_DQ', 
+TRANSMON_CHANNELS = ['ASC-X_TR_B_NSUM_OUT_DQ',
                      'ASC-Y_TR_B_NSUM_OUT_DQ']
 
 FREQUENCY_MULTIPLIERS = range(1, 5)
@@ -112,7 +112,7 @@ def get_fringe_frequency(series, multiplier=2.0):
 
 
 def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, fftlength=4,
-             overlap=2, **kwargs):
+              overlap=2, **kwargs):
     """ Generate blrms for a TimeSeries
 
     Parameters
