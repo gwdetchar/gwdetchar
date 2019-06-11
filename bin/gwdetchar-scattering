@@ -98,10 +98,10 @@ parser.add_argument('-s', '--segment-start-pad', type=float, default=30.0,
 parser.add_argument('-e', '--segment-end-pad', type=float, default=30.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
-parser.add_argument('-L','--bandpass-low-freq', type=float, default=4.0, 
+parser.add_argument('-L', '--bandpass-low-freq', type=float, default=4.0, 
                     help='the lower limit of the bandpass frequency for'
                     ' whitened transmons blrms')
-parser.add_argument('-H','--bandpass-high-freq', type=float, default=10.0,
+parser.add_argument('-H', '--bandpass-high-freq', type=float, default=10.0,
                      help='the upper limit of the bandpass frequency for'
                      'whitened transmons blrms')
 parser.add_argument('-c', '--main-channel',
@@ -173,8 +173,8 @@ if args.state_flag is not None:
     logger.debug("Downloaded %d segments for %s [%.2fs livetime]"
                  % (len(statea), args.state_flag, livetime))
 else:
-    statea = SegmentList([span])
-    
+    statea = SegmentList([span])    
+
 # -- load h(t) -------------------------------------------------------
 
 args.main_channel = args.main_channel.format(IFO=args.ifo)
@@ -356,7 +356,6 @@ for i, channel in enumerate(sorted(channelst)):
                   channel[7:13], gpsstr), overwrite=True)
       logger.info("Segments for the %s channel written." %channel)
       
-    
     # Efficiency
     efficiencyt = in_segmentlist(highsnrtrigs[names[0]], 
                                  transmon_segments[channel].active).sum()
