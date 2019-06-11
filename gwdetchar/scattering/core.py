@@ -135,7 +135,7 @@ def
     blrms = series.whiten(4, 2).bandpass(low, high).rms(stride)
     return blrms
  
-def get_activesegs(series, name):
+def get_segments(series, threshold, name=None):
     """ Generates segments from a series that are above
         some threshold
         
