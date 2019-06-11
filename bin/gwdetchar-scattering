@@ -281,13 +281,13 @@ page.p.close()
 page.p()
 page.add('Active segments from the blrms of L1:ASC-X_TR_B_NSUM_OUT_DQ'
          'are recorded in a csv file here:')
-page.a(os.path.basename(xtrbfile), href=summfile, target='_blank')
+page.a(os.path.basename(xtrbfile), href=xtrbfile, target='_blank')
 page.p.close()
 # link Y_TR_B file.
 page.p()
 page.add('Active segments from the blrms of L1:ASC-Y_TR_B_NSUM_OUT_DQ'
          'are recorded in a csv file here:')
-page.a(os.path.basename(ytrbfile), href=summfile, target='_blank')
+page.a(os.path.basename(ytrbfile), href=ytrbfile, target='_blank')
 page.p.close()
 
 
