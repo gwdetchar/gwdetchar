@@ -101,10 +101,10 @@ parser.add_argument('-s', '--segment-start-pad', type=float, default=30.0,
 parser.add_argument('-e', '--segment-end-pad', type=float, default=30.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
-parser.add_argument('-lb','--bandpass-low-freq', type=float, default=4.0,
+parser.add_argument('-lb','--bandpass_low_freq', type=float, default=4.0,
                      help='the lower limit of the bandpass frequency for'
                     ' whitened transmons blrms')
-parser.add_argument('-hb','--bandpass-high-freq', type=float, default=10.0,
+parser.add_argument('-hb','--bandpass_high_freq', type=float, default=10.0,
                      help='the upper limit of the bandpass frequency for'
                      'whitened transmons blrms')
 parser.add_argument('-c', '--main-channel',
@@ -331,7 +331,7 @@ for i, channel in enumerate(sorted(channelst)):
     for j, seg in enumerate(statea):            
         logger.debug("Processing segment [%d .. %d)" % seg)
         tst = alldatat[j][channel]
-        blrms.append(core.get_blrms(tst))
+        blrms.append(core.get_blrms(tst, args.bandpass_low_freq, args.bandpass_high_freq))
         
         
        
