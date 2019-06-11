@@ -146,8 +146,6 @@ os.chdir(args.output_dir)
 
 segfile = '%s-SCATTERING_SEGMENTS_%s_HZ-%s.h5' % (args.ifo, tstr, gpsstr)
 summfile = '{}-SCATTERING_SUMMARY-{}.csv'.format(args.ifo, gpsstr)
-blrmsxtrb = '{}-BLRMS_X_TR_B-{}.csv'.format(args.ifo, gpsstr)
-blrmsytrb = '{}-BLRMS_Y_TR_B-{}.csv'.format(args.ifo, gpsstr)
 
 logger.info('{} Scattering {}-{}'.format(
     args.ifo, int(args.gpsstart), int(args.gpsend)))
@@ -370,14 +368,14 @@ for i, channel in enumerate(sorted(channelst)):
     
    # Plot Segments.
     if abs(transmon_segments[channel].active):
-        page.p('The following transmon showed evidence of scattering):')
+        page.p()
         page.div(class_='panel-group', id_='accordion1')
         page.add(htmlio.write_flag_html(
                 transmon_segments[channel], span, i, parent='accordion1', title=transmon_segments[channel].name,
                 context='success', plotdir=''))
         page.div.close()
 print(transmon_segments)
-#transmon_segments.write(segfile, path="segments")
+
 
 # -- find scattering evidence -------------------------------------------------
 
