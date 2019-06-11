@@ -156,7 +156,6 @@ logger.info('{} Scattering {}-{}'.format(
 
 span = Segment(args.gpsstart, args.gpsend)
 
-
 # get segments
 if args.state_flag is not None:
     state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
@@ -178,9 +177,7 @@ if args.state_flag is not None:
                  % (len(statea), args.state_flag, livetime))
 else:
     statea = SegmentList([span])
-    
-    
-                    
+                   
 # -- load h(t) ----------------------------------------------------------------
 
 args.main_channel = args.main_channel.format(IFO=args.ifo)
@@ -239,8 +236,6 @@ else:  # no files (no livetime?)
 
 highsnrtrigs = trigs[trigs['snr'] >= 8]
 logger.debug("%d read" % len(trigs))
-
-
 
 # -- prepare HTML -------------------------------------------------------------
 
