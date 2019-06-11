@@ -100,8 +100,8 @@ parser.add_argument('-s', '--segment-start-pad', type=float, default=30.0,
 parser.add_argument('-e', '--segment-end-pad', type=float, default=30.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
-parser.add_argument('-lb','--bandpass_low_freq', type=float, default=4.0,
-                     help='the lower limit of the bandpass frequency for'
+parser.add_argument('-lb','--bandpass_low_freq', type=float, default=4.0, 
+                    help='the lower limit of the bandpass frequency for'
                     ' whitened transmons blrms')
 parser.add_argument('-hb','--bandpass_high_freq', type=float, default=10.0,
                      help='the upper limit of the bandpass frequency for'
@@ -176,7 +176,7 @@ if args.state_flag is not None:
                  % (len(statea), args.state_flag, livetime))
 else:
     statea = SegmentList([span])
-                   
+    
 # -- load h(t) ----------------------------------------------------------------
 
 args.main_channel = args.main_channel.format(IFO=args.ifo)
@@ -308,11 +308,12 @@ else:
 
 transmons = core.TRANSMON_CHANNELS
 logger.info("Reading Transmons")
-alldatat = [] 
+alldatat = []
 
 for i, seg in enumerate(statea):
-    alldatat.append(get_data(transmons, seg[0], seg[1], frametype=args.frametype,
-                 nproc=args.nproc))
+    alldatat.append(get_data(transmons, seg[0], seg[1], 
+                    frametype=args.frametype,
+                    nproc=args.nproc))
 try:
     channelst = alldatat[0].keys()
 except IndexError:
@@ -328,12 +329,10 @@ for i, channel in enumerate(sorted(channelst)):
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
     optic = '-'.join(channel.split('-')[1].split('_')[:3])
     flag = '%s:TRANSMONS_SCATTERING_%s:1' % (args.ifo, optic)
-    transmon_segments[channel] = DataQualityFlag(
-        flag,
-        isgood=False,
-        description="Evidence for scattering  in {}"
-      .format(channel),
-    )
+    transmon_segments[channel] = DataQualityFlag(flag, 
+    isgood=False, 
+    description="Evidence for scattering  in {}"
+    .format(channel))
     
     for j, seg in enumerate(statea):            
         logger.debug("Processing segment [%d .. %d)" % seg)
@@ -343,11 +342,11 @@ for i, channel in enumerate(sorted(channelst)):
            
     # Getting active segments from blrms      
     for i in range(len(blrms)):
-      threshold = np.mean(blrms[i]) + 6*np.std(blrms[i])
-      scattert = core.get_segments(blrms[i], threshold, name=flag)
-      scattert.active = scattert.active.protract(args.segment_padding)
-      scattert.coalesce()
-      transmon_segments[channel] += scattert
+        threshold = np.mean(blrms[i]) + 6*np.std(blrms[i])
+        scattert = core.get_segments(blrms[i], threshold, name=flag)
+        scattert.active = scattert.active.protract(args.segment_padding)
+        scattert.coalesce()
+        transmon_segments[channel] += scattert
       
     if abs(transmon_segments[channel].active):
       activesegs.extend(transmon_segments[channel].active)
@@ -355,14 +354,14 @@ for i, channel in enumerate(sorted(channelst)):
       # Reading the active segments in a table and writing to a file.
       tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],
                     names = ("seg_start","seg_end"))
-      tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo,
-                  channel[7:13],gpsstr),overwrite=True)
-      logger.info("Segments for the %s channel written."%channel)
+      tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo, 
+                  channel[7:13], gpsstr), overwrite=True)
+      logger.info("Segments for the %s channel written." %channel)
       
     
     # Efficiency
-    efficiencyt = in_segmentlist(highsnrtrigs[names[0]],
-                                transmon_segments[channel].active).sum()
+    efficiencyt = in_segmentlist(highsnrtrigs[names[0]], 
+                                 transmon_segments[channel].active).sum()
     try:
         efficiencytpc = efficiencyt / len(highsnrtrigs) * 100
     except ZeroDivisionError:
@@ -375,7 +374,7 @@ for i, channel in enumerate(sorted(channelst)):
         page.div(class_='panel-group', id_='accordion1')
         page.add(htmlio.write_flag_html(
                 transmon_segments[channel], span, i, parent='accordion1', 
-                title=transmon_segments[channel].name,
+                title=transmon_segments[channel].name, 
                 context='success', plotdir=''))
         page.div.close()
 
