@@ -112,7 +112,8 @@ def
     fringef.override_unit('Hz')
     return fringef
 
-def get_blrms(series, low=4.0, high=10.0, stride=1):
+def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, fftlength=4,
+             overlap=2, **kwargs):
     """ Generate blrms for a TimeSeries
     
     Parameters
