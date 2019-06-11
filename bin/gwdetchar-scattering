@@ -296,7 +296,7 @@ if statea:
     page.p("The following channels were searched for evidence of scattering "
            "(yellow = weak evidence, red = strong evidence):")
     page.div(class_='panel-group', id_='accordion1')
-    
+
 else:
     page.div(class_='alert alert-info')
     page.p('No active analysis segments were found')
@@ -312,8 +312,8 @@ alldatat = []
 
 for i, seg in enumerate(statea):
     alldatat.append(get_data(transmons, seg[0], seg[1], 
-                    frametype=args.frametype,
-                    nproc=args.nproc))
+                             frametype=args.frametype, 
+                             nproc=args.nproc))
 try:
     channelst = alldatat[0].keys()
 except IndexError:
@@ -332,13 +332,13 @@ for i, channel in enumerate(sorted(channelst)):
     isgood=False, 
     description="Evidence for scattering  in {}"
     .format(channel))
-    
+
     for j, seg in enumerate(statea):            
         logger.debug("Processing segment [%d .. %d)" % seg)
         tst = alldatat[j][channel]
         blrms.append(scattering.get_blrms(tst, args.bandpass_low_freq,
         args.bandpass_high_freq))
-           
+ 
     # Getting active segments from blrms      
     for i in range(len(blrms)):
         threshold = numpy.mean(blrms[i]) + 6*numpy.std(blrms[i])
@@ -346,7 +346,7 @@ for i, channel in enumerate(sorted(channelst)):
         scattert.active = scattert.active.protract(args.segment_padding)
         scattert.coalesce()
         transmon_segments[channel] += scattert
-      
+
     if abs(transmon_segments[channel].active):
         activesegs.extend(transmon_segments[channel].active)
     
@@ -356,7 +356,7 @@ for i, channel in enumerate(sorted(channelst)):
         tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo, 
                   channel[7:13], gpsstr), overwrite=True)
         logger.info("Segments for the %s channel written." % channel)
-      
+
     # Efficiency
     efficiencyt = in_segmentlist(highsnrtrigs[names[0]], 
                                  transmon_segments[channel].active).sum()
@@ -366,7 +366,7 @@ for i, channel in enumerate(sorted(channelst)):
         efficiencytpc = 0.
     logger.info("Efficiency (SNR>=8): %.2f%% (%d/%d)"
                 % (efficiencytpc, efficiencyt, len(highsnrtrigs)))
-   
+
    # Plot Segments.
     if abs(transmon_segments[channel].active):
         page.div(class_='panel-group', id_='accordion1')
