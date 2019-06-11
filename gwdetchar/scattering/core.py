@@ -143,7 +143,6 @@ def get_segments(series, threshold, name=None):
     ----------
     series  : `~gwpy.timeseries.TimeSeries` of the channel
             for which the segments are to be computed.
-def
     name : name of the flag for the segments.
     
     Returns
