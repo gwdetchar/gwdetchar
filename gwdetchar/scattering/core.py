@@ -133,7 +133,7 @@ def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, fftlength=4,
     wseries = series.whiten(fftlength=fftlength, overlap=overlap, **kwargs)
     bpseries = wseries.bandpass(flow, fhigh)
     return bpseries.rms(stride)
-    
+
 
 def get_segments(series, threshold, name=None):
     """ Generates segments from a series that are above
