@@ -146,6 +146,8 @@ os.chdir(args.output_dir)
 
 segfile = '%s-SCATTERING_SEGMENTS_%s_HZ-%s.h5' % (args.ifo, tstr, gpsstr)
 summfile = '{}-SCATTERING_SUMMARY-{}.csv'.format(args.ifo, gpsstr)
+xtrbfile = '{}-TRANSMON_X_TR_B_SEGS-{}.csv'.format(args.ifo,gpsstr)
+ytrbfile = '{}-TRANSMON_Y_TR_B_SEGS-{}.csv'.format(args.ifo,gpsstr)
 
 logger.info('{} Scattering {}-{}'.format(
     args.ifo, int(args.gpsstart), int(args.gpsend)))
@@ -275,6 +277,19 @@ page.add('A summary of triggers that occur during active scattering '
          'segments is recorded in CSV format here:')
 page.a(os.path.basename(summfile), href=summfile, target='_blank')
 page.p.close()
+# link X_TR_B file.
+page.p()
+page.add('Active segments from the blrms of L1:ASC-X_TR_B_NSUM_OUT_DQ'
+         'are recorded in a csv file here:')
+page.a(os.path.basename(xtrbfile), href=summfile, target='_blank')
+page.p.close()
+# link Y_TR_B file.
+page.p()
+page.add('Active segments from the blrms of L1:ASC-Y_TR_B_NSUM_OUT_DQ'
+         'are recorded in a csv file here:')
+page.a(os.path.basename(ytrbfile), href=summfile, target='_blank')
+page.p.close()
+
 
 # record state segments
 if args.state_flag is not None:
@@ -344,12 +359,13 @@ for i, channel in enumerate(sorted(channelst)):
     if abs(transmon_segments[channel].active):
       activesegs.extend(transmon_segments[channel].active)
     
-    # Reading the active segments in a table and writing to a file.
-    tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],
+      # Reading the active segments in a table and writing to a file.
+      tablet = Table([[i[0] for i in activesegs],[i[1] for i in activesegs]],
                     names = ("seg_start","seg_end"))
-    print(tablet)
-    tablet.write("{}-{}_blrms_{}.csv".format(args.ifo,channel[3:13],gpsstr),
+      tablet.write('{}-TRANSMON_{}_SEGS-{}.csv'.format(args.ifo,channel[7:13],gpsstr)
                  overwrite=True)
+      logger.info("Segments for the %s channel written."%channel)
+      
     
     # Efficiency
     efficiencyt = in_segmentlist(highsnrtrigs[names[0]],
