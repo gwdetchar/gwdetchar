@@ -130,7 +130,8 @@ def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, fftlength=4,
     -------
     blrms : A whitened band passed time series.
      """
-    wseries = series.whiten(fftlength=fftlength, overlap=overlap, **kwargs)
+    if whiten:
+        series = series.whiten(fftlength=fftlength, overlap=overlap, **kwargs)
     bpseries = wseries.bandpass(flow, fhigh)
     return bpseries.rms(stride)
 
