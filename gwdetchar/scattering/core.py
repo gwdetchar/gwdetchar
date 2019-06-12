@@ -181,7 +181,7 @@ def get_segments(series, threshold, name=None):
         the populated data-quality flag
     """
 
-    thresh = series > threshold
+    thresh = series >= threshold
     name = name or series.name
-    threshflag = thresh.to_dqflag(name, round=True)
+    threshflag = thresh.to_dqflag(name)
     return threshflag
