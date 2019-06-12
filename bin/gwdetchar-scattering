@@ -294,7 +294,6 @@ if statea:
     page.p("The following channels were searched for evidence of scattering "
            "(yellow = weak evidence, red = strong evidence):")
     page.div(class_='panel-group', id_='accordion1')
-
 else:
     page.div(class_='alert alert-info')
     page.p('No active analysis segments were found')
