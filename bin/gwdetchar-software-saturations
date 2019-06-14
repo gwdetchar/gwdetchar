@@ -196,7 +196,7 @@ logger.info("Saturation segments written to \n%s" % outfile)
 
 if args.html:
     # get base path
-    base = os.path.dirname(os.path.abspath(args.html))
+    base = os.path.dirname(args.html)
     os.chdir(base)
     if args.plot:
         args.plot = base

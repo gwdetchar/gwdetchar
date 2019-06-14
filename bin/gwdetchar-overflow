@@ -234,7 +234,7 @@ logger.info("Written output to %s" % args.output_file)
 # write HTML
 if args.html:
     # get base path
-    base = os.path.dirname(os.path.abspath(args.html))
+    base = os.path.dirname(args.html)
     os.chdir(base)
     if args.plot:
         args.plot = base
