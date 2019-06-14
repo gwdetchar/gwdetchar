@@ -180,7 +180,6 @@ def get_segments(series, threshold, name=None):
     threshflag : `~gwpy.segments.DataQualityFlag`
         the populated data-quality flag
     """
-
     thresh = series >= threshold
     name = name or series.name
     threshflag = thresh.to_dqflag(name)
