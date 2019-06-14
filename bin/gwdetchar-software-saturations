@@ -195,8 +195,11 @@ saturations.write(outfile, path="segments", overwrite=True)
 logger.info("Saturation segments written to \n%s" % outfile)
 
 if args.html:
+    # get base path
+    base = os.path.dirname(os.path.abspath(args.html))
+    os.chdir(base)
     if args.plot:
-        args.plot = os.path.dirname(args.html)
+        args.plot = base
     segfile = os.path.relpath(outfile, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
         links = [(s, '#%s' % s.lower())
