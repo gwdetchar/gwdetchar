@@ -33,7 +33,7 @@ $(document).ready(function() {
     prevEffect: 'none',
     helpers: {title: {type: 'inside'}}
   });
-}
+});
 
 // expose alternative image types
 function showImage(channelName, tRanges, imageType, captions) {
@@ -47,7 +47,7 @@ function showImage(channelName, tRanges, imageType, captions) {
       "plots/" + fileBase + ".png";
     document.getElementById("img_" + idBase).alt = fileBase + ".png";
   };
-};
+}
 
 // download a CSV table
 function downloadCSV(csv, filename) {
