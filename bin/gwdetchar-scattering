@@ -437,7 +437,7 @@ for i, channel in enumerate(sorted(osems)):
     name = texify(channel)
     axes['position'].set_title("Scattering evidence in %s" % name)
     axes['position'].set_xlabel('')
-    axes['position'].set_ylabel(r'Position [\textmu m]')
+    axes['position'].set_ylabel(r'Position [$\mu$m]')
     axes['position'].text(
         0.01, 0.95, 'Optic position',
         transform=axes['position'].transAxes, va='top', ha='left',
