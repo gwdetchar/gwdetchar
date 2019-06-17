@@ -33,6 +33,8 @@ from io import StringIO
 
 import numpy
 
+from MarkupPy import markup
+
 from matplotlib import (use, rcParams)
 use('agg')  # noqa
 
@@ -96,8 +98,16 @@ parser.add_argument('-s', '--segment-start-pad', type=float, default=30.0,
 parser.add_argument('-e', '--segment-end-pad', type=float, default=30.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
-parser.add_argument('-c', '--main-channel',
-                    default='{IFO}:GDS-CALIB_STRAIN',
+parser.add_argument('-L', '--bandpass-flow', type=float, default=4.0,
+                    help='lower-limit (Hz) of the passband for whitened '
+                         'BLRMS, default: %(default)s')
+parser.add_argument('-H', '--bandpass-fhigh', type=float, default=10.0,
+                    help='upper-limit (Hz) of the passband for whitened '
+                         'BLRMS, default: %(default)s')
+parser.add_argument('-S', '--sigma', type=float, default=6,
+                    help='significance threshold on whitened BLRMS, '
+                         'default: %(default)s')
+parser.add_argument('-c', '--main-channel', default='{IFO}:GDS-CALIB_STRAIN',
                     help='name of main (h(t)) channel, default: %(default)s')
 cli.add_frametype_option(parser, default='%s_R' % const.IFO)
 parser.add_argument('-o', '--output-dir', type=os.path.abspath,
@@ -133,8 +143,8 @@ if not os.path.isdir(args.output_dir):
     os.makedirs(args.output_dir)
 os.chdir(args.output_dir)
 
-segfile = '%s-SCATTERING_SEGMENTS_%s_HZ-%s.h5' % (args.ifo, tstr, gpsstr)
 summfile = '{}-SCATTERING_SUMMARY-{}.csv'.format(args.ifo, gpsstr)
+segfile = '{}-SCATTERING_SEGMENTS_{}_HZ-{}.h5'.format(args.ifo, tstr, gpsstr)
 
 logger.info('{} Scattering {}-{}'.format(
     args.ifo, int(args.gpsstart), int(args.gpsend)))
@@ -226,9 +236,16 @@ logger.debug("%d read" % len(trigs))
 
 # -- prepare HTML -------------------------------------------------------------
 
-links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Segments']]
+links = [
+    ('Parameters', '#parameters'),
+    ('Segments', (
+        ('State flag', '#state-flag'),
+        ('Optical sensors', '#osems'),
+        ('Transmons', '#transmons'),
+    )),
+]
 if args.omega_scans:
-    links.append(('Omega Scans', '#omega-scans'))
+    links.append(('Scans', '#omega-scans'))
 (brand, class_) = htmlio.get_brand(args.ifo, 'Scattering', args.gpsstart)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(
@@ -237,32 +254,54 @@ page = htmlio.new_bootstrap_page(
 page.div(class_='page-header')
 page.h1('%s Scattering: %d-%d'
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
-page.p("This analysis searched for evidence of beam scattering between {} and "
-       "{} Hz based on the velocity of optic motion. The fringe frequency is "
-       "projected using equation (3) of <a href=\"http://iopscience.iop.org/"
-       "article/10.1088/0264-9381/27/19/194011\" target=\"_blank\">Accadia "
-       "et al. (2010)</a>.".format(args.fmin,
-                                   multiplier * args.frequency_threshold))
-page.div.close()
+page.div.close()  # page-header
 page.add(htmlio.write_arguments(
     [], start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag))
+page.add('<hr class="row-divider">')
 
-# link segments file
+# link to summary files
+page.div(class_='btn-group desktop-only')
+page.button(id_='summary-download', type='button',
+            class_='btn btn-default dropdown-toggle',
+            **{'data-toggle': 'dropdown'})
+page.add('Download summary <span class="caret"></span>')
+page.button.close()
+page.ul(class_='dropdown-menu', role='menu',
+        **{'aria-labelledby': 'summary_table_download'})
+for text, path in zip(
+    ['Segments', 'Triggers'],
+    [segfile, summfile]
+):
+    page.li(markup.oneliner.a(text, href=path, download=path))
+page.ul.close()
+page.div.close()  # btn-group
+
+# section header
 page.h2('Segments', id_='segments')
-page.p()
-page.add('Full output segments are recorded in HDF5 format here:')
-page.a(os.path.basename(segfile), href=segfile, target='_blank')
-page.p.close()
-# link summary file
-page.p()
-page.add('A summary of triggers that occur during active scattering '
-         'segments is recorded in CSV format here:')
-page.a(os.path.basename(summfile), href=summfile, target='_blank')
-page.p.close()
+
+if statea:  # contextual information
+    page.div(class_='alert alert-info')
+    paper = markup.oneliner.a(
+        'Accadia et al. (2010)', target='_blank', class_='alert-link',
+        href='http://iopscience.iop.org/article/10.1088/0264-9381/27'
+             '/19/194011')
+    page.p("Segments marked \"optical sensors\" below show evidence of beam "
+           "scattering between {0} and {1} Hz based on the velocity of optic "
+           "motion, with fringe frequencies projected using equation (3) of "
+           "{2}. Segments marked \"transmons\" are based on whitened, "
+           "band-limited RMS trends of transmon sensors. In both cases, "
+           "yellow panels denote weak evidence for scattering, while red "
+           "panels denote strong evidence.".format(
+               args.fmin, multiplier * args.frequency_threshold, str(paper)))
+    page.div.close()  # alert alert-info
+else:  # null segments
+    page.div(class_='alert alert-warning')
+    page.p('No active analysis segments were found')
+    page.div.close()
 
 # record state segments
 if args.state_flag is not None:
-    page.p('This analysis was done over the following data-quality flag:')
+    page.h3('State flag', id_='state-flag')
     page.div(class_='panel-group', id_='accordion1')
     page.add(htmlio.write_flag_html(
         state, span, 'state', parent='accordion1', context='success',
@@ -270,41 +309,46 @@ if args.state_flag is not None:
         known={'facecolor': 'red', 'edgecolor': 'darkred', 'height': 0.4}))
     page.div.close()
 
-if statea:
-    page.p("The following channels were searched for evidence of scattering "
-           "(yellow = weak evidence, red = strong evidence):")
-    page.div(class_='panel-group', id_='accordion1')
-else:
-    page.div(class_='alert alert-info')
-    page.p('No active analysis segments were found')
-    page.div.close()
-
 # -- find scattering evidence -------------------------------------------------
 
-allchannels = ['%s:%s' % (args.ifo, c) for optic in args.optic for
-               c in scattering.OPTIC_MOTION_CHANNELS[optic]]
+# read data for OSEMs and transmons
+osems = ['%s:%s' % (args.ifo, c) for optic in args.optic for
+         c in scattering.OPTIC_MOTION_CHANNELS[optic]]
+transmons = ['%s:%s' % (args.ifo, c) for c in scattering.TRANSMON_CHANNELS]
+allchannels = osems + transmons
 
-logger.info("Reading all data")
+logger.info("Reading all timeseries data")
 alldata = []
 n = len(statea)
 for i, seg in enumerate(statea):
     msg = "{0}/{1} {2}:".rjust(30).format(
-        str(i).rjust(len(str(n))),
+        str(i + 1).rjust(len(str(n))),
         n,
         str(seg),
     ) if args.verbose else False
     alldata.append(
         get_data(allchannels, seg[0], seg[1], frametype=args.frametype,
                  verbose=msg, nproc=args.nproc).resample(128))
-try:
-    channels = alldata[0].keys()
+try:  # ensure that only available channels are analyzed
+    osems = list(
+        set(alldata[0].keys()) & set(alldata[-1].keys()) & set(osems))
+    transmons = list(
+        set(alldata[0].keys()) & set(alldata[-1].keys()) & set(transmons))
 except IndexError:
-    channels = []
+    osems = []
+    transmons = []
 
+# initialize scattering segments
 scatter_segments = DataQualityDict()
 actives = SegmentList()
 
-for i, channel in enumerate(sorted(channels)):
+# scattering based on OSEM velocity
+if statea:
+    page.h3('Optical sensors (OSEMs)', id_='osems')
+    page.div(class_='panel-group', id_='osems-group')
+logger.info('Searching for scatter based on OSEM velocity')
+
+for i, channel in enumerate(sorted(osems)):
     logger.info("-- Processing %s --" % channel)
     chanstr = re.sub('[:-]', '_', channel).replace('_', '-', 1)
     optic = channel.split('-')[1].split('_')[0]
@@ -347,15 +391,12 @@ for i, channel in enumerate(sorted(channels)):
             histdata[m].resize((histdata[m].size + fm.size,))
             histdata[m][-fm.size:] = fm.value
         # get segments and plot
-        if ((fringef * multiplier).value.max() <
-                args.frequency_threshold):
-            scatter = DataQualityFlag(flag, known=[ts.span])
-        else:
-            scatter = (
-                fringef * multiplier >=
-                args.frequency_threshold * fringef.unit).to_dqflag(name=flag)
-            scatter.active = scatter.active.protract(args.segment_padding)
-            scatter.coalesce()
+        scatter = scattering.get_segments(
+            fringef * multiplier,
+            args.frequency_threshold,
+            name=flag,
+            pad=args.segment_padding
+        )
         axes['segments'].plot(scatter, facecolor='red', edgecolor='darkred',
                               known={'alpha': 0.6, 'facecolor': 'lightgray',
                                      'edgecolor': 'gray', 'height': 0.4},
@@ -363,8 +404,8 @@ for i, channel in enumerate(sorted(channels)):
         scatter_segments[channel] += scatter
         logger.debug(
             "    Found %d scattering segments" % (len(scatter.active)))
-    logger.debug("Completed channel, found %d segments in total."
-                 % len(scatter_segments[channel].active))
+    logger.debug("Completed channel %s, found %d segments in total"
+                 % (channel, len(scatter_segments[channel].active)))
 
     # calculate efficiency and deadtime of veto
     deadtime = abs(scatter_segments[channel].active)
@@ -538,8 +579,82 @@ for i, channel in enumerate(sorted(channels)):
     page.div.close()
     page.div.close()
 
+if statea:  # close accordion
+    page.div.close()
+
+# scattering based on transmon BLRMS
 if statea:
-    # close panel group
+    page.h3('Transmons', id_='transmons')
+    page.div(class_='panel-group', id_='transmons-group')
+logger.info('Searching for scatter based on band-limited RMS of transmons')
+
+for i, channel in enumerate(sorted(transmons)):
+    logger.info("-- Processing %s --" % channel)
+    optic = channel.split('-')[1][:6]
+    flag = '%s:DCH-%s_SCATTERING_BLRMS:1' % (args.ifo, optic)
+    scatter_segments[channel] = DataQualityFlag(
+        flag,
+        isgood=False,
+        description="Evidence for scattering from whitened, band-limited RMS "
+                    "trends of {0}".format(channel),
+    )
+
+    # loop over state segments and compute BLRMS
+    for j, seg in enumerate(statea):
+        logger.debug("Processing segment [%d .. %d)" % seg)
+        wblrms = scattering.get_blrms(
+            alldata[j][channel],
+            flow=args.bandpass_flow,
+            fhigh=args.bandpass_fhigh,
+        )
+        scatter = scattering.get_segments(
+            wblrms,
+            numpy.mean(wblrms) + args.sigma * numpy.std(wblrms),
+            name=flag,
+        )
+        scatter_segments[channel] += scatter
+        logger.debug(
+            "    Found %d scattering segments" % (len(scatter.active)))
+    logger.debug("Completed channel %s, found %d segments in total"
+                 % (channel, len(scatter_segments[channel].active)))
+
+    # calculate efficiency and deadtime of veto
+    deadtime = abs(scatter_segments[channel].active)
+    try:
+        deadtimepc = deadtime / livetime * 100
+    except ZeroDivisionError:
+        deadtimepc = 0.
+    logger.info("Deadtime: %.2f%% (%.2f/%ds)"
+                % (deadtimepc, deadtime, livetime))
+    efficiency = in_segmentlist(highsnrtrigs[names[0]],
+                                scatter_segments[channel].active).sum()
+    try:
+        efficiencypc = efficiency / len(highsnrtrigs) * 100
+    except ZeroDivisionError:
+        efficiencypc = 0.
+    logger.info("Efficiency (SNR>=8): %.2f%% (%d/%d)"
+                % (efficiencypc, efficiency, len(highsnrtrigs)))
+    if deadtimepc == 0.:
+        effdt = 0
+    else:
+        effdt = efficiencypc/deadtimepc
+    logger.info("Efficiency/Deadtime: %.2f" % effdt)
+
+    if abs(scatter_segments[channel].active):
+        actives.extend(scatter_segments[channel].active)
+
+    # write HTML
+    if deadtime != 0 and effdt > 2:
+        context = 'danger'
+    elif deadtime != 0 and effdt < 2:
+        context = 'warning'
+    else:
+        continue
+    page.add(htmlio.write_flag_html(
+        scatter_segments[channel], span, i, parent='transmons-group',
+        title=channel, context=context, plotdir=''))
+
+if statea:  # close accordion
     page.div.close()
 
 actives = actives.coalesce()  # merge contiguous segments
@@ -547,6 +662,7 @@ if not actives:
     page.div(class_='alert alert-info')
     page.p('No evidence of scattering found in the channels analyzed')
     page.div.close()
+page.add('<hr class="row-divider">')
 
 # identify triggers during active segments
 logger.debug('Writing a summary CSV record')
@@ -583,12 +699,15 @@ if nscans > 0:
                                 outdir=scandir, condor_commands=condorcmds)
     logger.info('Launched {} omega scans to condor'.format(nscans))
     # render HTML
-    page.h2('Omega Scans', id_='omega-scans')
+    page.h2('Omega scans', id_='omega-scans')
+    page.div(class_='alert alert-default')
     page.p('The following event times correspond to significant Omicron '
            'triggers that occur during the scattering segments found above. '
            'To compare these against fringe frequency projections, please '
            'use the scattering module:')
-    page.pre('$ python -m gwdetchar.scattering --help')
+    code = markup.oneliner.pre('$ python -m gwdetchar.scattering --help')
+    page.p(code)
+    page.div.close()  # alert alert-default
     page.add(htmlio.scaffold_omega_scans(
         omegatimes, args.main_channel, scandir=scandir))
 elif args.omega_scans:
