@@ -34,19 +34,6 @@ $(document).ready(function() {
     prevEffect: 'none',
     helpers: {title: {type: 'inside'}}
   });
-  // smooth scrolling on all intra-page links
-  $("a").on('click', function(event) {
-    if (this.hash !== "") {
-      event.preventDefault();
-      var hash = this.hash;
-      $("html, body").animate({
-        scrollTop: $(hash).offset().top
-      }, 800, function(){
-        window.location.hash = hash;
-      });
-    };
-  });
-});
 
 // expose alternative image types
 function showImage(channelName, tRanges, imageType, captions) {

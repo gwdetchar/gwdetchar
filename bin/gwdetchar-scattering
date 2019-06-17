@@ -532,10 +532,10 @@ for i, channel in enumerate(sorted(osems)):
         continue
     page.div(class_='panel panel-%s' % context)
     page.div(class_='panel-heading')
-    page.a(channel, class_="panel-title", href='#flag%s' % i,
+    page.a(channel, class_="panel-title", href='#osem%s' % i,
            **{'data-toggle': 'collapse', 'data-parent': '#accordion'})
     page.div.close()
-    page.div(id_='flag%s' % i, class_='panel-collapse collapse')
+    page.div(id_='osem%s' % i, class_='panel-collapse collapse')
     img = htmlio.FancyPlot(
         png, caption=scattering.SCATTER_CAPTION.format(CHANNEL=channel))
     page.add(htmlio.fancybox_img(img))
