@@ -24,6 +24,8 @@ import numpy
 from scipy.signal import savgol_filter
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+__credits__ = ('Siddharth Soni <siddharth.soni@ligo.org>, '
+               'Alex Urban <alexander.urban@ligo.org>')
 
 OPTIC_MOTION_CHANNELS = {
     'BS': ['SUS-BS_M1_DAMP_L_IN1_DQ',
@@ -77,6 +79,9 @@ OPTIC_MOTION_CHANNELS = {
     'TMSY': ['SUS-TMSY_M1_DAMP_L_IN1_DQ'],
 }
 
+TRANSMON_CHANNELS = ['ASC-X_TR_B_NSUM_OUT_DQ',
+                     'ASC-Y_TR_B_NSUM_OUT_DQ']
+
 FREQUENCY_MULTIPLIERS = range(1, 5)
 
 
@@ -107,3 +112,84 @@ def get_fringe_frequency(series, multiplier=2.0):
                         velocity.sample_rate.value)
     fringef.override_unit('Hz')
     return fringef
+
+
+def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, whiten=True,
+              fftlength=4, overlap=2, **kwargs):
+    """Compute the whitened, band-limited RMS of a `TimeSeries`
+
+    Parameters
+    ----------
+    series  : `~gwpy.timeseries.TimeSeries`
+        the input `TimeSeries` data
+
+    flow : `float`, optional
+        lower limit (Hz) of the passband, default: 4.0
+
+    fhigh : `float`, optional
+        upper limit (Hz) of the passband, default: 10.0
+
+    stride: `float`, optional
+        RMS integration length (seconds), default: 1
+
+    whiten : `bool`, optional
+        boolean switch to enable (`True`) or disable (`False`)
+        whitening of the input, default: `True`
+
+    fftlength : `float`, optional
+        FFT integration length (seconds), default: 4
+
+    overlap : `float`, optional
+        FFT overlap length (seconds), default: 2
+
+    **kwargs : `dict`, optional
+        additional keyword arguments to `TimeSeries.whiten`
+
+    Returns
+    -------
+    wblrms : `~gwpy.timeseries.TimeSeries`
+        whitened, band-limited RMS trends of the input `TimeSeries`
+
+    See Also
+    --------
+    ~gwpy.timeseries.TimeSeries.whiten
+        for the underlying whitening scheme
+    ~gwpy.timeseries.TimeSeries.rms
+        for the underlying root-mean-square (RMS) estimation method
+    """
+    if whiten:
+        series = series.whiten(fftlength=fftlength, overlap=overlap, **kwargs)
+    bpseries = series.bandpass(flow, fhigh)
+    return bpseries.rms(stride)
+
+
+def get_segments(series, threshold, name=None, pad=0):
+    """Generate data-quality segments by thresholding a `TimeSeries`
+
+    Parameters
+    ----------
+    series  : `~gwpy.timeseries.TimeSeries`
+        the input `TimeSeries` data
+
+    threshold : `float`
+        the threshold value for active data-quality segments
+
+    name : `str`, optional
+        name of the data-quality flag, defaults to `series.name`
+
+    pad : `float`, optional
+        length (seconds) by which to pad active segments, default: 0
+
+    Returns
+    --------
+    threshflag : `~gwpy.segments.DataQualityFlag`
+        the populated data-quality flag
+    """
+    if series.value.max() < threshold:
+        from gwpy.segments import DataQualityFlag
+        return DataQualityFlag(name, known=[series.span])
+    else:
+        thresh = series >= threshold * series.unit
+        threshflag = thresh.to_dqflag(name or series.name)
+        threshflag.protract(pad)
+        return threshflag.coalesce()
