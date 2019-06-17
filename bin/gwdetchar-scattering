@@ -437,7 +437,7 @@ for i, channel in enumerate(sorted(osems)):
     name = texify(channel)
     axes['position'].set_title("Scattering evidence in %s" % name)
     axes['position'].set_xlabel('')
-    axes['position'].set_ylabel(r'Position [\textmu m]')
+    axes['position'].set_ylabel(r'Position [$\mu$m]')
     axes['position'].text(
         0.01, 0.95, 'Optic position',
         transform=axes['position'].transAxes, va='top', ha='left',
@@ -532,10 +532,10 @@ for i, channel in enumerate(sorted(osems)):
         continue
     page.div(class_='panel panel-%s' % context)
     page.div(class_='panel-heading')
-    page.a(channel, class_="panel-title", href='#flag%s' % i,
+    page.a(channel, class_="panel-title", href='#osem%s' % i,
            **{'data-toggle': 'collapse', 'data-parent': '#accordion'})
     page.div.close()
-    page.div(id_='flag%s' % i, class_='panel-collapse collapse')
+    page.div(id_='osem%s' % i, class_='panel-collapse collapse')
     img = htmlio.FancyPlot(
         png, caption=scattering.SCATTER_CAPTION.format(CHANNEL=channel))
     page.add(htmlio.fancybox_img(img))
