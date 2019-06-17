@@ -26,14 +26,14 @@ $.fn.scrollView = function () {
   });
 }
 
-// all-document actions
+// expand fancybox plots
 $(document).ready(function() {
-  // expand fancybox plots
   $(".fancybox").fancybox({
     nextEffect: 'none',
     prevEffect: 'none',
     helpers: {title: {type: 'inside'}}
   });
+}
 
 // expose alternative image types
 function showImage(channelName, tRanges, imageType, captions) {
