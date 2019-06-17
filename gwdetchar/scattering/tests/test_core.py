@@ -23,6 +23,7 @@ import numpy
 from numpy import testing as nptest
 
 from gwpy.timeseries import TimeSeries
+from gwpy.testing.utils import assert_segmentlist_equal
 
 from .. import core
 
@@ -32,8 +33,9 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 # global test objects
 
 TWOPI = 2*numpy.pi
-TIMES = numpy.arange(0, 1, 1./2048)
-OPTIC = TimeSeries(numpy.cos(TWOPI*10*TIMES), sample_rate=2048)
+TIMES = numpy.arange(0, 32, 1./2048)
+OPTIC = TimeSeries(
+    numpy.cos(TWOPI*10*TIMES), sample_rate=2048, name='X1:TEST')
 
 
 # -- make sure plots run end-to-end -------------------------------------------
@@ -46,3 +48,20 @@ def test_get_fringe_frequency():
     assert fringef.size == OPTIC.size
     nptest.assert_almost_equal(
         fringef.value.max() * (1.064 / 2) / TWOPI, 10, decimal=2)
+
+
+def test_get_blrms():
+    # calculate the whitened, band-limited RMS
+    fringef = core.get_fringe_frequency(OPTIC, multiplier=1)
+    wblrms = core.get_blrms(fringef, fhigh=20, whiten=False)
+    nptest.assert_array_equal(  # BLRMS should be equivalent
+        wblrms.value, fringef.bandpass(4, 20).rms(1).value)
+
+
+def test_get_segments():
+    # get segments from optic motion
+    fringef = core.get_fringe_frequency(OPTIC, multiplier=1)
+    dqflag = core.get_segments(fringef, 10)
+    assert dqflag.name == fringef.name
+    assert len(dqflag.active) == 640
+    assert_segmentlist_equal(dqflag.known, [OPTIC.span])
