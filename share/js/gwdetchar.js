@@ -26,25 +26,12 @@ $.fn.scrollView = function () {
   });
 }
 
-// all-document actions
+// expand fancybox plots
 $(document).ready(function() {
-  // expand fancybox plots
   $(".fancybox").fancybox({
     nextEffect: 'none',
     prevEffect: 'none',
     helpers: {title: {type: 'inside'}}
-  });
-  // smooth scrolling on all intra-page links
-  $("a").on('click', function(event) {
-    if (this.hash !== "") {
-      event.preventDefault();
-      var hash = this.hash;
-      $("html, body").animate({
-        scrollTop: $(hash).offset().top
-      }, 800, function(){
-        window.location.hash = hash;
-      });
-    };
   });
 });
 
@@ -60,7 +47,7 @@ function showImage(channelName, tRanges, imageType, captions) {
       "plots/" + fileBase + ".png";
     document.getElementById("img_" + idBase).alt = fileBase + ".png";
   };
-};
+}
 
 // download a CSV table
 function downloadCSV(csv, filename) {
