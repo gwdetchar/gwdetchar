@@ -257,9 +257,8 @@ if args.html:
                     plotdir=args.plot))
         page.div.close()
     else:
-        page.div(class_='alert alert-info')
-        page.p('No software saturations were found')
-        page.div.close()
+        page.add(htmlio.alert('No software saturations were found in this '
+                              'analysis', dismiss=False))
     # -- results table
     page.h2('Results summary', id_='results')
     page.table(class_='table table-striped table-hover')

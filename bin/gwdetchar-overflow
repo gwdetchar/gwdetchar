@@ -330,9 +330,8 @@ if args.html:
                 context=context, plotdir=args.plot))
         page.div.close()
     else:
-        page.div(class_='alert alert-info')
-        page.p('No overflows were found')
-        page.div.close()
+        page.add(htmlio.alert('No overflows were found in this analysis',
+                              dismiss=False))
 
     # -- results table
     page.h2('Results summary', id_='results')
