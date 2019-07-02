@@ -659,7 +659,7 @@ actives = actives.coalesce()  # merge contiguous segments
 if statea and not actives:
     page.add(htmlio.alert(
         'No evidence of scattering found in the channels analyzed',
-        dismiss=False)
+        dismiss=False))
 page.add('<hr class="row-divider">')
 
 # identify triggers during active segments
