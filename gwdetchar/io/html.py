@@ -858,8 +858,9 @@ def alert(text, context='info', dismiss=True):
 
     Parameters
     ----------
-    text : `str`
-        text to enclose within the box
+    text : `str` or `list` of `str`
+        text to enclose within the box, if a `list` then each item will
+        be rendered in a separate `<p>` tag
 
     context : `str`, optional
         Bootstrap context type, default: ``info``
@@ -874,6 +875,7 @@ def alert(text, context='info', dismiss=True):
         the rendered dialog box object
     """
     page = markup.page()
+    text = (text,) if isinstance(text, str) else text
     class_ = ('alert alert-{} alert-dismissable'.format(context) if
               dismiss else 'alert alert-{}'.format(context))
     page.div(class_=class_)
@@ -882,7 +884,8 @@ def alert(text, context='info', dismiss=True):
         page.span('&times;', **{'aria-hidden': "true"})
         page.span('Close', class_="sr-only")
         page.button.close()
-    page.p(text)
+    for msg in text:
+        page.p(msg)
     page.div.close()
     return page()
 
