@@ -202,8 +202,13 @@ if args.html:
         args.plot = base
     segfile = os.path.relpath(outfile, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
-        links = [(s, '#%s' % s.lower())
-                 for s in ['Parameters', 'Segments', 'Results']]
+        links = [
+            ('Parameters', '#parameters'),
+            ('Segments', [('Software saturations', '#software-saturations')]),
+            ('Results', '#results'),
+        ]
+        if args.state_flag:
+            links[1][1].insert(0, ('State flag', '#state-flag'))
         (brand, class_) = htmlio.get_brand(ifo, 'Software Saturations',
                                            args.gpsstart)
         navbar = htmlio.navbar(links, class_=class_, brand=brand)
@@ -215,12 +220,6 @@ if args.html:
     page.div(class_='page-header')
     page.h1('%s Software Saturations: %d-%d'
             % (ifo, int(args.gpsstart), int(args.gpsend)))
-    page.p("This analysis searched %d channels for times during which their "
-           "OUTPUT value matched the LIMIT value set in software. Only "
-           "those signals achieving saturation are recorded in the Segments "
-           "section below, while all channels for which the LIMIT was active "
-           "are included in the Results summary and the output file."
-           % sum(map(len, channels)))
     page.div.close()
     # -- paramters
     content = [
@@ -228,8 +227,15 @@ if args.html:
         ('Skip', ', '.join(map(repr, args.skip)))]
     page.add(htmlio.write_arguments(
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
+    page.add('<hr class="row-divider">')
     # -- segments
     page.h2('Segments', id_='segments')
+    msg = ("This analysis searched {0} filter bank readback channels for "
+           "time periods during which their OUTPUT value matched or exceeded "
+           "the LIMIT value set in software. Signals that achieve saturation "
+           "are shown below, and saturation segments are available by "
+           "expanding a given panel.").format(sum(map(len, channels)))
+    page.add(htmlio.alert(msg))
     # link output file
     page.p()
     page.add('Full output segments are recorded in HDF5 format here:')
@@ -237,7 +243,7 @@ if args.html:
     page.p.close()
     # record state segments
     if args.state_flag:
-        page.p('This analysis was done over the following data-quality flag:')
+        page.h3('State flag', id_='state-flag')
         page.div(class_='panel-group', id_='accordion1')
         page.add(htmlio.write_flag_html(
             state, span, 'state', parent='accordion1', context='success',
@@ -247,7 +253,7 @@ if args.html:
         page.div.close()
     # record saturation segments
     if len(bad):
-        page.p('The following channels indicated a software saturation:')
+        page.h3('Software saturations', id_='software-saturations')
         page.div(class_='panel-group', id_='accordion2')
         for i, (c, flag) in enumerate(saturations.items()):
             if abs(flag.active) > 0:
@@ -259,8 +265,11 @@ if args.html:
     else:
         page.add(htmlio.alert('No software saturations were found in this '
                               'analysis', dismiss=False))
+    page.add('<hr class="row-divider">')
     # -- results table
     page.h2('Results summary', id_='results')
+    page.add(htmlio.alert("All channels for which the LIMIT setting was "
+                          "active are shown below."))
     page.table(class_='table table-striped table-hover')
     # write table header
     page.thead()

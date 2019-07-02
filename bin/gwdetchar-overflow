@@ -323,6 +323,7 @@ if args.html:
         page.div.close()
     # record overflow segments
     if sum(abs(s.active) for s in overflows.values()):
+        page.h3('Overflows', id_='overflows')
         page.div(class_='panel-group', id_='accordion2')
         for i, (c, flag) in enumerate(list(overflows.items())):
             if abs(flag.active) == 0:
