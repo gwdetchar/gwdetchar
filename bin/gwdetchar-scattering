@@ -269,7 +269,7 @@ page.button.close()
 page.ul(class_='dropdown-menu', role='menu',
         **{'aria-labelledby': 'summary_table_download'})
 for text, path in zip(
-    ['Segments', 'Triggers'],
+    ['Segments (HDF)', 'Triggers (CSV)'],
     [segfile, summfile]
 ):
     page.li(markup.oneliner.a(text, href=path, download=path))
@@ -280,24 +280,22 @@ page.div.close()  # btn-group
 page.h2('Segments', id_='segments')
 
 if statea:  # contextual information
-    page.div(class_='alert alert-info')
     paper = markup.oneliner.a(
         'Accadia et al. (2010)', target='_blank', class_='alert-link',
         href='http://iopscience.iop.org/article/10.1088/0264-9381/27'
              '/19/194011')
-    page.p("Segments marked \"optical sensors\" below show evidence of beam "
+    msg = ("Segments marked \"optical sensors\" below show evidence of beam "
            "scattering between {0} and {1} Hz based on the velocity of optic "
            "motion, with fringe frequencies projected using equation (3) of "
            "{2}. Segments marked \"transmons\" are based on whitened, "
            "band-limited RMS trends of transmon sensors. In both cases, "
            "yellow panels denote weak evidence for scattering, while red "
-           "panels denote strong evidence.".format(
-               args.fmin, multiplier * args.frequency_threshold, str(paper)))
-    page.div.close()  # alert alert-info
+           "panels denote strong evidence.").format(
+               args.fmin, multiplier * args.frequency_threshold, str(paper))
+    page.add(htmlio.alert(msg))
 else:  # null segments
-    page.div(class_='alert alert-warning')
-    page.p('No active analysis segments were found')
-    page.div.close()
+    page.add(htmlio.alert('No active analysis segments were found',
+                          context='warning', dismiss=False))
 
 # record state segments
 if args.state_flag is not None:
@@ -658,10 +656,10 @@ if statea:  # close accordion
     page.div.close()
 
 actives = actives.coalesce()  # merge contiguous segments
-if not actives:
-    page.div(class_='alert alert-info')
-    page.p('No evidence of scattering found in the channels analyzed')
-    page.div.close()
+if statea and not actives:
+    page.add(htmlio.alert(
+        'No evidence of scattering found in the channels analyzed',
+        dismiss=False))
 page.add('<hr class="row-divider">')
 
 # identify triggers during active segments
@@ -700,14 +698,12 @@ if nscans > 0:
     logger.info('Launched {} omega scans to condor'.format(nscans))
     # render HTML
     page.h2('Omega scans', id_='omega-scans')
-    page.div(class_='alert alert-default')
-    page.p('The following event times correspond to significant Omicron '
+    msg = ('The following event times correspond to significant Omicron '
            'triggers that occur during the scattering segments found above. '
            'To compare these against fringe frequency projections, please '
-           'use the scattering module:')
-    code = markup.oneliner.pre('$ python -m gwdetchar.scattering --help')
-    page.p(code)
-    page.div.close()  # alert alert-default
+           'use the scattering module:',
+           markup.oneliner.pre('$ python -m gwdetchar.scattering --help'))
+    page.add(htmlio.alert(msg, context='default'))
     page.add(htmlio.scaffold_omega_scans(
         omegatimes, args.main_channel, scandir=scandir))
 elif args.omega_scans:
