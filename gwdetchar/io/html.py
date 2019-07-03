@@ -812,6 +812,50 @@ def scaffold_plots(plots, nperrow=3):
     return page()
 
 
+def download_btn(content, label='Download summary',
+                 id_=None, btndiv='btn-group desktop-only',
+                 btnclass='btn btn-default dropdown-toggle'):
+    """Toggle download options with a Bootstrap button
+
+    Parameters
+    ----------
+    content : `list` of `tuple` of `str`
+        collection of `(title, link)` pairs to list
+
+    label : `str`, optional
+        text appearing inside the button, default: ``Download summary``
+
+    id_ : `str`, optional
+        unique HTML identifier for this button
+
+    btndiv : `str`, optional
+        class name of the enclosing ``<div>``,
+        default: ``btn-group desktop-only``
+
+    btnclass : `str`, optional
+        class name of the Bootstrap button object,
+        default: ``btn btn-default dropdown-toggle``
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        fully rendered download button
+    """
+    page = markup.page()
+    page.div(class_=btndiv)
+    page.button(id_=id_, type='button', class_=btnclass,
+                **{'data-toggle': 'dropdown'})
+    page.add('Download summary <span class="caret"></span>')
+    page.button.close()
+    page.ul(class_='dropdown-menu', role='menu',
+            **{'aria-labelledby': 'summary_table_download'})
+    for text, path in content:
+        page.li(markup.oneliner.a(text, href=path, download=path))
+    page.ul.close()
+    page.div.close()  # btn-group
+    return page()
+
+
 def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
                     section='Parameters', id_='parameters', cmdline=True,
                     tableclass=('table table-condensed table-hover '
