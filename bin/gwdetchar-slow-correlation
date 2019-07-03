@@ -380,7 +380,7 @@ contents = [
     ('Range channel',
      '{} ({})'.format(rangechannel, args.range_frametype or '-')),
     ('Band-pass', '{}-{}'.format(flower, fupper))]
-page.add(htmlio.write_arguments(content, start=start, end=end))
+page.add(htmlio.parameter_table(content, start=start, end=end))
 
 # results
 page.h2('Results', id_='results')

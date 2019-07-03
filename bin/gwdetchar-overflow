@@ -284,7 +284,7 @@ if args.html:
             'Simulink models', '<a href="{0}" target="_blank" title="{1} '
                                'Simulink models">{0}</a>'.format(
                                    simulink, args.ifo)))
-    page.add(htmlio.write_arguments(
+    page.add(htmlio.parameter_table(
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
     page.add('<hr class="row-divider">')
 

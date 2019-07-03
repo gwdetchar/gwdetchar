@@ -255,8 +255,8 @@ page.div(class_='page-header')
 page.h1('%s Scattering: %d-%d'
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
 page.div.close()  # page-header
-page.add(htmlio.write_arguments(
-    [], start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag))
+page.add(htmlio.parameter_table(
+    start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag))
 page.add('<hr class="row-divider">')
 
 # link to summary files
