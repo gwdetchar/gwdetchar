@@ -601,27 +601,22 @@ if args.band_pass:
     content.append(
         ('Filter settings',
          'Flow = {} Hz, Fhigh = {} Hz '.format(flower, fupper)))
-page.add(htmlio.write_arguments(content, start=start, end=end))
+page.add(htmlio.parameter_table(content, start=start, end=end))
 
-page.h2('Model Information', id_='model')
-
-page.div(class_='model')
-page.div(class_='model-body')
-
-page.div(class_='model-info')
-page.add(htmlio.write_param('Model', 'Lasso'))
-page.add(htmlio.write_param(
-    'Non-zero coefficients', '%d' % numpy.count_nonzero(model.coef_)))
-page.add(htmlio.write_param('Alpha', '%g' % model.alpha))
-page.add(htmlio.write_param(
-    'Zero coefficients',
-    '%d (%s)' % (len(zeroed),
-                 "<a href= %s target='_blank'>zeroed channel list</a>"
-                 % (zerofile))))
-page.div.close()  # model-info
+# -- model information
+page.h2('Model information', id_='model')
+page.add(htmlio.parameter_table([
+    ('Model', 'Lasso'),
+    ('Non-zero coefficients', '%d' % numpy.count_nonzero(model.coef_)),
+    ('Alpha', str(model.alpha)),
+    ('Zero coefficients',
+     '{0} ({1})'.format(
+         len(zeroed),
+         markup.oneliner.a(
+             'zeroed channel list', href=zerofile, target='_blank'
+         )))], section=None, cmdline=False))
 
 page.div(class_='scaffold well')
-
 page.div(class_='row')
 page.div(class_='col-md-10 col-md-offset-1', id_='results-table')
 page.p('Below are the top {} mean minute-trend channels, ranked by '
@@ -662,14 +657,10 @@ page.div.close()  # col-md-8 col-md-offset-2
 page.div.close()  # channels-and-primary
 
 page.div.close()  # scaffold well
-page.div.close()  # model-body
-page.div.close()  # model
 
-# results
-page.h2('Top Channels', id_='results')
-
+# -- results
+page.h2('Top channels', id_='results')
 page.div(class_='panel-group', id_='results')
-
 # for each auxiliary channel create information container and put plots in it
 for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
     # set container color/context based on lasso coefficient

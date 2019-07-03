@@ -634,17 +634,6 @@ def about_this_page(config, packagelist=True):
     return page()
 
 
-def write_param(param, value):
-    """Format a parameter value with HTML
-    """
-    page = markup.page()
-    page.p()
-    page.strong('%s: ' % param)
-    page.add(str(value))
-    page.p.close()
-    return page()
-
-
 def render_code(code, language):
     """Render a block of code with syntax highlighting
 
@@ -665,7 +654,7 @@ def render_code(code, language):
     return highlight(code, lexer, FORMATTER)
 
 
-def get_command_line(language='bash'):
+def get_command_line(language='bash', about=True):
     """Render the command line invocation used to generate a page
 
     Parameters
@@ -679,7 +668,8 @@ def get_command_line(language='bash'):
         fully rendered command-line arguments
     """
     page = markup.page()
-    page.p('This page was generated with the following command-line call:')
+    if about:
+        page.p('This page was generated with the following command-line call:')
     if sys.argv[0].endswith('__main__.py'):
         module = getmodule(stack()[1][0]).__name__
         cmdline = '$ python -m {0} {1}'.format(module, ' '.join(sys.argv[1:]))
@@ -687,7 +677,8 @@ def get_command_line(language='bash'):
         script = os.path.basename(sys.argv[0])
         cmdline = ' '.join(['$', script, ' '.join(sys.argv[1:])])
     page.add(render_code(cmdline.replace(' --html-only', ''), language))
-    page.p('The install path used was <code>{}</code>.'.format(sys.prefix))
+    if about:
+        page.p('The install path used was <code>{}</code>.'.format(sys.prefix))
     return page()
 
 
@@ -821,35 +812,83 @@ def scaffold_plots(plots, nperrow=3):
     return page()
 
 
-def write_arguments(content, start, end, flag=None, section='Parameters',
-                    info='This analysis used the following parameters:',
-                    id_='parameters'):
+def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
+                    section='Parameters', id_='parameters', cmdline=True,
+                    tableclass=('table table-condensed table-hover '
+                                'table-responsive')):
     """Render an informative section with run parameters in HTML
 
     Parameters
     ----------
-    content: `dict`
-        a collection of parameters to list
+    content: `list` of `tuple` of `str`
+        collection of parameters to list
 
-    section: `str`
-        name of the section, will appear as a header with an <h2> tag
+    start : `float`, optional
+        GPS start time of the analysis, required if `gps` is `None`
+
+    end : `float`, optional
+        GPS end time of the analysis, required if `gps` is `None`
+
+    gps : `float`, optional
+        central GPS time of the analysis, will supersede `start` and
+        `end` if given
+
+    flag : `str`, optional
+        name of a data-quality state flag required for this analysis
+
+    section : `str`, optional
+        text to label the section header (``<h2>``), default: ``Parameters``
+
+    id_ : `str`, optional
+        unique HTML identifier for this section, default: ``parameters``
+
+    cmdline : `bool`, optional
+        boolean switch to include (`True`) or exclude (`False`) the
+        command-line invocation used to make this page, default: `True`
+
+    tableclass : `str`, optional
+        the ``class`` for the summary ``<table>``, defaults to a responsive
+        Bootstrap table
 
     Returns
     -------
     page : `~MarkupPy.markup.page`
-        a fully rendered list of parameters
+        fully rendered table of parameters
     """
-    content.insert(0, ('Start time', '{} ({})'.format(start, from_gps(start))))
-    content.insert(1, ('End time', '{} ({})'.format(end, from_gps(end))))
+    # front-load time and flag info
+    common = [(
+        'UTC time',
+        '{0} ({1})'.format(from_gps(gps), gps),
+    )] if gps is not None else [
+        ('Start time (UTC)', '{0} ({1})'.format(from_gps(start), start)),
+        ('End time (UTC)', '{0} ({1})'.format(from_gps(end), end)),
+    ]
     if flag is not None:
-        content.insert(2, ('State flag', flag))
+        common.append(('State flag', markup.oneliner.code(flag)))
+    content = common + content
+    if cmdline:
+        content.append(('System prefix', markup.oneliner.code(sys.prefix)))
+    # initialize page
     page = markup.page()
-    page.h2(section, id_=id_)
-    page.p(info)
-    for item in content:
-        page.add(write_param(*item))
-    page.add(write_param('Command-line', ''))
-    page.add(get_command_line())
+    if section is not None:
+        page.h2(section, id_=id_)
+    page.div(class_='col-md-5')
+    page.table(class_=tableclass)
+    # table body
+    page.tbody()
+    for row in content:
+        col1, col2 = row
+        page.tr()
+        page.td(markup.oneliner.strong(col1), scope='row')
+        page.td(col2)
+        page.tr.close()
+    page.tbody.close()
+    # close table and write command-line
+    page.table.close()
+    page.div.close()  # col-md-5
+    if cmdline:
+        page.p(markup.oneliner.strong('Command-line:'))
+        page.add(get_command_line(about=False))
     return page()
 
 

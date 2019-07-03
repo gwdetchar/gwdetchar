@@ -345,12 +345,6 @@ def test_about_this_page(package_list, tmpdir):
     shutil.rmtree(outdir, ignore_errors=True)
 
 
-def test_write_param():
-    page = html.write_param('test', 'test')
-    assert parse_html(str(page)) == parse_html(
-        '<p>\n<strong>test: </strong>\ntest\n</p>')
-
-
 def test_get_command_line():
     testargs = ['/opt/bin/gwdetchar-conlog', '-i', 'X1']
     with mock.patch.object(sys, 'argv', testargs):
@@ -437,14 +431,19 @@ def test_scaffold_plots():
     assert h1 == h2
 
 
-def test_write_arguments():
-    page = html.write_arguments([('test', 'test')], 0, 1, flag='X1:TEST')
+def test_parameter_table():
+    page = html.parameter_table([('test', 'test')],
+                                start=0, end=1, flag='X1:TEST')
     assert '<h2 id="parameters">Parameters</h2>' in page
-    assert '<strong>Start time: </strong>\n0 (1980-01-06 00:00:00)' in page
-    assert '<strong>End time: </strong>\n1 (1980-01-06 00:00:01)' in page
-    assert '<strong>State flag: </strong>\nX1:TEST' in page
-    assert '<strong>test: </strong>\ntest' in page
-    assert '<strong>Command-line: </strong>' in page
+    assert '<td scope="row"><strong>Start time (UTC)</strong></td>' in page
+    assert '<td>1980-01-06 00:00:00 (0)</td>' in page
+    assert '<td scope="row"><strong>End time (UTC)</strong></td>' in page
+    assert '<td>1980-01-06 00:00:01 (1)</td>' in page
+    assert '<td scope="row"><strong>State flag</strong></td>' in page
+    assert '<td><code>X1:TEST</code></td>' in page
+    assert '<td scope="row"><strong>test</strong></td>' in page
+    assert '<td>test</td>' in page
+    assert '<p><strong>Command-line:</strong></p>' in page
 
 
 def test_alert():

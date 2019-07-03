@@ -225,7 +225,7 @@ if args.html:
     content = [
         ('State end padding', args.pad_state_end),
         ('Skip', ', '.join(map(repr, args.skip)))]
-    page.add(htmlio.write_arguments(
+    page.add(htmlio.parameter_table(
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
     page.add('<hr class="row-divider">')
     # -- segments
