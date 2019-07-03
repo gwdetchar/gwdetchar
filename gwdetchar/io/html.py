@@ -849,8 +849,13 @@ def download_btn(content, label='Download summary',
     page.button.close()
     page.ul(class_='dropdown-menu', role='menu',
             **{'aria-labelledby': 'summary_table_download'})
-    for text, path in content:
-        page.li(markup.oneliner.a(text, href=path, download=path))
+    for item in content:
+        if len(item) == 2:
+            text, href = item
+            download = href
+        else:
+            text, href, download = item
+        page.li(markup.oneliner.a(text, href=href, download=download))
     page.ul.close()
     page.div.close()  # btn-group
     return page()
