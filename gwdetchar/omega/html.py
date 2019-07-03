@@ -319,12 +319,10 @@ def write_summary(
 
     # write alert
     if incomplete:
-        page.div(class_='row')
-        page.div(class_='alert alert-%s' % context)
-        page.p('<strong>Note</strong>: This scan is in progress, and will '
-               'auto-refresh every 60 seconds until completion.')
-        page.div.close()  # alert
-        page.div.close()  # row
+        page.add(htmlio.alert(
+            ('<strong>Note</strong>: This scan is in progress, and will '
+             'auto-refresh every 60 seconds until completion.'),
+            context=context))
     return page()
 
 
@@ -607,10 +605,7 @@ def write_null_page(reason, context='default'):
         the path of the HTML written for this analysis
     """
     page = markup.page()
-    # write alert
-    page.div(class_='alert alert-%s' % context)
-    page.p(reason)
-    page.div.close()  # alert
+    page.add(htmlio.alert(reason, context, dismiss=False))
     return page
 
 

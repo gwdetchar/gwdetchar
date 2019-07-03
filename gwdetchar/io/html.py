@@ -234,6 +234,7 @@ def finalize_static_urls(static, base, cssfiles, jsfiles):
     -------
     cssurls : `list` of `str`
         the finalised list of CSS files
+
     jsurls : `list` of `str`
         the finalised list of javascript files
     """
@@ -292,6 +293,11 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     navbar : `str`, optional
         HTML enconding of a floating navbar, will be ignored if not given,
         default: None
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        a populated HTML page object, which can be appended to as desired
     """
     # get kwargs with sensible defaults
     css = kwargs.pop('css', CSS_FILES)
@@ -649,6 +655,11 @@ def render_code(code, language):
 
     language : `str`
         language the code is written in, e.g. `'python'`
+
+    Returns
+    -------
+    code : `~MarkupPy.markup.page`
+        fully rendered command-line call
     """
     lexer = get_lexer_by_name(language, stripall=True)
     return highlight(code, lexer, FORMATTER)
@@ -822,6 +833,11 @@ def write_arguments(content, start, end, flag=None, section='Parameters',
 
     section: `str`
         name of the section, will appear as a header with an <h2> tag
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        a fully rendered list of parameters
     """
     content.insert(0, ('Start time', '{} ({})'.format(start, from_gps(start))))
     content.insert(1, ('End time', '{} ({})'.format(end, from_gps(end))))
@@ -834,6 +850,43 @@ def write_arguments(content, start, end, flag=None, section='Parameters',
         page.add(write_param(*item))
     page.add(write_param('Command-line', ''))
     page.add(get_command_line())
+    return page()
+
+
+def alert(text, context='info', dismiss=True):
+    """Enclose text within a bootstrap dialog box
+
+    Parameters
+    ----------
+    text : `str` or `list` of `str`
+        text to enclose within the box, if a `list` then each item will
+        be rendered in a separate `<p>` tag
+
+    context : `str`, optional
+        Bootstrap context type, default: ``info``
+
+    dismiss : `bool`, optional
+        boolean switch to enable (`True`) or disable (`False`) a dismiss
+        button, default: `True`
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        the rendered dialog box object
+    """
+    page = markup.page()
+    text = (text,) if isinstance(text, str) else text
+    class_ = ('alert alert-{} alert-dismissable'.format(context) if
+              dismiss else 'alert alert-{}'.format(context))
+    page.div(class_=class_)
+    if dismiss:  # add close button
+        page.button(type="button", class_="close", **{'data-dismiss': "alert"})
+        page.span('&times;', **{'aria-hidden': "true"})
+        page.span('Close', class_="sr-only")
+        page.button.close()
+    for msg in text:
+        page.p(msg)
+    page.div.close()
     return page()
 
 
@@ -905,13 +958,47 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
 def write_flag_html(flag, span=None, id=0, parent='accordion',
                     context='warning', title=None, plotdir=None,
                     plot_func=plot_segments, **kwargs):
-    """Write HTML for data quality flags
+    """Write HTML for data-quality flags
+
+    Parameters
+    ----------
+    flag : `~gwpy.segments.DataQualityFlag`
+        the flag object to represent
+
+    span : `~gwpy.sements.Segment`, optional
+        GPS start and stop time of flag duration
+
+    id : `int`, optional
+        unique identifier for the flag, default: 0
+
+    parent : `str`, optional
+        HTML identifier of the parent object, default: ``accordion``
+
+    context : `str`, optional
+        Bootstrap context type, default: ``warning``
+
+    title : `str`, optional
+        title of the flag, defaults to `flag.name`
+
+    plotdir : `str`, optional
+        path to directory containing plots, required if plotting segments
+
+    plot_func : `func`, optional
+        function used to plot segments,
+        default: `~gwdetchar.plot.plot_segments`
+
+    **kwargs : `dict`, optional
+        additional keyword arguments to `plot_func`
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        fully rendered HTML with a panel object for the flag
     """
     page = markup.page()
     page.div(class_='panel panel-%s' % context)
     page.div(class_='panel-heading')
-    if title is None:
-        title = flag.name
+    title = title or flag.name
     page.a(title, class_="panel-title", href='#flag%s' % id,
            **{'data-toggle': 'collapse', 'data-parent': '#%s' % parent})
     page.div.close()
@@ -948,6 +1035,25 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
 def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
                          scandir=os.path.curdir):
     """Preview a batch of omega scans in HTML
+
+    Parameters
+    ----------
+    times : `list` of `float`
+        a list of GPS times to scan
+
+    channel : `str`
+        name of the channel being scanned, e.g. ``H1:GDS-CALIB_STRAIN``
+
+    plot_durations : `list` of `int`
+        list of plot durations in seconds, default: `[1, 4, 16]`
+
+    scandir : `str`
+        path to the directory containing omega scans, default: `.`
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        rendered scaffold of omega scan plots
     """
     page = markup.page()
     page.div(class_='panel well panel-default')

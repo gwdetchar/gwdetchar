@@ -447,6 +447,16 @@ def test_write_arguments():
     assert '<strong>Command-line: </strong>' in page
 
 
+def test_alert():
+    page = html.alert('test')
+    assert parse_html(page) == parse_html(
+        '<div class="alert alert-info alert-dismissable">\n'
+        '<button type="button" class="close" data-dismiss="alert">\n'
+        '<span aria-hidden="true">&times;</span>\n'
+        '<span class="sr-only">Close</span>\n'
+        '</button>\n<p>test</p>\n</div>')
+
+
 def test_table():
     headers = ['Test']
     data = [['test']]

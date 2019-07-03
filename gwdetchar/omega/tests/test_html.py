@@ -285,10 +285,13 @@ def test_write_summary():
             'csv</a></li>\n'
         '<li><a href="data/summary.tex" download="L1_0_summary.tex">'
             'tex</a></li>\n'
-        '</ul>\n</div>\n</div>\n</div>\n<div class="row">\n'
-        '<div class="alert alert-default">\n<p><strong>Note</strong>: '
-            'This scan is in progress, and will auto-refresh every 60 seconds '
-            'until completion.</p>\n</div>\n</div>'
+        '</ul>\n</div>\n</div>\n</div>\n'
+        '<div class="alert alert-default alert-dismissable">\n'
+        '<button type="button" class="close" data-dismiss="alert">\n'
+        '<span aria-hidden="true">&times;</span>\n'
+        '<span class="sr-only">Close</span>\n'
+        '</button>\n<p><strong>Note</strong>: This scan is in progress, and '
+        'will auto-refresh every 60 seconds until completion.</p>\n</div>'
     )
     assert h1 == h2
 

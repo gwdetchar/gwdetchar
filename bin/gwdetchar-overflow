@@ -41,6 +41,8 @@ from gwdetchar.io.datafind import get_data
 from gwdetchar.utils import table_from_segments
 
 SITE_MAP = {
+    'H1': 'LIGO-Hanford',
+    'L1': 'LIGO-Livingston',
     'K1': 'KAGRA',
     'V1': 'Virgo',
 }
@@ -242,8 +244,13 @@ if args.html:
         args.output_file = os.path.relpath(
             args.output_file, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
-        links = [(s, '#%s' % s.lower())
-                 for s in ['Parameters', 'Segments', 'Results']]
+        links = [
+            ('Parameters', '#parameters'),
+            ('Segments', [('Overflows', '#overflows')]),
+            ('Results', '#results'),
+        ]
+        if args.state_flag:
+            links[1][1].insert(0, ('State flag', '#state-flag'))
         (brand, class_) = htmlio.get_brand(args.ifo, 'Overflows',
                                            args.gpsstart)
         navbar = htmlio.navbar(links, class_=class_, brand=brand)
@@ -259,14 +266,6 @@ if args.html:
     page.div(class_='page-header')
     page.h1('%s ADC/DAC Overflows: %d-%d'
             % (args.ifo, int(args.gpsstart), int(args.gpsend)))
-    page.p("This analysis searched for digital-to-analogue (DAC) or "
-           "analogue-to-digital (ADC) conversion overflows in the {0} "
-           "real-time controls system.".format(SITE_MAP.get(args.ifo, 'LIGO')))
-    if args.deep:
-        page.p("A hierarchichal search was performed, with a single "
-               "cumulative overflow counter checked per front-end controller "
-               "(FEC); for those models that indicate an overflow, the "
-               "card/slot-specific channels were then checked.")
     page.div.close()
 
     # -- paramters
@@ -287,9 +286,24 @@ if args.html:
                                    simulink, args.ifo)))
     page.add(htmlio.write_arguments(
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
+    page.add('<hr class="row-divider">')
 
     # -- segments
     page.h2('Segments', id_='segments')
+    # give contextual information
+    msg = ["This analysis searched for digital-to-analogue (DAC) or "
+           "analogue-to-digital (ADC) conversion overflows in the {0} "
+           "real-time controls system.".format(
+               SITE_MAP.get(args.ifo, 'LIGO')),]
+    if args.deep:
+        msg.append("A hierarchichal search was performed, with one cumulative "
+                   "overflow counter checked per front-end controller "
+                   "(FEC). For those models that indicated an overflow, the "
+                   "card- and slot-specific channels were then checked.")
+    msg.append("Consant overflow is shown as yellow, while transient overflow "
+               "is shown as red. If a data-quality flag was loaded for this "
+               "analysis, it will be displayed in green.")
+    page.add(htmlio.alert(msg))
     # link XML file
     if args.output_file:
         page.p()
@@ -299,7 +313,7 @@ if args.html:
         page.p.close()
     # record state segments
     if args.state_flag:
-        page.p('This analysis was done over the following data-quality flag:')
+        page.h3('State flag', id_='state-flag')
         page.div(class_='panel-group', id_='accordion1')
         page.add(htmlio.write_flag_html(
             state, span, 'state', parent='accordion1', context='success',
@@ -309,8 +323,7 @@ if args.html:
         page.div.close()
     # record overflow segments
     if sum(abs(s.active) for s in overflows.values()):
-        page.p('The following channels indicated an overflow (constant '
-               'overflow is yellow, otherwise red):')
+        page.h3('Overflows', id_='overflows')
         page.div(class_='panel-group', id_='accordion2')
         for i, (c, flag) in enumerate(list(overflows.items())):
             if abs(flag.active) == 0:
@@ -330,9 +343,9 @@ if args.html:
                 context=context, plotdir=args.plot))
         page.div.close()
     else:
-        page.div(class_='alert alert-info')
-        page.p('No overflows were found')
-        page.div.close()
+        page.add(htmlio.alert('No overflows were found in this analysis',
+                              dismiss=False))
+    page.add('<hr class="row-divider">')
 
     # -- results table
     page.h2('Results summary', id_='results')
