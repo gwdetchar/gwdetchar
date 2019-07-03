@@ -229,6 +229,8 @@ if args.html:
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
     page.add('<hr class="row-divider">')
     # -- segments
+    page.add(htmlio.download_btn([
+        ('Segments (HDF)', segfile)]))
     page.h2('Segments', id_='segments')
     msg = ("This analysis searched {0} filter bank readback channels for "
            "time periods during which their OUTPUT value matched or exceeded "
@@ -236,11 +238,6 @@ if args.html:
            "are shown below, and saturation segments are available by "
            "expanding a given panel.").format(sum(map(len, channels)))
     page.add(htmlio.alert(msg))
-    # link output file
-    page.p()
-    page.add('Full output segments are recorded in HDF5 format here:')
-    page.a(os.path.basename(segfile), href=segfile, target='_blank')
-    page.p.close()
     # record state segments
     if args.state_flag:
         page.h3('State flag', id_='state-flag')

@@ -288,8 +288,17 @@ if args.html:
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
     page.add('<hr class="row-divider">')
 
+    # link to summary file
+    if args.output_file:
+        ext = ('HDF' if args.output_file.endswith((".h5", "hdf", ".hdf5"))
+               else 'XML')
+        page.add(htmlio.download_btn([
+            ('Segments ({})'.format(ext), args.output_file),
+        ]))
+
     # -- segments
     page.h2('Segments', id_='segments')
+
     # give contextual information
     msg = ["This analysis searched for digital-to-analogue (DAC) or "
            "analogue-to-digital (ADC) conversion overflows in the {0} "
@@ -304,13 +313,6 @@ if args.html:
                "is shown as red. If a data-quality flag was loaded for this "
                "analysis, it will be displayed in green.")
     page.add(htmlio.alert(msg))
-    # link XML file
-    if args.output_file:
-        page.p()
-        page.add('Full output segments are recorded in HDF5 format here:')
-        page.a(os.path.basename(args.output_file), href=args.output_file,
-               target='_blank')
-        page.p.close()
     # record state segments
     if args.state_flag:
         page.h3('State flag', id_='state-flag')
