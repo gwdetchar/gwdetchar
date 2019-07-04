@@ -861,8 +861,8 @@ def download_btn(content, label='Download summary',
     return page()
 
 
-def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
-                    section='Parameters', id_='parameters', cmdline=True,
+def parameter_table(content=[], start=None, end=None, flag=None,
+                    section='Parameters', id_='parameters',
                     tableclass=('table table-condensed table-hover '
                                 'table-responsive')):
     """Render an informative section with run parameters in HTML
@@ -872,15 +872,11 @@ def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
     content: `list` of `tuple` of `str`
         collection of parameters to list
 
-    start : `float`, optional
-        GPS start time of the analysis, required if `gps` is `None`
+    start : `float`
+        GPS start time of the analysis
 
-    end : `float`, optional
-        GPS end time of the analysis, required if `gps` is `None`
-
-    gps : `float`, optional
-        central GPS time of the analysis, will supersede `start` and
-        `end` if given
+    end : `float`
+        GPS end time of the analysis
 
     flag : `str`, optional
         name of a data-quality state flag required for this analysis
@@ -890,10 +886,6 @@ def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
 
     id_ : `str`, optional
         unique HTML identifier for this section, default: ``parameters``
-
-    cmdline : `bool`, optional
-        boolean switch to include (`True`) or exclude (`False`) the
-        command-line invocation used to make this page, default: `True`
 
     tableclass : `str`, optional
         the ``class`` for the summary ``<table>``, defaults to a responsive
@@ -905,39 +897,32 @@ def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
         fully rendered table of parameters
     """
     # front-load time and flag info
-    common = [(
-        'UTC time',
-        '{0} ({1})'.format(from_gps(gps), gps),
-    )] if gps is not None else [
+    common = [
         ('Start time (UTC)', '{0} ({1})'.format(from_gps(start), start)),
         ('End time (UTC)', '{0} ({1})'.format(from_gps(end), end)),
     ]
     if flag is not None:
         common.append(('State flag', markup.oneliner.code(flag)))
-    content = common + content
-    if cmdline:
-        content.append(('System prefix', markup.oneliner.code(sys.prefix)))
+    content = common + content + [
+        ('System prefix', markup.oneliner.code(sys.prefix))]
     # initialize page
     page = markup.page()
     if section is not None:
         page.h2(section, id_=id_)
-    page.div(class_='col-xs-12 col-md-5')
     page.table(class_=tableclass)
     # table body
     page.tbody()
     for row in content:
         col1, col2 = row
         page.tr()
-        page.td(markup.oneliner.strong(col1), scope='row')
+        page.td(markup.oneliner.strong(col1))
         page.td(col2)
         page.tr.close()
     page.tbody.close()
     # close table and write command-line
     page.table.close()
-    page.div.close()  # col-xs-12 col-md-5
-    if cmdline:
-        page.p(markup.oneliner.strong('Command-line:'))
-        page.add(get_command_line(about=False))
+    page.p(markup.oneliner.strong('Command-line:'))
+    page.add(get_command_line(about=False))
     return page()
 
 

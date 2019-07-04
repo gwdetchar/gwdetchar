@@ -282,11 +282,22 @@ def write_summary(
     page.div.close()  # banner
     page.div(class_='row')
 
-    # make table
-    content = [('Interferometer',
-                '%s (%s)' % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))]
-    page.add(htmlio.parameter_table(content, gps=gpstime,
-                                    section=None, cmdline=False))
+    page.div(class_='col-md-5')
+    page.table(class_=tableclass)
+    # make table body
+    page.tbody()
+    page.tr()
+    page.td("<b>Interferometer</b>", scope='row')
+    page.td("%s (%s)" % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))
+    page.tr.close()
+    page.tr()
+    page.td("<b>UTC Time</b>", scope='row')
+    page.td("%s" % utc)
+    page.tr.close()
+    page.tbody.close()
+    # close table
+    page.table.close()
+    page.div.close()  # col-md-5
 
     # make summary table download button
     page.div(class_='col-xs-12 col-md-7')

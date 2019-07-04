@@ -301,18 +301,17 @@ if args.html:
     page.h2('Segments', id_='segments')
 
     # give contextual information
-    msg = ["This analysis searched for digital-to-analogue (DAC) or "
+    msg = ("This analysis searched for digital-to-analogue (DAC) or "
            "analogue-to-digital (ADC) conversion overflows in the {0} "
-           "real-time controls system.".format(
-               SITE_MAP.get(args.ifo, 'LIGO')),]
+           "real-time controls system. ").format(SITE_MAP.get(args.ifo, 'LIGO'))
     if args.deep:
-        msg.append("A hierarchichal search was performed, with one cumulative "
-                   "overflow counter checked per front-end controller "
-                   "(FEC). For those models that indicated an overflow, the "
-                   "card- and slot-specific channels were then checked.")
-    msg.append("Consant overflow is shown as yellow, while transient overflow "
-               "is shown as red. If a data-quality flag was loaded for this "
-               "analysis, it will be displayed in green.")
+        msg += ("A hierarchichal search was performed, with one cumulative "
+                "overflow counter checked per front-end controller (FEC). "
+                "For those models that indicated an overflow, the card- and "
+                "slot-specific channels were then checked. ")
+    msg += ("Consant overflow is shown as yellow, while transient overflow "
+            "is shown as red. If a data-quality flag was loaded for this "
+            "analysis, it will be displayed in green.")
     page.add(htmlio.alert(msg))
     # record state segments
     if args.state_flag:

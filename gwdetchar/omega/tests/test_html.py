@@ -265,31 +265,30 @@ def test_write_summary_table(tmpdir):
 
 def test_write_summary():
     page = html.write_summary('L1', 0, incomplete=True)
-    h1 = parse_html(str(page))
-    h2 = parse_html(
+    assert parse_html(str(page)) == parse_html(
         '<div class="banner">\n<h2>Summary</h2>\n</div>\n<div class="row">\n'
-        '<div class="col-xs-12 col-md-5">\n<table class="table table-condensed'
-        ' table-hover table-responsive">\n<tbody>\n<tr>\n<td scope="row">'
-        '<strong>UTC time</strong></td>\n<td>1980-01-06 00:00:00 (0)</td>\n'
-        '</tr>\n<tr>\n<td scope="row"><strong>Interferometer</strong></td>\n'
-        '<td>LIGO Livingston (L1)</td>\n</tr>\n</tbody>\n</table>\n</div>\n'
-        '<div class="col-xs-12 col-md-7">\n<div class="btn-group">\n'
-        '<button id_ type="button" class="btn btn-default dropdown-toggle" '
-        'data-toggle="dropdown">\nDownload summary <span class="caret">'
-        '</span>\n</button>\n<ul class="dropdown-menu" role="menu" '
-        'aria-labelledby="summary_table_download">\n<li>'
-        '<a href="data/summary.txt" download="L1_0_summary.txt">txt</a></li>\n'
-        '<li><a href="data/summary.csv" download="L1_0_summary.csv">csv</a>'
-        '</li>\n<li><a href="data/summary.tex" download="L1_0_summary.tex">'
-        'tex</a></li>\n</ul>\n</div>\n</div>\n</div>\n'
+        '<div class="col-md-5">\n<table class="table table-condensed '
+        'table-hover table-responsive">\n<tbody>\n<tr>\n'
+        '<td scope="row"><b>Interferometer</b></td>\n'
+        '<td>LIGO Livingston (L1)</td>\n</tr>\n<tr>\n'
+        '<td scope="row"><b>UTC Time</b></td>\n<td>1980-01-06 00:00:00</td>\n'
+        '</tr>\n</tbody>\n</table>\n</div>\n<div class="col-xs-12 col-md-7">\n'
+        '<div class="btn-group">\n<button id_ type="button" '
+        'class="btn btn-default dropdown-toggle" data-toggle="dropdown">\n'
+        'Download summary <span class="caret"></span>\n</button>\n'
+        '<ul class="dropdown-menu" role="menu" aria-labelledby='
+        '"summary_table_download">\n<li><a href="data/summary.txt" '
+        'download="L1_0_summary.txt">txt</a></li>\n<li><a href='
+        '"data/summary.csv" download="L1_0_summary.csv">csv</a></li>\n'
+        '<li><a href="data/summary.tex" download="L1_0_summary.tex">tex</a>'
+        '</li>\n</ul>\n</div>\n</div>\n</div>\n'
         '<div class="alert alert-default alert-dismissable">\n'
         '<button type="button" class="close" data-dismiss="alert">\n'
-        '<span aria-hidden="true">&times;</span>\n<span class="sr-only">'
-        'Close</span>\n</button>\n<p><strong>Note</strong>: This scan is in '
-        'progress, and will auto-refresh every 60 seconds until completion.'
-        '</p>\n</div>'
+        '<span aria-hidden="true">&times;</span>\n'
+        '<span class="sr-only">Close</span>\n</button>\n'
+        '<p><strong>Note</strong>: This scan is in progress, and will '
+        'auto-refresh every 60 seconds until completion.</p>\n</div>'
     )
-    assert h1 == h2
 
 
 def test_write_ranking():

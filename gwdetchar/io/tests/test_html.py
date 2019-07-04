@@ -446,13 +446,13 @@ def test_parameter_table():
     page = html.parameter_table([('test', 'test')],
                                 start=0, end=1, flag='X1:TEST')
     assert '<h2 id="parameters">Parameters</h2>' in page
-    assert '<td scope="row"><strong>Start time (UTC)</strong></td>' in page
+    assert '<td><strong>Start time (UTC)</strong></td>' in page
     assert '<td>1980-01-06 00:00:00 (0)</td>' in page
-    assert '<td scope="row"><strong>End time (UTC)</strong></td>' in page
+    assert '<td><strong>End time (UTC)</strong></td>' in page
     assert '<td>1980-01-06 00:00:01 (1)</td>' in page
-    assert '<td scope="row"><strong>State flag</strong></td>' in page
+    assert '<td><strong>State flag</strong></td>' in page
     assert '<td><code>X1:TEST</code></td>' in page
-    assert '<td scope="row"><strong>test</strong></td>' in page
+    assert '<td><strong>test</strong></td>' in page
     assert '<td>test</td>' in page
     assert '<p><strong>Command-line:</strong></p>' in page
 
