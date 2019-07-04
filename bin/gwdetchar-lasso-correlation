@@ -586,7 +586,7 @@ files = [
     ('%s analyzed channels (CSV)' % nchan, channelsfile),
     ('%s flat channels (CSV)' % len(flatable), flatfile),
     ('%s zeroed channels (CSV)' % len(zeroed), zerofile)]
-page.add(htmlio.download_btn(files), label='Channel information')
+page.add(htmlio.download_btn(files, label='Channel information'))
 
 # -- summary table
 content = [
