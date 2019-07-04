@@ -265,7 +265,6 @@ def test_write_summary_table(tmpdir):
 
 def test_write_summary():
     page = html.write_summary('L1', 0, incomplete=True)
-    print(page)
     h1 = parse_html(str(page))
     h2 = parse_html(
         '<div class="banner">\n<h2>Summary</h2>\n</div>\n<div class="row">\n'
