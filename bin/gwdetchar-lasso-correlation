@@ -24,6 +24,8 @@ import multiprocessing
 
 import numpy
 
+from MarkupPy import markup
+
 from matplotlib import (use, rcParams)
 use('agg')  # nopep8
 from matplotlib.cm import get_cmap
