@@ -60,7 +60,7 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <base href="{base}" />
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="https://fonts.googleapis.com/css?family=Roboto:300,400%7CRoboto+Mono" rel="stylesheet" type="text/css" media="all" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:500%7CRoboto+Mono" rel="stylesheet" type="text/css" media="all" />
 <link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/gwdetchar.min.css" rel="stylesheet" type="text/css" media="all" />
 <script src="https://code.jquery.com/jquery-1.12.3.min.js" type="text/javascript"></script>
@@ -234,7 +234,7 @@ def test_finalize_static_urls(tmpdir):
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
             'jquery.fancybox.min.css',  # nopep8
         'https://fonts.googleapis.com/css?'
-            'family=Roboto:300,400%7CRoboto+Mono',  # nopep8
+            'family=Roboto:500%7CRoboto+Mono',  # nopep8
         'static/bootstrap-ligo.min.css',
         'static/gwdetchar.min.css']
     assert js == [

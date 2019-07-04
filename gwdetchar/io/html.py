@@ -142,7 +142,7 @@ MOMENT_JS = (
     "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js")
 
 GOOGLE_FONT_CSS = ("https://fonts.googleapis.com/css?"
-                   "family=Roboto:300,400%7CRoboto+Mono")
+                   "family=Roboto:500%7CRoboto+Mono")
 
 BOOTSTRAP_LIGO_CSS = resource_filename(
     'gwdetchar',
