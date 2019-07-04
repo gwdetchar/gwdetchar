@@ -64,7 +64,8 @@ parser.add_argument('-a', '--state-flag', metavar='FLAG',
 parser.add_argument('-p', '--pad-state-end', metavar='PAD', default=0,
                     type=float, help='pad state segments inwards from the end '
                                      'by PAD segments, default: %(default)s')
-parser.add_argument('-m', '--html', help='path to write html output')
+parser.add_argument('-m', '--html', type=os.path.abspath,
+                    help='path to write html output')
 parser.add_argument('-v', '--plot', action='store_true', default=False,
                     help='make plots of all saturations, default: %(default)s')
 

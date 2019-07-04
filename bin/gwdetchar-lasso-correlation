@@ -68,6 +68,7 @@ parser.add_argument('-J', '--nproc-plot', type=int, default=None,
                     help='number of processes to use for plot rendering, '
                          'will be ignored if not using LaTeX')
 parser.add_argument('-o', '--output-dir', default=os.curdir,
+                    type=os.path.abspath,
                     help='output directory for plots')
 parser.add_argument('-f', '--channel-file', type=os.path.abspath,
                     help='path for channel file')

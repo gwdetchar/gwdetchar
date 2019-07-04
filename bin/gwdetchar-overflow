@@ -79,7 +79,8 @@ parser.add_argument('-p', '--segment-pad', type=float, default=0.1,
 parser.add_argument('-s', '--segment-end-pad', type=float, default=1.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
-parser.add_argument('-m', '--html', help='path to write html output')
+parser.add_argument('-m', '--html', type=os.path.abspath,
+                    help='path to write html output')
 parser.add_argument('-v', '--plot', action='store_true', default=None,
                     help='make plots of all overflows, default: %(default)s')
 parser.add_argument('-c', '--fec-map', help='URL of human-readable FEC map, '
