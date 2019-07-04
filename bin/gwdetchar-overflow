@@ -215,9 +215,10 @@ for dcuid in args.dcuid:
                 except KeyError:
                     warnings.warn("Skipping {}".format(ch), UserWarning)
                     continue
-    logger.debug(" -- Complete")
+    logger.debug(" -- Search complete")
 
 # write output
+logger.info("Writing segments to %s" % args.output_file)
 table = table_from_segments(
     overflows,
     sngl_burst=args.output_file.endswith((".xml", ".xml.gz")),
@@ -232,7 +233,6 @@ if args.output_file.endswith((".h5", "hdf", ".hdf5")):
 else:
     table.write(args.output_file, overwrite=True)
     overflows.write(args.output_file, overwrite=True, append=True)
-logger.info("Written output to %s" % args.output_file)
 
 # write HTML
 if args.html:
