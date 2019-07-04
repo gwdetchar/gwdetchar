@@ -189,10 +189,10 @@ else:
     logger.info("No software saturations were found in any channels")
 
 # write segments to file
-logger.info("Writing saturation segments to %s" % outfile)
 outfile = ('%s-SOFTWARE_SATURATIONS-%d-%d.h5'
            % (ifo, int(args.gpsstart),
               int(args.gpsend) - int(args.gpsstart)))
+logger.info("Writing saturation segments to %s" % outfile)
 saturations.write(outfile, path="segments", overwrite=True)
 
 if args.html:
