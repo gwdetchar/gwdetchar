@@ -921,7 +921,7 @@ def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
     page = markup.page()
     if section is not None:
         page.h2(section, id_=id_)
-    page.div(class_='col-md-5')
+    page.div(class_='col-xs-12 col-md-5')
     page.table(class_=tableclass)
     # table body
     page.tbody()
@@ -934,7 +934,7 @@ def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
     page.tbody.close()
     # close table and write command-line
     page.table.close()
-    page.div.close()  # col-md-5
+    page.div.close()  # col-xs-12 col-md-5
     if cmdline:
         page.p(markup.oneliner.strong('Command-line:'))
         page.add(get_command_line(about=False))

@@ -268,8 +268,8 @@ def test_write_summary():
     h1 = parse_html(str(page))
     h2 = parse_html(
         '<div class="banner">\n<h2>Summary</h2>\n</div>\n<div class="row">\n'
-        '<div class="col-md-5">\n<table class="table table-condensed '
-        'table-hover table-responsive">\n<tbody>\n<tr>\n<td scope="row">'
+        '<div class="col-xs-12 col-md-5">\n<table class="table table-condensed'
+        ' table-hover table-responsive">\n<tbody>\n<tr>\n<td scope="row">'
         '<strong>UTC time</strong></td>\n<td>1980-01-06 00:00:00 (0)</td>\n'
         '</tr>\n<tr>\n<td scope="row"><strong>Interferometer</strong></td>\n'
         '<td>LIGO Livingston (L1)</td>\n</tr>\n</tbody>\n</table>\n</div>\n'
