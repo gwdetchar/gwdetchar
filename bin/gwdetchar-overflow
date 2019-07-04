@@ -240,7 +240,7 @@ if args.html:
     base = os.path.dirname(args.html)
     os.chdir(base)
     if args.plot:
-        args.plot = base
+        args.plot = os.path.curdir
     if args.output_file:
         args.output_file = os.path.relpath(
             args.output_file, os.path.dirname(args.html))

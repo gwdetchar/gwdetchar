@@ -200,7 +200,7 @@ if args.html:
     base = os.path.dirname(args.html)
     os.chdir(base)
     if args.plot:
-        args.plot = base
+        args.plot = os.path.curdir
     segfile = os.path.relpath(outfile, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
         links = [
