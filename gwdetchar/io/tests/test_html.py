@@ -434,12 +434,12 @@ def test_scaffold_plots():
 def test_download_btn():
     page = html.download_btn([('test', 'test')])
     assert parse_html(page) == parse_html(
-        '<div class="btn-group desktop-only">\n<button id_ type="button" '
-        'class="btn btn-default dropdown-toggle" data-toggle="dropdown">\n'
-        'Download summary <span class="caret"></span>\n</button>\n'
-        '<ul class="dropdown-menu" role="menu" aria-labelledby='
-        '"summary_table_download">\n<li><a href="test" download="test">test'
-        '</a></li>\n</ul>\n</div>')
+        '<div class="btn-group pull-right desktop-only">\n<button '
+        'type="button" class="btn btn-default dropdown-toggle" '
+        'data-toggle="dropdown">\nDownload summary <span class="caret">'
+        '</span>\n</button>\n<ul class="dropdown-menu" role="menu" '
+        'aria-labelledby="summary_table_download">\n<li><a href="test" '
+        'download="test">test</a></li>\n</ul>\n</div>')
 
 
 def test_parameter_table():

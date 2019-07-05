@@ -273,7 +273,7 @@ def test_write_summary():
         '<td>LIGO Livingston (L1)</td>\n</tr>\n<tr>\n'
         '<td scope="row"><b>UTC Time</b></td>\n<td>1980-01-06 00:00:00</td>\n'
         '</tr>\n</tbody>\n</table>\n</div>\n<div class="col-xs-12 col-md-7">\n'
-        '<div class="btn-group">\n<button id_ type="button" '
+        '<div class="btn-group">\n<button type="button" '
         'class="btn btn-default dropdown-toggle" data-toggle="dropdown">\n'
         'Download summary <span class="caret"></span>\n</button>\n'
         '<ul class="dropdown-menu" role="menu" aria-labelledby='
