@@ -64,7 +64,8 @@ parser.add_argument('-a', '--state-flag', metavar='FLAG',
 parser.add_argument('-p', '--pad-state-end', metavar='PAD', default=0,
                     type=float, help='pad state segments inwards from the end '
                                      'by PAD segments, default: %(default)s')
-parser.add_argument('-m', '--html', help='path to write html output')
+parser.add_argument('-m', '--html', type=os.path.abspath,
+                    help='path to write html output')
 parser.add_argument('-v', '--plot', action='store_true', default=False,
                     help='make plots of all saturations, default: %(default)s')
 
@@ -79,7 +80,7 @@ site = ifo[0]
 frametype = args.frametype or '%s_R' % ifo
 
 # let's go
-logger.info('{} Software Saturations {}-{}'.format(
+logger.info('{} Software saturations {}-{}'.format(
     args.ifo, int(args.gpsstart), int(args.gpsend)))
 
 # get segments
@@ -191,15 +192,15 @@ else:
 outfile = ('%s-SOFTWARE_SATURATIONS-%d-%d.h5'
            % (ifo, int(args.gpsstart),
               int(args.gpsend) - int(args.gpsstart)))
+logger.info("Writing saturation segments to %s" % outfile)
 saturations.write(outfile, path="segments", overwrite=True)
-logger.info("Saturation segments written to \n%s" % outfile)
 
 if args.html:
     # get base path
     base = os.path.dirname(args.html)
     os.chdir(base)
     if args.plot:
-        args.plot = base
+        args.plot = os.path.curdir
     segfile = os.path.relpath(outfile, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
         links = [
@@ -209,7 +210,7 @@ if args.html:
         ]
         if args.state_flag:
             links[1][1].insert(0, ('State flag', '#state-flag'))
-        (brand, class_) = htmlio.get_brand(ifo, 'Software Saturations',
+        (brand, class_) = htmlio.get_brand(ifo, 'Saturations',
                                            args.gpsstart)
         navbar = htmlio.navbar(links, class_=class_, brand=brand)
         page = htmlio.new_bootstrap_page(navbar=navbar)
@@ -229,6 +230,8 @@ if args.html:
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
     page.add('<hr class="row-divider">')
     # -- segments
+    page.add(htmlio.download_btn([
+        ('Segments (HDF)', segfile)]))
     page.h2('Segments', id_='segments')
     msg = ("This analysis searched {0} filter bank readback channels for "
            "time periods during which their OUTPUT value matched or exceeded "
@@ -236,11 +239,6 @@ if args.html:
            "are shown below, and saturation segments are available by "
            "expanding a given panel.").format(sum(map(len, channels)))
     page.add(htmlio.alert(msg))
-    # link output file
-    page.p()
-    page.add('Full output segments are recorded in HDF5 format here:')
-    page.a(os.path.basename(segfile), href=segfile, target='_blank')
-    page.p.close()
     # record state segments
     if args.state_flag:
         page.h3('State flag', id_='state-flag')

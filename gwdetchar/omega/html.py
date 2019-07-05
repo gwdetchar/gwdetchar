@@ -282,27 +282,35 @@ def write_summary(
     page.div.close()  # banner
     page.div(class_='row')
 
-    # make table
-    content = [('Interferometer',
-                '%s (%s)' % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))]
-    page.add(htmlio.parameter_table(content, gps=gpstime,
-                                    section=None, cmdline=False))
+    page.div(class_='col-md-5')
+    page.table(class_=tableclass)
+    # make table body
+    page.tbody()
+    page.tr()
+    page.td("<b>Interferometer</b>", scope='row')
+    page.td("%s (%s)" % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))
+    page.tr.close()
+    page.tr()
+    page.td("<b>UTC Time</b>", scope='row')
+    page.td("%s" % utc)
+    page.tr.close()
+    page.tbody.close()
+    # close table
+    page.table.close()
+    page.div.close()  # col-md-5
 
     # make summary table download button
     page.div(class_='col-xs-12 col-md-7')
-    page.div(class_='btn-group', role='group')
-    page.button(id_='summary_table_download', type='button',
-                class_='btn btn-%s dropdown-toggle' % context,
-                **{'data-toggle': 'dropdown'})
-    page.add('Download summary <span class="caret"></span>')
-    page.button.close()
-    page.ul(class_='dropdown-menu', role='menu',
-            **{'aria-labelledby': 'summary_table_download'})
-    for ext in ['txt', 'csv', 'tex']:
-        page.li('<a href="data/summary.%s" download="%s_%s_summary.%s">%s</a>'
-                % (ext, ifo, gpstime, ext, ext))
-    page.ul.close()
-    page.div.close()  # btn-group
+    content = [(
+        ext,
+        'data/summary.{}'.format(ext),
+        '{0}_{1}_summary.{2}'.format(ifo, gpstime, ext)
+    ) for ext in ('txt', 'csv', 'tex')]
+    page.add(htmlio.download_btn(
+        content,
+        btndiv='btn-group',
+	    btnclass='btn btn-{} dropdown-toggle'.format(context),
+    ))
     page.div.close()  # col-md-7
     page.div.close()  # row
 

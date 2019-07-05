@@ -79,7 +79,8 @@ parser.add_argument('-p', '--segment-pad', type=float, default=0.1,
 parser.add_argument('-s', '--segment-end-pad', type=float, default=1.0,
                     help='amount of time to remove from the end of each '
                          'analysis segment')
-parser.add_argument('-m', '--html', help='path to write html output')
+parser.add_argument('-m', '--html', type=os.path.abspath,
+                    help='path to write html output')
 parser.add_argument('-v', '--plot', action='store_true', default=None,
                     help='make plots of all overflows, default: %(default)s')
 parser.add_argument('-c', '--fec-map', help='URL of human-readable FEC map, '
@@ -214,9 +215,10 @@ for dcuid in args.dcuid:
                 except KeyError:
                     warnings.warn("Skipping {}".format(ch), UserWarning)
                     continue
-    logger.debug(" -- Complete")
+    logger.debug(" -- Search complete")
 
 # write output
+logger.info("Writing segments to %s" % args.output_file)
 table = table_from_segments(
     overflows,
     sngl_burst=args.output_file.endswith((".xml", ".xml.gz")),
@@ -231,7 +233,6 @@ if args.output_file.endswith((".h5", "hdf", ".hdf5")):
 else:
     table.write(args.output_file, overwrite=True)
     overflows.write(args.output_file, overwrite=True, append=True)
-logger.info("Written output to %s" % args.output_file)
 
 # write HTML
 if args.html:
@@ -239,7 +240,7 @@ if args.html:
     base = os.path.dirname(args.html)
     os.chdir(base)
     if args.plot:
-        args.plot = base
+        args.plot = os.path.curdir
     if args.output_file:
         args.output_file = os.path.relpath(
             args.output_file, os.path.dirname(args.html))
@@ -288,29 +289,30 @@ if args.html:
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
     page.add('<hr class="row-divider">')
 
+    # link to summary file
+    if args.output_file:
+        ext = ('HDF' if args.output_file.endswith((".h5", "hdf", ".hdf5"))
+               else 'XML')
+        page.add(htmlio.download_btn([
+            ('Segments ({})'.format(ext), args.output_file),
+        ]))
+
     # -- segments
     page.h2('Segments', id_='segments')
+
     # give contextual information
-    msg = ["This analysis searched for digital-to-analogue (DAC) or "
+    msg = ("This analysis searched for digital-to-analogue (DAC) or "
            "analogue-to-digital (ADC) conversion overflows in the {0} "
-           "real-time controls system.".format(
-               SITE_MAP.get(args.ifo, 'LIGO')),]
+           "real-time controls system. ").format(SITE_MAP.get(args.ifo, 'LIGO'))
     if args.deep:
-        msg.append("A hierarchichal search was performed, with one cumulative "
-                   "overflow counter checked per front-end controller "
-                   "(FEC). For those models that indicated an overflow, the "
-                   "card- and slot-specific channels were then checked.")
-    msg.append("Consant overflow is shown as yellow, while transient overflow "
-               "is shown as red. If a data-quality flag was loaded for this "
-               "analysis, it will be displayed in green.")
+        msg += ("A hierarchichal search was performed, with one cumulative "
+                "overflow counter checked per front-end controller (FEC). "
+                "For those models that indicated an overflow, the card- and "
+                "slot-specific channels were then checked. ")
+    msg += ("Consant overflow is shown as yellow, while transient overflow "
+            "is shown as red. If a data-quality flag was loaded for this "
+            "analysis, it will be displayed in green.")
     page.add(htmlio.alert(msg))
-    # link XML file
-    if args.output_file:
-        page.p()
-        page.add('Full output segments are recorded in HDF5 format here:')
-        page.a(os.path.basename(args.output_file), href=args.output_file,
-               target='_blank')
-        page.p.close()
     # record state segments
     if args.state_flag:
         page.h3('State flag', id_='state-flag')

@@ -60,7 +60,7 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <base href="{base}" />
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="https://fonts.googleapis.com/css?family=Roboto:300,400%7CRoboto+Mono" rel="stylesheet" type="text/css" media="all" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:500%7CRoboto+Mono" rel="stylesheet" type="text/css" media="all" />
 <link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/gwdetchar.min.css" rel="stylesheet" type="text/css" media="all" />
 <script src="https://code.jquery.com/jquery-1.12.3.min.js" type="text/javascript"></script>
@@ -234,7 +234,7 @@ def test_finalize_static_urls(tmpdir):
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
             'jquery.fancybox.min.css',  # nopep8
         'https://fonts.googleapis.com/css?'
-            'family=Roboto:300,400%7CRoboto+Mono',  # nopep8
+            'family=Roboto:500%7CRoboto+Mono',  # nopep8
         'static/bootstrap-ligo.min.css',
         'static/gwdetchar.min.css']
     assert js == [
@@ -431,17 +431,28 @@ def test_scaffold_plots():
     assert h1 == h2
 
 
+def test_download_btn():
+    page = html.download_btn([('test', 'test')])
+    assert parse_html(page) == parse_html(
+        '<div class="btn-group pull-right desktop-only">\n<button '
+        'type="button" class="btn btn-default dropdown-toggle" '
+        'data-toggle="dropdown">\nDownload summary <span class="caret">'
+        '</span>\n</button>\n<ul class="dropdown-menu" role="menu" '
+        'aria-labelledby="summary_table_download">\n<li><a href="test" '
+        'download="test">test</a></li>\n</ul>\n</div>')
+
+
 def test_parameter_table():
     page = html.parameter_table([('test', 'test')],
                                 start=0, end=1, flag='X1:TEST')
     assert '<h2 id="parameters">Parameters</h2>' in page
-    assert '<td scope="row"><strong>Start time (UTC)</strong></td>' in page
+    assert '<td><strong>Start time (UTC)</strong></td>' in page
     assert '<td>1980-01-06 00:00:00 (0)</td>' in page
-    assert '<td scope="row"><strong>End time (UTC)</strong></td>' in page
+    assert '<td><strong>End time (UTC)</strong></td>' in page
     assert '<td>1980-01-06 00:00:01 (1)</td>' in page
-    assert '<td scope="row"><strong>State flag</strong></td>' in page
+    assert '<td><strong>State flag</strong></td>' in page
     assert '<td><code>X1:TEST</code></td>' in page
-    assert '<td scope="row"><strong>test</strong></td>' in page
+    assert '<td><strong>test</strong></td>' in page
     assert '<td>test</td>' in page
     assert '<p><strong>Command-line:</strong></p>' in page
 

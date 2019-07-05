@@ -24,18 +24,20 @@ import multiprocessing
 
 import numpy
 
+from MarkupPy import markup
+
 from matplotlib import (use, rcParams)
 use('agg')  # nopep8
-from matplotlib import cm as mcm
+from matplotlib.cm import get_cmap
+
+from astropy.table import Table
 
 from sklearn import linear_model
 from sklearn.preprocessing import scale
 
-from gwpy.table import Table
 from pandas import set_option
 
 from gwpy.plot import Plot
-from gwpy.time import Time
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
@@ -68,6 +70,7 @@ parser.add_argument('-J', '--nproc-plot', type=int, default=None,
                     help='number of processes to use for plot rendering, '
                          'will be ignored if not using LaTeX')
 parser.add_argument('-o', '--output-dir', default=os.curdir,
+                    type=os.path.abspath,
                     help='output directory for plots')
 parser.add_argument('-f', '--channel-file', type=os.path.abspath,
                     help='path for channel file')
@@ -113,13 +116,9 @@ logger = cli.logger(name=os.path.basename(__file__))
 start = int(args.gpsstart)
 end = int(args.gpsend)
 pad = args.filter_padding
-auto_xlabel = ('Time [hours] from '
-               + re.sub(r'\.0+', '',
-                        Time(start, format='gps', scale='utc').iso)
-               + ' UTC (%d)' % start)
 
 # let's go
-logger.info('{} Lasso Correlations {}-{}'.format(args.ifo, start, end))
+logger.info('{} Lasso correlations {}-{}'.format(args.ifo, start, end))
 
 # get primary channel frametype
 primary = args.primary_channel.format(ifo=args.ifo)
@@ -226,9 +225,9 @@ auxdata = get_data(
 logger.info('-- Pre-processing auxiliary channel data')
 
 auxdata = gwlasso.remove_flat(auxdata)
-flattab = Table(data=(list(set(channels) - set(auxdata.keys())),),
-                names=('Channels',))
-logger.debug('Removed {0} channels with flat data'.format(len(flattab)))
+flatable = Table(data=(list(set(channels) - set(auxdata.keys())),),
+                 names=('Channels',))
+logger.debug('Removed {0} channels with flat data'.format(len(flatable)))
 logger.debug('{0} channels remaining'.format(len(auxdata)))
 
 # -- remove bad data
@@ -277,12 +276,12 @@ df.index += 1
 
 # write results to files
 gpsstub = '%d-%d' % (start, end-start)
-resultsfile = '%s-LASSO_RESULTS-%s.txt' % (args.ifo, gpsstub)
-results.write(resultsfile, format='ascii', overwrite=True)
-zerofile = '%s-ZERO_COEFFICIENT_CHANNELS-%s.txt' % (args.ifo, gpsstub)
-zeroed.write(zerofile, format='ascii', overwrite=True)
-flatfile = '%s-FLAT_CHANNELS-%s.txt' % (args.ifo, gpsstub)
-flattab.write(flatfile, format='ascii', overwrite=True)
+resultsfile = '%s-LASSO_RESULTS-%s.csv' % (args.ifo, gpsstub)
+results.write(resultsfile, format='csv', overwrite=True)
+zerofile = '%s-ZERO_COEFFICIENT_CHANNELS-%s.csv' % (args.ifo, gpsstub)
+zeroed.write(zerofile, format='csv', overwrite=True)
+flatfile = '%s-FLAT_CHANNELS-%s.csv' % (args.ifo, gpsstub)
+flatable.write(flatfile, format='csv', overwrite=True)
 
 # -- generate lasso plots
 
@@ -294,7 +293,7 @@ p1 = (.1, .15, .9, .9)  # global plot defaults for plot1, lasso model
 
 times = primaryts.times.value
 xlim = primaryts.span
-cmap = mcm.get_cmap('tab20')
+cmap = get_cmap('tab20')
 colors = [cmap(i) for i in numpy.linspace(0, 1, len(nonzerodata)+1)]
 
 plot = Plot(figsize=(12, 4))
@@ -517,10 +516,10 @@ def generate_cluster(input_,):
             cluster = sorted(cluster, key=lambda x: abs(x[2]), reverse=True)
             clustertab = Table(data=list(zip(*cluster))[2:4],
                                names=('Channel', 'Pearson Coefficient'))
-            plot7_list = '%s_CLUSTER_LIST-%s.txt' % (
+            plot7_list = '%s_CLUSTER_LIST-%s.csv' % (
                 re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
                 gpsstub)
-            clustertab.write(plot7_list, format='ascii', overwrite=True)
+            clustertab.write(plot7_list, format='csv', overwrite=True)
 
             ncluster = min(len(cluster), max_correlated_channels)
             colors2 = [cmap(i) for i in numpy.linspace(0, 1, ncluster+1)]
@@ -570,11 +569,11 @@ if args.no_cluster is False:
     pool = multiprocessing.Pool(nprocplot)
     clusters = pool.map(generate_cluster, enumerate(results))
 
-channelsfile = '%s-CHANNELS-%s.txt' % (args.ifo, gpsstub)
-numpy.savetxt(channelsfile, channels, fmt='%s')
+channelsfile = '%s-CHANNELS-%s.csv' % (args.ifo, gpsstub)
+numpy.savetxt(channelsfile, channels, delimiter=',', fmt='%s')
 
 # write html
-title = '%s Lasso Slow Correlations: %d-%d' % (args.ifo, start, end)
+title = '%s Lasso Correlations: %d-%d' % (args.ifo, start, end)
 links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Model', 'Results']]
 (brand, class_) = htmlio.get_brand(args.ifo, 'Lasso', start)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
@@ -584,37 +583,30 @@ page.div(class_='page-header')
 page.h1(title)
 page.div.close()  # page-header
 
+# -- download button
+files = [
+    ('%s analyzed channels (CSV)' % nchan, channelsfile),
+    ('%s flat channels (CSV)' % len(flatable), flatfile),
+    ('%s zeroed channels (CSV)' % len(zeroed), zerofile)]
+page.add(htmlio.download_btn(files, label='Channel information'))
+
+# -- summary table
 content = [
-    ('Primary channel',
-     '{} ({})'.format(primary, args.primary_frametype or '-')),
-    ('Channels searched',
-     '{} ({})'.format(nchan, "<a href= %s target='_blank'>channel list</a>"
-                             % channelsfile)),
-    ('Number of flat channels',
-     '{} ({})'.format(len(flattab),
-                      "<a href= %s target='_blank'>flat channel list</a>"
-                      % (flatfile))),
-    ('Lasso coefficient threshold', '{}'.format(args.threshold)),
-    ('Sigma for outlier removal', '{}'.format(args.remove_outliers)),
-    ('Cluster coefficient threshold', '{}'.format(args.cluster_coefficient))]
+    ('Primary channel', markup.oneliner.code(primary)),
+    ('Primary frametype', markup.oneliner.code(args.primary_frametype) or '-'),
+    ('Outlier threshold', '%s sigma' % args.remove_outliers),
+    ('Lasso coefficient threshold', str(args.threshold)),
+    ('Cluster coefficient threshold', str(args.cluster_coefficient)),
+    ('Non-zero coefficients', str(numpy.count_nonzero(model.coef_))),
+    ('&alpha; (model)', '%.4f' % model.alpha)]
 if args.band_pass:
-    content.append(
-        ('Filter settings',
-         'Flow = {} Hz, Fhigh = {} Hz '.format(flower, fupper)))
+    content.insert(2, ('Primary bandpass',
+                       '{0}-{1} Hz'.format(flower, fupper)))
 page.add(htmlio.parameter_table(content, start=start, end=end))
+page.add('<hr class="row-divider">')
 
 # -- model information
 page.h2('Model information', id_='model')
-page.add(htmlio.parameter_table([
-    ('Model', 'Lasso'),
-    ('Non-zero coefficients', '%d' % numpy.count_nonzero(model.coef_)),
-    ('Alpha', str(model.alpha)),
-    ('Zero coefficients',
-     '{0} ({1})'.format(
-         len(zeroed),
-         markup.oneliner.a(
-             'zeroed channel list', href=zerofile, target='_blank'
-         )))], section=None, cmdline=False))
 
 page.div(class_='scaffold well')
 page.div(class_='row')
@@ -657,6 +649,7 @@ page.div.close()  # col-md-8 col-md-offset-2
 page.div.close()  # channels-and-primary
 
 page.div.close()  # scaffold well
+page.add('<hr class="row-divider">')
 
 # -- results
 page.h2('Top channels', id_='results')
@@ -690,8 +683,8 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
     page.div(id_='channel%d' % i, class_='panel-collapse collapse')
     page.div(class_='panel-body')
     if lassocoef is None:
-        page.p('The amplitude data for this channel is flat (does not change)'
-               ' for the chosen time period.')
+        page.p('The amplitude data for this channel is flat (does not change) '
+               'within the chosen time period.')
     elif abs(lassocoef) < args.threshold:
         page.p('Lasso coefficient below the threshold of %g.'
                % (args.threshold))
@@ -706,8 +699,8 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
             page.add('<hr class="row-divider">')
         if args.no_cluster is False:
             if clusters[i][0] is None:
-                page.p("<font size='3'><br />No channels were highly"
-                       " correlated with this channel.</font>")
+                page.p("<font size='3'><br />No channels were highly "
+                       "correlated with this channel.</font>")
             else:
                 page.div(class_='row', id_='clusters')
                 page.div(class_='col-md-12')
@@ -716,11 +709,10 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
                 page.div.close()  # col-md-12
                 page.div.close()  # clusters
                 if clusters[i][1] is not None:
-                    page.p("<font size='3'><br />Only the first %d highly"
-                           " correlated channels are reported in this"
-                           " figure. <a href='%s' target='_blank'>Here</a>"
-                           " is the full list.</font>"
-                           % (max_correlated_channels, clusters[i][1]))
+                    corr_link = markup.oneliner.a(
+                        'Export %s channels (CSV)' % max_correlated_channels,
+                        href=clusters[i][1], download=clusters[i][1])
+                    page.button(corr_link, class_='btn btn-default')
     page.div.close()  # panel-body
     page.div.close()  # panel-collapse
     page.div.close()  # panel
