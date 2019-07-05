@@ -594,7 +594,7 @@ page.add(htmlio.download_btn(files, label='Channel information'))
 content = [
     ('Primary channel', markup.oneliner.code(primary)),
     ('Primary frametype', markup.oneliner.code(args.primary_frametype) or '-'),
-    ('Outlier threshold', '{} sigma'.format(args.remove_outliers))
+    ('Outlier threshold', '{} sigma'.format(args.remove_outliers)),
     ('Lasso coefficient threshold', str(args.threshold)),
     ('Cluster coefficient threshold', str(args.cluster_coefficient)),
     ('Non-zero coefficients', str(numpy.count_nonzero(model.coef_))),
