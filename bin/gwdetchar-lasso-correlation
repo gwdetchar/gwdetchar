@@ -118,7 +118,7 @@ end = int(args.gpsend)
 pad = args.filter_padding
 
 # let's go
-logger.info('{} Lasso Correlations {}-{}'.format(args.ifo, start, end))
+logger.info('{} Lasso correlations {}-{}'.format(args.ifo, start, end))
 
 # get primary channel frametype
 primary = args.primary_channel.format(ifo=args.ifo)
@@ -573,7 +573,7 @@ channelsfile = '%s-CHANNELS-%s.csv' % (args.ifo, gpsstub)
 numpy.savetxt(channelsfile, channels, delimiter=',', fmt='%s')
 
 # write html
-title = '%s Lasso Slow Correlations: %d-%d' % (args.ifo, start, end)
+title = '%s Lasso correlations: %d-%d' % (args.ifo, start, end)
 links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Model', 'Results']]
 (brand, class_) = htmlio.get_brand(args.ifo, 'Lasso', start)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
@@ -594,15 +594,16 @@ page.add(htmlio.download_btn(files, label='Channel information'))
 content = [
     ('Primary channel', markup.oneliner.code(primary)),
     ('Primary frametype', markup.oneliner.code(args.primary_frametype) or '-'),
-    ('Outlier threshold', '{} sigma'.format(args.remove_outliers)),
+    ('Outlier threshold', '%s sigma' % args.remove_outliers),
     ('Lasso coefficient threshold', str(args.threshold)),
     ('Cluster coefficient threshold', str(args.cluster_coefficient)),
     ('Non-zero coefficients', str(numpy.count_nonzero(model.coef_))),
-    ('&alpha;', str(model.alpha))]
+    ('&alpha; (model)', '%.4f' % model.alpha)]
 if args.band_pass:
     content.insert(2, ('Primary bandpass',
                        '{0}-{1} Hz'.format(flower, fupper)))
 page.add(htmlio.parameter_table(content, start=start, end=end))
+page.add('<hr class="row-divider">')
 
 # -- model information
 page.h2('Model information', id_='model')
@@ -648,6 +649,7 @@ page.div.close()  # col-md-8 col-md-offset-2
 page.div.close()  # channels-and-primary
 
 page.div.close()  # scaffold well
+page.add('<hr class="row-divider">')
 
 # -- results
 page.h2('Top channels', id_='results')

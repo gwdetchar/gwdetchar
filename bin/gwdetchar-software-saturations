@@ -80,7 +80,7 @@ site = ifo[0]
 frametype = args.frametype or '%s_R' % ifo
 
 # let's go
-logger.info('{} Software Saturations {}-{}'.format(
+logger.info('{} Software saturations {}-{}'.format(
     args.ifo, int(args.gpsstart), int(args.gpsend)))
 
 # get segments
@@ -210,7 +210,7 @@ if args.html:
         ]
         if args.state_flag:
             links[1][1].insert(0, ('State flag', '#state-flag'))
-        (brand, class_) = htmlio.get_brand(ifo, 'Software Saturations',
+        (brand, class_) = htmlio.get_brand(ifo, 'Saturations',
                                            args.gpsstart)
         navbar = htmlio.navbar(links, class_=class_, brand=brand)
         page = htmlio.new_bootstrap_page(navbar=navbar)
@@ -219,7 +219,7 @@ if args.html:
         page.div(class_='container')
     # -- header
     page.div(class_='page-header')
-    page.h1('%s Software Saturations: %d-%d'
+    page.h1('%s software saturations: %d-%d'
             % (ifo, int(args.gpsstart), int(args.gpsend)))
     page.div.close()
     # -- paramters
