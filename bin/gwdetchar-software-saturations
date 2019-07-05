@@ -219,7 +219,7 @@ if args.html:
         page.div(class_='container')
     # -- header
     page.div(class_='page-header')
-    page.h1('%s software saturations: %d-%d'
+    page.h1('%s Software Saturations: %d-%d'
             % (ifo, int(args.gpsstart), int(args.gpsend)))
     page.div.close()
     # -- paramters

@@ -813,7 +813,7 @@ def scaffold_plots(plots, nperrow=3):
 
 
 def download_btn(content, label='Download summary',
-                 id_=None, btndiv='btn-group desktop-only',
+                 btndiv='btn-group pull-right desktop-only',
                  btnclass='btn btn-default dropdown-toggle'):
     """Toggle download options with a Bootstrap button
 
@@ -843,9 +843,9 @@ def download_btn(content, label='Download summary',
     """
     page = markup.page()
     page.div(class_=btndiv)
-    page.button(id_=id_, type='button', class_=btnclass,
+    page.button(type='button', class_=btnclass,
                 **{'data-toggle': 'dropdown'})
-    page.add('Download summary <span class="caret"></span>')
+    page.add('%s <span class="caret"></span>' % label)
     page.button.close()
     page.ul(class_='dropdown-menu', role='menu',
             **{'aria-labelledby': 'summary_table_download'})

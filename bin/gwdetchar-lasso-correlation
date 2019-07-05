@@ -573,7 +573,7 @@ channelsfile = '%s-CHANNELS-%s.csv' % (args.ifo, gpsstub)
 numpy.savetxt(channelsfile, channels, delimiter=',', fmt='%s')
 
 # write html
-title = '%s Lasso correlations: %d-%d' % (args.ifo, start, end)
+title = '%s Lasso Correlations: %d-%d' % (args.ifo, start, end)
 links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Model', 'Results']]
 (brand, class_) = htmlio.get_brand(args.ifo, 'Lasso', start)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
