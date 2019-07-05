@@ -142,7 +142,7 @@ MOMENT_JS = (
     "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js")
 
 GOOGLE_FONT_CSS = ("https://fonts.googleapis.com/css?"
-                   "family=Roboto:300,400%7CRoboto+Mono")
+                   "family=Roboto:500%7CRoboto+Mono")
 
 BOOTSTRAP_LIGO_CSS = resource_filename(
     'gwdetchar',
@@ -812,10 +812,59 @@ def scaffold_plots(plots, nperrow=3):
     return page()
 
 
-def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
-                    section='Parameters', id_='parameters', cmdline=True,
+def download_btn(content, label='Download summary',
+                 btndiv='btn-group pull-right desktop-only',
+                 btnclass='btn btn-default dropdown-toggle'):
+    """Toggle download options with a Bootstrap button
+
+    Parameters
+    ----------
+    content : `list` of `tuple` of `str`
+        collection of `(title, link)` pairs to list
+
+    label : `str`, optional
+        text appearing inside the button, default: ``Download summary``
+
+    id_ : `str`, optional
+        unique HTML identifier for this button
+
+    btndiv : `str`, optional
+        class name of the enclosing ``<div>``,
+        default: ``btn-group desktop-only``
+
+    btnclass : `str`, optional
+        class name of the Bootstrap button object,
+        default: ``btn btn-default dropdown-toggle``
+
+    Returns
+    -------
+    page : `~MarkupPy.markup.page`
+        fully rendered download button
+    """
+    page = markup.page()
+    page.div(class_=btndiv)
+    page.button(type='button', class_=btnclass,
+                **{'data-toggle': 'dropdown'})
+    page.add('%s <span class="caret"></span>' % label)
+    page.button.close()
+    page.ul(class_='dropdown-menu', role='menu',
+            **{'aria-labelledby': 'summary_table_download'})
+    for item in content:
+        if len(item) == 2:
+            text, href = item
+            download = href
+        else:
+            text, href, download = item
+        page.li(markup.oneliner.a(text, href=href, download=download))
+    page.ul.close()
+    page.div.close()  # btn-group
+    return page()
+
+
+def parameter_table(content=[], start=None, end=None, flag=None,
+                    section='Parameters', id_='parameters',
                     tableclass=('table table-condensed table-hover '
-                                'table-responsive')):
+                                'table-responsive table-bordered')):
     """Render an informative section with run parameters in HTML
 
     Parameters
@@ -823,15 +872,11 @@ def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
     content: `list` of `tuple` of `str`
         collection of parameters to list
 
-    start : `float`, optional
-        GPS start time of the analysis, required if `gps` is `None`
+    start : `float`
+        GPS start time of the analysis
 
-    end : `float`, optional
-        GPS end time of the analysis, required if `gps` is `None`
-
-    gps : `float`, optional
-        central GPS time of the analysis, will supersede `start` and
-        `end` if given
+    end : `float`
+        GPS end time of the analysis
 
     flag : `str`, optional
         name of a data-quality state flag required for this analysis
@@ -841,10 +886,6 @@ def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
 
     id_ : `str`, optional
         unique HTML identifier for this section, default: ``parameters``
-
-    cmdline : `bool`, optional
-        boolean switch to include (`True`) or exclude (`False`) the
-        command-line invocation used to make this page, default: `True`
 
     tableclass : `str`, optional
         the ``class`` for the summary ``<table>``, defaults to a responsive
@@ -856,39 +897,32 @@ def parameter_table(content=[], start=None, end=None, gps=None, flag=None,
         fully rendered table of parameters
     """
     # front-load time and flag info
-    common = [(
-        'UTC time',
-        '{0} ({1})'.format(from_gps(gps), gps),
-    )] if gps is not None else [
+    common = [
         ('Start time (UTC)', '{0} ({1})'.format(from_gps(start), start)),
         ('End time (UTC)', '{0} ({1})'.format(from_gps(end), end)),
     ]
     if flag is not None:
         common.append(('State flag', markup.oneliner.code(flag)))
-    content = common + content
-    if cmdline:
-        content.append(('System prefix', markup.oneliner.code(sys.prefix)))
+    content = common + content + [
+        ('System prefix', markup.oneliner.code(sys.prefix))]
     # initialize page
     page = markup.page()
     if section is not None:
         page.h2(section, id_=id_)
-    page.div(class_='col-md-5')
     page.table(class_=tableclass)
     # table body
     page.tbody()
     for row in content:
         col1, col2 = row
         page.tr()
-        page.td(markup.oneliner.strong(col1), scope='row')
+        page.td(markup.oneliner.strong(col1))
         page.td(col2)
         page.tr.close()
     page.tbody.close()
     # close table and write command-line
     page.table.close()
-    page.div.close()  # col-md-5
-    if cmdline:
-        page.p(markup.oneliner.strong('Command-line:'))
-        page.add(get_command_line(about=False))
+    page.p(markup.oneliner.strong('Command-line:'))
+    page.add(get_command_line(about=False))
     return page()
 
 

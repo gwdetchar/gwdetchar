@@ -260,21 +260,10 @@ page.add(htmlio.parameter_table(
 page.add('<hr class="row-divider">')
 
 # link to summary files
-page.div(class_='btn-group desktop-only')
-page.button(id_='summary-download', type='button',
-            class_='btn btn-default dropdown-toggle',
-            **{'data-toggle': 'dropdown'})
-page.add('Download summary <span class="caret"></span>')
-page.button.close()
-page.ul(class_='dropdown-menu', role='menu',
-        **{'aria-labelledby': 'summary_table_download'})
-for text, path in zip(
-    ['Segments (HDF)', 'Triggers (CSV)'],
-    [segfile, summfile]
-):
-    page.li(markup.oneliner.a(text, href=path, download=path))
-page.ul.close()
-page.div.close()  # btn-group
+page.add(htmlio.download_btn([
+    ('Segments (HDF)', segfile),
+    ('Triggers (CSV)', summfile),
+]))
 
 # section header
 page.h2('Segments', id_='segments')
