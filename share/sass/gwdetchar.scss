@@ -118,24 +118,30 @@ img {
 				display:none;
 		}
 		@media(min-width:992px) {
-				display: block;
+				display: inline-flex;
+				flex-direction: column;
+				border-radius: 100%;
 				position: fixed;
+				width: 50px;
+				height: 50px;
 				bottom: 20px;
 				right: 20px;
 				z-index: 99;
-				border-radius: 50%;
-				border: 1px solid #555;
-				outline: none;
-				cursor: pointer;
-				padding-left: 9px;
-				padding-right: 9px;
-				-webkit-transition-duration: 0.4s; // Safari
-				transition-duration: 0.4s;
+				// text elements
+				color: #555;
 				font-size: 32px;
 				font-weight: 400;
+				align-items: center;
+				justify-content: center;
+				text-decoration: none;
+				// appearance
+				outline: none;
+				cursor: pointer;
+				border: 1px solid #555;
 				background-color: white;
-				color: #555;
-				box-shadow: 0 1px 10px rgba(0, 0, 0, 0.23), 0 1px 10px rgba(0, 0, 0, 0.16);
+				transition-duration: 0.4s;
+				-webkit-transition-duration: 0.4s;
+				box-shadow: 0 1px 10px rgba(0,0,0,0.23),
 		}
 }
 
