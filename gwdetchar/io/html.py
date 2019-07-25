@@ -127,56 +127,45 @@ OBSERVATORY_MAP = {
 
 # -- HTML URLs
 
-JQUERY_JS = "https://code.jquery.com/jquery-1.12.3.min.js"
+JQUERY_JS = "https://code.jquery.com/jquery-1.12.4.min.js"
 
-BOOTSTRAP_CSS = (
-    "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css")
-BOOTSTRAP_JS = (
-    "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js")
+_BOOTSTRAP_CDN = "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1"
+BOOTSTRAP_CSS = "{}/css/bootstrap.min.css".format(_BOOTSTRAP_CDN)
+BOOTSTRAP_JS = "{}/js/bootstrap.min.js".format(_BOOTSTRAP_CDN)
 
-_FANCYBOX_CDN = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5"
+_FANCYBOX_CDN = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7"
 FANCYBOX_CSS = "{0}/jquery.fancybox.min.css".format(_FANCYBOX_CDN)
 FANCYBOX_JS = "{0}/jquery.fancybox.min.js".format(_FANCYBOX_CDN)
 
-MOMENT_JS = (
-    "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js")
-
 GOOGLE_FONT_CSS = ("https://fonts.googleapis.com/css?"
-                   "family=Roboto:500%7CRoboto+Mono")
+                   "family=Roboto:400,500%7CRoboto+Mono")
 
 BOOTSTRAP_LIGO_CSS = resource_filename(
     'gwdetchar',
-    '_static/bootstrap-ligo.min.css',
-)
+    '_static/bootstrap-ligo.min.css')
 BOOTSTRAP_LIGO_JS = resource_filename(
     'gwdetchar',
-    '_static/bootstrap-ligo.min.js',
-)
+    '_static/bootstrap-ligo.min.js')
 
 GWDETCHAR_CSS = resource_filename(
     'gwdetchar',
-    '_static/gwdetchar.min.css',
-)
+    '_static/gwdetchar.min.css')
 GWDETCHAR_JS = resource_filename(
     'gwdetchar',
-    '_static/gwdetchar.min.js',
-)
+    '_static/gwdetchar.min.js')
 
 CSS_FILES = [
     BOOTSTRAP_CSS,
     FANCYBOX_CSS,
     GOOGLE_FONT_CSS,
     BOOTSTRAP_LIGO_CSS,
-    GWDETCHAR_CSS
-]
+    GWDETCHAR_CSS]
 JS_FILES = [
     JQUERY_JS,
-    MOMENT_JS,
     BOOTSTRAP_JS,
     FANCYBOX_JS,
     BOOTSTRAP_LIGO_JS,
-    GWDETCHAR_JS,
-]
+    GWDETCHAR_JS]
 
 FORMATTER = HtmlFormatter(noclasses=True)
 
