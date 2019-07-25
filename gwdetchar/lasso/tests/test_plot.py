@@ -60,3 +60,6 @@ def test_save_figure(tmpdir):
     noneplot = plot.save_figure(fig, os.path.join('tgpflk', 'test.png'))
     assert noneplot is None
     shutil.rmtree(base, ignore_errors=True)
+
+
+def test_def make_spectrum_plot(tmpdir):

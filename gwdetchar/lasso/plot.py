@@ -20,6 +20,7 @@
 """
 
 import os
+import re
 import atexit
 import shutil
 import tempfile
@@ -72,3 +73,67 @@ def save_figure(fig, pngfile, **kwargs):
             return
     fig.close()
     return pngfile
+
+
+def make_spectrum_plot(unfiltered_spectrum, filtered_spectrum, channel_name,
+                       x_min, x_max, y_min, y_max, x_label, y_label, title,
+                       filename):
+    """Generate and return a spectrum plot
+    """
+    fig = unfiltered_spectrum.plot(label='Unfiltered', color='#ee0000')
+    ax = fig.gca()
+    ax.plot(filtered_spectrum, label='Filtered', color='#92ddc8')
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_min, y_max)
+    ax.set_xlabel('Frequency [Hz]', fontsize='small')
+    ax.set_ylabel(y_label, fontsize='small')
+    ax.set_title(title, fontsize='small')
+    ax.legend(loc='best', fontsize='small')
+    spectrum_plot = save_figure(
+        fig, filename, bbox_inches='tight')
+    fig.close()
+    return spectrum_plot
+
+
+def make_spectrum_plots(start, end, flower, fupper, channel_name,
+                        unfiltered_spectrum, filtered_spectrum):
+    """Generate and return both spectrum plots
+    """
+    re_delim = re.compile(r'[:_-]')
+
+    # Attributes shared between zoomed out and zoomed in plots
+    channelstub = re_delim.sub('_', str(channel_name)).replace('_', '-', 1)
+    gpsstub = '%d-%d' % (start, end-start)
+    x_label = 'Frequency [Hz]'
+    if ':GDS-CALIB_STRAIN' in channel_name:
+        y_label = 'GW amplitude spectral density [strain/$\sqrt{\mathrm{Hz}}]$'
+    else:
+        y_label = 'Primary channel units'
+    y_min = 1e-24
+    y_max = 2e-18
+
+    # Atttributes specific to one of the two spectrum plots
+    zoomed_out_x_min = 10
+    zoomed_out_x_max = 2000
+    zoomed_out_title = '%s band passed spectrum (zoomed out)' % channelstub
+    zoomed_out_spectrum_plot_name = ('%s-_BAND_PASSED_SPECTRUM_ZOOM_OUT-%s.png'
+                                     % (channelstub, gpsstub))
+
+    zoomed_in_x_min = flower - ((fupper - flower) * 0.1)
+    zoomed_in_x_max = fupper + ((fupper - flower) * 0.1)
+    zoomed_in_title = '%s band passed spectrum (zoomed in)' % channelstub
+    zoomed_in_spectrum_plot_name = ('%s-_BAND_PASSED_SPECTRUM_ZOOM_IN-%s.png'
+                                    % (channelstub, gpsstub))
+
+    # Generate both spectrum plots
+    spectrum_plot_zoomed_out = make_spectrum_plot(
+        unfiltered_spectrum, filtered_spectrum, channel_name,
+        zoomed_out_x_min, zoomed_out_x_max, y_min, y_max, x_label, y_label,
+        zoomed_out_title, zoomed_out_spectrum_plot_name)
+
+    spectrum_plot_zoomed_in = make_spectrum_plot(
+        unfiltered_spectrum, filtered_spectrum, channel_name,
+        zoomed_in_x_min, zoomed_in_x_max, y_min, y_max, x_label, y_label,
+        zoomed_in_title, zoomed_in_spectrum_plot_name)
+
+    return (spectrum_plot_zoomed_out, spectrum_plot_zoomed_in)

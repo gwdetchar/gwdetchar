@@ -162,19 +162,30 @@ if args.band_pass:
     else:
         stride = 1
     if flower:
-        darmblrms = (
+        darmbl = (
             bandts.highpass(flower/2., fstop=flower/4.,
                             filtfilt=False, ftype='butter')
             .notch(60, filtfilt=False)
             .bandpass(flower, fupper, fstop=[flower/2., fupper*1.5],
                       filtfilt=False, ftype='butter')
-            .crop(start, end).rms(stride))
+            .crop(start, end))
+        darmblrms = darmbl.rms(stride)
         darmblrms.name = '%s %s-%s Hz BLRMS' % (primary, flower, fupper)
     else:
-        darmblrms = bandts.notch(60).crop(start, end).rms(stride)
+        darmbl = bandts.notch(60).crop(start, end)
+        darmblrms = darmbl.rms(stride)
         darmblrms.name = '%s RMS' % primary
 
     primaryts = darmblrms
+
+    bandts_asd = bandts.asd(4, 2, method='median')
+    darmbl_asd = darmbl.asd(4, 2, method='median')
+
+    spectrum_plots = gwplot.make_spectrum_plots(
+        start, end, flower, fupper, args.primary_channel,
+        bandts_asd, darmbl_asd)
+    spectrum_plot_zoomed_out = spectrum_plots[0]
+    spectrum_plot_zoomed_in = spectrum_plots[1]
 
 else:
     # load primary channel data
@@ -457,6 +468,10 @@ def process_channel(input_,):
             ax.set_ylabel('Sensitive range [Mpc]')
         else:
             ax.set_ylabel('Primary channel units')
+        y_min = min(primaryts.value)
+        y_max = max(primaryts.value)
+        y_range = y_max - y_min
+        ax.set_ylim(y_min - (y_range * 0.1), y_max + (y_range * 0.1))
         ax.text(.9, .1, 'r = ' + str('{0:.2}'.format(pcorr)),
                 verticalalignment='bottom', horizontalalignment='right',
                 transform=ax.transAxes, color='black', size=20,
@@ -574,7 +589,12 @@ numpy.savetxt(channelsfile, channels, delimiter=',', fmt='%s')
 
 # write html
 title = '%s Lasso Correlations: %d-%d' % (args.ifo, start, end)
-links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Model', 'Results']]
+if args.band_pass:
+    links = [(s, '#%s' % s.lower()) for s in
+             ['Parameters', 'Spectra', 'Model', 'Results']]
+else:
+    links = [(s, '#%s' % s.lower()) for s in
+             ['Parameters', 'Model', 'Results']]
 (brand, class_) = htmlio.get_brand(args.ifo, 'Lasso', start)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(title=title, navbar=navbar)
@@ -605,6 +625,19 @@ if args.band_pass:
 page.add(htmlio.parameter_table(content, start=start, end=end))
 page.add('<hr class="row-divider">')
 
+if args.band_pass:
+    page.h2('Primary shannel spectra', id_='spectra')
+    page.div(style_='display: flex;flex-wrap:nowrap;justify-content:space-around;')
+    page.div()
+    spectra_img1 = htmlio.FancyPlot(spectrum_plot_zoomed_out)
+    page.add(htmlio.fancybox_img(spectra_img1))
+    page.div.close()
+    page.div()
+    spectra_img2 = htmlio.FancyPlot(spectrum_plot_zoomed_in)
+    page.add(htmlio.fancybox_img(spectra_img2))
+    page.div.close()
+    page.div.close()
+
 # -- model information
 page.h2('Model information', id_='model')
 
@@ -612,7 +645,7 @@ page.div(class_='scaffold well')
 page.div(class_='row')
 page.div(class_='col-md-10 col-md-offset-1', id_='results-table')
 page.p('Below are the top {} mean minute-trend channels, ranked by '
-        'Lasso correlation with the primary.'.format(df.shape[0]))
+       'Lasso correlation with the primary.'.format(df.shape[0]))
 page.add(df.to_html(
     classes=('table', 'table-condensed', 'table-hover', 'table-responsive'),
     formatters={
