@@ -58,15 +58,14 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 <base href="{base}" />
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="https://fonts.googleapis.com/css?family=Roboto:500%7CRoboto+Mono" rel="stylesheet" type="text/css" media="all" />
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:400,500%7CRoboto+Mono" rel="stylesheet" type="text/css" media="all" />
 <link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/gwdetchar.min.css" rel="stylesheet" type="text/css" media="all" />
-<script src="https://code.jquery.com/jquery-1.12.3.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js" type="text/javascript"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" type="text/javascript"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" type="text/javascript"></script>
 <script src="static/bootstrap-ligo.min.js" type="text/javascript"></script>
 <script src="static/gwdetchar.min.js" type="text/javascript"></script>
 </head>
@@ -229,20 +228,19 @@ def test_finalize_static_urls(tmpdir):
     css, js = html.finalize_static_urls(
         static, base, html.CSS_FILES, html.JS_FILES)
     assert css == [
-        'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/'
+        'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/'
             'bootstrap.min.css',  # nopep8
-        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
+        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
             'jquery.fancybox.min.css',  # nopep8
         'https://fonts.googleapis.com/css?'
-            'family=Roboto:500%7CRoboto+Mono',  # nopep8
+            'family=Roboto:400,500%7CRoboto+Mono',  # nopep8
         'static/bootstrap-ligo.min.css',
         'static/gwdetchar.min.css']
     assert js == [
-        'https://code.jquery.com/jquery-1.12.3.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/'
-            'moment.min.js',  # nopep8
-        'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/'
+        'https://code.jquery.com/jquery-3.4.1.min.js',
+        'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/'
+            'bootstrap.min.js',  # nopep8
+        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
             'jquery.fancybox.min.js',  # nopep8
         'static/bootstrap-ligo.min.js',
         'static/gwdetchar.min.js']
