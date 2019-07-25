@@ -18,12 +18,15 @@
  */
 
 body {
+		background-color: #eee;
 		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 		font-weight: 300;
 }
 
 h1, h2, h3, h4, h5, h6 {
-		font-weight: 300;
+		font-family: 'Roboto', sans-serif;
+		-webkit-font-smoothing: antialiased;
+		font-weight: 400;
 }
 
 h4 {
@@ -53,9 +56,9 @@ img {
 		.navbar-nav > li > a,
 		.navbar-nav > li.disabled > a {
 				font-family: 'Roboto', sans-serif;
+				-webkit-font-smoothing: antialiased;
 				font-size: 15px;
 				font-weight: 500;
-				-webkit-font-smoothing: antialiased;
 		}
 		.navbar-brand {
 				font-size: 16px;
