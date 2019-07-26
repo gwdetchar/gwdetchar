@@ -127,7 +127,7 @@ OBSERVATORY_MAP = {
 
 # -- HTML URLs
 
-JQUERY_JS = "https://code.jquery.com/jquery-3.4.1.min.js"
+JQUERY_JS = "https://code.jquery.com/jquery-1.12.4.min.js"
 
 _BOOTSTRAP_CDN = "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1"
 BOOTSTRAP_CSS = "{}/css/bootstrap.min.css".format(_BOOTSTRAP_CDN)
