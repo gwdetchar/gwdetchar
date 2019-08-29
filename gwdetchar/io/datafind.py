@@ -198,6 +198,8 @@ def get_data(channel, start, end, frametype=None, source=None,
                 'Could not determine observatory from frametype')
         except (HTTPError, JSONDecodeError):  # frame files not found
             pass
+    if len(source) == 0: #if no frames found
+        source = None
     if isinstance(source, list) and isinstance(channel, (list, tuple)):
         channel = remove_missing_channels(channel, source)
     if source is not None:  # read from frame files
