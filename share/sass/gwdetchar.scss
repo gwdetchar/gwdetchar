@@ -24,9 +24,13 @@ body {
 }
 
 footer {
+		height: 50px;
 		line-height: 36px;
 		text-align: center;
-		font-size: 18px;
+		font-size: 16px;
+		font-family: 'Roboto', sans-serif;
+		-webkit-font-smoothing: antialiased;
+		font-weight: 400;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -56,11 +60,9 @@ img {
 		margin: 0 auto;
 }
 
-i {
-		font-size: 28px;
-}
-
 .icon-bar a {
+		color: #eee;
+		font-size: 25px;
 		margin-right: 10px;
 		text-decoration: none;
 }
@@ -110,10 +112,6 @@ i {
 		@media (min-width: 1200px) {
 				max-width: 1400px;
 		}
-}
-
-.btn {
-		opacity: 0.8;
 }
 
 .btn-group {

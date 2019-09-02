@@ -134,14 +134,12 @@ HTML_FOOTER = """<footer class="footer">
 <div class="col-sm-4 icon-bar">
 <a href="https://github.com/gwdetchar/gwdetchar/tree/%s" title="View gwdetchar-%s on GitHub" target="_blank"><i class="fas fa-code"></i></a>
 <a href="https://github.com/gwdetchar/gwdetchar/issues" title="Open an issue ticket" target="_blank"><i class="fas fa-ticket-alt"></i></a>
+<a href="about" title="How was this page generated?"><i class="fas fa-info-circle"></i></a>
+<a href="external" title="View this page&quot;s external source"><i class="fas fa-external-link-alt"></i></a>
+<a href="https://attackofthecute.com/random.php" title="Take a break from science" target="_blank"><i class="fas fa-heartbeat"></i></a>
 </div>
 <div class="col-sm-4">
-<p>
-Created by {user} at {date}
-<i class="fas fa-heartbeat" aria-hidden="true"></i>
-</p>
-<div>
-<div class="col-sm-12">
+<p>Created by {user} at {date}</p>
 </div>
 </div>
 </div>
@@ -245,9 +243,9 @@ def test_finalize_static_urls(tmpdir):
         'https://fonts.googleapis.com/css?'
             'family=Roboto:400,500%7CRoboto+Mono',  # nopep8
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
-            '5.10.2/css/font-awesome.min.css'  # nopep8
+            '5.10.2/css/font-awesome.min.css',  # nopep8
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
-            '5.10.2/css/solid.min.css'  # nopep8
+            '5.10.2/css/solid.min.css',  # nopep8
         'static/bootstrap-ligo.min.css',
         'static/gwdetchar.min.css']
     assert js == [
@@ -521,9 +519,12 @@ def test_write_footer():
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
-    out = html.write_footer()
+    out = html.write_footer(about='about', external='external')
     assert parse_html(str(out)) == parse_html(
         HTML_FOOTER.format(user=getuser(), date=date))
+    with pytest.raises(ValueError) as exc:
+        html.write_footer(link='test')
+    assert 'argument must be either None or a tuple' in str(exc.value)
 
 
 def test_close_page(tmpdir):

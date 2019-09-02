@@ -1155,7 +1155,7 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
     return page()
 
 
-def write_footer(about=None, link=None, issues=None, content=None):
+def write_footer(about=None, link=None, issues=None, external=None):
     """Write a <footer> for a bootstrap page
 
     Parameters
@@ -1170,8 +1170,8 @@ def write_footer(about=None, link=None, issues=None, content=None):
     issues : `str`, optional
         HTML link to issue report page
 
-    content : `str` or `~MarkupPy.markup.page`, optional
-        additional footer content
+    external : `str`, optional
+        additional footer link to an external page
 
     Returns
     -------
@@ -1204,24 +1204,20 @@ def write_footer(about=None, link=None, issues=None, content=None):
     if about is not None:
         page.a(markup.oneliner.i('', class_='fas fa-info-circle'),
                href=about, title='How was this page generated?')
+    if external is not None:
+        page.a(markup.oneliner.i('', class_='fas fa-external-link-alt'),
+               href=external, title="View this page's external source")
+    page.a(markup.oneliner.i('', class_='fas fa-heartbeat'),
+           href='https://attackofthecute.com/random.php',
+           title='Take a break from science', target='_blank')
     page.div.close()  # col-sm-4 icon-bar
     # print timestamp
     page.div(class_='col-sm-4')
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
-    page.p()
-    page.add('Created by {0} at {1}'.format(getuser(), date))
-    page.i('', class_='fas fa-heartbeat', **{'aria-hidden': 'true'})
-    page.p.close()
-    page.div()  # col-sm-4
-    page.div(class_='col-sm-12')
-    # extra content
-    if isinstance(content, markup.page):
-        page.add(str(content))
-    elif content is not None:
-        page.p(str(content))
-    page.div.close()  # col-sm-12
+    page.p('Created by {0} at {1}'.format(getuser(), date))
+    page.div.close()  # col-sm-4
     page.div.close()  # row
     page.div.close()  # container
     markup.element('footer', case=page.case, parent=page).close()
