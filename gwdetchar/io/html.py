@@ -141,7 +141,9 @@ GOOGLE_FONT_CSS = ("https://fonts.googleapis.com/css?"
                    "family=Roboto:400,500%7CRoboto+Mono")
 
 FONT_AWESOME_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
-                    "font-awesome/5.10.2/css/solid.min.css")
+                    "font-awesome/5.10.2/css/fontawesome.min.css")
+FONT_AWESOME_SOLID_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
+                          "font-awesome/5.10.2/css/solid.min.css")
 
 BOOTSTRAP_LIGO_CSS = resource_filename(
     'gwdetchar',
@@ -162,6 +164,7 @@ CSS_FILES = [
     FANCYBOX_CSS,
     GOOGLE_FONT_CSS,
     FONT_AWESOME_CSS,
+    FONT_AWESOME_SOLID_CSS,
     BOOTSTRAP_LIGO_CSS,
     GWDETCHAR_CSS]
 JS_FILES = [
@@ -1191,14 +1194,14 @@ def write_footer(about=None, link=None, issues=None, content=None):
         raise ValueError("'link' argument must be either None or a tuple of "
                          "package name, URL, and host name")
     link = markup.oneliner.a(
-        markup.oneliner.i(class_='fas fa-code'), href=source,
+        markup.oneliner.i('', class_='fas fa-code'), href=source,
         title='View {0} on {1}'.format(package, host), target='_blank')
     issues = markup.oneliner.a(
-        markup.oneliner.i(class_='fas fa-ticket-alt'),
+        markup.oneliner.i('', class_='fas fa-ticket-alt'),
         href=issues or 'https://github.com/gwdetchar/gwdetchar/issues',
         title='Open an issue ticket', target='_blank')
     about = markup.oneliner.a(
-        markup.oneliner.i(class_='fas fa-info-circle'), href=about,
+        markup.oneliner.i('', class_='fas fa-info-circle'), href=about,
         title='How was this page generated?', target='_blank') or ''
     page.div(class_='row')
     page.div(class_='col-md-12')
@@ -1207,7 +1210,9 @@ def write_footer(about=None, link=None, issues=None, content=None):
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
     # write contextual information
     page.p('Created by {0} at {1}'.format(getuser(), date))
-    page.p('{0} {1} {2}'.format(link, issues, about))
+    page.p()
+    page.add('{0}\n{1}\n{2}'.format(link, issues, about))
+    page.p.close()
     # extra content
     if isinstance(content, markup.page):
         page.add(str(content))

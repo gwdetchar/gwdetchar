@@ -61,6 +61,8 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,500%7CRoboto+Mono" rel="stylesheet" type="text/css" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/fontawesome.min.css" rel="stylesheet" type="text/css" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/solid.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/gwdetchar.min.css" rel="stylesheet" type="text/css" media="all" />
 <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
@@ -131,7 +133,11 @@ HTML_FOOTER = """<footer class="footer">
 <div class="row">
 <div class="col-md-12">
 <p>Created by {user} at {date}</p>
-<p><a href="https://github.com/gwdetchar/gwdetchar/tree/%s" title="View gwdetchar-%s on GitHub" target="_blank"><i class="fas fa-code" /></a> <a href="https://github.com/gwdetchar/gwdetchar/issues" title="Open an issue ticket" target="_blank"><i class="fas fa-ticket-alt" /></a> <a href title="How was this page generated?" target="_blank"><i class="fas fa-info-circle" /></a></p>
+<p>
+<a href="https://github.com/gwdetchar/gwdetchar/tree/%s" title="View gwdetchar-%s on GitHub" target="_blank"><i class="fas fa-code"></i></a>
+<a href="https://github.com/gwdetchar/gwdetchar/issues" title="Open an issue ticket" target="_blank"><i class="fas fa-ticket-alt"></i></a>
+<a href title="How was this page generated?" target="_blank"><i class="fas fa-info-circle"></i></a>
+</p>
 </div>
 </div>
 </div>

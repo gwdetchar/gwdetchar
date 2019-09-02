@@ -24,7 +24,7 @@ body {
 }
 
 footer {
-		font-size: 12px;
+		font-size: 16px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -48,6 +48,10 @@ h2::before, h3::before, h4::before, h5::before, h6::before {
 
 a {
 		cursor: pointer;
+}
+
+i {
+		font-size: 32px;
 }
 
 img {
