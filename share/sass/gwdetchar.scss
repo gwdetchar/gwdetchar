@@ -23,6 +23,10 @@ body {
 		font-weight: 300;
 }
 
+footer {
+		font-size: 12px;
+}
+
 h1, h2, h3, h4, h5, h6 {
 		font-family: 'Roboto', sans-serif;
 		-webkit-font-smoothing: antialiased;
@@ -51,6 +55,7 @@ img {
 }
 
 .navbar {
+		box-shadow: none;
 		.navbar-brand,
 		.navbar-text,
 		.navbar-nav > li > a,
@@ -160,4 +165,8 @@ img {
 		@media(max-width:991px) {
 				display:none;
 		}
+}
+
+.well {
+		box-shadow: none;
 }
