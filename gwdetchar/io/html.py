@@ -140,6 +140,9 @@ FANCYBOX_JS = "{0}/jquery.fancybox.min.js".format(_FANCYBOX_CDN)
 GOOGLE_FONT_CSS = ("https://fonts.googleapis.com/css?"
                    "family=Roboto:400,500%7CRoboto+Mono")
 
+FONT_AWESOME_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
+                    "font-awesome/5.10.2/css/solid.min.css")
+
 BOOTSTRAP_LIGO_CSS = resource_filename(
     'gwdetchar',
     '_static/bootstrap-ligo.min.css')
@@ -158,6 +161,7 @@ CSS_FILES = [
     BOOTSTRAP_CSS,
     FANCYBOX_CSS,
     GOOGLE_FONT_CSS,
+    FONT_AWESOME_CSS,
     BOOTSTRAP_LIGO_CSS,
     GWDETCHAR_CSS]
 JS_FILES = [

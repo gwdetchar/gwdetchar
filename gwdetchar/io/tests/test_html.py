@@ -234,6 +234,8 @@ def test_finalize_static_urls(tmpdir):
             'jquery.fancybox.min.css',  # nopep8
         'https://fonts.googleapis.com/css?'
             'family=Roboto:400,500%7CRoboto+Mono',  # nopep8
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
+            '5.10.2/css/solid.min.css'  # nopep8
         'static/bootstrap-ligo.min.css',
         'static/gwdetchar.min.css']
     assert js == [
