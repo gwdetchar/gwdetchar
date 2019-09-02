@@ -130,8 +130,8 @@ HTML_FOOTER = """<footer class="footer">
 <div class="container">
 <div class="row">
 <div class="col-md-12">
-<p>This page was created by {user} at {date}.</p>
-<p><a href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">View gwdetchar-%s on GitHub</a> | <a href="https://github.com/gwdetchar/gwdetchar/issues" target="_blank">Report an issue</a></p>
+<p>Created by {user} at {date}</p>
+<p><a href="https://github.com/gwdetchar/gwdetchar/tree/%s" title="View gwdetchar-%s on GitHub" target="_blank"><i class="fas fa-code" /></a> <a href="https://github.com/gwdetchar/gwdetchar/issues" title="Open an issue ticket" target="_blank"><i class="fas fa-ticket-alt" /></a> <a href title="How was this page generated?" target="_blank"><i class="fas fa-info-circle" /></a></p>
 </div>
 </div>
 </div>
@@ -510,6 +510,7 @@ def test_write_footer():
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
     out = html.write_footer()
+    print(out)
     assert parse_html(str(out)) == parse_html(
         HTML_FOOTER.format(user=getuser(), date=date))
 

@@ -1160,8 +1160,9 @@ def write_footer(about=None, link=None, issues=None, content=None):
     about : `str`, optional
         path of about page to link
 
-    link : `str`, optional
-        HTML link to software name and version
+    link : `None` or `tuple`, optional
+        tuple of package name, HTML link to source code, and host name
+        (e.g. GitHub)
 
     issues : `str`, optional
         HTML link to issue report page
@@ -1178,28 +1179,35 @@ def write_footer(about=None, link=None, issues=None, content=None):
     page.twotags.append('footer')
     markup.element('footer', case=page.case, parent=page)(class_='footer')
     page.div(class_='container')
-    # write user/time for analysis
     if link is None:
         version = get_versions()['version']
         commit = get_versions()['full-revisionid']
-        url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
-        link = markup.oneliner.a('View gwdetchar-{} on GitHub'.format(version),
-                                 href=url, target='_blank')
-    if issues is None:
-        report = 'https://github.com/gwdetchar/gwdetchar/issues'
-        issues = markup.oneliner.a('Report an issue', href=report,
-                                   target='_blank')
+        package = 'gwdetchar-%s' % version
+        source = 'https://github.com/gwdetchar/gwdetchar/tree/%s' % commit
+        host = 'GitHub'
+    elif isinstance(link, (tuple, list)):
+        package, source, host = link
+    else:
+        raise ValueError("'link' argument must be either None or a tuple of "
+                         "package name, URL, and host name")
+    link = markup.oneliner.a(
+        markup.oneliner.i(class_='fas fa-code'), href=source,
+        title='View {0} on {1}'.format(package, host), target='_blank')
+    issues = markup.oneliner.a(
+        markup.oneliner.i(class_='fas fa-ticket-alt'),
+        href=issues or 'https://github.com/gwdetchar/gwdetchar/issues',
+        title='Open an issue ticket', target='_blank')
+    about = markup.oneliner.a(
+        markup.oneliner.i(class_='fas fa-info-circle'), href=about,
+        title='How was this page generated?', target='_blank') or ''
     page.div(class_='row')
     page.div(class_='col-md-12')
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
-    page.p('This page was created by {user} at {date}.'.format(
-        user=getuser(), date=date))
-    page.p('{link} | {issues}'.format(link=link, issues=issues))
-    # link to 'about'
-    if about is not None:
-        page.a('How was this page generated?', href=about)
+    # write contextual information
+    page.p('Created by {0} at {1}'.format(getuser(), date))
+    page.p('{0} {1} {2}'.format(link, issues, about))
     # extra content
     if isinstance(content, markup.page):
         page.add(str(content))
