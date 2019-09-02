@@ -1195,7 +1195,7 @@ def write_footer(about=None, link=None, issues=None, external=None):
                          "package name, URL, and host name")
     # format various links
     page.div(class_='row')
-    page.div(class_='col-sm-4 icon-bar')
+    page.div(class_='col-sm-3 icon-bar')
     page.a(markup.oneliner.i('', class_='fas fa-code'), href=source,
            title='View {0} on {1}'.format(package, host), target='_blank')
     page.a(markup.oneliner.i('', class_='fas fa-ticket-alt'),
@@ -1210,14 +1210,14 @@ def write_footer(about=None, link=None, issues=None, external=None):
     page.a(markup.oneliner.i('', class_='fas fa-heartbeat'),
            href='https://attackofthecute.com/random.php',
            title='Take a break from science', target='_blank')
-    page.div.close()  # col-sm-4 icon-bar
+    page.div.close()  # col-sm-3 icon-bar
     # print timestamp
-    page.div(class_='col-sm-4')
+    page.div(class_='col-sm-6')
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
     page.p('Created by {0} at {1}'.format(getuser(), date))
-    page.div.close()  # col-sm-4
+    page.div.close()  # col-sm-6
     page.div.close()  # row
     page.div.close()  # container
     markup.element('footer', case=page.case, parent=page).close()

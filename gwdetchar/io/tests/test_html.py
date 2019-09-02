@@ -61,7 +61,7 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,500%7CRoboto+Mono" rel="stylesheet" type="text/css" media="all" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/fontawesome.min.css" rel="stylesheet" type="text/css" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/solid.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/gwdetchar.min.css" rel="stylesheet" type="text/css" media="all" />
@@ -131,14 +131,14 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 HTML_FOOTER = """<footer class="footer">
 <div class="container">
 <div class="row">
-<div class="col-sm-4 icon-bar">
+<div class="col-sm-3 icon-bar">
 <a href="https://github.com/gwdetchar/gwdetchar/tree/%s" title="View gwdetchar-%s on GitHub" target="_blank"><i class="fas fa-code"></i></a>
 <a href="https://github.com/gwdetchar/gwdetchar/issues" title="Open an issue ticket" target="_blank"><i class="fas fa-ticket-alt"></i></a>
 <a href="about" title="How was this page generated?"><i class="fas fa-info-circle"></i></a>
 <a href="external" title="View this page&quot;s external source"><i class="fas fa-external-link-alt"></i></a>
 <a href="https://attackofthecute.com/random.php" title="Take a break from science" target="_blank"><i class="fas fa-heartbeat"></i></a>
 </div>
-<div class="col-sm-4">
+<div class="col-sm-6">
 <p>Created by {user} at {date}</p>
 </div>
 </div>
@@ -532,7 +532,8 @@ def test_close_page(tmpdir):
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
-    page = html.close_page(html.markup.page(), target)
+    page = html.close_page(html.markup.page(), target,
+                           about='about', external='external')
     assert parse_html(str(page)) == parse_html(
         HTML_CLOSE.format(user=getuser(), date=str(date)))
     assert os.path.isfile(target)
