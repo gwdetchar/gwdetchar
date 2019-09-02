@@ -140,6 +140,11 @@ FANCYBOX_JS = "{0}/jquery.fancybox.min.js".format(_FANCYBOX_CDN)
 GOOGLE_FONT_CSS = ("https://fonts.googleapis.com/css?"
                    "family=Roboto:400,500%7CRoboto+Mono")
 
+FONT_AWESOME_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
+                    "font-awesome/5.10.2/css/fontawesome.min.css")
+FONT_AWESOME_SOLID_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
+                          "font-awesome/5.10.2/css/solid.min.css")
+
 BOOTSTRAP_LIGO_CSS = resource_filename(
     'gwdetchar',
     '_static/bootstrap-ligo.min.css')
@@ -158,6 +163,8 @@ CSS_FILES = [
     BOOTSTRAP_CSS,
     FANCYBOX_CSS,
     GOOGLE_FONT_CSS,
+    FONT_AWESOME_CSS,
+    FONT_AWESOME_SOLID_CSS,
     BOOTSTRAP_LIGO_CSS,
     GWDETCHAR_CSS]
 JS_FILES = [
@@ -1148,7 +1155,7 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
     return page()
 
 
-def write_footer(about=None, link=None, issues=None, content=None):
+def write_footer(about=None, link=None, issues=None, external=None):
     """Write a <footer> for a bootstrap page
 
     Parameters
@@ -1156,14 +1163,15 @@ def write_footer(about=None, link=None, issues=None, content=None):
     about : `str`, optional
         path of about page to link
 
-    link : `str`, optional
-        HTML link to software name and version
+    link : `None` or `tuple`, optional
+        tuple of package name, HTML link to source code, and host name
+        (e.g. GitHub)
 
     issues : `str`, optional
         HTML link to issue report page
 
-    content : `str` or `~MarkupPy.markup.page`, optional
-        additional footer content
+    external : `str`, optional
+        additional footer link to an external page
 
     Returns
     -------
@@ -1174,34 +1182,42 @@ def write_footer(about=None, link=None, issues=None, content=None):
     page.twotags.append('footer')
     markup.element('footer', case=page.case, parent=page)(class_='footer')
     page.div(class_='container')
-    # write user/time for analysis
     if link is None:
         version = get_versions()['version']
         commit = get_versions()['full-revisionid']
-        url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
-        link = markup.oneliner.a('View gwdetchar-{} on GitHub'.format(version),
-                                 href=url, target='_blank')
-    if issues is None:
-        report = 'https://github.com/gwdetchar/gwdetchar/issues'
-        issues = markup.oneliner.a('Report an issue', href=report,
-                                   target='_blank')
+        package = 'gwdetchar-%s' % version
+        source = 'https://github.com/gwdetchar/gwdetchar/tree/%s' % commit
+        host = 'GitHub'
+    elif isinstance(link, (tuple, list)):
+        package, source, host = link
+    else:
+        raise ValueError("'link' argument must be either None or a tuple of "
+                         "package name, URL, and host name")
+    # format various links
     page.div(class_='row')
-    page.div(class_='col-md-12')
+    page.div(class_='col-sm-3 icon-bar')
+    page.a(markup.oneliner.i('', class_='fas fa-code'), href=source,
+           title='View {0} on {1}'.format(package, host), target='_blank')
+    page.a(markup.oneliner.i('', class_='fas fa-ticket-alt'),
+           href=issues or 'https://github.com/gwdetchar/gwdetchar/issues',
+           title='Open an issue ticket', target='_blank')
+    if about is not None:
+        page.a(markup.oneliner.i('', class_='fas fa-info-circle'),
+               href=about, title='How was this page generated?')
+    if external is not None:
+        page.a(markup.oneliner.i('', class_='fas fa-external-link-alt'),
+               href=external, title="View this page's external source")
+    page.a(markup.oneliner.i('', class_='fas fa-heartbeat'),
+           href='https://attackofthecute.com/random.php',
+           title='Take a break from science', target='_blank')
+    page.div.close()  # col-sm-3 icon-bar
+    # print timestamp
+    page.div(class_='col-sm-6')
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
-    page.p('This page was created by {user} at {date}.'.format(
-        user=getuser(), date=date))
-    page.p('{link} | {issues}'.format(link=link, issues=issues))
-    # link to 'about'
-    if about is not None:
-        page.a('How was this page generated?', href=about)
-    # extra content
-    if isinstance(content, markup.page):
-        page.add(str(content))
-    elif content is not None:
-        page.p(str(content))
-    page.div.close()  # col-md-12
+    page.p('Created by {0} at {1}'.format(getuser(), date))
+    page.div.close()  # col-sm-6
     page.div.close()  # row
     page.div.close()  # container
     markup.element('footer', case=page.case, parent=page).close()

@@ -61,6 +61,8 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,500%7CRoboto+Mono" rel="stylesheet" type="text/css" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/fontawesome.min.css" rel="stylesheet" type="text/css" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/solid.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/bootstrap-ligo.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/gwdetchar.min.css" rel="stylesheet" type="text/css" media="all" />
 <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
@@ -129,9 +131,15 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 HTML_FOOTER = """<footer class="footer">
 <div class="container">
 <div class="row">
-<div class="col-md-12">
-<p>This page was created by {user} at {date}.</p>
-<p><a href="https://github.com/gwdetchar/gwdetchar/tree/%s" target="_blank">View gwdetchar-%s on GitHub</a> | <a href="https://github.com/gwdetchar/gwdetchar/issues" target="_blank">Report an issue</a></p>
+<div class="col-sm-3 icon-bar">
+<a href="https://github.com/gwdetchar/gwdetchar/tree/%s" title="View gwdetchar-%s on GitHub" target="_blank"><i class="fas fa-code"></i></a>
+<a href="https://github.com/gwdetchar/gwdetchar/issues" title="Open an issue ticket" target="_blank"><i class="fas fa-ticket-alt"></i></a>
+<a href="about" title="How was this page generated?"><i class="fas fa-info-circle"></i></a>
+<a href="external" title="View this page&quot;s external source"><i class="fas fa-external-link-alt"></i></a>
+<a href="https://attackofthecute.com/random.php" title="Take a break from science" target="_blank"><i class="fas fa-heartbeat"></i></a>
+</div>
+<div class="col-sm-6">
+<p>Created by {user} at {date}</p>
 </div>
 </div>
 </div>
@@ -234,6 +242,10 @@ def test_finalize_static_urls(tmpdir):
             'jquery.fancybox.min.css',  # nopep8
         'https://fonts.googleapis.com/css?'
             'family=Roboto:400,500%7CRoboto+Mono',  # nopep8
+        'https://cdnjs.cloudflare.com/ajax/libs/'
+            'font-awesome/5.10.2/css/fontawesome.min.css',
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
+            '5.10.2/css/solid.min.css',  # nopep8
         'static/bootstrap-ligo.min.css',
         'static/gwdetchar.min.css']
     assert js == [
@@ -507,9 +519,12 @@ def test_write_footer():
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
-    out = html.write_footer()
+    out = html.write_footer(about='about', external='external')
     assert parse_html(str(out)) == parse_html(
         HTML_FOOTER.format(user=getuser(), date=date))
+    with pytest.raises(ValueError) as exc:
+        html.write_footer(link='test')
+    assert 'argument must be either None or a tuple' in str(exc.value)
 
 
 def test_close_page(tmpdir):
@@ -517,7 +532,8 @@ def test_close_page(tmpdir):
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
-    page = html.close_page(html.markup.page(), target)
+    page = html.close_page(html.markup.page(), target,
+                           about='about', external='external')
     assert parse_html(str(page)) == parse_html(
         HTML_CLOSE.format(user=getuser(), date=str(date)))
     assert os.path.isfile(target)
