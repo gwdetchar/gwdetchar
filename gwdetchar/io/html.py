@@ -1193,32 +1193,35 @@ def write_footer(about=None, link=None, issues=None, content=None):
     else:
         raise ValueError("'link' argument must be either None or a tuple of "
                          "package name, URL, and host name")
-    link = markup.oneliner.a(
-        markup.oneliner.i('', class_='fas fa-code'), href=source,
-        title='View {0} on {1}'.format(package, host), target='_blank')
-    issues = markup.oneliner.a(
-        markup.oneliner.i('', class_='fas fa-ticket-alt'),
-        href=issues or 'https://github.com/gwdetchar/gwdetchar/issues',
-        title='Open an issue ticket', target='_blank')
-    about = markup.oneliner.a(
-        markup.oneliner.i('', class_='fas fa-info-circle'), href=about,
-        title='How was this page generated?', target='_blank') or ''
+    # format various links
     page.div(class_='row')
-    page.div(class_='col-md-12')
+    page.div(class_='col-sm-4 icon-bar')
+    page.a(markup.oneliner.i('', class_='fas fa-code'), href=source,
+           title='View {0} on {1}'.format(package, host), target='_blank')
+    page.a(markup.oneliner.i('', class_='fas fa-ticket-alt'),
+           href=issues or 'https://github.com/gwdetchar/gwdetchar/issues',
+           title='Open an issue ticket', target='_blank')
+    if about is not None:
+        page.a(markup.oneliner.i('', class_='fas fa-info-circle'),
+               href=about, title='How was this page generated?')
+    page.div.close()  # col-sm-4 icon-bar
+    # print timestamp
+    page.div(class_='col-sm-4')
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
-    # write contextual information
-    page.p('Created by {0} at {1}'.format(getuser(), date))
     page.p()
-    page.add('{0}\n{1}\n{2}'.format(link, issues, about))
+    page.add('Created by {0} at {1}'.format(getuser(), date))
+    page.i('', class_='fas fa-heartbeat', **{'aria-hidden': 'true'})
     page.p.close()
+    page.div()  # col-sm-4
+    page.div(class_='col-sm-12')
     # extra content
     if isinstance(content, markup.page):
         page.add(str(content))
     elif content is not None:
         page.p(str(content))
-    page.div.close()  # col-md-12
+    page.div.close()  # col-sm-12
     page.div.close()  # row
     page.div.close()  # container
     markup.element('footer', case=page.case, parent=page).close()

@@ -24,7 +24,9 @@ body {
 }
 
 footer {
-		font-size: 16px;
+		line-height: 36px;
+		text-align: center;
+		font-size: 18px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -50,12 +52,17 @@ a {
 		cursor: pointer;
 }
 
-i {
-		font-size: 32px;
-}
-
 img {
 		margin: 0 auto;
+}
+
+i {
+		font-size: 28px;
+}
+
+.icon-bar a {
+		margin-right: 10px;
+		text-decoration: none;
 }
 
 .navbar {

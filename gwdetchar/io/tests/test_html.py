@@ -131,13 +131,17 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 HTML_FOOTER = """<footer class="footer">
 <div class="container">
 <div class="row">
-<div class="col-md-12">
-<p>Created by {user} at {date}</p>
-<p>
+<div class="col-sm-4 icon-bar">
 <a href="https://github.com/gwdetchar/gwdetchar/tree/%s" title="View gwdetchar-%s on GitHub" target="_blank"><i class="fas fa-code"></i></a>
 <a href="https://github.com/gwdetchar/gwdetchar/issues" title="Open an issue ticket" target="_blank"><i class="fas fa-ticket-alt"></i></a>
-<a href title="How was this page generated?" target="_blank"><i class="fas fa-info-circle"></i></a>
+</div>
+<div class="col-sm-4">
+<p>
+Created by {user} at {date}
+<i class="fas fa-heartbeat" aria-hidden="true"></i>
 </p>
+<div>
+<div class="col-sm-12">
 </div>
 </div>
 </div>
@@ -240,6 +244,8 @@ def test_finalize_static_urls(tmpdir):
             'jquery.fancybox.min.css',  # nopep8
         'https://fonts.googleapis.com/css?'
             'family=Roboto:400,500%7CRoboto+Mono',  # nopep8
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
+            '5.10.2/css/font-awesome.min.css'  # nopep8
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
             '5.10.2/css/solid.min.css'  # nopep8
         'static/bootstrap-ligo.min.css',
@@ -516,7 +522,6 @@ def test_write_footer():
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
     out = html.write_footer()
-    print(out)
     assert parse_html(str(out)) == parse_html(
         HTML_FOOTER.format(user=getuser(), date=date))
 
