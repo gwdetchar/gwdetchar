@@ -31,6 +31,7 @@ $(document).ready(function() {
   $(".fancybox").fancybox({
     nextEffect: 'none',
     prevEffect: 'none',
+    backFocus: false,
     helpers: {title: {type: 'inside'}}
   });
 });
