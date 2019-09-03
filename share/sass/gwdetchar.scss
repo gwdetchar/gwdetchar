@@ -145,15 +145,15 @@ img {
 				z-index: 99;
 				// text elements
 				color: #555;
-				font-size: 32px;
-				font-weight: 400;
+				font-size: 30px;
+				font-weight: 300;
 				align-items: center;
 				justify-content: center;
 				text-decoration: none;
 				// appearance
 				outline: none;
 				cursor: pointer;
-				border: 1px solid #555;
+				border: 2px solid #555;
 				background-color: white;
 				transition-duration: 0.4s;
 				-webkit-transition-duration: 0.4s;
@@ -165,7 +165,7 @@ img {
 		@media(min-width:992px) {
 				color: white;
 				background-color: #555;
-				border: 1px solid white;
+				border: 2px solid white;
 		}
 }
 
