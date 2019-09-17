@@ -109,19 +109,19 @@ def make_spectrum_plots(start, end, flower, fupper, channel_name,
         y_label = 'GW amplitude spectral density [strain/$\sqrt{\mathrm{Hz}}]$'
     else:
         y_label = 'Primary channel units'
-    y_min = 1e-24
-    y_max = 2e-18
+    y_min = 0.1 * filtered_spectrum.min().value
+    y_max = 5 * filtered_spectrum.max().value
 
     # Atttributes specific to one of the two spectrum plots
     zoomed_out_x_min = 10
     zoomed_out_x_max = 2000
-    zoomed_out_title = '%s band passed spectrum (zoomed out)' % channelstub
+    zoomed_out_title = '%s band-passed spectrum (zoomed out)' % channelstub
     zoomed_out_spectrum_plot_name = ('%s-_BAND_PASSED_SPECTRUM_ZOOM_OUT-%s.png'
                                      % (channelstub, gpsstub))
 
     zoomed_in_x_min = flower - ((fupper - flower) * 0.1)
     zoomed_in_x_max = fupper + ((fupper - flower) * 0.1)
-    zoomed_in_title = '%s band passed spectrum (zoomed in)' % channelstub
+    zoomed_in_title = '%s band-passed spectrum (zoomed in)' % channelstub
     zoomed_in_spectrum_plot_name = ('%s-_BAND_PASSED_SPECTRUM_ZOOM_IN-%s.png'
                                     % (channelstub, gpsstub))
 
