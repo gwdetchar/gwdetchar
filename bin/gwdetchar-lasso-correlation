@@ -632,13 +632,13 @@ if args.band_pass:
     page.div(class_='col-md-6')
     spectra_img1 = htmlio.FancyPlot(spectrum_plot_zoomed_out)
     page.add(htmlio.fancybox_img(spectra_img1))
-    page.div.close()
+    page.div.close()  # col-md-6
     page.div(class_='col-md-6')
     spectra_img2 = htmlio.FancyPlot(spectrum_plot_zoomed_in)
     page.add(htmlio.fancybox_img(spectra_img2))
-    page.div.close()
-    page.div.close()
-    page.div.close()
+    page.div.close()  # col-md-6
+    page.div.close()  # row
+    page.div.close()  # scaffold well
 
 # -- model information
 page.h2('Model information', id_='model')
