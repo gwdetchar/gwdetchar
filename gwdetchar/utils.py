@@ -53,6 +53,7 @@ class GWHTMLParser(HTMLParser):
     def handle_decl(self, data):
         print("Decl:", data)
 
+
 parser = GWHTMLParser()
 
 
@@ -72,7 +73,7 @@ def parse_html(html):
     return output
 
 
-def natural_sort(l, key=str):
+def natural_sort(ls, key=str):
     """Sort a list the way that humans expect.
 
     This differs from the built-in `sorted` method by building a custom
@@ -81,7 +82,7 @@ def natural_sort(l, key=str):
 
     Parameters
     ----------
-    l : `iterable`
+    ls : `iterable`
         iterable to sort
     key : `callable`
         sorting key
@@ -91,12 +92,17 @@ def natural_sort(l, key=str):
     sorted : `list`
         a sorted version of the input list
     """
-    l = list(l)
-    k = list(map(key, l)) if key else l
-    convert = lambda text: int(text) if text.isdigit() else text
-    alphanum_key = lambda key: [convert(c) for c in
-                                re.split('([0-9]+)', k[l.index(key)])]
-    return sorted(l, key=alphanum_key)
+    ls = list(ls)
+    k = list(map(key, ls)) if key else ls
+
+    def convert(text):
+        return int(text) if text.isdigit() else text
+
+    def alphanum_key(key):
+        return [convert(c) for c in
+                re.split('([0-9]+)', k[ls.index(key)])]
+
+    return sorted(ls, key=alphanum_key)
 
 
 def table_from_segments(flagdict, sngl_burst=False, snr=10., frequency=100.):
@@ -105,12 +111,14 @@ def table_from_segments(flagdict, sngl_burst=False, snr=10., frequency=100.):
     rows = []
     if sngl_burst:
         names = ("peak", "peak_frequency", "snr", "channel")
+
         def row(seg, channel):
             a, b = map(float, seg)
             return a, frequency, snr, channel
     else:
         names = ("time", "frequency", "start_time", "end_time",
                  "snr", "channel")
+
         def row(seg, channel):
             a, b = map(float, seg)
             return a, frequency, a, b, snr, channel

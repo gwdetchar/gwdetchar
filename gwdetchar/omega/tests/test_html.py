@@ -224,7 +224,7 @@ Eventgram view <span class="caret"></span>
 </div>
 </li>
 </ul>
-</div>"""  # nopep8
+</div>"""  # noqa: E501
 
 
 # -- unit tests ---------------------------------------------------------------
@@ -296,22 +296,21 @@ def test_write_ranking():
     h1 = parse_html(str(page))
     h2 = parse_html(
         '<div class="row">\n<div class="col-md-12">\n<p>Below are the top 5 '
-            'channels ranked by matched-filter correlation within 100 ms of '
-            '<a href="plots/primary.png" title="Whitened timeseries of the '
-            'primary channel, X1:TEST-STRAIN." class="fancybox" '
-            'target="_blank" style="font-family: Monaco, &quot;Courier '
-            'New&quot;, monospace; color: black;" data-fancybox-group='
-            '"images">X1:TEST-STRAIN</a>.</p>\n'
+        'channels ranked by matched-filter correlation within 100 ms of '
+        '<a href="plots/primary.png" title="Whitened timeseries of the '
+        'primary channel, X1:TEST-STRAIN." class="fancybox" '
+        'target="_blank" style="font-family: Monaco, &quot;Courier '
+        'New&quot;, monospace; color: black;" data-fancybox-group='
+        '"images">X1:TEST-STRAIN</a>.</p>\n'
         '<table class="table table-condensed table-hover table-bordered '
-            'table-responsive">\n'
-        '<thead>\n<tr>\n<th scope="col">Channel</th>\n'
+        'table-responsive">\n<thead>\n<tr>\n<th scope="col">Channel</th>\n'
         '<th scope="col">GPS Time</th>\n<th scope="col">Frequency</th>\n'
         '<th scope="col">Q</th>\n<th scope="col">Energy</th>\n'
         '<th scope="col">SNR</th>\n<th scope="col">Correlation</th>\n'
         '<th scope="col">Delay</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n'
         '<td><a title="X1:TEST-AUX" href="#x1-test-aux" '
-            'style="font-family: Monaco, &quot;Courier New&quot;, monospace; '
-            'color: black;">X1:TEST-AUX</a></td>\n'
+        'style="font-family: Monaco, &quot;Courier New&quot;, monospace; '
+        'color: black;">X1:TEST-AUX</a></td>\n'
         '<td>0</td>\n<td>100.0 Hz</td>\n<td>5</td>\n<td>1000</td>\n'
         '<td>44.7</td>\n<td>100</td>\n<td>0 ms</td>\n'
         '</tr>\n</tbody>\n</table>\n</div>\n</div>'

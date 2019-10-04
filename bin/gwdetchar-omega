@@ -34,7 +34,7 @@ from gwpy.table import Table
 from gwpy.time import to_gps
 
 from matplotlib import use
-use('agg')  # nopep8
+use('agg')  # noqa
 
 from gwdetchar import (cli, omega)
 from gwdetchar.omega import (config, html, plot)

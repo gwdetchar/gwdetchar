@@ -105,6 +105,6 @@ def test_is_saturated(tsdfetch, remove):
     assert_segmentlist_equal(saturated2[0].active, saturated.active)
 
     with pytest.raises(ValueError) as exc:
-        saturated3 = saturation.is_saturated(
+        saturation.is_saturated(
             'X1:TEST', cache, start=0, end=8, indicator='blah')
     assert str(exc.value).startswith("Don't know how to determine")

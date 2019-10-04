@@ -38,7 +38,7 @@ LICENSE = 'GPLv3'
 
 # -- versioning ---------------------------------------------------------------
 
-import versioneer
+import versioneer  # noqa: E402
 __version__ = versioneer.get_version()
 
 # -- dependencies -------------------------------------------------------------
@@ -89,7 +89,8 @@ with open('README.rst', 'rb') as f:
 setup(name=DISTNAME,
       provides=[PACKAGENAME],
       version=__version__,
-      description="A python package for gravitational-wave detector characterisation",
+      description=("A python package for gravitational-wave "
+                   "detector characterisation"),
       long_description=longdesc,
       author=AUTHOR,
       author_email=AUTHOR_EMAIL,
@@ -107,7 +108,8 @@ setup(name=DISTNAME,
           'Intended Audience :: Science/Research',
           'Intended Audience :: End Users/Desktop',
           'Intended Audience :: Developers',
-          'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+          ('License :: OSI Approved :: GNU General Public '
+           'License v3 or later (GPLv3+)'),
           'Natural Language :: English',
           'Operating System :: POSIX',
           'Operating System :: Unix',

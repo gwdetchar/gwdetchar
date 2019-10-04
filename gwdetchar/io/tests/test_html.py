@@ -23,19 +23,18 @@ import os
 import sys
 import shutil
 import datetime
-import sys
 from pytz import reference
 from getpass import getuser
 from MarkupPy import markup
 try:
-    from unittest import mock
+    from unittest import mock  # noqa
 except ImportError:  # python < 3
-    import mock
+    import mock  # noqa
 
 import pytest
 
 from matplotlib import use
-use('Agg')  # nopep8
+use('Agg')  # noqa
 
 from gwpy.segments import (Segment, DataQualityFlag)
 
@@ -74,7 +73,7 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <body>
 <div class="container">
 </body>
-</html>"""  # nopep8
+</html>"""  # noqa: E501
 
 TEST_CONFIGURATION = """[section]
 key = value"""
@@ -95,7 +94,7 @@ ABOUT = """<div class="row">
 
 <h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;package-table.csv&quot;, &quot;package-table&quot;)">Export to CSV</button>
 </div>
-</div>""".format(sys.prefix)  # nopep8
+</div>""".format(sys.prefix)  # noqa: E501
 
 ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <div class="col-md-12">
@@ -126,7 +125,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 </div>
 <h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;package-table.csv&quot;, &quot;package-table&quot;)">Export to CSV</button>
 </div>
-</div>""".format(sys.prefix)  # nopep8
+</div>""".format(sys.prefix)  # noqa: E501
 
 HTML_FOOTER = """<footer class="footer">
 <div class="container">
@@ -143,12 +142,12 @@ HTML_FOOTER = """<footer class="footer">
 </div>
 </div>
 </div>
-</footer>""" % (COMMIT, VERSION)  # nopep8
+</footer>""" % (COMMIT, VERSION)  # noqa: E501
 
 HTML_CLOSE = """</div>
 %s
 </body>
-</html>""" % HTML_FOOTER  # nopep8
+</html>""" % HTML_FOOTER
 
 FLAG_CONTENT = """<div class="panel panel-warning">
 <div class="panel-heading">
@@ -159,7 +158,7 @@ FLAG_CONTENT = """<div class="panel panel-warning">
 {content}
 </div>
 </div>
-</div>"""  # nopep8
+</div>"""  # noqa: E501
 
 FLAG_HTML = FLAG_CONTENT.format(content="""<pre># seg\tstart\tstop\tduration
 0\t0\t66\t66.0
@@ -212,7 +211,7 @@ OMEGA_SCAFFOLD = """<div class="panel well panel-default">
 </div>
 </li>
 </ul>
-</div>"""  # nopep8
+</div>"""  # noqa: E501
 
 
 # -- HTML unit tests ----------------------------------------------------------
@@ -220,14 +219,14 @@ OMEGA_SCAFFOLD = """<div class="panel well panel-default">
 def test_fancy_plot():
     # create a dummy FancyPlot instance
     test = html.FancyPlot('test.png')
-    assert test.img is 'test.png'
-    assert test.caption is 'test.png'
+    assert test.img == 'test.png'
+    assert test.caption == 'test.png'
 
     # check that its properties are unchanged when the argument
     # to FancyPlot() is also a FancyPlot instance
     test = html.FancyPlot(test)
-    assert test.img is 'test.png'
-    assert test.caption is 'test.png'
+    assert test.img == 'test.png'
+    assert test.caption == 'test.png'
 
 
 def test_finalize_static_urls(tmpdir):
@@ -237,23 +236,23 @@ def test_finalize_static_urls(tmpdir):
         static, base, html.CSS_FILES, html.JS_FILES)
     assert css == [
         'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/'
-            'bootstrap.min.css',  # nopep8
+            'bootstrap.min.css',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
-            'jquery.fancybox.min.css',  # nopep8
+            'jquery.fancybox.min.css',  # noqa: E131
         'https://fonts.googleapis.com/css?'
-            'family=Roboto:400,500%7CRoboto+Mono',  # nopep8
+            'family=Roboto:400,500%7CRoboto+Mono',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/'
             'font-awesome/5.10.2/css/fontawesome.min.css',
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
-            '5.10.2/css/solid.min.css',  # nopep8
+            '5.10.2/css/solid.min.css',  # noqa: E131
         'static/bootstrap-ligo.min.css',
         'static/gwdetchar.min.css']
     assert js == [
         'https://code.jquery.com/jquery-1.12.4.min.js',
         'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/'
-            'bootstrap.min.js',  # nopep8
+            'bootstrap.min.js',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
-            'jquery.fancybox.min.js',  # nopep8
+            'jquery.fancybox.min.js',  # noqa E131
         'static/bootstrap-ligo.min.js',
         'static/gwdetchar.min.js']
     shutil.rmtree(str(tmpdir), ignore_errors=True)
@@ -408,10 +407,10 @@ def test_fancybox_img():
     out = html.fancybox_img(img)
     assert parse_html(out) == parse_html(
         '<a class="fancybox" href="X1-TEST_AUX-test-4.png" target="_blank" '
-            'data-fancybox-group="images" id="a_X1-TEST_AUX_4" '
-            'title="X1-TEST_AUX-test-4.png">\n'
+        'data-fancybox-group="images" id="a_X1-TEST_AUX_4" '
+        'title="X1-TEST_AUX-test-4.png">\n'
         '<img class="img-responsive" alt="X1-TEST_AUX-test-4.png" '
-            'src="X1-TEST_AUX-test-4.png" id="img_X1-TEST_AUX_4"/>\n'
+        'src="X1-TEST_AUX-test-4.png" id="img_X1-TEST_AUX_4"/>\n'
         '</a>')
 
 
@@ -423,21 +422,17 @@ def test_scaffold_plots():
         '<div class="row">\n'
         '<div class="col-sm-6">\n'
         '<a class="fancybox" href="X1-TEST_AUX-test-4.png" target="_blank" '
-            'id="a_X1-TEST_AUX_4" data-fancybox-group="images" '
-            'title="X1-TEST_AUX-test-4.png">\n'
+        'id="a_X1-TEST_AUX_4" data-fancybox-group="images" '
+        'title="X1-TEST_AUX-test-4.png">\n'
         '<img class="img-responsive" alt="X1-TEST_AUX-test-4.png" '
-            'id="img_X1-TEST_AUX_4" src="X1-TEST_AUX-test-4.png" />\n'
-        '</a>\n'
-        '</div>\n'
-        '<div class="col-sm-6">\n'
+        'id="img_X1-TEST_AUX_4" src="X1-TEST_AUX-test-4.png" />\n'
+        '</a>\n</div>\n<div class="col-sm-6">\n'
         '<a class="fancybox" href="X1-TEST_AUX-test-16.png" target="_blank"'
-            ' id="a_X1-TEST_AUX_16" data-fancybox-group="images" '
-            'title="X1-TEST_AUX-test-16.png">\n'
+        ' id="a_X1-TEST_AUX_16" data-fancybox-group="images" '
+        'title="X1-TEST_AUX-test-16.png">\n'
         '<img class="img-responsive" alt="X1-TEST_AUX-test-16.png" '
-            'id="img_X1-TEST_AUX_16" src="X1-TEST_AUX-test-16.png" />\n'
-        '</a>\n'
-        '</div>\n'
-        '</div>')
+        'id="img_X1-TEST_AUX_16" src="X1-TEST_AUX-test-16.png" />\n'
+        '</a>\n</div>\n</div>')
     assert h1 == h2
 
 

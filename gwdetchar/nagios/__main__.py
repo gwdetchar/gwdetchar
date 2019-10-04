@@ -23,7 +23,9 @@ import os
 import sys
 
 from .. import cli
-from .core import *
+from .core import (
+    write_status,
+)
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 

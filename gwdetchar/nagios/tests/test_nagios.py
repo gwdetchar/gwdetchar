@@ -37,7 +37,7 @@ def test_write_status(tmpdir):
         'This is a test success message',
         0,
         timeout=42,
-        tmessage='This is a test timeout message',                       
+        tmessage='This is a test timeout message',
         nagiosfile=nagiosfile,
     )
     # test output

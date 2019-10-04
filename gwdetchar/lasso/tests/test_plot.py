@@ -25,9 +25,8 @@ import shutil
 import numpy
 
 from matplotlib import (use, rcParams, rcParamsDefault)
-use('agg')
+use('agg')  # noqa
 
-from gwpy.plot import Plot
 from gwpy.timeseries import TimeSeries
 
 from .. import plot

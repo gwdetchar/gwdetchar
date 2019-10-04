@@ -303,7 +303,8 @@ if args.html:
     # give contextual information
     msg = ("This analysis searched for digital-to-analogue (DAC) or "
            "analogue-to-digital (ADC) conversion overflows in the {0} "
-           "real-time controls system. ").format(SITE_MAP.get(args.ifo, 'LIGO'))
+           "real-time controls system. ").format(
+               SITE_MAP.get(args.ifo, 'LIGO'))
     if args.deep:
         msg += ("A hierarchichal search was performed, with one cumulative "
                 "overflow counter checked per front-end controller (FEC). "

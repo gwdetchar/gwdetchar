@@ -24,8 +24,6 @@ import numpy
 from functools import wraps
 from collections import OrderedDict
 
-from pkg_resources import resource_filename
-
 from MarkupPy import markup
 
 from gwpy.table import Table
@@ -35,6 +33,7 @@ from ..io import html as htmlio
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
+
 
 # -- HTML construction --------------------------------------------------------
 
@@ -309,7 +308,7 @@ def write_summary(
     page.add(htmlio.download_btn(
         content,
         btndiv='btn-group',
-	    btnclass='btn btn-{} dropdown-toggle'.format(context),
+        btnclass='btn btn-{} dropdown-toggle'.format(context),
     ))
     page.div.close()  # col-md-7
     page.div.close()  # row
@@ -489,7 +488,7 @@ def write_block(blockkey, block, context,
             entries = [[str(channel.t), '%s Hz' % channel.f, str(channel.Q),
                         str(channel.energy), str(channel.snr),
                         str(channel.corr), '%s ms' % channel.delay]]
-        except:
+        except AttributeError:
             columns = ['GPS Time', 'Frequency', 'Q', 'Energy', 'SNR']
             entries = [[str(channel.t), '%s Hz' % channel.f, str(channel.Q),
                         str(channel.energy), str(channel.snr)]]
