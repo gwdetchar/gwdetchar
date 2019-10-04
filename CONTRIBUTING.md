@@ -44,3 +44,37 @@ The basic idea is to use the `master` branch of your fork as a way of updating y
   cd ../
   rm -rf ./gwdetchar-my-work
   ```
+
+And that's it.
+
+## Coding guidelines
+
+### Python compatibility
+
+**GW-DetChar code must be compatible with Python versions >=3.5.**
+
+### Style
+
+This package follows [PEP 8](https://www.python.org/dev/peps/pep-0008/),
+and all code should adhere to that as far as is reasonable.
+
+The first stage in the automated testing of pull requests is a job that runs
+the [`flake8`](http://flake8.pycqa.org) linter, which checks the style of code
+in the repo. You can run this locally before committing changes via:
+
+```bash
+python -m flake8
+```
+
+### Testing
+
+GW-DetChar has a fairly complete test suite, covering over 90% of the codebase.
+All code contributions should be accompanied by (unit) tests to be executed with
+[`pytest`](https://docs.pytest.org/en/latest/), and should cover
+all new or modified lines.
+
+You can run the test suite locally from the root of the repository via:
+
+```bash
+python -m pytest gwdetchar/
+```

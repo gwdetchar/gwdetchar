@@ -24,4 +24,11 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 # -- imports ------------------------------------------------------------------
 
 # import lasso utils
-from .core import *
+from .core import (
+    find_outliers,
+    remove_outliers,
+    fit,
+    find_alpha,
+    remove_flat,
+    remove_bad,
+)

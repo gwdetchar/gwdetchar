@@ -27,7 +27,7 @@ import numpy
 from MarkupPy import markup
 
 from matplotlib import (use, rcParams)
-use('agg')  # nopep8
+use('agg')  # noqa
 from matplotlib.cm import get_cmap
 
 from astropy.table import Table

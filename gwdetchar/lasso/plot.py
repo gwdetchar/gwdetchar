@@ -26,10 +26,6 @@ import shutil
 import tempfile
 import warnings
 
-from matplotlib import rcParams
-
-from gwpy.plot import Plot
-
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
               'Josh Smith'
@@ -106,7 +102,8 @@ def make_spectrum_plots(start, end, flower, fupper, channel_name,
     gpsstub = '%d-%d' % (start, end-start)
     x_label = 'Frequency [Hz]'
     if ':GDS-CALIB_STRAIN' in channel_name:
-        y_label = 'GW amplitude spectral density [strain/$\sqrt{\mathrm{Hz}}]$'
+        y_label = ('GW amplitude spectral density '
+                   '[strain/$\sqrt{\mathrm{Hz}}]$')  # noqa: W605
     else:
         y_label = 'Primary channel units'
     y_min = 0.1 * filtered_spectrum.min().value

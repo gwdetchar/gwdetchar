@@ -26,7 +26,7 @@ import shutil
 from gwpy.timeseries import TimeSeries
 
 from matplotlib import use
-use('agg')
+use('agg')  # noqa: E402
 
 from .. import plot
 

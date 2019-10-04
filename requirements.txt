@@ -23,5 +23,6 @@ setuptools
 pathlib2 ; python_version < '3.6'
 pygments
 # testing
+flake8
 pytest
 coverage

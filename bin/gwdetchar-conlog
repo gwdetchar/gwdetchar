@@ -30,7 +30,7 @@ import gwdatafind
 from gwpy.table import Table
 from gwpy.io import gwf as io_gwf
 
-from gwdetchar import (cli, const)
+from gwdetchar import cli
 from gwdetchar.io.datafind import get_data
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'

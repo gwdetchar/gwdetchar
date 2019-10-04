@@ -26,7 +26,7 @@ from unittest.mock import patch
 from gwpy.segments import DataQualityFlag
 
 from matplotlib import (use, rcParams)
-use('agg')
+use('agg')  # noqa
 
 from .. import plot
 
@@ -62,4 +62,4 @@ def test_plot_segments(tmpdir):
     base = str(tmpdir)
     segplot = plot.plot_segments(FLAG, span=(0, 66))
     segplot.savefig(os.path.join(base, 'test.png'))
-    shutil.rmtree(base, ignore_errors=True) 
+    shutil.rmtree(base, ignore_errors=True)

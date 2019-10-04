@@ -26,19 +26,18 @@ import numpy
 from scipy.stats import spearmanr
 
 from matplotlib import use
-use('agg')
+use('agg')  # noqa
 import matplotlib.pyplot as plt
 
 from gwpy.plot import Plot
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
-from gwdetchar import (cli, lasso)
 from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
+from gwdetchar import (cli, lasso as gwlasso)
 
-from sklearn import linear_model, preprocessing, datasets
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn import linear_model
 
 parser = cli.create_parser(
     description=__doc__,
@@ -381,7 +380,7 @@ contents = [
     ('Range channel',
      '{} ({})'.format(rangechannel, args.range_frametype or '-')),
     ('Band-pass', '{}-{}'.format(flower, fupper))]
-page.add(htmlio.parameter_table(content, start=start, end=end))
+page.add(htmlio.parameter_table(contents, start=start, end=end))
 
 # results
 page.h2('Results', id_='results')

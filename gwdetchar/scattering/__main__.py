@@ -31,7 +31,7 @@ import os
 import sys
 
 from matplotlib import use
-use('agg')  # noqa
+use('agg')  # noqa: E402
 
 from gwpy.time import to_gps
 
@@ -39,8 +39,11 @@ from .. import (cli, const)
 from ..omega import highpass
 from ..io.datafind import get_data
 
-from . import *
-from . import plot
+from . import (
+    OPTIC_MOTION_CHANNELS,
+    get_fringe_frequency,
+    plot,
+)
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Joshua Smith <joshua.smith@ligo.org>' \

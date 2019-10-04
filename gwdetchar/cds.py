@@ -76,7 +76,7 @@ def get_adclist(ifo, model):
 
 def model_name_from_dcuid(ifo, dcuid):
     global DCUID_MAP
-    if not ifo in DCUID_MAP:
+    if ifo not in DCUID_MAP:
         DCUID_MAP[ifo] = get_dcuid_map(ifo)
     try:
         return DCUID_MAP[ifo][dcuid]
