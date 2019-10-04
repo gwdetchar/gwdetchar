@@ -32,7 +32,7 @@ install:
   - python -m pip install ${PIP_FLAGS} --editable .
 
 script:
-  - flake8 .
+  - python -m flake8 .
   - python -m coverage run ./setup.py test
   - bash ci/test-bin.sh
   - acorn --silent gwdetchar/_static/bootstrap-ligo.min.js
