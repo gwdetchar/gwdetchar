@@ -76,5 +76,5 @@ all new or modified lines.
 You can run the test suite locally from the root of the repository via:
 
 ```bash
-python -m pytest gwpy/
+python -m pytest gwdetchar/
 ```
