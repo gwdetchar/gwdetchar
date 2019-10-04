@@ -32,8 +32,8 @@ from _setup_utils import CMDCLASS as cmdclass
 # set basic metadata
 PACKAGENAME = 'gwdetchar'
 DISTNAME = 'gwdetchar'
-AUTHOR = 'Duncan Macleod'
-AUTHOR_EMAIL = 'duncan.macleod@ligo.org'
+AUTHOR = 'Alex Urban, Duncan Macleod'
+AUTHOR_EMAIL = 'alexander.urban@ligo.org'
 LICENSE = 'GPLv3'
 
 # -- versioning ---------------------------------------------------------------
