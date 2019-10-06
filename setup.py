@@ -74,7 +74,9 @@ install_requires = [
 if 'test' in sys.argv:
     setup_requires.append('pytest-runner')
 tests_require = [
+    'flake8',
     'pytest',
+    'coverage',
 ]
 
 # -- run setup ----------------------------------------------------------------
