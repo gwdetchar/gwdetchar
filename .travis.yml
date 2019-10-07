@@ -26,7 +26,7 @@ matrix:
 before_install:
   - python -m pip install ${PIP_FLAGS} --upgrade pip
   - python -m pip install ${PIP_FLAGS} -r requirements.txt
-  - npm -g install acorn stylelint-config-sass-guidelines
+  - npm -g install acorn stylelint stylelint-config-sass-guidelines
 
 install:
   - python -m pip install ${PIP_FLAGS} --editable .
