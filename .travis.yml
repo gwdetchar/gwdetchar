@@ -26,7 +26,7 @@ matrix:
 before_install:
   - python -m pip install ${PIP_FLAGS} --upgrade pip
   - python -m pip install ${PIP_FLAGS} -r requirements.txt
-  - npm -g install acorn
+  - npm -g install acorn stylelint-config-sass-guidelines
 
 install:
   - python -m pip install ${PIP_FLAGS} --editable .
@@ -35,7 +35,6 @@ script:
   - python -m flake8 .
   - python -m coverage run ./setup.py test
   - bash ci/test-bin.sh
-  - acorn --silent gwdetchar/_static/gwdetchar.min.js
 
 after_success:
   - python -m pip install ${PIP_FLAGS} codecov
