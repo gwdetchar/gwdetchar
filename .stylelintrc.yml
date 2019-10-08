@@ -1,28 +1,16 @@
-extends:
-  - stylelint-config-sass-guidelines
+# Linting rules for Sass/SCSS stylesheets
+#   based on Hugo Giraudel's Sass guidelines,
+#   https://sass-guidelin.es
+
+extends: stylelint-config-sass-guidelines
+
+options:
+  formatter: stylish
+
+files:
+  include: '**/*.s+(a|c)ss'
 
 rules:
-  block-no-empty:
-    - null
-  declaration-property-value-blacklist:
-    - null
-  indentation:
-    - tab
-  max-nesting-depth:
-    - 4
-  number-leading-zero:
-    - null
-  number-no-trailing-zeros:
-    - null
-  property-no-vendor-prefix:
-    - null
-  selector-class-pattern:
-    - null
-  selector-max-compound-selectors:
-    - 5
-  selector-max-id:
-    - 2
-  selector-no-qualifying-type:
-    - null
-  value-no-vendor-prefix:
-    - null
+  max-nesting-depth: 4
+  selector-max-compound-selectors: 5
+  selector-max-id: 2
