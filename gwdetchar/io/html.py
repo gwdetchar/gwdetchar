@@ -145,12 +145,12 @@ FONT_AWESOME_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
 FONT_AWESOME_SOLID_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
                           "font-awesome/5.10.2/css/solid.min.css")
 
-BOOTSTRAP_LIGO_CSS = resource_filename(
+GWBOOTSTRAP_CSS = resource_filename(
     'gwdetchar',
-    '_static/bootstrap-ligo.min.css')
-BOOTSTRAP_LIGO_JS = resource_filename(
+    '_static/gwbootstrap.min.css')
+GWBOOTSTRAP_JS = resource_filename(
     'gwdetchar',
-    '_static/bootstrap-ligo.min.js')
+    '_static/gwbootstrap.min.js')
 
 GWDETCHAR_CSS = resource_filename(
     'gwdetchar',
@@ -165,13 +165,13 @@ CSS_FILES = [
     GOOGLE_FONT_CSS,
     FONT_AWESOME_CSS,
     FONT_AWESOME_SOLID_CSS,
-    BOOTSTRAP_LIGO_CSS,
+    GWBOOTSTRAP_CSS,
     GWDETCHAR_CSS]
 JS_FILES = [
     JQUERY_JS,
     BOOTSTRAP_JS,
     FANCYBOX_JS,
-    BOOTSTRAP_LIGO_JS,
+    GWBOOTSTRAP_JS,
     GWDETCHAR_JS]
 
 FORMATTER = HtmlFormatter(noclasses=True)

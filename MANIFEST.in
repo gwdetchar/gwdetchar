@@ -3,4 +3,4 @@ include versioneer.py setup.py _setup_utils.py
 include gwdetchar/_version.py
 recursive-include gwdetchar/_static *.min.css *.min.js
 recursive-include share *.scss *.js
-recursive-include bootstrap-ligo *.scss *.js
+recursive-include gwbootstrap *.scss *.js
