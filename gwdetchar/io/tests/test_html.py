@@ -59,7 +59,6 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <base href="{base}" />
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="https://fonts.googleapis.com/css?family=Roboto:400,500%7CRoboto+Mono" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/fontawesome.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/solid.min.css" rel="stylesheet" type="text/css" media="all" />
 <link href="static/gwbootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
@@ -237,8 +236,6 @@ def test_finalize_static_urls(tmpdir):
             'bootstrap.min.css',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
             'jquery.fancybox.min.css',  # noqa: E131
-        'https://fonts.googleapis.com/css?'
-            'family=Roboto:400,500%7CRoboto+Mono',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/'
             'font-awesome/5.10.2/css/fontawesome.min.css',
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
