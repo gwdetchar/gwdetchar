@@ -35,11 +35,9 @@ CMDCLASS = versioneer.get_cmdclass()
 
 # specify HTML source files
 JS_FILES = [
-    f for f in glob.glob(os.path.join('share', 'js', '*.js')) + (
-               glob.glob(os.path.join('gwbootstrap', 'js', '*.js')))
+    f for f in glob.glob(os.path.join('gwbootstrap', 'js', '*.js'))
     if not f.endswith('.min.js')]
-SASS_FILES = glob.glob(os.path.join('share', 'sass', '[!_]*.scss')) + (
-    glob.glob(os.path.join('gwbootstrap', 'sass', '[!_]*.scss')))
+SASS_FILES = glob.glob(os.path.join('gwbootstrap', 'sass', '[!_]*.scss'))
 
 # make sure submodule is not empty
 static = glob.glob(os.path.join('gwbootstrap', '*'))
@@ -81,8 +79,7 @@ class BuildHtmlFiles(Command):
         return self.staticdir.replace(os.path.sep, '.')
 
     def build_js(self):
-        jsdir = os.path.join('share', 'js')
-        log.info('minifying js under %s' % jsdir)
+        log.info('minifying JavaScript utilities')
         for jsfile in JS_FILES:
             filename = os.path.basename(jsfile)
             target = os.path.join(
@@ -98,8 +95,7 @@ class BuildHtmlFiles(Command):
             f.write(js)
 
     def build_css(self):
-        sassdir = os.path.join('share', 'sass')
-        log.info('compiling SASS under %s to CSS' % sassdir)
+        log.info('compiling SASS elements to minified CSS')
         for sassfile in SASS_FILES:
             filename = os.path.basename(sassfile)
             target = os.path.join(

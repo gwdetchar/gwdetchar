@@ -137,9 +137,6 @@ _FANCYBOX_CDN = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7"
 FANCYBOX_CSS = "{0}/jquery.fancybox.min.css".format(_FANCYBOX_CDN)
 FANCYBOX_JS = "{0}/jquery.fancybox.min.js".format(_FANCYBOX_CDN)
 
-GOOGLE_FONT_CSS = ("https://fonts.googleapis.com/css?"
-                   "family=Roboto:400,500%7CRoboto+Mono")
-
 FONT_AWESOME_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
                     "font-awesome/5.10.2/css/fontawesome.min.css")
 FONT_AWESOME_SOLID_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
@@ -150,29 +147,22 @@ GWBOOTSTRAP_CSS = resource_filename(
     '_static/gwbootstrap.min.css')
 GWBOOTSTRAP_JS = resource_filename(
     'gwdetchar',
-    '_static/gwbootstrap.min.js')
-
-GWDETCHAR_CSS = resource_filename(
-    'gwdetchar',
-    '_static/gwdetchar.min.css')
-GWDETCHAR_JS = resource_filename(
-    'gwdetchar',
-    '_static/gwdetchar.min.js')
+    '_static/gwbootstrap-basic.min.js')
 
 CSS_FILES = [
     BOOTSTRAP_CSS,
     FANCYBOX_CSS,
-    GOOGLE_FONT_CSS,
     FONT_AWESOME_CSS,
     FONT_AWESOME_SOLID_CSS,
     GWBOOTSTRAP_CSS,
-    GWDETCHAR_CSS]
+]
+
 JS_FILES = [
     JQUERY_JS,
     BOOTSTRAP_JS,
     FANCYBOX_JS,
     GWBOOTSTRAP_JS,
-    GWDETCHAR_JS]
+]
 
 FORMATTER = HtmlFormatter(noclasses=True)
 
