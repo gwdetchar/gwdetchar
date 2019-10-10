@@ -147,7 +147,7 @@ GWBOOTSTRAP_CSS = resource_filename(
     '_static/gwbootstrap.min.css')
 GWBOOTSTRAP_JS = resource_filename(
     'gwdetchar',
-    '_static/gwbootstrap.min.js')
+    '_static/gwbootstrap-basic.min.js')
 
 CSS_FILES = [
     BOOTSTRAP_CSS,

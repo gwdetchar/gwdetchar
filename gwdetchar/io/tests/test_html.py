@@ -66,7 +66,7 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" type="text/javascript"></script>
-<script src="static/gwbootstrap.min.js" type="text/javascript"></script>
+<script src="static/gwbootstrap-basic.min.js" type="text/javascript"></script>
 </head>
 <body>
 <div class="container">
@@ -251,7 +251,7 @@ def test_finalize_static_urls(tmpdir):
             'bootstrap.min.js',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
             'jquery.fancybox.min.js',  # noqa E131
-        'static/gwbootstrap.min.js',
+        'static/gwbootstrap-basic.min.js',
     ]
     shutil.rmtree(str(tmpdir), ignore_errors=True)
 
