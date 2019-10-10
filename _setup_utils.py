@@ -39,7 +39,7 @@ JS_FILES = [
                glob.glob(os.path.join('gwbootstrap', 'js', '*.js')))
     if not f.endswith('.min.js')]
 SASS_FILES = glob.glob(os.path.join('share', 'sass', '[!_]*.scss')) + (
-    glob.glob(os.path.join('gwbootstrap', 'css', '[!_]*.scss')))
+    glob.glob(os.path.join('gwbootstrap', 'sass', '[!_]*.scss')))
 
 # make sure submodule is not empty
 static = glob.glob(os.path.join('gwbootstrap', '*'))
