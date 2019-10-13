@@ -230,12 +230,8 @@ def test_finalize_static_urls(tmpdir):
     css, js = html.finalize_static_urls(
         static, base, html.CSS_FILES, html.JS_FILES)
     assert css == [
-        'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/'
-            'bootstrap.min.css',  # noqa: E131
-        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
-            'jquery.fancybox.min.css',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/'
-            'font-awesome/5.10.2/css/fontawesome.min.css',
+            'font-awesome/5.10.2/css/fontawesome.min.css',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
             '5.10.2/css/solid.min.css',  # noqa: E131
         'static/gwbootstrap.min.css',
@@ -246,7 +242,7 @@ def test_finalize_static_urls(tmpdir):
             'bootstrap.min.js',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
             'jquery.fancybox.min.js',  # noqa E131
-        'static/gwbootstrap-basic.min.js',
+        'static/gwbootstrap.min.js',
     ]
     shutil.rmtree(str(tmpdir), ignore_errors=True)
 
