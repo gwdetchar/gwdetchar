@@ -57,15 +57,13 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 <base href="{base}" />
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/fontawesome.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/solid.min.css" rel="stylesheet" type="text/css" media="all" />
-<link href="static/gwbootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/fontawesome.min.css" rel="stylesheet" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/solid.min.css" rel="stylesheet" media="all" />
+<link href="static/gwbootstrap.min.css" rel="stylesheet" media="all" />
 <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" type="text/javascript"></script>
-<script src="static/gwbootstrap-basic.min.js" type="text/javascript"></script>
+<script src="static/gwbootstrap.min.js" type="text/javascript"></script>
 </head>
 <body>
 <div class="container">
@@ -232,12 +230,8 @@ def test_finalize_static_urls(tmpdir):
     css, js = html.finalize_static_urls(
         static, base, html.CSS_FILES, html.JS_FILES)
     assert css == [
-        'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/'
-            'bootstrap.min.css',  # noqa: E131
-        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
-            'jquery.fancybox.min.css',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/'
-            'font-awesome/5.10.2/css/fontawesome.min.css',
+            'font-awesome/5.10.2/css/fontawesome.min.css',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
             '5.10.2/css/solid.min.css',  # noqa: E131
         'static/gwbootstrap.min.css',
@@ -248,7 +242,7 @@ def test_finalize_static_urls(tmpdir):
             'bootstrap.min.js',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
             'jquery.fancybox.min.js',  # noqa E131
-        'static/gwbootstrap-basic.min.js',
+        'static/gwbootstrap.min.js',
     ]
     shutil.rmtree(str(tmpdir), ignore_errors=True)
 

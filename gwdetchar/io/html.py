@@ -127,31 +127,28 @@ OBSERVATORY_MAP = {
 
 # -- HTML URLs
 
-JQUERY_JS = "https://code.jquery.com/jquery-1.12.4.min.js"
-
-_BOOTSTRAP_CDN = "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1"
-BOOTSTRAP_CSS = "{}/css/bootstrap.min.css".format(_BOOTSTRAP_CDN)
-BOOTSTRAP_JS = "{}/js/bootstrap.min.js".format(_BOOTSTRAP_CDN)
-
-_FANCYBOX_CDN = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7"
-FANCYBOX_CSS = "{0}/jquery.fancybox.min.css".format(_FANCYBOX_CDN)
-FANCYBOX_JS = "{0}/jquery.fancybox.min.js".format(_FANCYBOX_CDN)
-
 FONT_AWESOME_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
                     "font-awesome/5.10.2/css/fontawesome.min.css")
 FONT_AWESOME_SOLID_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
                           "font-awesome/5.10.2/css/solid.min.css")
+
+JQUERY_JS = "https://code.jquery.com/jquery-1.12.4.min.js"
+BOOTSTRAP_JS = ("https://stackpath.bootstrapcdn.com/bootstrap/"
+                "3.4.1/js/bootstrap.min.js")
+FANCYBOX_JS = ("https://cdnjs.cloudflare.com/ajax/libs/"
+               "fancybox/3.5.7/jquery.fancybox.min.js")
 
 GWBOOTSTRAP_CSS = resource_filename(
     'gwdetchar',
     '_static/gwbootstrap.min.css')
 GWBOOTSTRAP_JS = resource_filename(
     'gwdetchar',
-    '_static/gwbootstrap-basic.min.js')
+    '_static/gwbootstrap.min.js')
+GWBOOTSTRAP_EXTRA_JS = resource_filename(
+    'gwdetchar',
+    '_static/gwbootstrap-extra.min.js')
 
 CSS_FILES = [
-    BOOTSTRAP_CSS,
-    FANCYBOX_CSS,
     FONT_AWESOME_CSS,
     FONT_AWESOME_SOLID_CSS,
     GWBOOTSTRAP_CSS,
@@ -309,7 +306,7 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     page._full = True
     # link files
     for f in css:
-        page.link(href=f, rel='stylesheet', type='text/css', media='all')
+        page.link(href=f, rel='stylesheet', media='all')
     for f in script:
         page.script('', src=f, type='text/javascript')
     # add other attributes
