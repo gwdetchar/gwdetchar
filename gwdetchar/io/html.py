@@ -144,9 +144,6 @@ GWBOOTSTRAP_CSS = resource_filename(
 GWBOOTSTRAP_JS = resource_filename(
     'gwdetchar',
     '_static/gwbootstrap.min.js')
-GWBOOTSTRAP_EXTRA_JS = resource_filename(
-    'gwdetchar',
-    '_static/gwbootstrap-extra.min.js')
 
 CSS_FILES = [
     FONT_AWESOME_CSS,
