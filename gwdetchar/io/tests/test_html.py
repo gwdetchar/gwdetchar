@@ -166,7 +166,7 @@ FLAG_HTML_WITH_PLOTS = FLAG_CONTENT.format(
           'and active (large) analysis segments for X1:TEST_FLAG" '
           'class="fancybox" href="plots/X1-TEST_FLAG-0-66.png" '
           'data-fancybox-group="images">\n<img id="img_X1-TEST_FLAG_66" '
-          'alt="X1-TEST_FLAG-0-66.png" class="img-responsive" '
+          'alt="X1-TEST_FLAG-0-66.png" class="img-responsive lazy" '
           'src="plots/X1-TEST_FLAG-0-66.png" />\n</a>')
 
 FLAG_HTML_NO_SEGMENTS = FLAG_CONTENT.format(
@@ -190,17 +190,17 @@ OMEGA_SCAFFOLD = """<div class="panel well panel-default">
 <div class="row">
 <div class="col-sm-4">
 <a href="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" id="a_X1-STRAIN_1" title="X1-STRAIN-qscan_whitened-1.png" class="fancybox" target="_blank" data-fancybox-group="images">
-<img id="img_X1-STRAIN_1" alt="X1-STRAIN-qscan_whitened-1.png" class="img-responsive" src="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" />
+<img id="img_X1-STRAIN_1" alt="X1-STRAIN-qscan_whitened-1.png" class="img-responsive lazy" src="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" />
 </a>
 </div>
 <div class="col-sm-4">
 <a href="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" id="a_X1-STRAIN_4" title="X1-STRAIN-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox-group="images">
-<img id="img_X1-STRAIN_4" alt="X1-STRAIN-qscan_whitened-4.png" class="img-responsive" src="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" />
+<img id="img_X1-STRAIN_4" alt="X1-STRAIN-qscan_whitened-4.png" class="img-responsive lazy" src="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" />
 </a>
 </div>
 <div class="col-sm-4">
 <a href="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" id="a_X1-STRAIN_16" title="X1-STRAIN-qscan_whitened-16.png" class="fancybox" target="_blank" data-fancybox-group="images">
-<img id="img_X1-STRAIN_16" alt="X1-STRAIN-qscan_whitened-16.png" class="img-responsive" src="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" />
+<img id="img_X1-STRAIN_16" alt="X1-STRAIN-qscan_whitened-16.png" class="img-responsive lazy" src="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" />
 </a>
 </div>
 </div>
@@ -401,7 +401,7 @@ def test_fancybox_img():
         '<a class="fancybox" href="X1-TEST_AUX-test-4.png" target="_blank" '
         'data-fancybox-group="images" id="a_X1-TEST_AUX_4" '
         'title="X1-TEST_AUX-test-4.png">\n'
-        '<img class="img-responsive" alt="X1-TEST_AUX-test-4.png" '
+        '<img class="img-responsive lazy" alt="X1-TEST_AUX-test-4.png" '
         'src="X1-TEST_AUX-test-4.png" id="img_X1-TEST_AUX_4"/>\n'
         '</a>')
 
@@ -416,13 +416,13 @@ def test_scaffold_plots():
         '<a class="fancybox" href="X1-TEST_AUX-test-4.png" target="_blank" '
         'id="a_X1-TEST_AUX_4" data-fancybox-group="images" '
         'title="X1-TEST_AUX-test-4.png">\n'
-        '<img class="img-responsive" alt="X1-TEST_AUX-test-4.png" '
+        '<img class="img-responsive lazy" alt="X1-TEST_AUX-test-4.png" '
         'id="img_X1-TEST_AUX_4" src="X1-TEST_AUX-test-4.png" />\n'
         '</a>\n</div>\n<div class="col-sm-6">\n'
         '<a class="fancybox" href="X1-TEST_AUX-test-16.png" target="_blank"'
         ' id="a_X1-TEST_AUX_16" data-fancybox-group="images" '
         'title="X1-TEST_AUX-test-16.png">\n'
-        '<img class="img-responsive" alt="X1-TEST_AUX-test-16.png" '
+        '<img class="img-responsive lazy" alt="X1-TEST_AUX-test-16.png" '
         'id="img_X1-TEST_AUX_16" src="X1-TEST_AUX-test-16.png" />\n'
         '</a>\n</div>\n</div>')
     assert h1 == h2

@@ -752,7 +752,7 @@ def fancybox_img(img, linkparams=dict(), **params):
     page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
     imgparams = {
         'alt': os.path.basename(img),
-        'class_': 'img-responsive',
+        'class_': 'img-responsive lazy',
     }
     if img.endswith('.svg') and os.path.isfile(img.replace('.svg', '.png')):
         imgparams['src'] = img.replace('.svg', '.png')
