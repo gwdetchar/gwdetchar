@@ -61,6 +61,7 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/solid.min.css" rel="stylesheet" media="all" />
 <link href="static/gwbootstrap.min.css" rel="stylesheet" media="all" />
 <script src="https://code.jquery.com/jquery-3.4.1.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.9/jquery.lazy.min.js" type="text/javascript"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" type="text/javascript"></script>
 <script src="static/gwbootstrap.min.js" type="text/javascript"></script>
@@ -87,7 +88,7 @@ ABOUT = """<div class="row">
 <span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
 </pre></div>
 
-<h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;package-table.csv&quot;, &quot;package-table&quot;)">Export to CSV</button>
+<h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
 </div>
 </div>""".format(sys.prefix)  # noqa: E501
 
@@ -118,7 +119,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 </div>
 </div>
 </div>
-<h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" onclick="exportTableToCSV(&quot;package-table.csv&quot;, &quot;package-table&quot;)">Export to CSV</button>
+<h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
 </div>
 </div>""".format(sys.prefix)  # noqa: E501
 
@@ -238,6 +239,8 @@ def test_finalize_static_urls(tmpdir):
     ]
     assert js == [
         'https://code.jquery.com/jquery-3.4.1.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.9/'
+            'jquery.lazy.min.js',  # noqa: E131
         'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/'
             'bootstrap.min.js',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
@@ -471,8 +474,7 @@ def test_table():
         'id="test"><caption>This is a test table.</caption><thead><tr>'
         '<th scope="col">Test</th></tr></thead><tbody><tr><td>test</td></tr>'
         '</tbody></table><button class="btn btn-default btn-table" '
-        'onclick="exportTableToCSV(&quot;test.csv&quot;, &quot;test&quot;)">'
-        'Export to CSV</button>')
+        'data-table-id="test" data-filename="test.csv">Export to CSV</button>')
 
 
 def test_write_flag_html():
@@ -557,15 +559,11 @@ def test_package_table(package_list):
     assert parse_html(
         html.package_table(class_="test", caption="Test"),
     ) == parse_html(
-        "<h2>Environment</h2><table class=\"test\" id=\"package-table\">"
-        "<caption>Test</caption>"
-        "<thead>"
-        "<tr><th scope=\"col\">Name</th><th scope=\"col\">Version</th></tr>"
-        "</thead><tbody>"
-        "<tr><td>gwdetchar</td><td>1.2.3</td></tr>"
-        "<tr><td>gwpy</td><td>1.0.0</td></tr>"
-        "</tbody></table>"
-        "<button class=\"btn btn-default btn-table\" "
-        "onclick=\"exportTableToCSV(&quot;package-table.csv&quot;, "
-        "&quot;package-table&quot;)\">Export to CSV</button>",
+        '<h2>Environment</h2><table class="test" id="package-table">'
+        '<caption>Test</caption><thead><tr><th scope="col">Name</th><th '
+        'scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td>'
+        '<td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody>'
+        '</table><button class="btn btn-default btn-table" '
+        'data-table-id="package-table" data-filename="package-table.csv">'
+        'Export to CSV</button>'
     )

@@ -133,6 +133,8 @@ FONT_AWESOME_SOLID_CSS = ('https://cdnjs.cloudflare.com/ajax/libs/'
                           'font-awesome/5.10.2/css/solid.min.css')
 
 JQUERY_JS = 'https://code.jquery.com/jquery-3.4.1.min.js'
+JQUERY_LAZY_JS = ('https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/'
+                  '1.7.9/jquery.lazy.min.js')
 BOOTSTRAP_JS = ('https://stackpath.bootstrapcdn.com/bootstrap/'
                 '3.4.1/js/bootstrap.min.js')
 FANCYBOX_JS = ('https://cdnjs.cloudflare.com/ajax/libs/'
@@ -153,6 +155,7 @@ CSS_FILES = [
 
 JS_FILES = [
     JQUERY_JS,
+    JQUERY_LAZY_JS,
     BOOTSTRAP_JS,
     FANCYBOX_JS,
     GWBOOTSTRAP_JS,
@@ -315,8 +318,8 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     page.body()
     if topbtn:
         glyph = markup.oneliner.i('', class_='fas fa-arrow-up')
-        page.button(glyph, title='Return to top', class_='btn-float',
-                    id_='top-btn', onclick='$("#top-btn").scrollView();')
+        page.button(glyph, title='Return to top',
+                    class_='btn-float', id_='top-btn')
     if navbar is not None:
         page.add(navbar)
     page.div(class_='container')
@@ -1004,8 +1007,7 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
     if id:
         page.button(
             'Export to CSV', class_='btn btn-default btn-table',
-            onclick="exportTableToCSV('{name}.csv', '{name}')".format(
-                name=id))
+            **{'data-table-id': id, 'data-filename': '%s.csv' % id})
     return page()
 
 

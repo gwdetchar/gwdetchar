@@ -186,9 +186,9 @@ BLOCK_HTML = """<div class="panel well panel-info">
 Timeseries view <span class="caret"></span>
 </button>
 <ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupTimeseries0">
-<li><a class="dropdown-item" onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], &quot;timeseries_raw&quot;, [&quot;X1-TEST_AUX-timeseries_raw-4.png&quot;]);">raw</a></li>
-<li><a class="dropdown-item" onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], &quot;timeseries_highpassed&quot;, [&quot;X1-TEST_AUX-timeseries_highpassed-4.png&quot;]);">highpassed</a></li>
-<li><a class="dropdown-item" onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], &quot;timeseries_whitened&quot;, [&quot;X1-TEST_AUX-timeseries_whitened-4.png&quot;]);">whitened</a></li>
+<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_raw-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_raw" data-t-ranges="[&quot;4&quot;]">raw</a></li>
+<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a></li>
+<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a></li>
 </ul>
 </div>
 <div class="btn-group" role="group">
@@ -196,9 +196,9 @@ Timeseries view <span class="caret"></span>
 Spectrogram view <span class="caret"></span>
 </button>
 <ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupQscan0">
-<li><a class="dropdown-item" onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], &quot;qscan_highpassed&quot;, [&quot;X1-TEST_AUX-qscan_highpassed-4.png&quot;]);">highpassed</a></li>
-<li><a class="dropdown-item" onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], &quot;qscan_whitened&quot;, [&quot;X1-TEST_AUX-qscan_whitened-4.png&quot;]);">whitened</a></li>
-<li><a class="dropdown-item" onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], &quot;qscan_autoscaled&quot;, [&quot;X1-TEST_AUX-qscan_autoscaled-4.png&quot;]);">autoscaled</a></li>
+<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a></li>
+<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a></li>
+<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_autoscaled-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_autoscaled" data-t-ranges="[&quot;4&quot;]">autoscaled</a></li>
 </ul>
 </div>
 <div class="btn-group" role="group">
@@ -206,9 +206,9 @@ Spectrogram view <span class="caret"></span>
 Eventgram view <span class="caret"></span>
 </button>
 <ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupEventgram0">
-<li><a class="dropdown-item" onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], &quot;eventgram_highpassed&quot;, [&quot;X1-TEST_AUX-eventgram_highpassed-4.png&quot;]);">highpassed</a></li>
-<li><a class="dropdown-item" onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], &quot;eventgram_whitened&quot;, [&quot;X1-TEST_AUX-eventgram_whitened-4.png&quot;]);">whitened</a></li>
-<li><a class="dropdown-item" onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], &quot;eventgram_autoscaled&quot;, [&quot;X1-TEST_AUX-eventgram_autoscaled-4.png&quot;]);">autoscaled</a></li>
+<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a></li>
+<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a></li>
+<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_autoscaled-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_autoscaled" data-t-ranges="[&quot;4&quot;]">autoscaled</a></li>
 </ul>
 </div>
 </div>
@@ -247,10 +247,11 @@ def test_navbar():
 def test_toggle_link():
     h1 = parse_html(html.toggle_link('timeseries_raw', GW.channels[0], [4]))
     h2 = parse_html(
-        '<a class="dropdown-item" '
-        'onclick="showImage(&quot;X1-TEST_AUX&quot;, [&quot;4&quot;], '
-        '&quot;timeseries_raw&quot;, '
-        '[&quot;X1-TEST_AUX-timeseries_raw-4.png&quot;]);">raw</a>'
+        '<a class="dropdown-item image-switch" data-captions='
+        '"[&quot;X1-TEST_AUX-timeseries_raw-4.png&quot;]" '
+        'data-channel-name="X1-TEST_AUX" data-image-dir="plots" '
+        'data-image-type="timeseries_raw" data-t-ranges="[&quot;4&quot;]">'
+        'raw</a>'
     )
     assert h1 == h2
 

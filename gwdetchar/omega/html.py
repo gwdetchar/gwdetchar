@@ -186,11 +186,15 @@ def toggle_link(plottype, channel, pranges):
     text = plottype.split('_')[1]
     pstrings = ["'%s'" % p for p in pranges]
     chanstring = channel.name.replace('-', '_').replace(':', '-')
-    captions = [p.caption for p in channel.plots[plottype]]
+    captions = ["'%s'" % p.caption for p in channel.plots[plottype]]
     return markup.oneliner.a(
-        text, class_='dropdown-item',
-        onclick="showImage('{0}', [{1}], '{2}', {3});".format(
-            chanstring, ','.join(pstrings), plottype, captions))
+        text, class_='dropdown-item image-switch', **{
+            'data-captions': '[%s]' % ','.join(captions),
+            'data-channel-name': chanstring,
+            'data-image-dir': 'plots',
+            'data-image-type': plottype,
+            'data-t-ranges': '[%s]' % ','.join(pstrings),
+        })
 
 
 def write_summary_table(blocks, correlated, base=os.path.curdir):
