@@ -127,16 +127,16 @@ OBSERVATORY_MAP = {
 
 # -- HTML URLs
 
-FONT_AWESOME_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
-                    "font-awesome/5.10.2/css/fontawesome.min.css")
-FONT_AWESOME_SOLID_CSS = ("https://cdnjs.cloudflare.com/ajax/libs/"
-                          "font-awesome/5.10.2/css/solid.min.css")
+FONT_AWESOME_CSS = ('https://cdnjs.cloudflare.com/ajax/libs/'
+                    'font-awesome/5.10.2/css/fontawesome.min.css')
+FONT_AWESOME_SOLID_CSS = ('https://cdnjs.cloudflare.com/ajax/libs/'
+                          'font-awesome/5.10.2/css/solid.min.css')
 
-JQUERY_JS = "https://code.jquery.com/jquery-1.12.4.min.js"
-BOOTSTRAP_JS = ("https://stackpath.bootstrapcdn.com/bootstrap/"
-                "3.4.1/js/bootstrap.min.js")
-FANCYBOX_JS = ("https://cdnjs.cloudflare.com/ajax/libs/"
-               "fancybox/3.5.7/jquery.fancybox.min.js")
+JQUERY_JS = 'https://code.jquery.com/jquery-3.4.1.min.js'
+BOOTSTRAP_JS = ('https://stackpath.bootstrapcdn.com/bootstrap/'
+                '3.4.1/js/bootstrap.min.js')
+FANCYBOX_JS = ('https://cdnjs.cloudflare.com/ajax/libs/'
+               'fancybox/3.5.7/jquery.fancybox.min.js')
 
 GWBOOTSTRAP_CSS = resource_filename(
     'gwdetchar',

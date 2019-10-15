@@ -60,7 +60,7 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/fontawesome.min.css" rel="stylesheet" media="all" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/solid.min.css" rel="stylesheet" media="all" />
 <link href="static/gwbootstrap.min.css" rel="stylesheet" media="all" />
-<script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" type="text/javascript"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" type="text/javascript"></script>
 <script src="static/gwbootstrap.min.js" type="text/javascript"></script>
@@ -237,7 +237,7 @@ def test_finalize_static_urls(tmpdir):
         'static/gwbootstrap.min.css',
     ]
     assert js == [
-        'https://code.jquery.com/jquery-1.12.4.min.js',
+        'https://code.jquery.com/jquery-3.4.1.min.js',
         'https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/'
             'bootstrap.min.js',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
