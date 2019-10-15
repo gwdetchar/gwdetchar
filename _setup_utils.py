@@ -34,9 +34,7 @@ import versioneer
 CMDCLASS = versioneer.get_cmdclass()
 
 # specify HTML source files
-JS_FILES = [
-    f for f in glob.glob(os.path.join('gwbootstrap', 'js', '*.js'))
-    if not f.endswith('.min.js')]
+JS_FILES = [os.path.join('gwbootstrap', 'js', 'gwbootstrap.js')]
 SASS_FILES = glob.glob(os.path.join('gwbootstrap', 'sass', '[!_]*.scss'))
 
 # make sure submodule is not empty
