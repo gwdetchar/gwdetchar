@@ -742,6 +742,7 @@ def fancybox_img(img, linkparams=dict(), **params):
         'title': img.caption,
         'class_': 'fancybox',
         'target': '_blank',
+        'data-fancybox': 'gallery',
         'data-fancybox-group': 'images',
     }
     aparams.update(linkparams)
@@ -753,7 +754,6 @@ def fancybox_img(img, linkparams=dict(), **params):
     imgparams = {
         'alt': os.path.basename(img),
         'class_': 'img-responsive lazy',
-        'src': img.replace('.svg', '.png'),
         'data-src': img.replace('.svg', '.png'),
     }
     imgparams.update(params)
