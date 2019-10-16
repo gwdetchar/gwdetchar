@@ -23,6 +23,7 @@
 import glob
 import os.path
 from distutils import log
+from shutil import copyfile
 
 from setuptools import Command
 from setuptools.command.egg_info import egg_info
