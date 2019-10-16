@@ -217,7 +217,7 @@ Eventgram view <span class="caret"></span>
 <div class="row">
 <div class="col-sm-12">
 <a href="plots/X1-TEST_AUX-qscan_whitened-4.png" id="a_X1-TEST_AUX_4" title="X1-TEST_AUX-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox-group="images">
-<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-qscan_whitened-4.png" class="img-responsive lazy" src="plots/X1-TEST_AUX-qscan_whitened-4.png" />
+<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-qscan_whitened-4.png" class="img-responsive lazy" src="plots/X1-TEST_AUX-qscan_whitened-4.png" data-src="plots/X1-TEST_AUX-qscan_whitened-4.png" />
 </a>
 </div>
 </div>
