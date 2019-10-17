@@ -688,7 +688,7 @@ page.add('<hr class="row-divider">')
 
 # -- results
 page.h2('Top channels', id_='results')
-page.div(class_='panel-group', id_='results')
+page.div(id_='results')
 # for each auxiliary channel create information container and put plots in it
 for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
     # set container color/context based on lasso coefficient
@@ -700,23 +700,27 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
         h = '%s [lasso coefficient = %.4f]' % (ch, lassocoef)
     if ((lassocoef is None) or (lassocoef == 0)
             or (abs(lassocoef) < args.threshold)):
-        context = 'panel-default'
+        context = 'bg-light'
     elif abs(lassocoef) >= .5:
-        context = 'panel-danger'
+        context = 'text-white bg-danger'
     elif abs(lassocoef) >= .2:
-        context = 'panel-warning'
+        context = 'text-white bg-warning'
     else:
-        context = 'panel-info'
-    page.div(class_='panel %s' % context)
+        context = 'text-white bg-info'
+    page.div(class_='card %s' % context)
 
     # heading
-    page.div(class_='panel-heading')
-    page.a(h, class_='panel-title', href='#channel%d' % i,
-           **{'data-toggle': 'collapse', 'data-parent': '#results'})
-    page.div.close()  # panel-heading
+    page.div(class_='card-header')
+    page.h6()
+    page.button(h, class_='btn btn-link collapsed',
+                **{'data-toggle': 'collapse',
+                   'data-parent': '#channel%d' % i})
+    page.h6.close()
+    page.div.close()  # card-header
     # body
-    page.div(id_='channel%d' % i, class_='panel-collapse collapse')
-    page.div(class_='panel-body')
+    page.div(id_='channel%d' % i, class_='collapse',
+             **{'data-parent': '#results'})
+    page.div(class_='card-body')
     if lassocoef is None:
         page.p('The amplitude data for this channel is flat (does not change) '
                'within the chosen time period.')
@@ -748,9 +752,9 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
                         'Export %s channels (CSV)' % max_correlated_channels,
                         href=clusters[i][1], download=clusters[i][1])
                     page.button(corr_link, class_='btn btn-default')
-    page.div.close()  # panel-body
-    page.div.close()  # panel-collapse
-    page.div.close()  # panel
-page.div.close()  # panel-group
+    page.div.close()  # card-body
+    page.div.close()  # collapse
+    page.div.close()  # card
+page.div.close()  # results
 htmlio.close_page(page, 'index.html')  # save and close
 logger.info("-- Process Completed")

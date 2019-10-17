@@ -102,15 +102,15 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <p>The install path used was <code>{}</code>.</p>
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
-<div class="panel-group" id="accordion">
-<div class="panel panel-default">
+<div class="container" id="accordion">
+<div class="card">
 <a href="#file0" data-toggle="collapse" data-parent="#accordion">
-<div class="panel-heading">
-<h4 class="panel-title">test.ini</h4>
+<div class="card-header">
+<h4 class="card-title">test.ini</h4>
 </div>
 </a>
-<div id="file0" class="panel-collapse collapse">
-<div class="panel-body">
+<div id="file0" class="collapse">
+<div class="card-body">
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
 <span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
 </pre></div>
@@ -145,12 +145,12 @@ HTML_CLOSE = """</div>
 </body>
 </html>""" % HTML_FOOTER
 
-FLAG_CONTENT = """<div class="panel panel-warning">
-<div class="panel-heading">
-<a class="panel-title" href="#flag0" data-toggle="collapse" data-parent="#accordion">X1:TEST_FLAG</a>
+FLAG_CONTENT = """<div class="card text-white bg-warning">
+<div class="card-header">
+<a class="card-title" href="#flag0" data-toggle="collapse" data-parent="#accordion">X1:TEST_FLAG</a>
 </div>
-<div id="flag0" class="panel-collapse collapse">
-<div class="panel-body">{plots}
+<div id="flag0" class="collapse">
+<div class="card-body">{plots}
 {content}
 </div>
 </div>
@@ -175,9 +175,9 @@ FLAG_HTML_NO_SEGMENTS = FLAG_CONTENT.format(
 
 FLAG = DataQualityFlag(known=[(0, 66)], active=[(0, 66)], name='X1:TEST_FLAG')
 
-OMEGA_SCAFFOLD = """<div class="panel well panel-default">
-<div class="panel-heading clearfix">
-<h3 class="panel-title"><a href="https://cis.ligo.org/channel/byname/X1:STRAIN" title="CIS entry for X1:STRAIN" style="font-family: Monaco, &quot;Courier New&quot;, monospace; color: black;" target="_blank">X1:STRAIN</a></h3>
+OMEGA_SCAFFOLD = """<div class="card bg-light card-body">
+<div class="card-header clearfix">
+<h3 class="card-title"><a href="https://cis.ligo.org/channel/byname/X1:STRAIN" title="CIS entry for X1:STRAIN" style="font-family: Monaco, &quot;Courier New&quot;, monospace; color: black;" target="_blank">X1:STRAIN</a></h3>
 </div>
 <ul class="list-group">
 <li class="list-group-item">

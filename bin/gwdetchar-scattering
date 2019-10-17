@@ -278,8 +278,8 @@ if statea:  # contextual information
            "motion, with fringe frequencies projected using equation (3) of "
            "{2}. Segments marked \"transmons\" are based on whitened, "
            "band-limited RMS trends of transmon sensors. In both cases, "
-           "yellow panels denote weak evidence for scattering, while red "
-           "panels denote strong evidence.").format(
+           "yellow cards denote weak evidence for scattering, while red "
+           "cards denote strong evidence.").format(
                args.fmin, multiplier * args.frequency_threshold, str(paper))
     page.add(htmlio.alert(msg))
 else:  # null segments
@@ -289,7 +289,7 @@ else:  # null segments
 # record state segments
 if args.state_flag is not None:
     page.h3('State flag', id_='state-flag')
-    page.div(class_='panel-group', id_='accordion1')
+    page.div(id_='accordion1')
     page.add(htmlio.write_flag_html(
         state, span, 'state', parent='accordion1', context='success',
         plotdir='', facecolor=(0.2, 0.8, 0.2), edgecolor='darkgreen',
@@ -332,7 +332,7 @@ actives = SegmentList()
 # scattering based on OSEM velocity
 if statea:
     page.h3('Optical sensors (OSEMs)', id_='osems')
-    page.div(class_='panel-group', id_='osems-group')
+    page.div(id_='osems-group')
 logger.info('Searching for scatter based on OSEM velocity')
 
 for i, channel in enumerate(sorted(osems)):
@@ -517,19 +517,23 @@ for i, channel in enumerate(sorted(osems)):
         context = 'warning'
     else:
         continue
-    page.div(class_='panel panel-%s' % context)
-    page.div(class_='panel-heading')
-    page.a(channel, class_="panel-title", href='#osem%s' % i,
-           **{'data-toggle': 'collapse', 'data-parent': '#accordion'})
-    page.div.close()
-    page.div(id_='osem%s' % i, class_='panel-collapse collapse')
+    page.div(class_='card text-white bg-%s' % context)
+    page.div(class_='card-header')
+    page.h6()
+    page.button(channel, class_='btn btn-link collapsed',
+                **{'data-toggle': 'collapse',
+                   'data-target': '#osem%s' % i})
+    page.h6.close()
+    page.div.close()  # card-header
+    page.div(id_='osem%s' % i, class_='collapse',
+             **{'data-parent': '#osems-group'})
+    page.div(class_='card-body')
     img = htmlio.FancyPlot(
         png, caption=scattering.SCATTER_CAPTION.format(CHANNEL=channel))
     page.add(htmlio.fancybox_img(img))
     himg = htmlio.FancyPlot(
         hpng, caption=scattering.HIST_CAPTION.format(CHANNEL=channel))
     page.add(htmlio.fancybox_img(himg))
-    page.div(class_='panel-body')
     segs = StringIO()
     if deadtime:
         page.p("%d segments were found predicting a scattering fringe above "
@@ -562,17 +566,17 @@ for i, channel in enumerate(sorted(osems)):
     else:
         page.p("No segments were found with scattering above %.2f Hz."
                % args.frequency_threshold)
-    page.div.close()
-    page.div.close()
-    page.div.close()
+    page.div.close()  # card-body
+    page.div.close()  # collapse
+    page.div.close()  # card
 
 if statea:  # close accordion
-    page.div.close()
+    page.div.close()  # osems-group
 
 # scattering based on transmon BLRMS
 if statea:
     page.h3('Transmons', id_='transmons')
-    page.div(class_='panel-group', id_='transmons-group')
+    page.div(id_='transmons-group')
 logger.info('Searching for scatter based on band-limited RMS of transmons')
 
 for i, channel in enumerate(sorted(transmons)):
@@ -642,7 +646,7 @@ for i, channel in enumerate(sorted(transmons)):
         title=channel, context=context, plotdir=''))
 
 if statea:  # close accordion
-    page.div.close()
+    page.div.close()  # transmons-group
 
 actives = actives.coalesce()  # merge contiguous segments
 if statea and not actives:

@@ -37,6 +37,15 @@ __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 # -- HTML construction --------------------------------------------------------
 
+def _get_well_class(context):
+    """Returns the correct card (well) class for the given context
+    """
+    if context in ['', 'default', 'light']:
+        return 'card bg-light card-body'
+    else:
+        return 'card border-{0} text-{0} card-body'.format(context)
+
+
 def update_toc(toc, channel, name='GW'):
     """Add a channel to the page table of contents
 
@@ -449,7 +458,7 @@ def write_block(blockkey, block, context,
         a list of channels and their analysis attributes
 
     context : `str`
-        the type of Bootstrap ``<panel>`` object to use, color-coded by GWO
+        the type of Bootstrap ``<card>`` object to use, color-coded by GWO
         standards (must be one of 'default', 'primary', 'success', 'info',
         'warning', or 'danger')
 
@@ -462,11 +471,11 @@ def write_block(blockkey, block, context,
         the formatted HTML for this block
     """
     page = markup.page()
-    page.div(class_='panel well panel-%s' % context)
+    page.div(class_=_get_well_class(context))
     # -- make heading
-    page.div(class_='panel-heading clearfix')
-    page.h3(': '.join([blockkey, block['name']]), class_='panel-title')
-    page.div.close()  # panel-heading
+    page.div(class_='card-header clearfix')
+    page.h3(': '.join([blockkey, block['name']]), class_='card-title')
+    page.div.close()  # card-header
 
     # -- make body
     page.ul(class_='list-group')
@@ -538,7 +547,7 @@ def write_block(blockkey, block, context,
 
     # close and return
     page.ul.close()
-    page.div.close()  # panel
+    page.div.close()  # card
     return page()
 
 
@@ -563,7 +572,7 @@ def write_qscan_page(blocks, context):
         the channel blocks scanned in the analysis
 
     context : `str`, optional
-        the type of Bootstrap ``<panel>`` object to use, color-coded by
+        the type of Bootstrap ``<card>`` object to use, color-coded by
         GWO standard
 
     Returns

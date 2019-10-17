@@ -136,7 +136,7 @@ JQUERY_JS = 'https://code.jquery.com/jquery-3.4.1.min.js'
 JQUERY_LAZY_JS = ('https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/'
                   '1.7.9/jquery.lazy.min.js')
 BOOTSTRAP_JS = ('https://stackpath.bootstrapcdn.com/bootstrap/'
-                '3.4.1/js/bootstrap.min.js')
+                '4.3.1/js/bootstrap.min.js')
 FANCYBOX_JS = ('https://cdnjs.cloudflare.com/ajax/libs/'
                'fancybox/3.5.7/jquery.fancybox.min.js')
 
@@ -190,6 +190,17 @@ class FancyPlot(object):
 
 
 # -- HTML construction --------------------------------------------------------
+
+def _get_card_class(context):
+    """Return the correct bootstrap-4 card class for the given context
+    """
+    if context in ['', 'default']:
+        return 'card'
+    elif context == 'light':
+        return 'card bg-light'
+    else:
+        return 'card text-white bg-%s' % context
+
 
 def finalize_static_urls(static, base, cssfiles, jsfiles):
     """Finalise the necessary CSS and javascript files as URLS.
@@ -592,29 +603,31 @@ def about_this_page(config, packagelist=True):
             contents = fobj.read()
         page.add(render_code(contents, 'ini'))
     elif isinstance(config, list):
-        page.div(class_='panel-group', id="accordion")
+        page.div(id_='accordion')
         for i, cpfile in enumerate(config):
-            page.div(class_='panel panel-default')
-            page.a(href='#file%d' % i, **{'data-toggle': 'collapse',
-                                          'data-parent': '#accordion'})
-            page.div(class_='panel-heading')
-            page.h4(os.path.basename(cpfile), class_='panel-title')
-            page.div.close()
-            page.a.close()
-            page.div(id_='file%d' % i, class_='panel-collapse collapse')
-            page.div(class_='panel-body')
+            page.div(class_='card')
+            page.div(class_='card-header')
+            page.h4()
+            page.button(
+                os.path.basename(cpfile), class_='btn btn-link collapsed',
+                **{'data-toggle': 'collapse', 'data-target': '#file%d' % i})
+            page.h4.close()
+            page.div.close()  # card-header
+            page.div(id_='file%d' % i, class_='collapse',
+                     **{'data-parent': '#accordion'})
+            page.div(class_='card-body')
             with open(cpfile, 'r') as fobj:
                 contents = fobj.read()
             page.add(render_code(contents, 'ini'))
-            page.div.close()
-            page.div.close()
-            page.div.close()
-        page.div.close()
+            page.div.close()  # card-body
+            page.div.close()  # collapse
+            page.div.close()  # card
+        page.div.close()  # accordion
     # render package list
     if packagelist:
         page.add(package_table())
-    page.div.close()
-    page.div.close()
+    page.div.close()  # col-md-12
+    page.div.close()  # row
     return page()
 
 
@@ -1047,19 +1060,22 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     Returns
     -------
     page : `~MarkupPy.markup.page`
-        fully rendered HTML with a panel object for the flag
+        fully rendered HTML with a card object for the flag
     """
     page = markup.page()
-    page.div(class_='panel panel-%s' % context)
-    page.div(class_='panel-heading')
+    page.div(class_=_get_card_class(context))
+    page.div(class_='card-header')
+    page.h6()
     title = title or flag.name
-    page.a(title, class_="panel-title", href='#flag%s' % id,
-           **{'data-toggle': 'collapse', 'data-parent': '#%s' % parent})
-    page.div.close()
-    page.div(id_='flag%s' % id, class_='panel-collapse collapse')
-    page.div(class_='panel-body')
+    page.button(title, class_='btn btn-link collapsed',
+                **{'data-toggle': 'collapse', 'data-target': '#flag%s' % id})
+    page.h6.close()
+    page.div.close()  # card-header
+    page.div(id_='flag%s' % id, class_='collapse',
+             **{'data-parent': '#%s' % parent})
+    page.div(class_='card-body')
     # render segment plot
-    if plotdir is not None and plot_func is not None:
+    if (plotdir is not None) and (plot_func is not None):
         flagr = flag.name.replace('-', '_').replace(':', '-', 1)
         png = os.path.join(
             plotdir, '%s-%d-%d.png' % (flagr, span[0], abs(span)))
@@ -1077,12 +1093,12 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
         flag.active.write(segs, format='segwizard',
                           coltype=type(flag.active[0][0]))
     except IndexError:
-        page.p("No segments were found.")
+        page.p('No segments were found.')
     else:
         page.pre(segs.getvalue())
-    page.div.close()
-    page.div.close()
-    page.div.close()
+    page.div.close()  # card-body
+    page.div.close()  # collapse
+    page.div.close()  # card
     return page()
 
 
@@ -1110,10 +1126,10 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
         rendered scaffold of omega scan plots
     """
     page = markup.page()
-    page.div(class_='panel well panel-default')
-    page.div(class_='panel-heading clearfix')
-    page.h3(cis_link(channel), class_='panel-title')
-    page.div.close()  # panel-heading
+    page.div(class_='card bg-light card-body')
+    page.div(class_='card-header clearfix')
+    page.h3(cis_link(channel), class_='card-title')
+    page.div.close()  # card-header
     page.ul(class_='list-group')
     for t in times:
         page.li(class_='list-group-item')
@@ -1136,7 +1152,7 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
         page.div.close()  # container
         page.li.close()  # list-group-item
     page.ul.close()  # list-group
-    page.div.close()  # panel
+    page.div.close()  # card
     return page()
 
 

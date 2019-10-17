@@ -143,9 +143,9 @@ for channel in ANALYZED['GW']['channels']:
     channel.stdev = 1
     channel.delay = 0
 
-BLOCK_HTML = """<div class="panel well panel-info">
-<div class="panel-heading clearfix">
-<h3 class="panel-title">GW: Gravitational-Wave Strain</h3>
+BLOCK_HTML = """<div class="card border-info text-info card-body">
+<div class="card-header clearfix">
+<h3 class="card-title">GW: Gravitational-Wave Strain</h3>
 </div>
 <ul class="list-group">
 <li class="list-group-item">
