@@ -742,6 +742,7 @@ def fancybox_img(img, linkparams=dict(), **params):
         'title': img.caption,
         'class_': 'fancybox',
         'target': '_blank',
+        'data-fancybox': 'gallery',
         'data-fancybox-group': 'images',
     }
     aparams.update(linkparams)
@@ -753,11 +754,8 @@ def fancybox_img(img, linkparams=dict(), **params):
     imgparams = {
         'alt': os.path.basename(img),
         'class_': 'img-responsive lazy',
+        'data-src': img.replace('.svg', '.png'),
     }
-    if img.endswith('.svg') and os.path.isfile(img.replace('.svg', '.png')):
-        imgparams['src'] = img.replace('.svg', '.png')
-    else:
-        imgparams['src'] = img
     imgparams.update(params)
     page.img(id_='img_%s_%s' % (channel, duration), **imgparams)
     page.a.close()
