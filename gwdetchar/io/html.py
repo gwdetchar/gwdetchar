@@ -136,7 +136,7 @@ JQUERY_JS = 'https://code.jquery.com/jquery-3.4.1.min.js'
 JQUERY_LAZY_JS = ('https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/'
                   '1.7.9/jquery.lazy.min.js')
 BOOTSTRAP_JS = ('https://stackpath.bootstrapcdn.com/bootstrap/'
-                '4.3.1/js/bootstrap.min.js')
+                '4.3.1/js/bootstrap.bundle.min.js')
 FANCYBOX_JS = ('https://cdnjs.cloudflare.com/ajax/libs/'
                'fancybox/3.5.7/jquery.fancybox.min.js')
 
