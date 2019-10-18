@@ -55,14 +55,6 @@ from .._version import get_versions
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credit__ = 'Alex Urban <alexander.urban@ligo.org>'
 
-# -- navigation toggle
-
-NAVBAR_TOGGLE = """<button class="navbar-toggle" data-toggle="collapse" type="button" data-target=".navbar-collapse">
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-</button>"""  # noqa: E501
-
 # -- give context for ifo names
 
 OBSERVATORY_MAP = {
@@ -364,30 +356,28 @@ def navbar(links, class_='navbar fixed-top', brand=None, collapse=True):
     """
     # page setup
     page = markup.page()
-    page.twotags.extend((
-        "footer",
-        "header",
-        "nav",
-    ))
-    markup.element('header', parent=page)(class_=class_)
-    page.div(class_="container")
+    page.twotags.extend(('nav',))
+    page.nav(class_=class_)
+    page.div(class_='container')
 
-    # ---- non-collapable part (<div class="navbar-header">) ----
-
-    page.div(class_="navbar-header")
-    # add collapsed menu toggle
-    if collapse:
-        page.add(NAVBAR_TOGGLE)
     # add branding (generic non-collapsed content)
     if brand:
+        page.span(class_='border border-white rounded')
         page.add(str(brand))
-    page.div.close()  # navbar-header
-    if collapse:
-        page.nav(class_="collapse navbar-collapse")
-    else:
-        page.nav()
+        page.span.close()
 
-    # ---- collapsable part (<nav>) ----
+    # begin navbar proper
+    if collapse:
+        page.button(class_='navbar-toggler', type_='button',
+                    **{'data-toggle': 'collapse',
+                       'data-target': '.navbar-collapse'})
+        page.span('', class_='navbar-toggler-icon')
+        page.button.close()
+        page.div(class_='collapse navbar-collapse')
+    else:
+        page.div()
+
+    # ---- collapsable part (<div>) ----
 
     if links:
         page.ul(class_='nav navbar-nav')
@@ -407,9 +397,9 @@ def navbar(links, class_='navbar fixed-top', brand=None, collapse=True):
             page.li.close()
         page.ul.close()
 
-    page.nav.close()
     page.div.close()
-    markup.element('header', parent=page).close()
+    page.div.close()
+    page.nav.close()
     return page()
 
 
