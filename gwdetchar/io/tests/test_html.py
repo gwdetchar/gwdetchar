@@ -88,7 +88,7 @@ ABOUT = """<div class="row">
 <span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
 </pre></div>
 
-<h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
+<h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-secondary btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
 </div>
 </div>""".format(sys.prefix)  # noqa: E501
 
@@ -119,7 +119,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 </div>
 </div>
 </div>
-<h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-default btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
+<h2>Environment</h2><table class="table table-hover table-condensed table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-secondary btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
 </div>
 </div>""".format(sys.prefix)  # noqa: E501
 
@@ -167,7 +167,7 @@ FLAG_HTML_WITH_PLOTS = FLAG_CONTENT.format(
           'X1:TEST_FLAG" class="fancybox" target="_blank" '
           'data-fancybox="gallery" data-fancybox-group="images">\n'
           '<img id="img_X1-TEST_FLAG_66" alt="X1-TEST_FLAG-0-66.png" '
-          'class="img-responsive lazy" data-src="plots/X1-TEST_FLAG-0-66.png" '
+          'class="img-fluid lazy" data-src="plots/X1-TEST_FLAG-0-66.png" '
           '/>\n</a>')
 
 FLAG_HTML_NO_SEGMENTS = FLAG_CONTENT.format(
@@ -183,7 +183,7 @@ OMEGA_SCAFFOLD = """<div class="card bg-light card-body">
 <li class="list-group-item">
 <div class="container">
 <div class="row">
-<div class="pull-right">
+<div class="float-right">
 <a href="./1126259462" class="text-dark">[full scan]</a>
 </div>
 <h4>1126259462</h4>
@@ -191,17 +191,17 @@ OMEGA_SCAFFOLD = """<div class="card bg-light card-body">
 <div class="row">
 <div class="col-sm-4">
 <a href="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" id="a_X1-STRAIN_1" title="X1-STRAIN-qscan_whitened-1.png" class="fancybox" target="_blank" data-fancybox="gallery" data-fancybox-group="images">
-<img id="img_X1-STRAIN_1" alt="X1-STRAIN-qscan_whitened-1.png" class="img-responsive lazy" data-src="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" />
+<img id="img_X1-STRAIN_1" alt="X1-STRAIN-qscan_whitened-1.png" class="img-fluid lazy" data-src="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" />
 </a>
 </div>
 <div class="col-sm-4">
 <a href="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" id="a_X1-STRAIN_4" title="X1-STRAIN-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox="gallery" data-fancybox-group="images">
-<img id="img_X1-STRAIN_4" alt="X1-STRAIN-qscan_whitened-4.png" class="img-responsive lazy" data-src="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" />
+<img id="img_X1-STRAIN_4" alt="X1-STRAIN-qscan_whitened-4.png" class="img-fluid lazy" data-src="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" />
 </a>
 </div>
 <div class="col-sm-4">
 <a href="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" id="a_X1-STRAIN_16" title="X1-STRAIN-qscan_whitened-16.png" class="fancybox" target="_blank" data-fancybox="gallery" data-fancybox-group="images">
-<img id="img_X1-STRAIN_16" alt="X1-STRAIN-qscan_whitened-16.png" class="img-responsive lazy" data-src="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" />
+<img id="img_X1-STRAIN_16" alt="X1-STRAIN-qscan_whitened-16.png" class="img-fluid lazy" data-src="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" />
 </a>
 </div>
 </div>
@@ -261,7 +261,7 @@ def test_new_bootstrap_page():
 def test_navbar():
     navbar = html.navbar(['test'], collapse=False)
     assert parse_html(navbar) == parse_html(
-        '<header class="navbar navbar-fixed-top">\n'
+        '<header class="navbar fixed-top">\n'
         '<div class="container">\n<div class="navbar-header">\n'
         '</div>\n<nav>\n<ul class="nav navbar-nav">\n<li>\ntest\n</li>\n'
         '</ul>\n</nav>\n</div>\n</header>')
@@ -305,11 +305,11 @@ def test_dropdown_link():
 
 def test_get_brand():
     (brand, class_) = html.get_brand('H1', 'Test', 0, about='about')
-    assert class_ == 'navbar navbar-fixed-top navbar-h1'
+    assert class_ == 'navbar fixed-top navbar-h1'
     assert parse_html(brand) == parse_html(
         '<div class="navbar-brand">H1</div>\n'
         '<div class="navbar-brand">Test</div>\n'
-        '<div class="btn-group pull-right ifo-links">\n'
+        '<div class="btn-group float-right ifo-links">\n'
         '<a class="navbar-brand dropdown-toggle" href="#" '
         'data-toggle="dropdown">\nLinks\n<b class="caret"></b>\n</a>\n'
         '<ul class="dropdown-menu">\n'
@@ -403,7 +403,7 @@ def test_fancybox_img():
         'title="X1-TEST_AUX-test-4.png" class="fancybox" target="_blank" '
         'data-fancybox="gallery" data-fancybox-group="images">\n'
         '<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-test-4.png" '
-        'class="img-responsive lazy" data-src="X1-TEST_AUX-test-4.png" />\n'
+        'class="img-fluid lazy" data-src="X1-TEST_AUX-test-4.png" />\n'
         '</a>')
 
 
@@ -417,21 +417,21 @@ def test_scaffold_plots():
         'title="X1-TEST_AUX-test-4.png" class="fancybox" target="_blank" '
         'data-fancybox="gallery" data-fancybox-group="images">\n'
         '<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-test-4.png" '
-        'class="img-responsive lazy" data-src="X1-TEST_AUX-test-4.png" />\n'
+        'class="img-fluid lazy" data-src="X1-TEST_AUX-test-4.png" />\n'
         '</a>\n</div>\n<div class="col-sm-6">\n'
         '<a href="X1-TEST_AUX-test-16.png" id="a_X1-TEST_AUX_16" '
         'title="X1-TEST_AUX-test-16.png" class="fancybox" target="_blank" '
         'data-fancybox="gallery" data-fancybox-group="images">\n'
         '<img id="img_X1-TEST_AUX_16" alt="X1-TEST_AUX-test-16.png" '
-        'class="img-responsive lazy" data-src="X1-TEST_AUX-test-16.png" />\n'
+        'class="img-fluid lazy" data-src="X1-TEST_AUX-test-16.png" />\n'
         '</a>\n</div>\n</div>')
 
 
 def test_download_btn():
     page = html.download_btn([('test', 'test')])
     assert parse_html(page) == parse_html(
-        '<div class="btn-group pull-right desktop-only">\n<button '
-        'type="button" class="btn btn-default dropdown-toggle" '
+        '<div class="btn-group float-right desktop-only">\n<button '
+        'type="button" class="btn btn-secondary dropdown-toggle" '
         'data-toggle="dropdown">\nDownload summary <span class="caret">'
         '</span>\n</button>\n<ul class="dropdown-menu" role="menu" '
         'aria-labelledby="summary_table_download">\n<li><a href="test" '
@@ -472,7 +472,7 @@ def test_table():
         '<table class="table table-hover table-condensed table-responsive" '
         'id="test"><caption>This is a test table.</caption><thead><tr>'
         '<th scope="col">Test</th></tr></thead><tbody><tr><td>test</td></tr>'
-        '</tbody></table><button class="btn btn-default btn-table" '
+        '</tbody></table><button class="btn btn-secondary btn-table" '
         'data-table-id="test" data-filename="test.csv">Export to CSV</button>')
 
 
@@ -562,7 +562,7 @@ def test_package_table(package_list):
         '<caption>Test</caption><thead><tr><th scope="col">Name</th><th '
         'scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td>'
         '<td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody>'
-        '</table><button class="btn btn-default btn-table" '
+        '</table><button class="btn btn-secondary btn-table" '
         'data-table-id="package-table" data-filename="package-table.csv">'
         'Export to CSV</button>'
     )

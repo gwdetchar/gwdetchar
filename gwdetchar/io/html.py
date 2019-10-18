@@ -337,7 +337,7 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     return page
 
 
-def navbar(links, class_='navbar navbar-fixed-top', brand=None, collapse=True):
+def navbar(links, class_='navbar fixed-top', brand=None, collapse=True):
     """Construct a navigation bar in bootstrap format
 
     Parameters
@@ -349,7 +349,7 @@ def navbar(links, class_='navbar navbar-fixed-top', brand=None, collapse=True):
         the navbar
 
     class_ : `str`, optional
-        navbar object class, default: `'navbar navbar-fixed-top'`
+        navbar object class, default: `'navbar fixed-top'`
 
     brand : `str` or `~MarkupPy.markup.page`, optional
         branding for the navigation bar, default: None
@@ -394,15 +394,15 @@ def navbar(links, class_='navbar navbar-fixed-top', brand=None, collapse=True):
         for i, link in enumerate(links):
             if (isinstance(link, (list, tuple)) and
                     isinstance(link[1], str)):
-                page.li()
                 text, link = link
-                page.a(text, href=link)
+                page.li(class_='nav-item')
+                page.a(text, href=link, class_='nav-link')
             elif (isinstance(link, (list, tuple)) and
                   isinstance(link[1], (list, tuple))):
-                page.li(class_='dropdown')
+                page.li(class_='dropdown nav-item')
                 page.add(dropdown(*link))
             else:
-                page.li()
+                page.li(class_='nav-item')
                 page.add(str(link))
             page.li.close()
         page.ul.close()
@@ -413,7 +413,7 @@ def navbar(links, class_='navbar navbar-fixed-top', brand=None, collapse=True):
     return page()
 
 
-def dropdown(text, links, active=None, class_='dropdown-toggle'):
+def dropdown(text, links, active=None, class_='dropdown-toggle nav-link'):
     """Construct a dropdown menu in bootstrap format
 
     Parameters
@@ -445,10 +445,7 @@ def dropdown(text, links, active=None, class_='dropdown-toggle'):
     """
     page = markup.page()
     # dropdown header
-    page.a(href='#', class_=class_, **{'data-toggle': 'dropdown'})
-    page.add(text)
-    page.b('', class_='caret')
-    page.a.close()
+    page.a(text, href='#', class_=class_, **{'data-toggle': 'dropdown'})
 
     # work out columns
     ngroup = sum([isinstance(x, (tuple, list)) and len(x) and
@@ -457,7 +454,7 @@ def dropdown(text, links, active=None, class_='dropdown-toggle'):
         column = ''
     else:
         ncol = min(ngroup, 4)
-        column = 'col-xs-12 col-sm-%d' % (12 // ncol)
+        column = 'col-12 col-md-%d' % (12 // ncol)
 
     # dropdown elements
     if column:
@@ -495,11 +492,11 @@ def dropdown_link(page, link, active=False, class_=''):
         object class of the link, default: `''`
     """
     if link is None:
-        page.li(class_='divider')
+        page.li(class_='dropdown-divider')
     elif active is True:
-        page.li(class_='active')
+        page.li(class_='dropdown-item active')
     else:
-        page.li()
+        page.li(class_='dropdown-item')
     if isinstance(link, (tuple, list)):
         if isinstance(link[1], (tuple, list)):
             page.ul(class_=class_ + ' list-unstyled')
@@ -541,32 +538,29 @@ def get_brand(ifo, name, gps, about=None):
         object class of the navbar
     """
     page = markup.page()
-    page.div(ifo, class_='navbar-brand')
-    page.div(name, class_='navbar-brand')
-    page.div(class_='btn-group pull-right ifo-links')
-    page.a(class_='navbar-brand dropdown-toggle', href='#',
-           **{'data-toggle': 'dropdown'})
-    page.add('Links')
-    page.b('', class_='caret')
-    page.a.close()
+    brand = ' '.join([ifo, name])
+    page.div(brand, class_='navbar-brand d-lg-inline-flex')
+    page.div(class_='btn-group float-right ifo-links')
+    page.a('Links', class_='navbar-brand dropdown-toggle',
+           href='#', **{'data-toggle': 'dropdown'})
     page.ul(class_='dropdown-menu')
     if about is not None:
         page.li('Internal', class_='dropdown-header')
-        page.li()
+        page.li(class_='dropdown-item')
         page.a('About this page', href=about)
         page.li.close()
-        page.li('', class_='divider')
+        page.li('', class_='dropdown-divider')
     page.li('External', class_='dropdown-header')
     for name, url in OBSERVATORY_MAP[ifo]['links'].items():
         if 'Summary' in name:
             day = from_gps(gps).strftime(r"%Y%m%d")
             url = '/'.join([url, day])
-        page.li()
+        page.li(class_='dropdown-item')
         page.a(name, href=url, target='_blank')
         page.li.close()
     page.ul.close()
-    page.div.close()  # btn-group pull-right
-    class_ = 'navbar navbar-fixed-top navbar-{}'.format(ifo.lower())
+    page.div.close()  # btn-group float-right
+    class_ = 'navbar fixed-top navbar-{}'.format(ifo.lower())
     return (page(), class_)
 
 
@@ -766,7 +760,7 @@ def fancybox_img(img, linkparams=dict(), **params):
     page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
     imgparams = {
         'alt': os.path.basename(img),
-        'class_': 'img-responsive lazy',
+        'class_': 'img-fluid lazy',
         'data-src': img.replace('.svg', '.png'),
     }
     imgparams.update(params)
@@ -808,8 +802,8 @@ def scaffold_plots(plots, nperrow=3):
 
 
 def download_btn(content, label='Download summary',
-                 btndiv='btn-group pull-right desktop-only',
-                 btnclass='btn btn-default dropdown-toggle'):
+                 btndiv='btn-group float-right desktop-only',
+                 btnclass='btn btn-secondary dropdown-toggle'):
     """Toggle download options with a Bootstrap button
 
     Parameters
@@ -829,7 +823,7 @@ def download_btn(content, label='Download summary',
 
     btnclass : `str`, optional
         class name of the Bootstrap button object,
-        default: ``btn btn-default dropdown-toggle``
+        default: ``btn btn-secondary dropdown-toggle``
 
     Returns
     -------
@@ -1017,7 +1011,7 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
     # add export button
     if id:
         page.button(
-            'Export to CSV', class_='btn btn-default btn-table',
+            'Export to CSV', class_='btn btn-secondary btn-table',
             **{'data-table-id': id, 'data-filename': '%s.csv' % id})
     return page()
 
@@ -1135,11 +1129,11 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
         page.li(class_='list-group-item')
         page.div(class_='container')
         page.div(class_='row')
-        page.div(class_='pull-right')
+        page.div(class_='float-right')
         page.a("[full scan]",
                href='{}/{}'.format(scandir, t),
                class_='text-dark')
-        page.div.close()  # pull-right
+        page.div.close()  # float-right
         page.h4(t)
         page.div.close()  # row
         chanstr = channel.replace('-', '_').replace(':', '-')

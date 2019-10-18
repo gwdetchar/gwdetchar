@@ -36,7 +36,7 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 VERSION = get_versions()['version']
 COMMIT = get_versions()['full-revisionid']
 
-HTML_HEADER = """<header class="navbar navbar-fixed-top navbar-{ifo}">
+HTML_HEADER = """<header class="navbar fixed-top navbar-{ifo}">
 <div class="container">
 <div class="navbar-header">
 <button class="navbar-toggle" data-toggle="collapse" type="button" data-target=".navbar-collapse">
@@ -46,7 +46,7 @@ HTML_HEADER = """<header class="navbar navbar-fixed-top navbar-{ifo}">
 </button>
 <div class="navbar-brand">{IFO}</div>
 <div class="navbar-brand">Omega Scan</div>
-<div class="btn-group pull-right ifo-links">
+<div class="btn-group float-right ifo-links">
 <a class="navbar-brand dropdown-toggle" href="#" data-toggle="dropdown">
 Links
 <b class="caret"></b>
@@ -217,7 +217,7 @@ Eventgram view <span class="caret"></span>
 <div class="row">
 <div class="col-sm-12">
 <a href="plots/X1-TEST_AUX-qscan_whitened-4.png" id="a_X1-TEST_AUX_4" title="X1-TEST_AUX-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox="gallery" data-fancybox-group="images">
-<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-qscan_whitened-4.png" class="img-responsive lazy" data-src="plots/X1-TEST_AUX-qscan_whitened-4.png" />
+<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-qscan_whitened-4.png" class="img-fluid lazy" data-src="plots/X1-TEST_AUX-qscan_whitened-4.png" />
 </a>
 </div>
 </div>
@@ -275,7 +275,7 @@ def test_write_summary():
         '<td scope="row"><b>UTC Time</b></td>\n<td>1980-01-06 00:00:00</td>\n'
         '</tr>\n</tbody>\n</table>\n</div>\n<div class="col-xs-12 col-md-7">\n'
         '<div class="btn-group">\n<button type="button" '
-        'class="btn btn-default dropdown-toggle" data-toggle="dropdown">\n'
+        'class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">\n'
         'Download summary <span class="caret"></span>\n</button>\n'
         '<ul class="dropdown-menu" role="menu" aria-labelledby='
         '"summary_table_download">\n<li><a href="data/summary.txt" '
