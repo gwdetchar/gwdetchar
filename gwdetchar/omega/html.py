@@ -40,10 +40,12 @@ __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 def _get_well_class(context):
     """Returns the correct card (well) class for the given context
     """
-    if context in ['', 'default', 'light']:
-        return 'card bg-light card-body'
+    if context in ['', 'default']:
+        context = 'secondary'
+    if context == 'light':
+        return 'card border-light card-body mb-3'
     else:
-        return 'card border-{0} text-{0} card-body'.format(context)
+        return 'card border-{0} text-{0} card-body mb-3'.format(context)
 
 
 def update_toc(toc, channel, name='GW'):
@@ -312,7 +314,7 @@ def write_summary(
     page.div.close()  # col-md-5
 
     # make summary table download button
-    page.div(class_='col-xs-12 col-md-7')
+    page.div(class_='col-sm-12 col-md-7')
     content = [(
         ext,
         'data/summary.{}'.format(ext),
@@ -473,25 +475,21 @@ def write_block(blockkey, block, context,
     page = markup.page()
     page.div(class_=_get_well_class(context))
     # -- make heading
-    page.div(class_='card-header clearfix')
-    page.h3(': '.join([blockkey, block['name']]), class_='card-title')
+    page.div(class_='card-header')
+    page.h4(': '.join([blockkey, block['name']]), class_='card-title')
     page.div.close()  # card-header
 
     # -- make body
-    page.ul(class_='list-group')
+    page.div(class_='card-body')
+    page.div(class_='list-group')
 
     # -- range over channels in this block
     for i, channel in enumerate(block['channels']):
-        page.li(class_='list-group-item')
-        page.div(class_='container')
-
-        page.div(class_='row')
+        page.div(class_='list-group-item flex-column align-items-start')
 
         # channel name
         chanid = channel.name.lower().replace(':', '-')
-        page.h4(htmlio.cis_link(channel.name), id_=chanid)
-
-        page.div(class_='row')
+        page.h5(htmlio.cis_link(channel.name), id_=chanid)
 
         # summary table
         page.div(class_='col-md-7')
@@ -507,11 +505,11 @@ def write_block(blockkey, block, context,
                         str(channel.energy), str(channel.snr)]]
         page.add(
             htmlio.table(columns, entries, separator='\n', table=tableclass))
-        page.div.close()  # col-sm-7
+        page.div.close()  # col-md-7
 
         # plot toggle buttons
-        page.div(class_='col-xs-12 col-md-5')
-        page.div(class_='btn-group', role='group')
+        page.div(class_='col-sm-12 col-md-5')
+        page.div(class_='btn-group')
         for ptitle, pclass, ptypes in [
             ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
             ('Spectrogram', 'qscan', ('highpassed', 'whitened', 'autoscaled')),
@@ -519,34 +517,27 @@ def write_block(blockkey, block, context,
                 'highpassed', 'whitened', 'autoscaled')),
         ]:
             _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
-            page.div(class_='btn-group', role='group')
-            page.button(id_=_id, type='button',
+            page.button('%s view' % ptitle, id_=_id, type='button',
                         class_='btn btn-%s dropdown-toggle' % context,
                         **{'data-toggle': 'dropdown'})
-            page.add('{0} view <span class="caret"></span>'.format(ptitle))
-            page.button.close()
-            page.ul(class_='dropdown-menu', role='menu',
-                    **{'aria-labelledby': _id})
+            page.div(class_='dropdown-menu', **{'aria-labelledby': _id})
             for ptype in ptypes:
-                page.li(toggle_link('{0}_{1}'.format(pclass, ptype), channel,
-                                    channel.pranges))
-            page.ul.close()  # dropdown-menu
-            page.div.close()  # btn-group
+                page.add(toggle_link('{0}_{1}'.format(pclass, ptype),
+                                     channel, channel.pranges))
+            page.div.close()  # dropdown-menu
         page.div.close()  # btn-group
-        page.div.close()  # col-sm-5
-
-        page.div.close()  # row
+        page.div.close()  # col-sm-12 col-md-5
 
         # plots
         page.add(htmlio.scaffold_plots(
             channel.plots['qscan_whitened'],
             nperrow=min(len(channel.pranges), 3)))
 
-        page.div.close()  # container anchor
-        page.li.close()
+        page.div.close()  # list-group-item
 
     # close and return
-    page.ul.close()
+    page.div.close()  # list-group
+    page.div.close()  # card-body
     page.div.close()  # card
     return page()
 

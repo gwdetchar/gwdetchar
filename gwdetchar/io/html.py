@@ -60,7 +60,7 @@ __credit__ = 'Alex Urban <alexander.urban@ligo.org>'
 OBSERVATORY_MAP = {
     'G1': {
         'name': 'GEO',
-        'context': 'default',
+        'context': 'secondary',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day')])
@@ -98,7 +98,7 @@ OBSERVATORY_MAP = {
     },
     'V1': {
         'name': 'Virgo',
-        'context': 'default',
+        'context': 'light',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day/'),
@@ -106,7 +106,7 @@ OBSERVATORY_MAP = {
     },
     'Network': {
         'name': 'Multi-IFO',
-        'context': 'default',
+        'context': 'light',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day'),
@@ -500,12 +500,9 @@ def dropdown_link(page, link, active=False, class_=''):
                               active=(type(active) is int and active == j))
             page.div.close()
         else:
-            page.a(
-                link[0],
-                href=link[1],
-                class_=('dropdown-item active' if active is True
-                        else 'dropdown-item')
-            )
+            page.a(link[0], href=link[1],
+                   class_=('dropdown-item active' if active is True
+                           else 'dropdown-item'))
     elif link is not None:
         page.add(str(link))
 
@@ -795,7 +792,7 @@ def scaffold_plots(plots, nperrow=3):
 
 
 def download_btn(content, label='Download summary',
-                 btndiv='btn-group float-right desktop-only',
+                 btndiv='dropdown float-right desktop-only',
                  btnclass='btn btn-secondary dropdown-toggle'):
     """Toggle download options with a Bootstrap button
 
@@ -812,7 +809,7 @@ def download_btn(content, label='Download summary',
 
     btndiv : `str`, optional
         class name of the enclosing ``<div>``,
-        default: ``btn-group desktop-only``
+        default: ``dropdown float-right desktop-only``
 
     btnclass : `str`, optional
         class name of the Bootstrap button object,
@@ -825,20 +822,19 @@ def download_btn(content, label='Download summary',
     """
     page = markup.page()
     page.div(class_=btndiv)
-    page.button(type='button', class_=btnclass,
+    page.button(label, type='button', class_=btnclass,
                 **{'data-toggle': 'dropdown'})
-    page.add('%s <span class="caret"></span>' % label)
-    page.button.close()
-    page.ul(class_='dropdown-menu', role='menu',
-            **{'aria-labelledby': 'summary_table_download'})
+    page.div(class_='dropdown-menu dropdown-menu-right',
+             **{'aria-labelledby': 'summary_table_download'})
     for item in content:
         if len(item) == 2:
             text, href = item
             download = href
         else:
             text, href, download = item
-        page.li(markup.oneliner.a(text, href=href, download=download))
-    page.ul.close()
+        page.a(text, href=href, download=download,
+               class_='dropdown-item')
+    page.div.close()  # dropdown-menu
     page.div.close()  # btn-group
     return page()
 
