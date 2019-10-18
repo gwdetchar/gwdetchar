@@ -329,7 +329,7 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     return page
 
 
-def navbar(links, class_='navbar navbar-expand-lg fixed-top',
+def navbar(links, class_='navbar navbar-expand-md fixed-top',
            brand=None, collapse=True):
     """Construct a navigation bar in bootstrap format
 
@@ -342,7 +342,7 @@ def navbar(links, class_='navbar navbar-expand-lg fixed-top',
         the navbar
 
     class_ : `str`, optional
-        navbar object class, default: `'navbar navbar-expand-lg fixed-top'`
+        navbar object class, default: `'navbar navbar-expand-md fixed-top'`
 
     brand : `str` or `~MarkupPy.markup.page`, optional
         branding for the navigation bar, default: None
@@ -364,6 +364,7 @@ def navbar(links, class_='navbar navbar-expand-lg fixed-top',
     page = markup.page()
     page.twotags.append('nav')
     page.nav(class_=class_)
+    page.div(class_='container')
 
     # add branding (generic non-collapsed content)
     if brand is not None:
@@ -373,9 +374,9 @@ def navbar(links, class_='navbar navbar-expand-lg fixed-top',
 
     # begin navbar proper
     if collapse:
-        page.button(class_='navbar-toggler', type_='button',
-                    **{'data-toggle': 'collapse',
-                       'data-target': '.navbar-collapse'})
+        page.button(
+            class_='navbar-toggler navbar-toggler-right', type_='button',
+            **{'data-toggle': 'collapse', 'data-target': '.navbar-collapse'})
         page.span('', class_='navbar-toggler-icon')
         page.button.close()
         page.div(class_='collapse navbar-collapse')
@@ -405,6 +406,7 @@ def navbar(links, class_='navbar navbar-expand-lg fixed-top',
         page.ul.close()
 
     page.div.close()  # collapse navbar-collapse
+    page.div.close()  # container
     page.nav.close()
     return page()
 
@@ -551,7 +553,7 @@ def get_brand(ifo, name, gps, about=None):
         page.a(name, href=url, class_='dropdown-item', target='_blank')
     page.div.close()  # dropdown-menu
     page.li.close()  # nav-link dropdown-toggle
-    class_ = 'navbar fixed-top navbar-expand-lg navbar-{}'.format(ifo.lower())
+    class_ = 'navbar fixed-top navbar-expand-md navbar-{}'.format(ifo.lower())
     return ((brand, page()), class_)
 
 
