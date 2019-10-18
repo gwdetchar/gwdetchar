@@ -342,7 +342,7 @@ def navbar(links, class_='navbar navbar-expand-lg fixed-top',
         the navbar
 
     class_ : `str`, optional
-        navbar object class, default: `'navbar fixed-top'`
+        navbar object class, default: `'navbar navbar-expand-lg fixed-top'`
 
     brand : `str` or `~MarkupPy.markup.page`, optional
         branding for the navigation bar, default: None
@@ -355,13 +355,18 @@ def navbar(links, class_='navbar navbar-expand-lg fixed-top',
     page : :class:`~MarkupPy.markup.page`
         navbar HTML `page` object
     """
+    if isinstance(brand, (tuple, list)):
+        brand, help_ = brand
+    else:
+        help_ = None
+
     # page setup
     page = markup.page()
-    page.twotags.extend(('nav',))
+    page.twotags.append('nav')
     page.nav(class_=class_)
 
     # add branding (generic non-collapsed content)
-    if brand:
+    if brand is not None:
         page.span(class_='border border-white rounded')
         page.add(str(brand))
         page.span.close()
@@ -397,7 +402,10 @@ def navbar(links, class_='navbar navbar-expand-lg fixed-top',
             page.li.close()
         page.ul.close()
 
-    page.div.close()
+    if help_ is not None:
+        page.add(str(help_))
+
+    page.div.close()  # collapse navbar-collapse
     page.nav.close()
     return page()
 
@@ -433,7 +441,6 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
            </ul>
     """
     page = markup.page()
-    # dropdown header
     page.a(text, href='#', class_=class_, role='button',
            **{'data-toggle': 'dropdown'})
 
@@ -486,7 +493,7 @@ def dropdown_link(page, link, active=False, class_=''):
     elif isinstance(link, (tuple, list)):
         if isinstance(link[1], (tuple, list)):
             page.div(class_=class_)
-            page.li(link[0], class_='dropdown-header')
+            page.h6(link[0], class_='dropdown-header')
             for j, link2 in enumerate(link[1]):
                 dropdown_link(page, link2,
                               active=(type(active) is int and active == j))
@@ -527,31 +534,26 @@ def get_brand(ifo, name, gps, about=None):
     class_ : `str`
         object class of the navbar
     """
+    brand = markup.oneliner.div(' '.join([ifo, name]), class_='navbar-brand')
     page = markup.page()
-    brand = ' '.join([ifo, name])
-    page.div(brand, class_='navbar-brand')
-    page.div(class_='btn-group float-right ifo-links')
-    page.a('Links', class_='dropdown-toggle',
-           href='#', **{'data-toggle': 'dropdown'})
-    page.ul(class_='dropdown-menu')
+    page.li(class_='nav-item dropdown float-right ifo-links')
+    page.a('Links', class_='nav-link dropdown-toggle',
+           href='#', role='button', **{'data-toggle': 'dropdown'})
+    page.div(class_='dropdown-menu')
     if about is not None:
-        page.li('Internal', class_='dropdown-header')
-        page.li(class_='dropdown-item')
-        page.a('About this page', href=about)
-        page.li.close()
-        page.li('', class_='dropdown-divider')
-    page.li('External', class_='dropdown-header')
+        page.h6('Internal', class_='dropdown-header')
+        page.a('About this page', href=about, class_='dropdown-item')
+        page.div('', class_='dropdown-divider')
+    page.h6('External', class_='dropdown-header')
     for name, url in OBSERVATORY_MAP[ifo]['links'].items():
         if 'Summary' in name:
             day = from_gps(gps).strftime(r"%Y%m%d")
             url = '/'.join([url, day])
-        page.li(class_='dropdown-item')
-        page.a(name, href=url, target='_blank')
-        page.li.close()
-    page.ul.close()
-    page.div.close()  # btn-group float-right
-    class_ = 'navbar fixed-top navbar-{}'.format(ifo.lower())
-    return (page(), class_)
+        page.a(name, href=url, class_='dropdown-item', target='_blank')
+    page.div.close()  # dropdown-menu
+    page.li.close()  # nav-link dropdown-toggle
+    class_ = 'navbar fixed-top navbar-expand-lg navbar-{}'.format(ifo.lower())
+    return ((brand, page()), class_)
 
 
 def about_this_page(config, packagelist=True):
