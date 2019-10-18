@@ -400,10 +400,9 @@ def navbar(links, class_='navbar navbar-expand-lg fixed-top',
                 page.li(class_='nav-item')
                 page.add(str(link))
             page.li.close()
+        if help_ is not None:
+            page.add(str(help_))
         page.ul.close()
-
-    if help_ is not None:
-        page.add(str(help_))
 
     page.div.close()  # collapse navbar-collapse
     page.nav.close()
