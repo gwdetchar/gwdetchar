@@ -329,7 +329,8 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     return page
 
 
-def navbar(links, class_='navbar fixed-top', brand=None, collapse=True):
+def navbar(links, class_='navbar navbar-expand-lg fixed-top',
+           brand=None, collapse=True):
     """Construct a navigation bar in bootstrap format
 
     Parameters
@@ -358,7 +359,6 @@ def navbar(links, class_='navbar fixed-top', brand=None, collapse=True):
     page = markup.page()
     page.twotags.extend(('nav',))
     page.nav(class_=class_)
-    page.div(class_='container')
 
     # add branding (generic non-collapsed content)
     if brand:
@@ -389,7 +389,7 @@ def navbar(links, class_='navbar fixed-top', brand=None, collapse=True):
                 page.a(text, href=link, class_='nav-link')
             elif (isinstance(link, (list, tuple)) and
                   isinstance(link[1], (list, tuple))):
-                page.li(class_='dropdown nav-item')
+                page.li(class_='nav-item dropdown')
                 page.add(dropdown(*link))
             else:
                 page.li(class_='nav-item')
@@ -398,12 +398,11 @@ def navbar(links, class_='navbar fixed-top', brand=None, collapse=True):
         page.ul.close()
 
     page.div.close()
-    page.div.close()
     page.nav.close()
     return page()
 
 
-def dropdown(text, links, active=None, class_='dropdown-toggle nav-link'):
+def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
     """Construct a dropdown menu in bootstrap format
 
     Parameters
@@ -435,7 +434,8 @@ def dropdown(text, links, active=None, class_='dropdown-toggle nav-link'):
     """
     page = markup.page()
     # dropdown header
-    page.a(text, href='#', class_=class_, **{'data-toggle': 'dropdown'})
+    page.a(text, href='#', class_=class_, role='button',
+           **{'data-toggle': 'dropdown'})
 
     # work out columns
     ngroup = sum([isinstance(x, (tuple, list)) and len(x) and
@@ -448,9 +448,9 @@ def dropdown(text, links, active=None, class_='dropdown-toggle nav-link'):
 
     # dropdown elements
     if column:
-        page.ul(class_='dropdown-menu dropdown-%d-col row' % ncol)
+        page.div(class_='dropdown-menu dropdown-%d-col row' % ncol)
     else:
-        page.ul(class_='dropdown-menu')
+        page.div(class_='dropdown-menu')
     for i, link in enumerate(links):
         if isinstance(active, int) and i == active:
             active_ = True
@@ -459,7 +459,7 @@ def dropdown(text, links, active=None, class_='dropdown-toggle nav-link'):
         else:
             active_ = False
         dropdown_link(page, link, active=active_, class_=column)
-    page.ul.close()
+    page.div.close()
     return page()
 
 
@@ -481,25 +481,25 @@ def dropdown_link(page, link, active=False, class_=''):
     class_ : `str`, optional
         object class of the link, default: `''`
     """
-    if link is None:
-        page.li(class_='dropdown-divider')
-    elif active is True:
-        page.li(class_='dropdown-item active')
-    else:
-        page.li(class_='dropdown-item')
-    if isinstance(link, (tuple, list)):
+    if link in [None, '']:
+        page.div('', class_='dropdown-divider')
+    elif isinstance(link, (tuple, list)):
         if isinstance(link[1], (tuple, list)):
-            page.ul(class_=class_ + ' list-unstyled')
+            page.div(class_=class_)
             page.li(link[0], class_='dropdown-header')
             for j, link2 in enumerate(link[1]):
                 dropdown_link(page, link2,
                               active=(type(active) is int and active == j))
-            page.ul.close()
+            page.div.close()
         else:
-            page.a(link[0], href=link[1])
+            page.a(
+                link[0],
+                href=link[1],
+                class_=('dropdown-item active' if active is True
+                        else 'dropdown-item')
+            )
     elif link is not None:
         page.add(str(link))
-    page.li.close()
 
 
 def get_brand(ifo, name, gps, about=None):
@@ -529,9 +529,9 @@ def get_brand(ifo, name, gps, about=None):
     """
     page = markup.page()
     brand = ' '.join([ifo, name])
-    page.div(brand, class_='navbar-brand d-lg-inline-flex')
+    page.div(brand, class_='navbar-brand')
     page.div(class_='btn-group float-right ifo-links')
-    page.a('Links', class_='navbar-brand dropdown-toggle',
+    page.a('Links', class_='dropdown-toggle',
            href='#', **{'data-toggle': 'dropdown'})
     page.ul(class_='dropdown-menu')
     if about is not None:
@@ -842,7 +842,7 @@ def download_btn(content, label='Download summary',
 
 def parameter_table(content=[], start=None, end=None, flag=None,
                     section='Parameters', id_='parameters',
-                    tableclass=('table table-condensed table-hover '
+                    tableclass=('table table-sm table-hover '
                                 'table-responsive table-bordered')):
     """Render an informative section with run parameters in HTML
 
@@ -967,7 +967,7 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
         a formatted HTML page object containing the `<table>`
     """
     class_.setdefault('table',
-                      'table table-hover table-condensed table-responsive')
+                      'table table-hover table-sm table-responsive')
     # unwrap class declarations (so we don't get empty class attributes)
     kwargs = {}
     for tag in ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption']:
@@ -1268,7 +1268,7 @@ def package_list():
 
 def package_table(
         h2="Environment",
-        class_="table table-hover table-condensed table-responsive",
+        class_="table table-hover table-sm table-responsive",
         caption="Table of packages installed in the production environment",
         id_="package-table",
 ):

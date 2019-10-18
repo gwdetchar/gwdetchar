@@ -649,7 +649,7 @@ page.div(class_='col-md-10 col-md-offset-1', id_='results-table')
 page.p('Below are the top {} mean minute-trend channels, ranked by '
        'Lasso correlation with the primary.'.format(df.shape[0]))
 page.add(df.to_html(
-    classes=('table', 'table-condensed', 'table-hover', 'table-responsive'),
+    classes=('table', 'table-sm', 'table-hover', 'table-responsive'),
     formatters={
         'Lasso coefficient': lambda x: "%.4f" % x,
         'Channel': lambda x: str(htmlio.cis_link(x.split('.')[0])),

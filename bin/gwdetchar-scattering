@@ -539,7 +539,7 @@ for i, channel in enumerate(sorted(osems)):
         page.p("%d segments were found predicting a scattering fringe above "
                "%.2f Hz." % (len(scatter_segments[channel].active),
                              args.frequency_threshold))
-        page.table(class_='table table-condensed table-hover')
+        page.table(class_='table table-sm table-hover')
         page.tbody()
         page.tr()
         page.th('Deadtime')

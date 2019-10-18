@@ -154,7 +154,7 @@ BLOCK_HTML = """<div class="card border-info text-info card-body">
 <h4 id="x1-test-aux"><a href="https://cis.ligo.org/channel/byname/X1:TEST-AUX" title="CIS entry for X1:TEST-AUX" style="font-family: Monaco, &quot;Courier New&quot;, monospace; color: black;" target="_blank">X1:TEST-AUX</a></h4>
 <div class="row">
 <div class="col-md-7">
-<table class="table table-condensed table-hover table-bordered table-responsive desktop-only">
+<table class="table table-sm table-hover table-bordered table-responsive desktop-only">
 <thead>
 <tr>
 <th scope="col">GPS Time</th>
@@ -268,7 +268,7 @@ def test_write_summary():
     page = html.write_summary('L1', 0, incomplete=True)
     assert parse_html(str(page)) == parse_html(
         '<div class="banner">\n<h2>Summary</h2>\n</div>\n<div class="row">\n'
-        '<div class="col-md-5">\n<table class="table table-condensed '
+        '<div class="col-md-5">\n<table class="table table-sm '
         'table-hover table-responsive">\n<tbody>\n<tr>\n'
         '<td scope="row"><b>Interferometer</b></td>\n'
         '<td>LIGO Livingston (L1)</td>\n</tr>\n<tr>\n'
@@ -303,7 +303,7 @@ def test_write_ranking():
         'target="_blank" style="font-family: Monaco, &quot;Courier '
         'New&quot;, monospace; color: black;" data-fancybox-group='
         '"images">X1:TEST-STRAIN</a>.</p>\n'
-        '<table class="table table-condensed table-hover table-bordered '
+        '<table class="table table-sm table-hover table-bordered '
         'table-responsive">\n<thead>\n<tr>\n<th scope="col">Channel</th>\n'
         '<th scope="col">GPS Time</th>\n<th scope="col">Frequency</th>\n'
         '<th scope="col">Q</th>\n<th scope="col">Energy</th>\n'
