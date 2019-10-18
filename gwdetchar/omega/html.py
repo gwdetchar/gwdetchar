@@ -43,9 +43,9 @@ def _get_well_class(context):
     if context in ['', 'default']:
         context = 'secondary'
     if context == 'light':
-        return 'card border-light card-body mb-3'
+        return 'card border-light mb-3'
     else:
-        return 'card border-{0} text-{0} card-body mb-3'.format(context)
+        return 'card border-{0} text-{0} mb-3'.format(context)
 
 
 def update_toc(toc, channel, name='GW'):
@@ -260,7 +260,7 @@ def write_summary_table(blocks, correlated, base=os.path.curdir):
 
 def write_summary(
         ifo, gpstime, incomplete=False, context='default', header='Summary',
-        tableclass='table table-sm table-hover table-responsive'):
+        tableclass='table table-hover table-responsive table-responsive-sm'):
     """Write the Qscan analysis summary HTML
 
     Parameters
@@ -338,8 +338,8 @@ def write_summary(
 
 
 def write_ranking(toc, primary, thresh=6.5,
-                  tableclass='table table-sm table-hover table-bordered'
-                             ' table-responsive'):
+                  tableclass='table table-hover table-bordered'
+                             ' table-responsive table-responsive-sm'):
     """Write a table of channels ranked by their similarity to the primary
 
     Parameters
@@ -447,8 +447,9 @@ def write_ranking(toc, primary, thresh=6.5,
 
 
 def write_block(blockkey, block, context,
-                tableclass='table table-sm table-hover table-bordered '
-                           'table-responsive desktop-only'):
+                tableclass='table table-hover table-bordered '
+                           'table-responsive table-responsive-md '
+                           'desktop-only'):
     """Write the HTML summary for a specific block of channels
 
     Parameters
@@ -476,7 +477,7 @@ def write_block(blockkey, block, context,
     page.div(class_=_get_well_class(context))
     # -- make heading
     page.div(class_='card-header')
-    page.h4(': '.join([blockkey, block['name']]), class_='card-title')
+    page.h5(': '.join([blockkey, block['name']]), class_='card-title')
     page.div.close()  # card-header
 
     # -- make body
@@ -489,7 +490,7 @@ def write_block(blockkey, block, context,
 
         # channel name
         chanid = channel.name.lower().replace(':', '-')
-        page.h5(htmlio.cis_link(channel.name), id_=chanid)
+        page.h6(htmlio.cis_link(channel.name), id_=chanid)
 
         # summary table
         page.div(class_='col-md-7')

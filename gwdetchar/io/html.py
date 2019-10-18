@@ -841,8 +841,8 @@ def download_btn(content, label='Download summary',
 
 def parameter_table(content=[], start=None, end=None, flag=None,
                     section='Parameters', id_='parameters',
-                    tableclass=('table table-sm table-hover '
-                                'table-responsive table-bordered')):
+                    tableclass=('table table-hover table-responsive '
+                                'table-responsive-sm table-bordered')):
     """Render an informative section with run parameters in HTML
 
     Parameters
