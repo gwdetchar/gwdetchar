@@ -841,8 +841,8 @@ def download_btn(content, label='Download summary',
 
 def parameter_table(content=[], start=None, end=None, flag=None,
                     section='Parameters', id_='parameters',
-                    tableclass=('table table-hover table-responsive '
-                                'table-responsive-sm table-bordered')):
+                    tableclass=('table table-sm table-hover '
+                                'table-responsive table-bordered')):
     """Render an informative section with run parameters in HTML
 
     Parameters
@@ -966,7 +966,7 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
         a formatted HTML page object containing the `<table>`
     """
     class_.setdefault('table',
-                      'table table-hover table-sm table-responsive')
+                      'table table-sm table-hover table-responsive')
     # unwrap class declarations (so we don't get empty class attributes)
     kwargs = {}
     for tag in ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption']:
@@ -1267,7 +1267,7 @@ def package_list():
 
 def package_table(
         h2="Environment",
-        class_="table table-hover table-sm table-responsive",
+        class_="table table-sm table-hover table-responsive",
         caption="Table of packages installed in the production environment",
         id_="package-table",
 ):

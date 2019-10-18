@@ -260,7 +260,7 @@ def write_summary_table(blocks, correlated, base=os.path.curdir):
 
 def write_summary(
         ifo, gpstime, incomplete=False, context='default', header='Summary',
-        tableclass='table table-hover table-responsive table-responsive-sm'):
+        tableclass='table table-sm table-hover table-responsive'):
     """Write the Qscan analysis summary HTML
 
     Parameters
@@ -338,8 +338,8 @@ def write_summary(
 
 
 def write_ranking(toc, primary, thresh=6.5,
-                  tableclass='table table-hover table-bordered'
-                             ' table-responsive table-responsive-sm'):
+                  tableclass='table table-sm table-hover '
+                             'table-bordered table-responsive'):
     """Write a table of channels ranked by their similarity to the primary
 
     Parameters
@@ -447,9 +447,8 @@ def write_ranking(toc, primary, thresh=6.5,
 
 
 def write_block(blockkey, block, context,
-                tableclass='table table-hover table-bordered '
-                           'table-responsive table-responsive-md '
-                           'desktop-only'):
+                tableclass='table table-sm table-hover table-bordered '
+                           'table-responsive desktop-only'):
     """Write the HTML summary for a specific block of channels
 
     Parameters
