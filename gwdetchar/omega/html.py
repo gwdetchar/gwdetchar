@@ -488,9 +488,10 @@ def write_block(blockkey, block, context,
 
         # channel name
         chanid = channel.name.lower().replace(':', '-')
-        page.h6(htmlio.cis_link(channel.name), id_=chanid)
+        page.h5(htmlio.cis_link(channel.name), id_=chanid)
 
         # summary table
+        page.div(class_='row')
         page.div(class_='col-sm-12 col-md-7')
         try:
             columns = ['GPS Time', 'Frequency', 'Q', 'Energy', 'SNR',
@@ -528,6 +529,7 @@ def write_block(blockkey, block, context,
             page.div.close()  # btn-group
         page.div.close()  # btn-group
         page.div.close()  # col-sm-12 col-md-5
+        page.div.close()  # row
 
         # plots
         page.add(htmlio.scaffold_plots(

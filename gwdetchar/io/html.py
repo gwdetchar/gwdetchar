@@ -537,7 +537,7 @@ def get_brand(ifo, name, gps, about=None):
     page.li(class_='nav-item dropdown float-right ifo-links')
     page.a('Links', class_='nav-link dropdown-toggle',
            href='#', role='button', **{'data-toggle': 'dropdown'})
-    page.div(class_='dropdown-menu')
+    page.div(class_='dropdown-menu dropdown-menu-right')
     if about is not None:
         page.h6('Internal', class_='dropdown-header')
         page.a('About this page', href=about, class_='dropdown-item')
