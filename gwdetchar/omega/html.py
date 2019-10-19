@@ -260,7 +260,7 @@ def write_summary_table(blocks, correlated, base=os.path.curdir):
 
 def write_summary(
         ifo, gpstime, incomplete=False, context='default', header='Summary',
-        tableclass='table table-sm table-hover table-responsive'):
+        tableclass='table table-sm table-hover'):
     """Write the Qscan analysis summary HTML
 
     Parameters
@@ -338,8 +338,7 @@ def write_summary(
 
 
 def write_ranking(toc, primary, thresh=6.5,
-                  tableclass='table table-sm table-hover '
-                             'table-bordered table-responsive'):
+                  tableclass='table table-sm table-hover table-bordered'):
     """Write a table of channels ranked by their similarity to the primary
 
     Parameters
@@ -447,8 +446,8 @@ def write_ranking(toc, primary, thresh=6.5,
 
 
 def write_block(blockkey, block, context,
-                tableclass='table table-sm table-hover table-bordered '
-                           'table-responsive desktop-only'):
+                tableclass='table table-sm table-hover '
+                           'table-bordered  desktop-only'):
     """Write the HTML summary for a specific block of channels
 
     Parameters
@@ -492,7 +491,7 @@ def write_block(blockkey, block, context,
         page.h6(htmlio.cis_link(channel.name), id_=chanid)
 
         # summary table
-        page.div(class_='col-md-7')
+        page.div(class_='col-sm-12 col-md-7')
         try:
             columns = ['GPS Time', 'Frequency', 'Q', 'Energy', 'SNR',
                        'Correlation', 'Delay']
@@ -505,11 +504,11 @@ def write_block(blockkey, block, context,
                         str(channel.energy), str(channel.snr)]]
         page.add(
             htmlio.table(columns, entries, separator='\n', table=tableclass))
-        page.div.close()  # col-md-7
+        page.div.close()  # col-sm-12 col-md-7
 
         # plot toggle buttons
         page.div(class_='col-sm-12 col-md-5')
-        page.div(class_='btn-group')
+        page.div(class_='btn-group', role='group')
         for ptitle, pclass, ptypes in [
             ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
             ('Spectrogram', 'qscan', ('highpassed', 'whitened', 'autoscaled')),
@@ -517,7 +516,8 @@ def write_block(blockkey, block, context,
                 'highpassed', 'whitened', 'autoscaled')),
         ]:
             _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
-            page.button('%s view' % ptitle, id_=_id, type='button',
+            page.div(class_='btn-group', role='group')
+            page.button(ptitle, id_=_id, type='button',
                         class_='btn btn-%s dropdown-toggle' % context,
                         **{'data-toggle': 'dropdown'})
             page.div(class_='dropdown-menu', **{'aria-labelledby': _id})
@@ -525,6 +525,7 @@ def write_block(blockkey, block, context,
                 page.add(toggle_link('{0}_{1}'.format(pclass, ptype),
                                      channel, channel.pranges))
             page.div.close()  # dropdown-menu
+            page.div.close()  # btn-group
         page.div.close()  # btn-group
         page.div.close()  # col-sm-12 col-md-5
 
