@@ -60,7 +60,7 @@ __credit__ = 'Alex Urban <alexander.urban@ligo.org>'
 OBSERVATORY_MAP = {
     'G1': {
         'name': 'GEO',
-        'context': 'secondary',
+        'context': 'dark',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day')])
@@ -98,7 +98,7 @@ OBSERVATORY_MAP = {
     },
     'V1': {
         'name': 'Virgo',
-        'context': 'light',
+        'context': 'outline-secondary',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day/'),
@@ -106,7 +106,7 @@ OBSERVATORY_MAP = {
     },
     'Network': {
         'name': 'Multi-IFO',
-        'context': 'light',
+        'context': 'outline-secondary',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day'),
@@ -368,9 +368,7 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top',
 
     # add branding (generic non-collapsed content)
     if brand is not None:
-        page.span(class_='border border-white rounded')
         page.add(str(brand))
-        page.span.close()
 
     # begin navbar proper
     if collapse:
@@ -532,7 +530,12 @@ def get_brand(ifo, name, gps, about=None):
     class_ : `str`
         object class of the navbar
     """
-    brand = markup.oneliner.div(' '.join([ifo, name]), class_='navbar-brand')
+    # navbar brand
+    brand = markup.oneliner.div(
+        ' '.join([ifo, name]),
+        class_='navbar-brand border border-white rounded',
+    )
+    # IFO links
     page = markup.page()
     page.li(class_='nav-item dropdown float-right ifo-links')
     page.a('Links', class_='nav-link dropdown-toggle',
