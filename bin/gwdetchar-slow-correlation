@@ -355,7 +355,7 @@ with open('results.txt', 'w') as f:
 # -- write html
 title = '%s Slow Correlations: %d-%d' % (args.ifo, start, end)
 links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Results']]
-(brand, class_) = htmlio.get_brand(args.ifo, 'Slow Correlations', start)
+(brand, class_) = htmlio.get_brand(args.ifo, 'Correlations', start)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(title=title, navbar=navbar)
 

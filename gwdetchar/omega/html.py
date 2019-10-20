@@ -96,7 +96,7 @@ def navbar(ifo, gpstime, toc={}):
     page : `markup.page`
         the structured markup to open an HTML document
     """
-    (brand, class_) = htmlio.get_brand(ifo, 'Omega Scan',
+    (brand, class_) = htmlio.get_brand(ifo, '&Omega;-scan',
                                        gpstime, about='about')
     # channel navigation
     links = [['Summary', '#']]
