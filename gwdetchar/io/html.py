@@ -399,9 +399,10 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top',
                 page.li(class_='nav-item')
                 page.add(str(link))
             page.li.close()
+        page.ul.close()  # nav navbar-nav mr-auto
+
         if help_ is not None:
             page.add(str(help_))
-        page.ul.close()
 
     page.div.close()  # collapse navbar-collapse
     page.div.close()  # container-fluid
