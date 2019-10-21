@@ -364,7 +364,7 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top',
     page = markup.page()
     page.twotags.append('nav')
     page.nav(class_=class_)
-    page.div(class_='container')
+    page.div(class_='container-fluid')
 
     # add branding (generic non-collapsed content)
     if brand is not None:
@@ -377,14 +377,14 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top',
             **{'data-toggle': 'collapse', 'data-target': '.navbar-collapse'})
         page.span('', class_='navbar-toggler-icon')
         page.button.close()
-        page.div(class_='collapse navbar-collapse')
+        page.div(class_='collapse navbar-collapse justify-content-between')
     else:
         page.div()
 
     # ---- collapsable part (<div>) ----
 
     if links:
-        page.ul(class_='nav navbar-nav')
+        page.ul(class_='nav navbar-nav mr-auto')
         for i, link in enumerate(links):
             if (isinstance(link, (list, tuple)) and
                     isinstance(link[1], str)):
@@ -404,7 +404,7 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top',
         page.ul.close()
 
     page.div.close()  # collapse navbar-collapse
-    page.div.close()  # container
+    page.div.close()  # container-fluid
     page.nav.close()
     return page()
 
@@ -537,7 +537,8 @@ def get_brand(ifo, name, gps, about=None):
     )
     # IFO links
     page = markup.page()
-    page.li(class_='nav-item dropdown float-right ifo-links')
+    page.ul(class_='nav navbar-nav')
+    page.li(class_='nav-item dropdown')
     page.a('Links', class_='nav-link dropdown-toggle',
            href='#', role='button', **{'data-toggle': 'dropdown'})
     page.div(class_='dropdown-menu dropdown-menu-right')
@@ -553,6 +554,7 @@ def get_brand(ifo, name, gps, about=None):
         page.a(name, href=url, class_='dropdown-item', target='_blank')
     page.div.close()  # dropdown-menu
     page.li.close()  # nav-link dropdown-toggle
+    page.ul.close()  # nav navbar-nav
     class_ = 'navbar fixed-top navbar-expand-md navbar-{}'.format(ifo.lower())
     return ((brand, page()), class_)
 
