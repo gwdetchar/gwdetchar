@@ -447,7 +447,7 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
     # work out columns
     ngroup = sum([isinstance(x, (tuple, list)) and len(x) and
                  isinstance(x[1], (tuple, list)) for x in links])
-    if ngroup < 1:
+    if ngroup < 2:
         column = ''
     else:
         ncol = min(ngroup, 4)
@@ -841,7 +841,7 @@ def download_btn(content, label='Download summary',
         page.a(text, href=href, download=download,
                class_='dropdown-item')
     page.div.close()  # dropdown-menu
-    page.div.close()  # btn-group
+    page.div.close()  # btndiv
     return page()
 
 
