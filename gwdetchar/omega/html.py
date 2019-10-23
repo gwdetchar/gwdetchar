@@ -454,7 +454,7 @@ def write_block(blockkey, block, context,
         the formatted HTML for this block
     """
     page = markup.page()
-    page.div(class_='card border-%s mb-5' % context)
+    page.div(class_='card card-%s mb-5' % context)
     # -- make heading
     page.div(class_='card-header')
     page.h5(': '.join([blockkey, block['name']]), class_='card-title')
