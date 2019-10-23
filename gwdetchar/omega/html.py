@@ -88,7 +88,7 @@ def navbar(ifo, gpstime, toc={}):
     (brand, class_) = htmlio.get_brand(ifo, '&Omega;-scan',
                                        gpstime, about='about')
     # channel navigation
-    links = [['Summary', '#']]
+    links = [str(gpstime), ['Summary', '#']]
     for key, block in toc.items():
         channels = [[c.name, '#%s' % c.name.lower().replace(':', '-')]
                     for c in block['channels']]

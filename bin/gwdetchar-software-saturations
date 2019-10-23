@@ -204,6 +204,7 @@ if args.html:
     segfile = os.path.relpath(outfile, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
         links = [
+            '%d-%d' % (int(args.gpsstart), int(args.gpsend)),
             ('Parameters', '#parameters'),
             ('Segments', [('Software saturations', '#software-saturations')]),
             ('Results', '#results'),

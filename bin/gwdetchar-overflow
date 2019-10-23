@@ -246,6 +246,7 @@ if args.html:
             args.output_file, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
         links = [
+            '%d-%d' % (int(args.gpsstart), int(args.gpsend)),
             ('Parameters', '#parameters'),
             ('Segments', [('Overflows', '#overflows')]),
             ('Results', '#results'),

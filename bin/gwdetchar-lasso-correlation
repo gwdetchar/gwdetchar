@@ -588,13 +588,14 @@ channelsfile = '%s-CHANNELS-%s.csv' % (args.ifo, gpsstub)
 numpy.savetxt(channelsfile, channels, delimiter=',', fmt='%s')
 
 # write html
-title = '%s Lasso Correlations: %d-%d' % (args.ifo, start, end)
+trange = '%d-%d' % (start, end)
+title = '%s Lasso Correlations: %s' % (args.ifo, trange)
 if args.band_pass:
-    links = [(s, '#%s' % s.lower()) for s in
-             ['Parameters', 'Spectra', 'Model', 'Results']]
+    links = [trange] + [(s, '#%s' % s.lower()) for s in
+                        ['Parameters', 'Spectra', 'Model', 'Results']]
 else:
-    links = [(s, '#%s' % s.lower()) for s in
-             ['Parameters', 'Model', 'Results']]
+    links = [trange] + [(s, '#%s' % s.lower()) for s in
+                        ['Parameters', 'Model', 'Results']]
 (brand, class_) = htmlio.get_brand(args.ifo, 'Lasso', start)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(title=title, navbar=navbar)

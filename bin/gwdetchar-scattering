@@ -237,6 +237,7 @@ logger.debug("%d read" % len(trigs))
 # -- prepare HTML -------------------------------------------------------------
 
 links = [
+    '%d-%d' % (int(args.gpsstart), int(args.gpsend)),
     ('Parameters', '#parameters'),
     ('Segments', (
         ('State flag', '#state-flag'),

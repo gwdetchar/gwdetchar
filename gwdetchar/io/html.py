@@ -935,7 +935,7 @@ def alert(text, context='info', dismiss=True):
         page.span('Close', class_="sr-only")
         page.button.close()
     for msg in text:
-        page.p(msg)
+        page.add(str(msg))
     page.div.close()
     return page()
 

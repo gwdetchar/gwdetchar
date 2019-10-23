@@ -353,8 +353,9 @@ with open('results.txt', 'w') as f:
         print('%s %s %s %s %s' % (ch, corr1, corr2, corr1s, corr2s), file=f)
 
 # -- write html
-title = '%s Slow Correlations: %d-%d' % (args.ifo, start, end)
-links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Results']]
+trange = '%d-%d' % (start, end)
+title = '%s Slow Correlations: %s' % (args.ifo, trange)
+links = [trange] + [(s, '#%s' % s.lower()) for s in ['Parameters', 'Results']]
 (brand, class_) = htmlio.get_brand(args.ifo, 'Correlations', start)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(title=title, navbar=navbar)
