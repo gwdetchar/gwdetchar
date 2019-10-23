@@ -389,7 +389,7 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top',
                 page.li(class_='nav-item dropdown')
                 page.add(dropdown(*link))
             else:
-                page.li(class_='nav-item')
+                page.li(class_='nav-item navbar-text')
                 page.add(str(link))
             page.li.close()
         page.ul.close()  # nav navbar-nav mr-auto
