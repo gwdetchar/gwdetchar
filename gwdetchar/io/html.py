@@ -388,8 +388,11 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top',
                   isinstance(link[1], (list, tuple))):
                 page.li(class_='nav-item dropdown')
                 page.add(dropdown(*link))
-            else:
+            elif isinstance(link, str) and not link.startswith('<'):
                 page.li(class_='nav-item navbar-text')
+                page.add(link)
+            else:
+                page.li(class_='nav-item')
                 page.add(str(link))
             page.li.close()
         page.ul.close()  # nav navbar-nav mr-auto
