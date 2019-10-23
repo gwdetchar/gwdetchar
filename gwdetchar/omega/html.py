@@ -290,7 +290,7 @@ def write_summary(
     page.tr.close()
     page.tr()
     page.th('UTC Time', scope='row')
-    page.td(utc)
+    page.td(str(utc))
     page.tr.close()
     page.tbody.close()
     # close table
