@@ -60,14 +60,12 @@ __credit__ = 'Alex Urban <alexander.urban@ligo.org>'
 OBSERVATORY_MAP = {
     'G1': {
         'name': 'GEO',
-        'context': 'dark',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day')])
     },
     'H1': {
         'name': 'LIGO Hanford',
-        'context': 'danger',
         'links': OrderedDict([
             ('LHO Summary Pages', 'https://ldas-jobs.ligo-wa.caltech.edu/'
                                   '~detchar/summary/day'),
@@ -75,14 +73,12 @@ OBSERVATORY_MAP = {
     },
     'I1': {
         'name': 'LIGO India',
-        'context': 'success',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day')])
     },
     'K1': {
         'name': 'KAGRA',
-        'context': 'warning',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day'),
@@ -90,7 +86,6 @@ OBSERVATORY_MAP = {
     },
     'L1': {
         'name': 'LIGO Livingston',
-        'context': 'info',
         'links': OrderedDict([
             ('LLO Summary Pages', 'https://ldas-jobs.ligo-la.caltech.edu/'
                                   '~detchar/summary/day'),
@@ -98,7 +93,6 @@ OBSERVATORY_MAP = {
     },
     'V1': {
         'name': 'Virgo',
-        'context': 'outline-secondary',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day/'),
@@ -106,7 +100,6 @@ OBSERVATORY_MAP = {
     },
     'Network': {
         'name': 'Multi-IFO',
-        'context': 'outline-secondary',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day'),
@@ -829,9 +822,10 @@ def download_btn(content, label='Download summary',
     page = markup.page()
     page.div(class_=btndiv)
     page.button(label, type='button', class_=btnclass,
-                **{'data-toggle': 'dropdown'})
-    page.div(class_='dropdown-menu dropdown-menu-right',
-             **{'aria-labelledby': 'summary_table_download'})
+                **{'data-toggle': 'dropdown',
+                   'aria-expanded': 'false',
+                   'aria-haspopup': 'true'})
+    page.div(class_='dropdown-menu dropdown-menu-right')
     for item in content:
         if len(item) == 2:
             text, href = item

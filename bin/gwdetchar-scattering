@@ -278,8 +278,8 @@ if statea:  # contextual information
            "motion, with fringe frequencies projected using equation (3) of "
            "{2}. Segments marked \"transmons\" are based on whitened, "
            "band-limited RMS trends of transmon sensors. In both cases, "
-           "yellow cards denote weak evidence for scattering, while red "
-           "cards denote strong evidence.").format(
+           "yellow panels denote weak evidence for scattering, while red "
+           "panels denote strong evidence.").format(
                args.fmin, multiplier * args.frequency_threshold, str(paper))
     page.add(htmlio.alert(msg))
 else:  # null segments

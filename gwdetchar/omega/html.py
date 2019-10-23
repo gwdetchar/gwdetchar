@@ -37,17 +37,6 @@ __credit__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 # -- HTML construction --------------------------------------------------------
 
-def _get_well_class(context):
-    """Returns the correct card (well) class for the given context
-    """
-    if context in ['', 'default']:
-        context = 'secondary'
-    if context == 'light':
-        return 'card border-light mb-3'
-    else:
-        return 'card border-{0} text-{0} mb-3'.format(context)
-
-
 def update_toc(toc, channel, name='GW'):
     """Add a channel to the page table of contents
 
@@ -155,12 +144,11 @@ def wrap_html(func):
         # write analysis summary
         # (but only on the main results page)
         if about:
-            page.add(write_summary(ifo, gpstime, incomplete=refresh,
-                     context=htmlio.OBSERVATORY_MAP[ifo]['context']))
+            page.add(write_summary(ifo, gpstime, incomplete=refresh))
             write_summary_table(toc, correlated)
             if correlated:
                 page.add(write_ranking(toc, primary))
-            kwargs['context'] = htmlio.OBSERVATORY_MAP[ifo]['context']
+            kwargs['context'] = ifo.lower()
         # write content
         page.div(id_='main')
         # insert inner html directly
@@ -259,7 +247,7 @@ def write_summary_table(blocks, correlated, base=os.path.curdir):
 # -- Qscan HTML ---------------------------------------------------------------
 
 def write_summary(
-        ifo, gpstime, incomplete=False, context='default', header='Summary',
+        ifo, gpstime, incomplete=False, header='Summary',
         tableclass='table table-sm table-hover'):
     """Write the Qscan analysis summary HTML
 
@@ -273,10 +261,6 @@ def write_summary(
 
     incomplete : `bool`
         boolean switch to determine whether the scan is still in progress
-
-    context : `str`, optional
-        the bootstrap context class for this result, see the bootstrap
-        docs for more details
 
     header : `str`, optional
         the text for the section header (``<h2``>)
@@ -301,12 +285,12 @@ def write_summary(
     # make table body
     page.tbody()
     page.tr()
-    page.td("<b>Interferometer</b>", scope='row')
-    page.td("%s (%s)" % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))
+    page.th('Interferometer', scope='row')
+    page.td('%s (%s)' % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))
     page.tr.close()
     page.tr()
-    page.td("<b>UTC Time</b>", scope='row')
-    page.td("%s" % utc)
+    page.th('UTC Time', scope='row')
+    page.td(utc)
     page.tr.close()
     page.tbody.close()
     # close table
@@ -321,9 +305,7 @@ def write_summary(
         '{0}_{1}_summary.{2}'.format(ifo, gpstime, ext)
     ) for ext in ('txt', 'csv', 'tex')]
     page.add(htmlio.download_btn(
-        content,
-        btndiv='btn-group',
-        btnclass='btn btn-{} dropdown-toggle'.format(context),
+        content, btnclass='btn btn-{} dropdown-toggle'.format(ifo.lower()),
     ))
     page.div.close()  # col-md-7
     page.div.close()  # row
@@ -333,7 +315,7 @@ def write_summary(
         page.add(htmlio.alert(
             ('<strong>Note</strong>: This scan is in progress, and will '
              'auto-refresh every 60 seconds until completion.'),
-            context=context))
+            context='warning'))
     return page()
 
 
@@ -472,7 +454,7 @@ def write_block(blockkey, block, context,
         the formatted HTML for this block
     """
     page = markup.page()
-    page.div(class_=_get_well_class(context))
+    page.div(class_='card border-%s mb-5' % context)
     # -- make heading
     page.div(class_='card-header')
     page.h5(': '.join([blockkey, block['name']]), class_='card-title')
@@ -584,7 +566,7 @@ def write_qscan_page(blocks, context):
 
 
 @wrap_html
-def write_null_page(reason, context='default'):
+def write_null_page(reason):
     """Write the Qscan results to HTML
 
     Parameters
@@ -598,17 +580,13 @@ def write_null_page(reason, context='default'):
     reason : `str`
         the explanation for this null result
 
-    context : `str`, optional
-        the bootstrap context class for this result, see the bootstrap
-        docs for more details
-
     Returns
     -------
     index : `str`
         the path of the HTML written for this analysis
     """
     page = markup.page()
-    page.add(htmlio.alert(reason, context, dismiss=False))
+    page.add(htmlio.alert(reason, 'info', dismiss=False))
     return page
 
 

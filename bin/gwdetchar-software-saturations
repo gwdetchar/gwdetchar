@@ -237,7 +237,7 @@ if args.html:
            "time periods during which their OUTPUT value matched or exceeded "
            "the LIMIT value set in software. Signals that achieve saturation "
            "are shown below, and saturation segments are available by "
-           "expanding a given card.").format(sum(map(len, channels)))
+           "expanding a given panel.").format(sum(map(len, channels)))
     page.add(htmlio.alert(msg))
     # record state segments
     if args.state_flag:
