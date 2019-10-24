@@ -491,7 +491,7 @@ def write_block(blockkey, block, context,
 
         # plot toggle buttons
         page.div(class_='col-sm-12 col-md-5')
-        page.div(class_='btn-group', role='group')
+        page.div(class_='btn-group flex-wrap', role='group')
         for ptitle, pclass, ptypes in [
             ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
             ('Spectrogram', 'qscan', ('highpassed', 'whitened', 'autoscaled')),
