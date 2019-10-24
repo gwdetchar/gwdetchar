@@ -137,7 +137,7 @@ BLOCK_HTML = """<div class="card card-x1 mb-5">
 <h5 id="x1-test-aux"><a href="https://cis.ligo.org/channel/byname/X1:TEST-AUX" title="CIS entry for X1:TEST-AUX" style="font-family: Monaco, &quot;Courier New&quot;, monospace; color: black;" target="_blank">X1:TEST-AUX</a></h5>
 <div class="row">
 <div class="col-sm-12 col-md-7">
-<table class="table table-sm table-hover table-bordered  d-none d-lg-block">
+<table class="table table-sm table-hover table-bordered  d-none d-lg-table">
 <thead>
 <tr>
 <th scope="col">GPS Time</th>
