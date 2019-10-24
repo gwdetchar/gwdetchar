@@ -154,7 +154,7 @@ BLOCK_HTML = """<div class="card border-info text-info card-body">
 <h4 id="x1-test-aux"><a href="https://cis.ligo.org/channel/byname/X1:TEST-AUX" title="CIS entry for X1:TEST-AUX" style="font-family: Monaco, &quot;Courier New&quot;, monospace; color: black;" target="_blank">X1:TEST-AUX</a></h4>
 <div class="row">
 <div class="col-md-7">
-<table class="table table-sm table-hover table-bordered table-responsive desktop-only">
+<table class="table table-sm table-hover table-bordered table-responsive d-none d-lg-block">
 <thead>
 <tr>
 <th scope="col">GPS Time</th>

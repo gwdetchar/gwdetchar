@@ -794,7 +794,7 @@ def scaffold_plots(plots, nperrow=3):
 
 
 def download_btn(content, label='Download summary',
-                 btndiv='dropdown float-right desktop-only',
+                 btndiv='dropdown float-right d-none d-lg-block',
                  btnclass='btn btn-secondary dropdown-toggle'):
     """Toggle download options with a Bootstrap button
 
@@ -811,7 +811,7 @@ def download_btn(content, label='Download summary',
 
     btndiv : `str`, optional
         class name of the enclosing ``<div>``,
-        default: ``dropdown float-right desktop-only``
+        default: ``dropdown float-right d-none d-lg-block``
 
     btnclass : `str`, optional
         class name of the Bootstrap button object,

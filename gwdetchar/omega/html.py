@@ -429,7 +429,7 @@ def write_ranking(toc, primary, thresh=6.5,
 
 def write_block(blockkey, block, context,
                 tableclass='table table-sm table-hover '
-                           'table-bordered  desktop-only'):
+                           'table-bordered  d-none d-lg-block'):
     """Write the HTML summary for a specific block of channels
 
     Parameters

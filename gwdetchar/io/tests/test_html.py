@@ -430,7 +430,7 @@ def test_scaffold_plots():
 def test_download_btn():
     page = html.download_btn([('test', 'test')])
     assert parse_html(page) == parse_html(
-        '<div class="btn-group float-right desktop-only">\n<button '
+        '<div class="btn-group float-right d-none d-lg-block">\n<button '
         'type="button" class="btn btn-secondary dropdown-toggle" '
         'data-toggle="dropdown">\nDownload summary <span class="caret">'
         '</span>\n</button>\n<ul class="dropdown-menu" role="menu" '
