@@ -380,10 +380,8 @@ def write_ranking(toc, primary, thresh=6.5,
     page.div(class_='col-md-12')
     aparams = {
         'title': 'Whitened timeseries of the primary channel, %s.' % primary,
-        'class_': 'fancybox',
+        'class_': 'fancybox cis-link',
         'target': '_blank',
-        'style': "font-family: Monaco, \"Courier New\", monospace; "
-                 "color: black;",
         'data-fancybox-group': 'images',
     }
     tlink = markup.oneliner.a(primary, href='plots/primary.png', **aparams)
@@ -401,8 +399,7 @@ def write_ranking(toc, primary, thresh=6.5,
         params = {
             'title': entries['Channel'][i],
             'href': '#%s' % entries['Channel'][i].lower().replace(':', '-'),
-            'style': "font-family: Monaco, \"Courier New\", monospace; "
-                     "color: black;",
+            'class_': 'cis-link',
         }
         row = [
             markup.oneliner.a(entries['Channel'][i], **params),

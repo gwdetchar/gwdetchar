@@ -179,7 +179,7 @@ FLAG = DataQualityFlag(known=[(0, 66)], active=[(0, 66)], name='X1:TEST_FLAG')
 
 OMEGA_SCAFFOLD = """<div class="card bg-light card-body">
 <div class="card-header clearfix">
-<h3 class="card-title"><a href="https://cis.ligo.org/channel/byname/X1:STRAIN" title="CIS entry for X1:STRAIN" style="font-family: Monaco, &quot;Courier New&quot;, monospace; color: black;" target="_blank">X1:STRAIN</a></h3>
+<h3 class="card-title"><a class="cis-link" href="https://cis.ligo.org/channel/byname/X1:STRAIN" title="CIS entry for X1:STRAIN" target="_blank">X1:STRAIN</a></h3>
 </div>
 <ul class="list-group">
 <li class="list-group-item">
@@ -394,8 +394,7 @@ def test_html_link(args, kwargs, result):
 def test_cis_link():
     h1 = parse_html(html.cis_link('X1:TEST-CHANNEL'))
     h2 = parse_html(
-        '<a style="font-family: Monaco, &quot;Courier New&quot;, '
-        'monospace; color: black;" href="https://cis.ligo.org/channel/byname/'
+        '<a class="cis-link" href="https://cis.ligo.org/channel/byname/'
         'X1:TEST-CHANNEL" target="_blank" title="CIS entry for '
         'X1:TEST-CHANNEL">X1:TEST-CHANNEL</a>'
     )

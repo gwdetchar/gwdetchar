@@ -134,7 +134,7 @@ BLOCK_HTML = """<div class="card card-x1 mb-5">
 <div class="card-body">
 <div class="list-group">
 <div class="list-group-item flex-column align-items-start">
-<h5 id="x1-test-aux"><a href="https://cis.ligo.org/channel/byname/X1:TEST-AUX" title="CIS entry for X1:TEST-AUX" style="font-family: Monaco, &quot;Courier New&quot;, monospace; color: black;" target="_blank">X1:TEST-AUX</a></h5>
+<h5 id="x1-test-aux"><a class="cis-link" href="https://cis.ligo.org/channel/byname/X1:TEST-AUX" title="CIS entry for X1:TEST-AUX" target="_blank">X1:TEST-AUX</a></h5>
 <div class="row">
 <div class="col-sm-12 col-md-7">
 <table class="table table-sm table-hover table-bordered  d-none d-lg-table">
@@ -274,17 +274,15 @@ def test_write_ranking():
         '<div class="row">\n<div class="col-md-12">\n<p>Below are the top 5 '
         'channels ranked by matched-filter correlation within 100 ms of <a '
         'href="plots/primary.png" title="Whitened timeseries of the primary '
-        'channel, X1:TEST-STRAIN." class="fancybox" target="_blank" style='
-        '"font-family: Monaco, &quot;Courier New&quot;, monospace; color: '
-        'black;" data-fancybox-group="images">X1:TEST-STRAIN</a>.</p>'
+        'channel, X1:TEST-STRAIN." class="fancybox cis-link" target="_blank"'
+        'data-fancybox-group="images">X1:TEST-STRAIN</a>.</p>'
         '\n<table class="table table-sm table-hover table-bordered">\n<thead>'
         '\n<tr>\n<th scope="col">Channel</th>\n<th scope="col">GPS Time</th>'
         '\n<th scope="col">Frequency</th>\n<th scope="col">Q</th>'
         '\n<th scope="col">Energy</th>\n<th scope="col">SNR</th>'
         '\n<th scope="col">Correlation</th>\n<th scope="col">Delay</th>'
         '\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><a title="X1:TEST-AUX" '
-        'href="#x1-test-aux" style="font-family: Monaco, &quot;Courier '
-        'New&quot;, monospace; color: black;">X1:TEST-AUX</a></td>'
+        'class="cis-link" href="#x1-test-aux">X1:TEST-AUX</a></td>'
         '\n<td>0</td>\n<td>100.0 Hz</td>\n<td>5</td>\n<td>1000</td>'
         '\n<td>44.7</td>\n<td>100</td>\n<td>0 ms</td>\n</tr>\n</tbody>'
         '\n</table>\n</div>\n</div>'
