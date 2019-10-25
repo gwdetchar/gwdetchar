@@ -444,13 +444,13 @@ def test_parameter_table():
     page = html.parameter_table([('test', 'test')],
                                 start=0, end=1, flag='X1:TEST')
     assert '<h2 class="mt-4" id="parameters">Parameters</h2>' in page
-    assert '<td>Start time (UTC)</td>' in page
+    assert '<td scope="row">Start time (UTC)</td>' in page
     assert '<td>1980-01-06 00:00:00 (0)</td>' in page
-    assert '<td>End time (UTC)</td>' in page
+    assert '<td scope="row">End time (UTC)</td>' in page
     assert '<td>1980-01-06 00:00:01 (1)</td>' in page
-    assert '<td>State flag</td>' in page
+    assert '<td scope="row">State flag</td>' in page
     assert '<td><code>X1:TEST</code></td>' in page
-    assert '<td>test</td>' in page
+    assert '<td scope="row">test</td>' in page
     assert '<td>test</td>' in page
     assert '<p><strong>Command-line:</strong></p>' in page
 

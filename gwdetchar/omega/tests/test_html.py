@@ -134,7 +134,7 @@ BLOCK_HTML = """<div class="card card-x1 mb-5 shadow-sm">
 <div class="card-body">
 <div class="list-group">
 <div class="list-group-item flex-column align-items-start">
-<h5 id="x1-test-aux"><a class="cis-link" href="https://cis.ligo.org/channel/byname/X1:TEST-AUX" title="CIS entry for X1:TEST-AUX" target="_blank">X1:TEST-AUX</a></h5>
+<h5 class="card-title" id="x1-test-aux"><a class="cis-link" href="https://cis.ligo.org/channel/byname/X1:TEST-AUX" title="CIS entry for X1:TEST-AUX" target="_blank">X1:TEST-AUX</a></h5>
 <div class="row">
 <div class="col-sm-12 col-md-7">
 <table class="table table-sm table-hover table-bordered  d-none d-lg-table">
