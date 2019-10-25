@@ -252,7 +252,7 @@ if args.html:
             ('Results', '#results'),
         ]
         if args.state_flag:
-            links[1][1].insert(0, ('State flag', '#state-flag'))
+            links[2][1].insert(0, ('State flag', '#state-flag'))
         (brand, class_) = htmlio.get_brand(args.ifo, 'Overflows',
                                            args.gpsstart)
         navbar = htmlio.navbar(links, class_=class_, brand=brand)
