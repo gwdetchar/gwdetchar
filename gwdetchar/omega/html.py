@@ -381,8 +381,9 @@ def write_ranking(toc, primary, thresh=6.5,
     aparams = {
         'title': 'Whitened timeseries of the primary channel, %s.' % primary,
         'class_': 'fancybox cis-link',
-        'target': '_blank',
+        'data-fancybox': 'gallery',
         'data-fancybox-group': 'images',
+        'target': '_blank',
     }
     tlink = markup.oneliner.a(primary, href='plots/primary.png', **aparams)
     page.p('Below are the top 5 channels ranked by matched-filter correlation '
