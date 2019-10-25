@@ -176,15 +176,13 @@ class FancyPlot(object):
 
 # -- HTML construction --------------------------------------------------------
 
-def _get_card_class(context):
-    """Return the correct bootstrap-4 card class for the given context
+def _get_card_header(context):
+    """Return the correct bootstrap-4 card-header class for the given context
     """
-    if context in ['', 'default']:
-        return 'card'
-    elif context == 'light':
-        return 'card bg-light'
+    if context == 'light':
+        return 'card-header bg-light'
     else:
-        return 'card text-white bg-%s' % context
+        return 'card-header text-white bg-%s' % context
 
 
 def finalize_static_urls(static, base, cssfiles, jsfiles):
@@ -315,14 +313,14 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     if topbtn:
         glyph = markup.oneliner.i('', class_='fas fa-arrow-up')
         page.button(glyph, title='Return to top',
-                    class_='btn-float', id_='top-btn')
+                    class_='btn-float shadow', id_='top-btn')
     if navbar is not None:
         page.add(navbar)
     page.div(class_='container')
     return page
 
 
-def navbar(links, class_='navbar navbar-expand-md fixed-top',
+def navbar(links, class_='navbar navbar-expand-md fixed-top shadow-sm',
            brand=None, collapse=True):
     """Construct a navigation bar in bootstrap format
 
@@ -552,7 +550,8 @@ def get_brand(ifo, name, gps, about=None):
     page.div.close()  # dropdown-menu
     page.li.close()  # nav-link dropdown-toggle
     page.ul.close()  # nav navbar-nav
-    class_ = 'navbar fixed-top navbar-expand-md navbar-{}'.format(ifo.lower())
+    class_ = ('navbar fixed-top navbar-expand-md navbar-{} '
+              'shadow-sm').format(ifo.lower())
     return ((brand, page()), class_)
 
 
@@ -591,13 +590,11 @@ def about_this_page(config, packagelist=True):
     elif isinstance(config, list):
         page.div(id_='accordion')
         for i, cpfile in enumerate(config):
-            page.div(class_='card')
+            page.div(class_='card bg-light mb-1 shadow-sm')
             page.div(class_='card-header')
-            page.h4()
-            page.button(
-                os.path.basename(cpfile), class_='btn btn-link collapsed',
-                **{'data-toggle': 'collapse', 'data-target': '#file%d' % i})
-            page.h4.close()
+            page.a(
+                os.path.basename(cpfile), class_='collapsed card-link',
+                href='#file%d' % i, **{'data-toggle': 'collapse'})
             page.div.close()  # card-header
             page.div(id_='file%d' % i, class_='collapse',
                      **{'data-parent': '#accordion'})
@@ -794,7 +791,7 @@ def scaffold_plots(plots, nperrow=3):
 
 def download_btn(content, label='Download summary',
                  btndiv='dropdown float-right d-none d-lg-block',
-                 btnclass='btn btn-secondary dropdown-toggle'):
+                 btnclass='btn btn-outline-secondary dropdown-toggle'):
     """Toggle download options with a Bootstrap button
 
     Parameters
@@ -887,14 +884,14 @@ def parameter_table(content=[], start=None, end=None, flag=None,
     # initialize page
     page = markup.page()
     if section is not None:
-        page.h2(section, id_=id_)
+        page.h2(section, class_='mt-4', id_=id_)
     page.table(class_=tableclass)
     # table body
     page.tbody()
     for row in content:
         col1, col2 = row
         page.tr()
-        page.td(markup.oneliner.strong(col1))
+        page.td(col1, scope='row')
         page.td(col2)
         page.tr.close()
     page.tbody.close()
@@ -928,13 +925,13 @@ def alert(text, context='info', dismiss=True):
     """
     page = markup.page()
     text = (text,) if isinstance(text, str) else text
-    class_ = ('alert alert-{} alert-dismissable'.format(context) if
-              dismiss else 'alert alert-{}'.format(context))
+    class_ = ('alert alert-%s alert-dismissible fade show shadow-sm' % context
+              if dismiss else 'alert alert-%s shadow-sm' % context)
     page.div(class_=class_)
     if dismiss:  # add close button
-        page.button(type="button", class_="close", **{'data-dismiss': "alert"})
+        page.button(type_="button", class_="close",
+                    **{'data-dismiss': 'alert', 'aria-label': 'Close'})
         page.span('&times;', **{'aria-hidden': "true"})
-        page.span('Close', class_="sr-only")
         page.button.close()
     for msg in text:
         page.add(str(msg))
@@ -1046,16 +1043,14 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
         fully rendered HTML with a card object for the flag
     """
     page = markup.page()
-    page.div(class_=_get_card_class(context))
-    page.div(class_='card-header')
-    page.h6()
+    page.div(class_='card border-%s mb-1 shadow-sm' % context)
+    page.div(class_=_get_card_header(context))
     title = title or flag.name
-    page.button(title, class_='btn btn-link collapsed',
-                **{'data-toggle': 'collapse', 'data-target': '#flag%s' % id})
-    page.h6.close()
+    page.a(title, class_='collapsed card-link cis-link', href='#flag%s' % id,
+           **{'data-toggle': 'collapse'})
     page.div.close()  # card-header
     page.div(id_='flag%s' % id, class_='collapse',
-             **{'data-parent': '#%s' % parent})
+             **{'data-parent': '#' + parent})
     page.div(class_='card-body')
     # render segment plot
     if (plotdir is not None) and (plot_func is not None):

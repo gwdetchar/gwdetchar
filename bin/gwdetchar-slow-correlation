@@ -368,7 +368,7 @@ else:
     pstr = primary
 if args.trend_type == 'minute':
     pstr += ' and <code>%s</code>' % rangechannel
-page.div(class_='page-header')
+page.div(class_='pb-2 mt-3 mb-2 border-bottom')
 page.h1(title)
 page.p("This analysis searched %d channels for linear correlations with %s"
        % (nchan, pstr))
@@ -384,7 +384,7 @@ contents = [
 page.add(htmlio.parameter_table(contents, start=start, end=end))
 
 # results
-page.h2('Results', id_='results')
+page.h2('Results', class_='mt-4', id_='results')
 r_blrms = "<i>r<sub>blrms</sub> </i>"
 r_range = "<i>r<sub>range</sub> </i>"
 r = "<i>r</i>"
@@ -450,7 +450,7 @@ for i, (ch, corr1, corr2, plot1, plot2, plot3,
     else:
         context = 'text-white bg-info'
     page.div(class_='card %s' % context)
-     # heading
+    # heading
     page.div(class_='card-header')
     page.h6()
     page.button(h, class_='btn btn-link collapsed',

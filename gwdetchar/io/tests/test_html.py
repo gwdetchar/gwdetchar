@@ -103,11 +103,9 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
 <div id="accordion">
-<div class="card">
+<div class="card bg-light mb-1">
 <div class="card-header">
-<h4>
-<button class="btn btn-link collapsed" data-toggle="collapse" data-target="#file0">test.ini</button>
-</h4>
+<a class="collapsed card-link" href="#file0" data-toggle="collapse">test.ini</a>
 </div>
 <div id="file0" class="collapse" data-parent="#accordion">
 <div class="card-body">
@@ -145,11 +143,9 @@ HTML_CLOSE = """</div>
 </body>
 </html>""" % HTML_FOOTER
 
-FLAG_CONTENT = """<div class="card text-white bg-warning">
-<div class="card-header">
-<h6>
-<button class="btn btn-link collapsed" data-toggle="collapse" data-target="#flag0">X1:TEST_FLAG</button>
-</h6>
+FLAG_CONTENT = """<div class="card border-warning mb-1">
+<div class="card-header text-white bg-warning">
+<a class="collapsed card-link" href="#flag0" data-toggle="collapse">X1:TEST_FLAG</a>
 </div>
 <div id="flag0" class="collapse" data-parent="#accordion">
 <div class="card-body">{plots}
@@ -437,17 +433,17 @@ def test_download_btn():
     page = html.download_btn([('test', 'test')])
     assert parse_html(page) == parse_html(
         '<div class="dropdown float-right d-none d-lg-block">\n'
-        '<button type="button" class="btn btn-secondary dropdown-toggle" '
-        'data-toggle="dropdown" aria-expanded="false" aria-haspopup="true">'
-        'Download summary</button>\n<div class="dropdown-menu '
-        'dropdown-menu-right">\n<a href="test" download="test" '
-        'class="dropdown-item">test</a>\n</div>\n</div>')
+        '<button type="button" class="btn btn-outline-secondary '
+        'dropdown-toggle" data-toggle="dropdown" aria-expanded="false" '
+        'aria-haspopup="true">Download summary</button>\n<div '
+        'class="dropdown-menu dropdown-menu-right">\n<a href="test" '
+        'download="test" class="dropdown-item">test</a>\n</div>\n</div>')
 
 
 def test_parameter_table():
     page = html.parameter_table([('test', 'test')],
                                 start=0, end=1, flag='X1:TEST')
-    assert '<h2 id="parameters">Parameters</h2>' in page
+    assert '<h2 class="mt-4" id="parameters">Parameters</h2>' in page
     assert '<td><strong>Start time (UTC)</strong></td>' in page
     assert '<td>1980-01-06 00:00:00 (0)</td>' in page
     assert '<td><strong>End time (UTC)</strong></td>' in page
@@ -462,10 +458,9 @@ def test_parameter_table():
 def test_alert():
     page = html.alert('test')
     assert parse_html(page) == parse_html(
-        '<div class="alert alert-info alert-dismissable">\n'
-        '<button type="button" class="close" data-dismiss="alert">\n'
-        '<span aria-hidden="true">&times;</span>\n'
-        '<span class="sr-only">Close</span>\n'
+        '<div class="alert alert-info alert-dismissible fade show shadow-sm">'
+        '\n<button type="button" class="close" data-dismiss="alert" '
+        'aria-label="Close">\n<span aria-hidden="true">&times;</span>\n'
         '</button>\ntest\n</div>')
 
 
@@ -484,12 +479,10 @@ def test_table():
 
 def test_write_flag_html():
     page = html.write_flag_html(FLAG)
-    print(str(page))
     assert parse_html(str(page)) == parse_html(FLAG_HTML)
 
     page2 = html.write_flag_html(
         DataQualityFlag(known=[], active=[], name='X1:TEST_FLAG'))
-    print(str(page2))
     assert parse_html(str(page2)) == parse_html(FLAG_HTML_NO_SEGMENTS)
 
 

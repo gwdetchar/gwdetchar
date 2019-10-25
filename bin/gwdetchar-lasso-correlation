@@ -600,16 +600,19 @@ else:
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(title=title, navbar=navbar)
 
-page.div(class_='page-header')
+page.div(class_='pb-2 mt-3 mb-2 border-bottom')
 page.h1(title)
-page.div.close()  # page-header
+page.div.close()  # pb-2 mt-3 mb-2 border-bottom
 
 # -- download button
 files = [
     ('%s analyzed channels (CSV)' % nchan, channelsfile),
     ('%s flat channels (CSV)' % len(flatable), flatfile),
     ('%s zeroed channels (CSV)' % len(zeroed), zerofile)]
-page.add(htmlio.download_btn(files, label='Channel information'))
+page.add(htmlio.download_btn(
+    files, label='Channel information',
+    btndiv='dropdown mt-3 float-right d-none d-lg-block',
+    btnclass='btn btn-%s dropdown-toggle' % args.ifo.lower()))
 
 # -- summary table
 content = [
@@ -627,7 +630,7 @@ page.add(htmlio.parameter_table(content, start=start, end=end))
 page.add('<hr class="row-divider">')
 
 if args.band_pass:
-    page.h2('Primary channel spectra', id_='spectra')
+    page.h2('Primary channel spectra', class_='mt-4', id_='spectra')
     page.div(class_='scaffold well')
     page.div(class_='row')
     page.div(class_='col-md-6')
@@ -642,7 +645,7 @@ if args.band_pass:
     page.div.close()  # scaffold well
 
 # -- model information
-page.h2('Model information', id_='model')
+page.h2('Model information', class_='mt-4', id_='model')
 
 page.div(class_='scaffold well')
 page.div(class_='row')
@@ -688,7 +691,7 @@ page.div.close()  # scaffold well
 page.add('<hr class="row-divider">')
 
 # -- results
-page.h2('Top channels', id_='results')
+page.h2('Top channels', class_='mt-4', id_='results')
 page.div(id_='results')
 # for each auxiliary channel create information container and put plots in it
 for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):

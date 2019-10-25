@@ -252,22 +252,24 @@ navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(
     title='%s Scattering' % args.ifo,
     navbar=navbar)
-page.div(class_='page-header')
+page.div(class_='pb-2 mt-3 mb-2 border-bottom')
 page.h1('%s Scattering: %d-%d'
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
-page.div.close()  # page-header
+page.div.close()  # pb-2 mt-3 mb-2 border-bottom
 page.add(htmlio.parameter_table(
     start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag))
 page.add('<hr class="row-divider">')
 
 # link to summary files
-page.add(htmlio.download_btn([
-    ('Segments (HDF)', segfile),
-    ('Triggers (CSV)', summfile),
-]))
+page.add(htmlio.download_btn(
+    [('Segments (HDF)', segfile),
+     ('Triggers (CSV)', summfile)],
+    btndiv='dropdown mt-3 float-right d-none d-lg-block',
+    btnclass='btn btn-%s dropdown-toggle' % args.ifo.lower(),
+))
 
 # section header
-page.h2('Segments', id_='segments')
+page.h2('Segments', class_='mt-4', id_='segments')
 
 if statea:  # contextual information
     paper = markup.oneliner.a(
@@ -289,7 +291,7 @@ else:  # null segments
 
 # record state segments
 if args.state_flag is not None:
-    page.h3('State flag', id_='state-flag')
+    page.h3('State flag', class_='mt-2', id_='state-flag')
     page.div(id_='accordion1')
     page.add(htmlio.write_flag_html(
         state, span, 'state', parent='accordion1', context='success',
@@ -332,7 +334,7 @@ actives = SegmentList()
 
 # scattering based on OSEM velocity
 if statea:
-    page.h3('Optical sensors (OSEMs)', id_='osems')
+    page.h3('Optical sensors (OSEMs)', class_='mt-2', id_='osems')
     page.div(id_='osems-group')
 logger.info('Searching for scatter based on OSEM velocity')
 
@@ -576,7 +578,7 @@ if statea:  # close accordion
 
 # scattering based on transmon BLRMS
 if statea:
-    page.h3('Transmons', id_='transmons')
+    page.h3('Transmons', class_='mt-2', id_='transmons')
     page.div(id_='transmons-group')
 logger.info('Searching for scatter based on band-limited RMS of transmons')
 
@@ -691,7 +693,7 @@ if nscans > 0:
                                 outdir=scandir, condor_commands=condorcmds)
     logger.info('Launched {} omega scans to condor'.format(nscans))
     # render HTML
-    page.h2('Omega scans', id_='omega-scans')
+    page.h2('Omega scans', class_='mt-4', id_='omega-scans')
     msg = ('The following event times correspond to significant Omicron '
            'triggers that occur during the scattering segments found above. '
            'To compare these against fringe frequency projections, please '
