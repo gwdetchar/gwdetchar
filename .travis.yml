@@ -32,6 +32,7 @@ install:
 
 script:
   - python -m flake8 .
+  - python -m flake8 bin/*
   - python -m coverage run ./setup.py test
   - bash ci/test-bin.sh
 
