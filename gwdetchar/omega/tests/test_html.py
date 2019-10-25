@@ -36,7 +36,7 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 VERSION = get_versions()['version']
 COMMIT = get_versions()['full-revisionid']
 
-HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo}">
+HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo} shadow-sm">
 <div class="container-fluid">
 <div class="navbar-brand border border-white rounded">{IFO} &Omega;-scan</div>
 <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse">
@@ -127,7 +127,7 @@ for channel in ANALYZED['GW']['channels']:
     channel.stdev = 1
     channel.delay = 0
 
-BLOCK_HTML = """<div class="card card-x1 mb-5">
+BLOCK_HTML = """<div class="card card-x1 mb-5 shadow-sm">
 <div class="card-header">
 <h5 class="card-title">GW: Gravitational-Wave Strain</h5>
 </div>
@@ -259,12 +259,11 @@ def test_write_summary():
         '"L1_0_summary.csv" class="dropdown-item">csv</a>'
         '\n<a href="data/summary.tex" download="L1_0_summary.tex" '
         'class="dropdown-item">tex</a>\n</div>\n</div>\n</div>\n</div>'
-        '\n<div class="alert alert-warning alert-dismissable">'
-        '\n<button type="button" class="close" data-dismiss="alert">'
-        '\n<span aria-hidden="true">&times;</span>\n<span class="sr-only">'
-        'Close</span>\n</button>\n<strong>Note</strong>: This scan is in '
-        'progress, and will auto-refresh every 60 seconds until completion.'
-        '\n</div>')
+        '\n<div class="alert alert-warning alert-dismissible fade show '
+        'shadow-sm">\n<button type="button" class="close" data-dismiss="alert"'
+        'aria-label="Close">\n<span aria-hidden="true">&times;</span>\n'
+        '</button>\n<strong>Note</strong>: This scan is in progress, and will '
+        'auto-refresh every 60 seconds until completion.\n</div>')
 
 
 def test_write_ranking():
@@ -292,7 +291,6 @@ def test_write_ranking():
 
 def test_write_block():
     page = html.write_block('GW', ANALYZED['GW'], 'x1')
-    print(page)
     assert parse_html(str(page)) == parse_html(BLOCK_HTML)
 
 

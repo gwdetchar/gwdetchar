@@ -103,7 +103,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
 <div id="accordion">
-<div class="card bg-light mb-1">
+<div class="card bg-light mb-1 shadow-sm">
 <div class="card-header">
 <a class="collapsed card-link" href="#file0" data-toggle="collapse">test.ini</a>
 </div>
@@ -143,9 +143,9 @@ HTML_CLOSE = """</div>
 </body>
 </html>""" % HTML_FOOTER
 
-FLAG_CONTENT = """<div class="card border-warning mb-1">
+FLAG_CONTENT = """<div class="card border-warning mb-1 shadow-sm">
 <div class="card-header text-white bg-warning">
-<a class="collapsed card-link" href="#flag0" data-toggle="collapse">X1:TEST_FLAG</a>
+<a class="collapsed card-link cis-link" href="#flag0" data-toggle="collapse">X1:TEST_FLAG</a>
 </div>
 <div id="flag0" class="collapse" data-parent="#accordion">
 <div class="card-body">{plots}
@@ -259,7 +259,7 @@ def test_new_bootstrap_page():
 def test_navbar():
     navbar = html.navbar(['test'], collapse=False)
     assert parse_html(navbar) == parse_html(
-        '<nav class="navbar navbar-expand-md fixed-top">\n'
+        '<nav class="navbar navbar-expand-md fixed-top shadow-sm">\n'
         '<div class="container-fluid">\n<div>\n'
         '<ul class="nav navbar-nav mr-auto">\n'
         '<li class="nav-item navbar-text">\n'
@@ -309,7 +309,7 @@ def test_dropdown_link():
 
 def test_get_brand():
     ((brand, help_), class_) = html.get_brand('H1', 'Test', 0, about='about')
-    assert class_ == 'navbar fixed-top navbar-expand-md navbar-h1'
+    assert class_ == 'navbar fixed-top navbar-expand-md navbar-h1 shadow-sm'
     assert parse_html(brand) == parse_html(
         '<div class="navbar-brand border border-white rounded">H1 Test</div>')
     assert parse_html(help_) == parse_html(
@@ -444,13 +444,13 @@ def test_parameter_table():
     page = html.parameter_table([('test', 'test')],
                                 start=0, end=1, flag='X1:TEST')
     assert '<h2 class="mt-4" id="parameters">Parameters</h2>' in page
-    assert '<td><strong>Start time (UTC)</strong></td>' in page
+    assert '<td>Start time (UTC)</td>' in page
     assert '<td>1980-01-06 00:00:00 (0)</td>' in page
-    assert '<td><strong>End time (UTC)</strong></td>' in page
+    assert '<td>End time (UTC)</td>' in page
     assert '<td>1980-01-06 00:00:01 (1)</td>' in page
-    assert '<td><strong>State flag</strong></td>' in page
+    assert '<td>State flag</td>' in page
     assert '<td><code>X1:TEST</code></td>' in page
-    assert '<td><strong>test</strong></td>' in page
+    assert '<td>test</td>' in page
     assert '<td>test</td>' in page
     assert '<p><strong>Command-line:</strong></p>' in page
 
