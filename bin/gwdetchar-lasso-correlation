@@ -664,10 +664,10 @@ page.add(df.to_html(
     formatters={
         'Lasso coefficient': lambda x: "%.4f" % x,
         'Channel': lambda x: str(htmlio.cis_link(x.split('.')[0])),
-        '__index__': lambda x: "%d" % x
+        '__index__': lambda x: str(x)
     },
     escape=False,
-    border=0))
+    border=0).replace(' style="text-align: right;"', ''))
 page.div.close()  # col-md-10 offset-md-1
 page.div.close()  # row
 
@@ -760,7 +760,6 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
                     corr_link = markup.oneliner.a(
                         'Export %s channels (CSV)' % max_correlated_channels,
                         href=clusters[i][1], download=clusters[i][1],
-                        style='color: inherit;',
                     )
                     page.button(
                         corr_link,
