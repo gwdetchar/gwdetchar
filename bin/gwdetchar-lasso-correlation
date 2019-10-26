@@ -613,7 +613,7 @@ content = [
 if args.band_pass:
     content.insert(2, ('Primary bandpass',
                        '{0}-{1} Hz'.format(flower, fupper)))
-page.h2('Parameters', class_='mt-4 mb-2', id_='parameters')
+page.h2('Parameters', class_='mt-4 mb-4', id_='parameters')
 page.div(class_='row')
 page.div(class_='col-md-9 col-sm-12')
 page.add(htmlio.parameter_table(content, start=start, end=end))

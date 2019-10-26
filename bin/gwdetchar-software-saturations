@@ -229,7 +229,7 @@ if args.html:
     content = [
         ('State end padding', args.pad_state_end),
         ('Skip', ', '.join(map(repr, args.skip)))]
-    page.h2('Parameters', class_='mt-4 mb-2', id_='parameters')
+    page.h2('Parameters', class_='mt-4 mb-4', id_='parameters')
     page.div(class_='row')
     page.div(class_='col-md-9 col-sm-12')
     page.add(htmlio.parameter_table(

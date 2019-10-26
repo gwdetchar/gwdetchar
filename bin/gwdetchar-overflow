@@ -286,7 +286,7 @@ if args.html:
             'Simulink models', '<a href="{0}" target="_blank" title="{1} '
                                'Simulink models">{0}</a>'.format(
                                    simulink, args.ifo)))
-    page.h2('Parameters', class_='mt-4 mb-2', id_='parameters')
+    page.h2('Parameters', class_='mt-4 mb-4', id_='parameters')
     page.div(class_='row')
     page.div(class_='col-md-9 col-sm-12')
     page.add(htmlio.parameter_table(
