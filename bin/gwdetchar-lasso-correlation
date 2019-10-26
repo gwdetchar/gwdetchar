@@ -655,7 +655,7 @@ page.h2('Model information', class_='mt-4', id_='model')
 
 page.div(class_='scaffold well')
 page.div(class_='row')
-page.div(class_='col-md-10 col-md-offset-1', id_='results-table')
+page.div(class_='col-md-10 offset-md-1', id_='results-table')
 page.p('Below are the top {} mean minute-trend channels, ranked by '
        'Lasso correlation with the primary.'.format(df.shape[0]))
 page.add(df.to_html(
@@ -667,28 +667,28 @@ page.add(df.to_html(
     },
     escape=False,
     border=0))
-page.div.close()  # col-md-10 col-md-offset-1
+page.div.close()  # col-md-10 offset-md-1
 page.div.close()  # row
 
 page.div(class_='row', id_='primary-lasso')
-page.div(class_='col-md-8 col-md-offset-2')
+page.div(class_='col-md-8 offset-md-2')
 img1 = htmlio.FancyPlot(plot1)
 page.add(htmlio.fancybox_img(img1))  # primary lasso plot
-page.div.close()  # col-md-8 col-md-offset-2
+page.div.close()  # col-md-8 offset-md-2
 page.div.close()  # primary-lasso
 
 page.div(class_='row', id_='channel-summation')
 img2 = htmlio.FancyPlot(plot2)
-page.div(class_='col-md-8 col-md-offset-2')
+page.div(class_='col-md-8 offset-md-2')
 page.add(htmlio.fancybox_img(img2))
-page.div.close()  # col-md-8 col-md-offset-2
+page.div.close()  # col-md-8 offset-md-2
 page.div.close()  # channel-summation
 
 page.div(class_='row', id_='channels-and-primary')
 img3 = htmlio.FancyPlot(plot3)
-page.div(class_='col-md-8 col-md-offset-2')
+page.div(class_='col-md-8 offset-md-2')
 page.add(htmlio.fancybox_img(img3))
-page.div.close()  # col-md-8 col-md-offset-2
+page.div.close()  # col-md-8 offset-md-2
 page.div.close()  # channels-and-primary
 
 page.div.close()  # scaffold well
@@ -735,9 +735,9 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
         for image in [plot4, plot5, plot6]:
             img = htmlio.FancyPlot(image)
             page.div(class_='row')
-            page.div(class_='col-md-8 col-md-offset-2')
+            page.div(class_='col-md-8 offset-md-2')
             page.add(htmlio.fancybox_img(img))
-            page.div.close()  # col-md-8 col-md-offset-2
+            page.div.close()  # col-md-8 offset-md-2
             page.div.close()  # row
             page.add('<hr class="row-divider">')
         if args.no_cluster is False:
