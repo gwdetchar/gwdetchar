@@ -712,7 +712,7 @@ def cis_link(channel, **params):
                      channel, **kwargs)
 
 
-def fancybox_img(img, linkparams=dict(), **params):
+def fancybox_img(img, linkparams=dict(), lazy=False, **params):
     """Return the markup to embed an <img> in HTML
 
     Parameters
@@ -721,8 +721,11 @@ def fancybox_img(img, linkparams=dict(), **params):
         a `FancyPlot` object containing the path of the image to embed
         and its caption to be displayed
 
-    linkparams : `dict`
+    linkparams : `dict`, optional
         the HTML attributes for the ``<a>`` tag
+
+    lazy : `bool`, optional
+        whether to lazy-load the image, default: False
 
     **params
         the HTML attributes for the ``<img>`` tag
@@ -748,7 +751,7 @@ def fancybox_img(img, linkparams=dict(), **params):
     page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
     imgparams = {
         'alt': os.path.basename(img),
-        'class_': 'img-fluid lazy',
+        'class_': lazy and 'img-fluid lazy' or 'img-fluid',
         'data-src': img.replace('.svg', '.png'),
     }
     imgparams.update(params)
@@ -757,7 +760,7 @@ def fancybox_img(img, linkparams=dict(), **params):
     return page()
 
 
-def scaffold_plots(plots, nperrow=3):
+def scaffold_plots(plots, nperrow=3, lazy=True):
     """Embed a `list` of images in a bootstrap scaffold
 
     Parameters
@@ -767,6 +770,9 @@ def scaffold_plots(plots, nperrow=3):
 
     nperrow : `int`
         the number of images to place in a row (on a desktop screen)
+
+    lazy : `bool`, optional
+        whether to lazy-load images, default: True
 
     Returns
     -------
@@ -780,7 +786,7 @@ def scaffold_plots(plots, nperrow=3):
         if i % nperrow == 0:
             page.div(class_='row')
         page.div(class_='col-sm-%d' % x)
-        page.add(fancybox_img(p))
+        page.add(fancybox_img(p, lazy=lazy))
         page.div.close()  # col
         if i % nperrow == nperrow - 1:
             page.div.close()  # row
