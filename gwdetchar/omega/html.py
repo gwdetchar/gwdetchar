@@ -454,9 +454,9 @@ def write_block(blockkey, block, context,
     page = markup.page()
     page.div(class_='card card-%s mb-5 shadow-sm' % context)
     # -- make heading
-    page.div(class_='card-header')
+    page.div(class_='card-header pb-0')
     page.h5(': '.join([blockkey, block['name']]), class_='card-title')
-    page.div.close()  # card-header
+    page.div.close()  # card-header pb-0
 
     # -- make body
     page.div(class_='card-body')

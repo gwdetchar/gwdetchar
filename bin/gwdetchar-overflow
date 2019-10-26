@@ -296,7 +296,7 @@ if args.html:
                else 'XML')
         page.add(htmlio.download_btn(
             [('Segments ({})'.format(ext), args.output_file)],
-            btndiv='dropdown mt-3 float-right d-none d-lg-block',
+            btndiv='dropdown mt-2 float-right d-none d-lg-block',
             btnclass='btn btn-%s dropdown-toggle' % args.ifo.lower(),
         ))
 

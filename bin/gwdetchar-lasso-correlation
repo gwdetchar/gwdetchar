@@ -611,7 +611,7 @@ files = [
     ('%s zeroed channels (CSV)' % len(zeroed), zerofile)]
 page.add(htmlio.download_btn(
     files, label='Channel information',
-    btndiv='dropdown mt-3 float-right d-none d-lg-block',
+    btndiv='dropdown mt-2 float-right d-none d-lg-block',
     btnclass='btn btn-%s dropdown-toggle' % args.ifo.lower()))
 
 # -- summary table
@@ -715,11 +715,8 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
 
     # heading
     page.div(class_='card-header')
-    page.h6()
-    page.button(h, class_='btn btn-link collapsed',
-                **{'data-toggle': 'collapse',
-                   'data-parent': '#channel%d' % i})
-    page.h6.close()
+    page.a(h, class_='collapsed card-link cis-link', href='#channel%d' % i,
+           **{'data-toggle': 'collapse'})
     page.div.close()  # card-header
     # body
     page.div(id_='channel%d' % i, class_='collapse',

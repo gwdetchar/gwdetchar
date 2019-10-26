@@ -128,7 +128,7 @@ for channel in ANALYZED['GW']['channels']:
     channel.delay = 0
 
 BLOCK_HTML = """<div class="card card-x1 mb-5 shadow-sm">
-<div class="card-header">
+<div class="card-header pb-0">
 <h5 class="card-title">GW: Gravitational-Wave Strain</h5>
 </div>
 <div class="card-body">

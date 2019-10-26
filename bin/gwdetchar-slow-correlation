@@ -452,11 +452,8 @@ for i, (ch, corr1, corr2, plot1, plot2, plot3,
     page.div(class_='card %s' % context)
     # heading
     page.div(class_='card-header')
-    page.h6()
-    page.button(h, class_='btn btn-link collapsed',
-                **{'data-toggle': 'collapse',
-                   'data-parent': '#channel%d' % i})
-    page.h6.close()
+    page.a(h, class_='collapsed card-link cis-link', href='#channel%d' % i,
+           **{'data-toggle': 'collapse'})
     page.div.close()  # card-header
     # body
     page.div(id_='channel%d' % i, class_='collapse',

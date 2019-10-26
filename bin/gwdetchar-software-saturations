@@ -233,7 +233,7 @@ if args.html:
     # -- segments
     page.add(htmlio.download_btn(
         [('Segments (HDF)', segfile)],
-        btndiv='dropdown mt-3 float-right d-none d-lg-block',
+        btndiv='dropdown mt-2 float-right d-none d-lg-block',
         btnclass='btn btn-%s dropdown-toggle' % ifo.lower(),
     ))
     page.h2('Segments', class_='mt-4', id_='segments')

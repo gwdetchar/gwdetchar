@@ -264,7 +264,7 @@ page.add('<hr class="row-divider">')
 page.add(htmlio.download_btn(
     [('Segments (HDF)', segfile),
      ('Triggers (CSV)', summfile)],
-    btndiv='dropdown mt-3 float-right d-none d-lg-block',
+    btndiv='dropdown mt-2 float-right d-none d-lg-block',
     btnclass='btn btn-%s dropdown-toggle' % args.ifo.lower(),
 ))
 
@@ -522,11 +522,8 @@ for i, channel in enumerate(sorted(osems)):
         continue
     page.div(class_='card text-white bg-%s' % context)
     page.div(class_='card-header')
-    page.h6()
-    page.button(channel, class_='btn btn-link collapsed',
-                **{'data-toggle': 'collapse',
-                   'data-target': '#osem%s' % i})
-    page.h6.close()
+    page.a(channel, class_='collapsed card-link cis-link',
+           href='#osem%s' % i, **{'data-toggle': 'collapse'})
     page.div.close()  # card-header
     page.div(id_='osem%s' % i, class_='collapse',
              **{'data-parent': '#osems-group'})

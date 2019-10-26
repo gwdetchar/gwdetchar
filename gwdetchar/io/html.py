@@ -1103,11 +1103,13 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
     page : `~MarkupPy.markup.page`
         rendered scaffold of omega scan plots
     """
+    ifo = channel[:2].lower()
     page = markup.page()
-    page.div(class_='card bg-light card-body')
+    page.div(class_='card card-%s' % ifo)
     page.div(class_='card-header clearfix')
     page.h3(cis_link(channel), class_='card-title')
     page.div.close()  # card-header
+    page.div(class_='card-body')
     page.ul(class_='list-group')
     for t in times:
         page.li(class_='list-group-item')
@@ -1130,6 +1132,7 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
         page.div.close()  # container
         page.li.close()  # list-group-item
     page.ul.close()  # list-group
+    page.div.close()  # card-body
     page.div.close()  # card
     return page()
 
