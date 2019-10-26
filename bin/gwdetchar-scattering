@@ -276,7 +276,7 @@ page.div.close()  # row
 
 # command-line
 page.h5('Command-line:')
-page.add(get_command_line(about=False))
+page.add(htmlio.get_command_line(about=False))
 
 # section header
 page.h2('Segments', class_='mt-4', id_='segments')
