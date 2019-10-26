@@ -440,8 +440,8 @@ def write_block(blockkey, block, context,
 
     context : `str`
         the type of Bootstrap ``<card>`` object to use, color-coded by GWO
-        standards (must be one of 'default', 'primary', 'success', 'info',
-        'warning', or 'danger')
+        standards (must be one of 'h1', 'l1', 'v1', 'k1', 'i1', 'g1', or
+        'network')
 
     tableclass : `str`, optional
         the ``class`` for the summary ``<table>``
