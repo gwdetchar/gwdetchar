@@ -589,7 +589,7 @@ numpy.savetxt(channelsfile, channels, delimiter=',', fmt='%s')
 
 # write html
 trange = '%d-%d' % (start, end)
-title = '%s Lasso | %s' % (args.ifo, trange)
+title = '%s Lasso Correlation: %s' % (args.ifo, trange)
 if args.band_pass:
     links = [trange] + [(s, '#%s' % s.lower()) for s in
                         ['Parameters', 'Spectra', 'Model', 'Results']]
@@ -598,7 +598,8 @@ else:
                         ['Parameters', 'Model', 'Results']]
 (brand, class_) = htmlio.get_brand(args.ifo, 'Lasso', start)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
-page = htmlio.new_bootstrap_page(title=title, navbar=navbar)
+page = htmlio.new_bootstrap_page(title='%s Lasso | %s' % (args.ifo, trange),
+                                 navbar=navbar)
 page.h1(title, class_='pb-2 mt-3 mb-2 border-bottom')
 
 # -- summary table
@@ -637,7 +638,7 @@ page.add(htmlio.get_command_line(about=False))
 
 if args.band_pass:
     page.h2('Primary channel spectra', class_='mt-4', id_='spectra')
-    page.div(class_='scaffold well')
+    page.div(class_='card card-%s card-body shadow-sm' % args.ifo.lower())
     page.div(class_='row')
     page.div(class_='col-md-6')
     spectra_img1 = htmlio.FancyPlot(spectrum_plot_zoomed_out)
@@ -648,18 +649,18 @@ if args.band_pass:
     page.add(htmlio.fancybox_img(spectra_img2))
     page.div.close()  # col-md-6
     page.div.close()  # row
-    page.div.close()  # scaffold well
+    page.div.close()  # card card-<ifo> card-body shadow-sm
 
 # -- model information
 page.h2('Model information', class_='mt-4', id_='model')
 
-page.div(class_='scaffold well')
+page.div(class_='card card-%s card-body shadow-sm' % args.ifo.lower())
 page.div(class_='row')
-page.div(class_='col-md-10 offset-md-1', id_='results-table')
+page.div(class_='col-md-8 offset-md-2', id_='results-table')
 page.p('Below are the top {} mean minute-trend channels, ranked by '
        'Lasso correlation with the primary.'.format(df.shape[0]))
 page.add(df.to_html(
-    classes=('table', 'table-sm', 'table-hover', 'table-responsive'),
+    classes=('table', 'table-sm', 'table-hover'),
     formatters={
         'Lasso coefficient': lambda x: "%.4f" % x,
         'Channel': lambda x: str(htmlio.cis_link(x.split('.')[0])),
@@ -691,7 +692,7 @@ page.add(htmlio.fancybox_img(img3))
 page.div.close()  # col-md-8 offset-md-2
 page.div.close()  # channels-and-primary
 
-page.div.close()  # scaffold well
+page.div.close()  # card card-<ifo> card-body shadow-sm
 
 # -- results
 page.h2('Top channels', class_='mt-4', id_='results')
@@ -707,17 +708,21 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
         h = '%s [lasso coefficient = %.4f]' % (ch, lassocoef)
     if ((lassocoef is None) or (lassocoef == 0)
             or (abs(lassocoef) < args.threshold)):
-        context = 'bg-light'
+        card = 'card outline-light mb-1 shadow-sm'
+        card_header = 'card-header bg-light'
     elif abs(lassocoef) >= .5:
-        context = 'text-white bg-danger'
+        card = 'card outline-danger mb-1 shadow-sm'
+        card_header = 'card-header text-white bg-danger'
     elif abs(lassocoef) >= .2:
-        context = 'text-white bg-warning'
+        card = 'card outline-warning mb-1 shadow-sm'
+        card_header = 'card-header text-white bg-warning'
     else:
-        context = 'text-white bg-info'
-    page.div(class_='card %s' % context)
+        card = 'card outline-info mb-1 shadow-sm'
+        card_header = 'card-header text-white bg-info'
+    page.div(class_=card)
 
     # heading
-    page.div(class_='card-header')
+    page.div(class_=card_header)
     page.a(h, class_='collapsed card-link cis-link', href='#channel%d' % i,
            **{'data-toggle': 'collapse'})
     page.div.close()  # card-header
@@ -754,8 +759,13 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
                 if clusters[i][1] is not None:
                     corr_link = markup.oneliner.a(
                         'Export %s channels (CSV)' % max_correlated_channels,
-                        href=clusters[i][1], download=clusters[i][1])
-                    page.button(corr_link, class_='btn btn-secondary')
+                        href=clusters[i][1], download=clusters[i][1],
+                        style='color: inherit;',
+                    )
+                    page.button(
+                        corr_link,
+                        class_='btn btn-%s' % args.ifo.lower(),
+                    )
     page.div.close()  # card-body
     page.div.close()  # collapse
     page.div.close()  # card
