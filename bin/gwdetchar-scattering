@@ -251,7 +251,7 @@ if args.omega_scans:
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(
     title='%s Scattering | %d-%d' % (
-        args.ifo int(args.gpsstart), int(args.gpsend)),
+        args.ifo, int(args.gpsstart), int(args.gpsend)),
     navbar=navbar)
 page.div(class_='pb-2 mt-3 mb-2 border-bottom')
 page.h1('%s Scattering: %d-%d'
