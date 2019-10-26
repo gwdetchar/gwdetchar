@@ -165,7 +165,7 @@ FLAG_HTML_WITH_PLOTS = FLAG_CONTENT.format(
           'X1:TEST_FLAG" class="fancybox" target="_blank" '
           'data-fancybox="gallery" data-fancybox-group="images">\n'
           '<img id="img_X1-TEST_FLAG_66" alt="X1-TEST_FLAG-0-66.png" '
-          'class="img-fluid" data-src="plots/X1-TEST_FLAG-0-66.png" '
+          'class="img-fluid" src="plots/X1-TEST_FLAG-0-66.png" '
           '/>\n</a>')
 
 FLAG_HTML_NO_SEGMENTS = FLAG_CONTENT.format(
@@ -406,8 +406,7 @@ def test_fancybox_img():
         'title="X1-TEST_AUX-test-4.png" class="fancybox" target="_blank" '
         'data-fancybox="gallery" data-fancybox-group="images">\n'
         '<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-test-4.png" '
-        'class="img-fluid" data-src="X1-TEST_AUX-test-4.png" />\n'
-        '</a>')
+        'class="img-fluid" src="X1-TEST_AUX-test-4.png" />\n</a>')
 
 
 def test_scaffold_plots():

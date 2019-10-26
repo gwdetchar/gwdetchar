@@ -749,10 +749,11 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
     channel = '%s-%s' % tuple(substrings[:2])
     duration = substrings[-1].split('.')[0]
     page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
+    src_attr = lazy and 'data-src' or 'src'
     imgparams = {
         'alt': os.path.basename(img),
         'class_': lazy and 'img-fluid lazy' or 'img-fluid',
-        'data-src': img.replace('.svg', '.png'),
+        src_attr: img.replace('.svg', '.png'),
     }
     imgparams.update(params)
     page.img(id_='img_%s_%s' % (channel, duration), **imgparams)
