@@ -589,7 +589,7 @@ numpy.savetxt(channelsfile, channels, delimiter=',', fmt='%s')
 
 # write html
 trange = '%d-%d' % (start, end)
-title = '%s Lasso Correlations: %s' % (args.ifo, trange)
+title = '%s Lasso | %s' % (args.ifo, trange)
 if args.band_pass:
     links = [trange] + [(s, '#%s' % s.lower()) for s in
                         ['Parameters', 'Spectra', 'Model', 'Results']]
@@ -599,20 +599,7 @@ else:
 (brand, class_) = htmlio.get_brand(args.ifo, 'Lasso', start)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(title=title, navbar=navbar)
-
-page.div(class_='pb-2 mt-3 mb-2 border-bottom')
-page.h1(title)
-page.div.close()  # pb-2 mt-3 mb-2 border-bottom
-
-# -- download button
-files = [
-    ('%s analyzed channels (CSV)' % nchan, channelsfile),
-    ('%s flat channels (CSV)' % len(flatable), flatfile),
-    ('%s zeroed channels (CSV)' % len(zeroed), zerofile)]
-page.add(htmlio.download_btn(
-    files, label='Channel information',
-    btndiv='dropdown mt-2 float-right d-none d-lg-block',
-    btnclass='btn btn-%s dropdown-toggle' % args.ifo.lower()))
+page.h1(title, class_='pb-2 mt-3 mb-2 border-bottom')
 
 # -- summary table
 content = [
@@ -626,8 +613,27 @@ content = [
 if args.band_pass:
     content.insert(2, ('Primary bandpass',
                        '{0}-{1} Hz'.format(flower, fupper)))
+page.h2('Parameters', class_='mt-4', id_='parameters')
+page.div(class_='row')
+page.div(class_='col-md-9 col-sm-12')
 page.add(htmlio.parameter_table(content, start=start, end=end))
-page.add('<hr class="row-divider">')
+page.div.close()  # col-md-9 col-sm-12
+
+# -- download button
+files = [
+    ('%s analyzed channels (CSV)' % nchan, channelsfile),
+    ('%s flat channels (CSV)' % len(flatable), flatfile),
+    ('%s zeroed channels (CSV)' % len(zeroed), zerofile)]
+page.div(class_='col-md-3 col-sm-12')
+page.add(htmlio.download_btn(
+    files, label='Channel information',
+    btnclass='btn btn-%s dropdown-toggle' % args.ifo.lower()))
+page.div.close()  # col-md-3 col-sm-12
+page.div.close()  # rowa
+
+# -- command-line
+page.h5('Command-line:')
+page.add(get_command_line(about=False))
 
 if args.band_pass:
     page.h2('Primary channel spectra', class_='mt-4', id_='spectra')

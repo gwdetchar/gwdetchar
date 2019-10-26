@@ -214,7 +214,9 @@ if args.html:
         (brand, class_) = htmlio.get_brand(ifo, 'Saturations',
                                            args.gpsstart)
         navbar = htmlio.navbar(links, class_=class_, brand=brand)
-        page = htmlio.new_bootstrap_page(navbar=navbar)
+        page = htmlio.new_bootstrap_page(
+            navbar=navbar, title='%s Saturations | %d-%d' % (
+                ifo, int(args.gpsstart), int(args.gpsend)))
     else:
         page = markup.page()
         page.div(class_='container')
@@ -227,15 +229,22 @@ if args.html:
     content = [
         ('State end padding', args.pad_state_end),
         ('Skip', ', '.join(map(repr, args.skip)))]
+    page.h2('Parameters', class_='mt-4', id_='parameters')
+    page.div(class_='row')
+    page.div(class_='col-md-9 col-sm-12')
     page.add(htmlio.parameter_table(
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
-    page.add('<hr class="row-divider">')
-    # -- segments
+    page.div.close()  # col-md-9 col-sm-12
+    page.div(class_='col-md-3 col-sm-12')
     page.add(htmlio.download_btn(
         [('Segments (HDF)', segfile)],
-        btndiv='dropdown mt-2 float-right d-none d-lg-block',
         btnclass='btn btn-%s dropdown-toggle' % ifo.lower(),
     ))
+    page.div.close()  # col-md-9 col-sm-12
+    page.div.close()  # row
+    page.h5('Command-line:')
+    page.add(get_command_line(about=False))
+    # -- segments
     page.h2('Segments', class_='mt-4', id_='segments')
     msg = ("This analysis searched {0} filter bank readback channels for "
            "time periods during which their OUTPUT value matched or exceeded "
@@ -245,7 +254,7 @@ if args.html:
     page.add(htmlio.alert(msg))
     # record state segments
     if args.state_flag:
-        page.h3('State flag', class_='mt-2', id_='state-flag')
+        page.h3('State flag', class_='mt-3', id_='state-flag')
         page.div(id_='accordion1')
         page.add(htmlio.write_flag_html(
             state, span, 'state', parent='accordion1', context='success',
@@ -255,7 +264,7 @@ if args.html:
         page.div.close()
     # record saturation segments
     if len(bad):
-        page.h3('Software saturations', class_='mt-2',
+        page.h3('Software saturations', class_='mt-3',
                 id_='software-saturations')
         page.div(id_='accordion2')
         for i, (c, flag) in enumerate(saturations.items()):

@@ -443,8 +443,6 @@ def test_download_btn():
 def test_parameter_table():
     page = html.parameter_table([('test', 'test')],
                                 start=0, end=1, flag='X1:TEST')
-    assert (parse_html('<h2 class="mt-4" id="parameters">Parameters</h2>')
-            in parse_html(page))
     assert '<th scope="row">Start time (UTC)</th>' in page
     assert '<td>1980-01-06 00:00:00 (0)</td>' in page
     assert '<th scope="row">End time (UTC)</th>' in page
@@ -453,7 +451,6 @@ def test_parameter_table():
     assert '<td><code>X1:TEST</code></td>' in page
     assert '<th scope="row">test</th>' in page
     assert '<td>test</td>' in page
-    assert '<h5>Command-line:</h5>' in page
 
 
 def test_alert():

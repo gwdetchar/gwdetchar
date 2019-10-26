@@ -257,7 +257,7 @@ if args.html:
                                            args.gpsstart)
         navbar = htmlio.navbar(links, class_=class_, brand=brand)
         page = htmlio.new_bootstrap_page(
-            title='%s Overflows: %d-%d' % (
+            title='%s Overflows | %d-%d' % (
                 args.ifo, int(args.gpsstart), int(args.gpsend)),
             navbar=navbar)
     else:
@@ -286,19 +286,28 @@ if args.html:
             'Simulink models', '<a href="{0}" target="_blank" title="{1} '
                                'Simulink models">{0}</a>'.format(
                                    simulink, args.ifo)))
+    page.h2('Parameters', class_='mt-4', id_='parameters')
+    page.div(class_='row')
+    page.div(class_='col-md-9 col-sm-12')
     page.add(htmlio.parameter_table(
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
-    page.add('<hr class="row-divider">')
+    page.div.close()  # col-md-9 col-sm-12
 
     # link to summary file
     if args.output_file:
         ext = ('HDF' if args.output_file.endswith((".h5", "hdf", ".hdf5"))
                else 'XML')
+        page.div(class_='col-md-3 col-sm-12')
         page.add(htmlio.download_btn(
             [('Segments ({})'.format(ext), args.output_file)],
-            btndiv='dropdown mt-2 float-right d-none d-lg-block',
             btnclass='btn btn-%s dropdown-toggle' % args.ifo.lower(),
         ))
+        page.div.close()  # col-md-3 col-sm-12
+    page.div.close()  # row
+
+    # -- command-line
+    page.h5('Command-line:')
+    page.add(get_command_line(about=False))
 
     # -- segments
     page.h2('Segments', class_='mt-4', id_='segments')
@@ -319,7 +328,7 @@ if args.html:
     page.add(htmlio.alert(msg))
     # record state segments
     if args.state_flag:
-        page.h3('State flag', class_='mt-2', id_='state-flag')
+        page.h3('State flag', class_='mt-3', id_='state-flag')
         page.div(id_='accordion1')
         page.add(htmlio.write_flag_html(
             state, span, 'state', parent='accordion1', context='success',
@@ -329,7 +338,7 @@ if args.html:
         page.div.close()
     # record overflow segments
     if sum(abs(s.active) for s in overflows.values()):
-        page.h3('Overflows', class_='mt-2', id_='overflows')
+        page.h3('Overflows', class_='mt-3', id_='overflows')
         page.div(id_='accordion2')
         for i, (c, flag) in enumerate(list(overflows.items())):
             if abs(flag.active) == 0:
