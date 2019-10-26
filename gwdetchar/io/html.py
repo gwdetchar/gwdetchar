@@ -840,7 +840,7 @@ def download_btn(content, label='Download summary',
 
 def parameter_table(content=[], start=None, end=None, flag=None,
                     section='Parameters', id_='parameters',
-                    tableclass=('table table-sm table-hover table-bordered')):
+                    tableclass='table table-sm table-hover table-responsive'):
     """Render an informative section with run parameters in HTML
 
     Parameters
@@ -885,19 +885,23 @@ def parameter_table(content=[], start=None, end=None, flag=None,
     page = markup.page()
     if section is not None:
         page.h2(section, class_='mt-4', id_=id_)
+    page.div(class_='row')
+    page.div(class_='col-md-8 col-sm-12')
     page.table(class_=tableclass)
     # table body
     page.tbody()
     for row in content:
         col1, col2 = row
         page.tr()
-        page.td(col1, scope='row')
+        page.th(col1, scope='row')
         page.td(col2)
         page.tr.close()
     page.tbody.close()
     # close table and write command-line
     page.table.close()
-    page.p(markup.oneliner.strong('Command-line:'))
+    page.div.close()  # col-md-8 col-sm-12
+    page.div.close()  # row
+    page.h5('Command-line:')
     page.add(get_command_line(about=False))
     return page()
 
