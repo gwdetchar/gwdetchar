@@ -846,7 +846,7 @@ def download_btn(content, label='Download summary',
 
 def parameter_table(content=[], start=None, end=None, flag=None,
                     section='Parameters', id_='parameters',
-                    tableclass='table table-sm table-hover table-responsive'):
+                    tableclass='table table-sm table-hover'):
     """Render an informative section with run parameters in HTML
 
     Parameters
@@ -1116,8 +1116,8 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
     ifo = channel[:2].lower()
     page = markup.page()
     page.div(class_='card card-%s' % ifo)
-    page.div(class_='card-header clearfix')
-    page.h3(cis_link(channel), class_='card-title')
+    page.div(class_='card-header pb-0')
+    page.h5(cis_link(channel), class_='card-title')
     page.div.close()  # card-header
     page.div(class_='card-body')
     page.ul(class_='list-group')
@@ -1125,12 +1125,9 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
         page.li(class_='list-group-item')
         page.div(class_='container')
         page.div(class_='row')
-        page.div(class_='float-right')
-        page.a("[full scan]",
-               href='{}/{}'.format(scandir, t),
-               class_='text-dark')
-        page.div.close()  # float-right
-        page.h4(t)
+        page.h6()
+        page.a(t, href='{0}/{1}'.format(scandir, t), class_='text-dark')
+        page.h6.close()
         page.div.close()  # row
         chanstr = channel.replace('-', '_').replace(':', '-')
         plots = [

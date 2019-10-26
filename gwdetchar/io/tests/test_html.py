@@ -174,18 +174,17 @@ FLAG_HTML_NO_SEGMENTS = FLAG_CONTENT.format(
 FLAG = DataQualityFlag(known=[(0, 66)], active=[(0, 66)], name='X1:TEST_FLAG')
 
 OMEGA_SCAFFOLD = """<div class="card card-x1">
-<div class="card-header clearfix">
-<h3 class="card-title"><a class="cis-link" href="https://cis.ligo.org/channel/byname/X1:STRAIN" title="CIS entry for X1:STRAIN" target="_blank">X1:STRAIN</a></h3>
+<div class="card-header pb-0">
+<h5 class="card-title"><a class="cis-link" href="https://cis.ligo.org/channel/byname/X1:STRAIN" title="CIS entry for X1:STRAIN" target="_blank">X1:STRAIN</a></h5>
 </div>
 <div class="card-body">
 <ul class="list-group">
 <li class="list-group-item">
 <div class="container">
 <div class="row">
-<div class="float-right">
-<a href="./1126259462" class="text-dark">[full scan]</a>
-</div>
-<h4>1126259462</h4>
+<h6>
+<a href="./1126259462" class="text-dark">1126259462</a>
+</h6>
 </div>
 <div class="row">
 <div class="col-sm-4">

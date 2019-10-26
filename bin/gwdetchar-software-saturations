@@ -284,7 +284,10 @@ if args.html:
     page.tbody()
     for c, seglist in saturations.items():
         passed = abs(seglist.active) == 0
-        page.tr(class_=passed and 'table-light' or 'table-warning')
+        if passed:
+            page.tr()
+        else:
+            page.tr(class_='table-warning')
         page.td(c)
         page.td(passed and 'Pass' or 'Fail')
         page.td(len(seglist.active))

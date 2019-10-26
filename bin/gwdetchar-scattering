@@ -520,8 +520,8 @@ for i, channel in enumerate(sorted(osems)):
         context = 'warning'
     else:
         continue
-    page.div(class_='card text-white bg-%s' % context)
-    page.div(class_='card-header')
+    page.div(class_='card border-%s mb-1 shadow-sm' % context)
+    page.div(class_='card-header text-white bg-%s' % context)
     page.a(channel, class_='collapsed card-link cis-link',
            href='#osem%s' % i, **{'data-toggle': 'collapse'})
     page.div.close()  # card-header
