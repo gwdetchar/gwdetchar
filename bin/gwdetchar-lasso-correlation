@@ -613,7 +613,7 @@ content = [
 if args.band_pass:
     content.insert(2, ('Primary bandpass',
                        '{0}-{1} Hz'.format(flower, fupper)))
-page.h2('Parameters', class_='mt-4', id_='parameters')
+page.h2('Parameters', class_='mt-4 mb-2', id_='parameters')
 page.div(class_='row')
 page.div(class_='col-md-9 col-sm-12')
 page.add(htmlio.parameter_table(content, start=start, end=end))
@@ -669,7 +669,6 @@ page.add(df.to_html(
     border=0))
 page.div.close()  # col-md-10 col-md-offset-1
 page.div.close()  # row
-page.add('<hr class="row-divider">')
 
 page.div(class_='row', id_='primary-lasso')
 page.div(class_='col-md-8 col-md-offset-2')
@@ -677,7 +676,6 @@ img1 = htmlio.FancyPlot(plot1)
 page.add(htmlio.fancybox_img(img1))  # primary lasso plot
 page.div.close()  # col-md-8 col-md-offset-2
 page.div.close()  # primary-lasso
-page.add('<hr class="row-divider">')
 
 page.div(class_='row', id_='channel-summation')
 img2 = htmlio.FancyPlot(plot2)
@@ -694,7 +692,6 @@ page.div.close()  # col-md-8 col-md-offset-2
 page.div.close()  # channels-and-primary
 
 page.div.close()  # scaffold well
-page.add('<hr class="row-divider">')
 
 # -- results
 page.h2('Top channels', class_='mt-4', id_='results')

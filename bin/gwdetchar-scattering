@@ -257,7 +257,7 @@ page.div(class_='pb-2 mt-3 mb-2 border-bottom')
 page.h1('%s Scattering: %d-%d'
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
 page.div.close()  # pb-2 mt-3 mb-2 border-bottom
-page.h2('Parameters', class_='mt-4', id_='parameters')
+page.h2('Parameters', class_='mt-4 mb-2', id_='parameters')
 page.div(class_='row')
 page.div(class_='col-md-9 col-sm-12')
 page.add(htmlio.parameter_table(
@@ -663,7 +663,6 @@ if statea and not actives:
     page.add(htmlio.alert(
         'No evidence of scattering found in the channels analyzed',
         dismiss=False))
-page.add('<hr class="row-divider">')
 
 # identify triggers during active segments
 logger.debug('Writing a summary CSV record')
