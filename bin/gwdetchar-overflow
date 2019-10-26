@@ -246,17 +246,18 @@ if args.html:
             args.output_file, os.path.dirname(args.html))
     if os.path.basename(args.html) == 'index.html':
         links = [
+            '%d-%d' % (int(args.gpsstart), int(args.gpsend)),
             ('Parameters', '#parameters'),
             ('Segments', [('Overflows', '#overflows')]),
             ('Results', '#results'),
         ]
         if args.state_flag:
-            links[1][1].insert(0, ('State flag', '#state-flag'))
+            links[2][1].insert(0, ('State flag', '#state-flag'))
         (brand, class_) = htmlio.get_brand(args.ifo, 'Overflows',
                                            args.gpsstart)
         navbar = htmlio.navbar(links, class_=class_, brand=brand)
         page = htmlio.new_bootstrap_page(
-            title='%s Overflows: %d-%d' % (
+            title='%s Overflows | %d-%d' % (
                 args.ifo, int(args.gpsstart), int(args.gpsend)),
             navbar=navbar)
     else:
@@ -264,7 +265,7 @@ if args.html:
         page.div(class_='container')
 
     # -- header
-    page.div(class_='page-header')
+    page.div(class_='pb-2 mt-3 mb-2 border-bottom')
     page.h1('%s ADC/DAC Overflows: %d-%d'
             % (args.ifo, int(args.gpsstart), int(args.gpsend)))
     page.div.close()
@@ -285,20 +286,31 @@ if args.html:
             'Simulink models', '<a href="{0}" target="_blank" title="{1} '
                                'Simulink models">{0}</a>'.format(
                                    simulink, args.ifo)))
+    page.h2('Parameters', class_='mt-4 mb-4', id_='parameters')
+    page.div(class_='row')
+    page.div(class_='col-md-9 col-sm-12')
     page.add(htmlio.parameter_table(
         content, start=args.gpsstart, end=args.gpsend, flag=args.state_flag))
-    page.add('<hr class="row-divider">')
+    page.div.close()  # col-md-9 col-sm-12
 
     # link to summary file
     if args.output_file:
         ext = ('HDF' if args.output_file.endswith((".h5", "hdf", ".hdf5"))
                else 'XML')
-        page.add(htmlio.download_btn([
-            ('Segments ({})'.format(ext), args.output_file),
-        ]))
+        page.div(class_='col-md-3 col-sm-12')
+        page.add(htmlio.download_btn(
+            [('Segments ({})'.format(ext), args.output_file)],
+            btnclass='btn btn-%s dropdown-toggle' % args.ifo.lower(),
+        ))
+        page.div.close()  # col-md-3 col-sm-12
+    page.div.close()  # row
+
+    # -- command-line
+    page.h5('Command-line:')
+    page.add(htmlio.get_command_line(about=False))
 
     # -- segments
-    page.h2('Segments', id_='segments')
+    page.h2('Segments', class_='mt-4', id_='segments')
 
     # give contextual information
     msg = ("This analysis searched for digital-to-analogue (DAC) or "
@@ -316,8 +328,8 @@ if args.html:
     page.add(htmlio.alert(msg))
     # record state segments
     if args.state_flag:
-        page.h3('State flag', id_='state-flag')
-        page.div(class_='panel-group', id_='accordion1')
+        page.h3('State flag', class_='mt-3', id_='state-flag')
+        page.div(id_='accordion1')
         page.add(htmlio.write_flag_html(
             state, span, 'state', parent='accordion1', context='success',
             plotdir=args.plot, facecolor=(0.2, 0.8, 0.2),
@@ -326,8 +338,8 @@ if args.html:
         page.div.close()
     # record overflow segments
     if sum(abs(s.active) for s in overflows.values()):
-        page.h3('Overflows', id_='overflows')
-        page.div(class_='panel-group', id_='accordion2')
+        page.h3('Overflows', class_='mt-3', id_='overflows')
+        page.div(id_='accordion2')
         for i, (c, flag) in enumerate(list(overflows.items())):
             if abs(flag.active) == 0:
                 continue
@@ -348,10 +360,9 @@ if args.html:
     else:
         page.add(htmlio.alert('No overflows were found in this analysis',
                               dismiss=False))
-    page.add('<hr class="row-divider">')
 
     # -- results table
-    page.h2('Results summary', id_='results')
+    page.h2('Results summary', class_='mt-4', id_='results')
     page.table(class_='table table-striped table-hover')
     # write table header
     page.thead()
@@ -364,12 +375,11 @@ if args.html:
     for c, seglist in overflows.items():
         t = abs(seglist.active)
         if t == 0:
-            context = 'default'
+            page.tr()
         elif t == abs(cachesegs):
-            context = 'warning'
+            page.tr(class_='table-warning')
         else:
-            context = 'danger'
-        page.tr(class_=context)
+            page.tr(class_='table-danger')
         page.td(c)
         try:
             page.td(cds.get_real_channel(str(c)))

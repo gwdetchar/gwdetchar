@@ -85,10 +85,10 @@ def navbar(ifo, gpstime, toc={}):
     page : `markup.page`
         the structured markup to open an HTML document
     """
-    (brand, class_) = htmlio.get_brand(ifo, 'Omega Scan',
+    (brand, class_) = htmlio.get_brand(ifo, '&Omega;-scan',
                                        gpstime, about='about')
     # channel navigation
-    links = [['Summary', '#']]
+    links = [str(gpstime), ['Summary', '#']]
     for key, block in toc.items():
         channels = [[c.name, '#%s' % c.name.lower().replace(':', '-')]
                     for c in block['channels']]
@@ -144,12 +144,11 @@ def wrap_html(func):
         # write analysis summary
         # (but only on the main results page)
         if about:
-            page.add(write_summary(ifo, gpstime, incomplete=refresh,
-                     context=htmlio.OBSERVATORY_MAP[ifo]['context']))
+            page.add(write_summary(ifo, gpstime, incomplete=refresh))
             write_summary_table(toc, correlated)
             if correlated:
                 page.add(write_ranking(toc, primary))
-            kwargs['context'] = htmlio.OBSERVATORY_MAP[ifo]['context']
+            kwargs['context'] = ifo.lower()
         # write content
         page.div(id_='main')
         # insert inner html directly
@@ -248,8 +247,8 @@ def write_summary_table(blocks, correlated, base=os.path.curdir):
 # -- Qscan HTML ---------------------------------------------------------------
 
 def write_summary(
-        ifo, gpstime, incomplete=False, context='default', header='Summary',
-        tableclass='table table-condensed table-hover table-responsive'):
+        ifo, gpstime, incomplete=False, header='Summary',
+        tableclass='table table-sm table-hover'):
     """Write the Qscan analysis summary HTML
 
     Parameters
@@ -262,10 +261,6 @@ def write_summary(
 
     incomplete : `bool`
         boolean switch to determine whether the scan is still in progress
-
-    context : `str`, optional
-        the bootstrap context class for this result, see the bootstrap
-        docs for more details
 
     header : `str`, optional
         the text for the section header (``<h2``>)
@@ -290,12 +285,12 @@ def write_summary(
     # make table body
     page.tbody()
     page.tr()
-    page.td("<b>Interferometer</b>", scope='row')
-    page.td("%s (%s)" % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))
+    page.th('Interferometer', scope='row')
+    page.td('%s (%s)' % (htmlio.OBSERVATORY_MAP[ifo]['name'], ifo))
     page.tr.close()
     page.tr()
-    page.td("<b>UTC Time</b>", scope='row')
-    page.td("%s" % utc)
+    page.th('UTC Time', scope='row')
+    page.td(str(utc))
     page.tr.close()
     page.tbody.close()
     # close table
@@ -303,16 +298,14 @@ def write_summary(
     page.div.close()  # col-md-5
 
     # make summary table download button
-    page.div(class_='col-xs-12 col-md-7')
+    page.div(class_='col-sm-12 col-md-7')
     content = [(
         ext,
         'data/summary.{}'.format(ext),
         '{0}_{1}_summary.{2}'.format(ifo, gpstime, ext)
     ) for ext in ('txt', 'csv', 'tex')]
     page.add(htmlio.download_btn(
-        content,
-        btndiv='btn-group',
-        btnclass='btn btn-{} dropdown-toggle'.format(context),
+        content, btnclass='btn btn-{} dropdown-toggle'.format(ifo.lower()),
     ))
     page.div.close()  # col-md-7
     page.div.close()  # row
@@ -322,13 +315,12 @@ def write_summary(
         page.add(htmlio.alert(
             ('<strong>Note</strong>: This scan is in progress, and will '
              'auto-refresh every 60 seconds until completion.'),
-            context=context))
+            context='warning'))
     return page()
 
 
 def write_ranking(toc, primary, thresh=6.5,
-                  tableclass='table table-condensed table-hover table-bordered'
-                             ' table-responsive'):
+                  tableclass='table table-sm table-hover table-bordered'):
     """Write a table of channels ranked by their similarity to the primary
 
     Parameters
@@ -388,11 +380,10 @@ def write_ranking(toc, primary, thresh=6.5,
     page.div(class_='col-md-12')
     aparams = {
         'title': 'Whitened timeseries of the primary channel, %s.' % primary,
-        'class_': 'fancybox',
-        'target': '_blank',
-        'style': "font-family: Monaco, \"Courier New\", monospace; "
-                 "color: black;",
+        'class_': 'fancybox cis-link',
+        'data-fancybox': 'gallery',
         'data-fancybox-group': 'images',
+        'target': '_blank',
     }
     tlink = markup.oneliner.a(primary, href='plots/primary.png', **aparams)
     page.p('Below are the top 5 channels ranked by matched-filter correlation '
@@ -409,8 +400,7 @@ def write_ranking(toc, primary, thresh=6.5,
         params = {
             'title': entries['Channel'][i],
             'href': '#%s' % entries['Channel'][i].lower().replace(':', '-'),
-            'style': "font-family: Monaco, \"Courier New\", monospace; "
-                     "color: black;",
+            'class_': 'cis-link',
         }
         row = [
             markup.oneliner.a(entries['Channel'][i], **params),
@@ -436,8 +426,8 @@ def write_ranking(toc, primary, thresh=6.5,
 
 
 def write_block(blockkey, block, context,
-                tableclass='table table-condensed table-hover table-bordered '
-                           'table-responsive desktop-only'):
+                tableclass='table table-sm table-hover '
+                           'table-bordered  d-none d-lg-table'):
     """Write the HTML summary for a specific block of channels
 
     Parameters
@@ -449,9 +439,9 @@ def write_block(blockkey, block, context,
         a list of channels and their analysis attributes
 
     context : `str`
-        the type of Bootstrap ``<panel>`` object to use, color-coded by GWO
-        standards (must be one of 'default', 'primary', 'success', 'info',
-        'warning', or 'danger')
+        the type of Bootstrap ``<card>`` object to use, color-coded by GWO
+        standards (must be one of 'h1', 'l1', 'v1', 'k1', 'i1', 'g1', or
+        'network')
 
     tableclass : `str`, optional
         the ``class`` for the summary ``<table>``
@@ -462,30 +452,27 @@ def write_block(blockkey, block, context,
         the formatted HTML for this block
     """
     page = markup.page()
-    page.div(class_='panel well panel-%s' % context)
+    page.div(class_='card card-%s mb-5 shadow-sm' % context)
     # -- make heading
-    page.div(class_='panel-heading clearfix')
-    page.h3(': '.join([blockkey, block['name']]), class_='panel-title')
-    page.div.close()  # panel-heading
+    page.div(class_='card-header pb-0')
+    page.h5(': '.join([blockkey, block['name']]), class_='card-title')
+    page.div.close()  # card-header pb-0
 
     # -- make body
-    page.ul(class_='list-group')
+    page.div(class_='card-body')
+    page.div(class_='list-group')
 
     # -- range over channels in this block
     for i, channel in enumerate(block['channels']):
-        page.li(class_='list-group-item')
-        page.div(class_='container')
-
-        page.div(class_='row')
+        page.div(class_='list-group-item flex-column align-items-start')
 
         # channel name
         chanid = channel.name.lower().replace(':', '-')
-        page.h4(htmlio.cis_link(channel.name), id_=chanid)
-
-        page.div(class_='row')
+        page.h5(htmlio.cis_link(channel.name), class_='card-title', id_=chanid)
 
         # summary table
-        page.div(class_='col-md-7')
+        page.div(class_='row')
+        page.div(class_='col-sm-12 col-md-7')
         try:
             columns = ['GPS Time', 'Frequency', 'Q', 'Energy', 'SNR',
                        'Correlation', 'Delay']
@@ -498,11 +485,11 @@ def write_block(blockkey, block, context,
                         str(channel.energy), str(channel.snr)]]
         page.add(
             htmlio.table(columns, entries, separator='\n', table=tableclass))
-        page.div.close()  # col-sm-7
+        page.div.close()  # col-sm-12 col-md-7
 
         # plot toggle buttons
-        page.div(class_='col-xs-12 col-md-5')
-        page.div(class_='btn-group', role='group')
+        page.div(class_='col-sm-12 col-md-5')
+        page.div(class_='btn-group flex-wrap', role='group')
         for ptitle, pclass, ptypes in [
             ('Timeseries', 'timeseries', ('raw', 'highpassed', 'whitened')),
             ('Spectrogram', 'qscan', ('highpassed', 'whitened', 'autoscaled')),
@@ -511,21 +498,17 @@ def write_block(blockkey, block, context,
         ]:
             _id = 'btnGroup{0}{1}'.format(pclass.title(), i)
             page.div(class_='btn-group', role='group')
-            page.button(id_=_id, type='button',
+            page.button(ptitle, id_=_id, type='button',
                         class_='btn btn-%s dropdown-toggle' % context,
                         **{'data-toggle': 'dropdown'})
-            page.add('{0} view <span class="caret"></span>'.format(ptitle))
-            page.button.close()
-            page.ul(class_='dropdown-menu', role='menu',
-                    **{'aria-labelledby': _id})
+            page.div(class_='dropdown-menu', **{'aria-labelledby': _id})
             for ptype in ptypes:
-                page.li(toggle_link('{0}_{1}'.format(pclass, ptype), channel,
-                                    channel.pranges))
-            page.ul.close()  # dropdown-menu
+                page.add(toggle_link('{0}_{1}'.format(pclass, ptype),
+                                     channel, channel.pranges))
+            page.div.close()  # dropdown-menu
             page.div.close()  # btn-group
         page.div.close()  # btn-group
-        page.div.close()  # col-sm-5
-
+        page.div.close()  # col-sm-12 col-md-5
         page.div.close()  # row
 
         # plots
@@ -533,12 +516,12 @@ def write_block(blockkey, block, context,
             channel.plots['qscan_whitened'],
             nperrow=min(len(channel.pranges), 3)))
 
-        page.div.close()  # container anchor
-        page.li.close()
+        page.div.close()  # list-group-item
 
     # close and return
-    page.ul.close()
-    page.div.close()  # panel
+    page.div.close()  # list-group
+    page.div.close()  # card-body
+    page.div.close()  # card
     return page()
 
 
@@ -563,7 +546,7 @@ def write_qscan_page(blocks, context):
         the channel blocks scanned in the analysis
 
     context : `str`, optional
-        the type of Bootstrap ``<panel>`` object to use, color-coded by
+        the type of Bootstrap ``<card>`` object to use, color-coded by
         GWO standard
 
     Returns
@@ -581,7 +564,7 @@ def write_qscan_page(blocks, context):
 
 
 @wrap_html
-def write_null_page(reason, context='default'):
+def write_null_page(reason):
     """Write the Qscan results to HTML
 
     Parameters
@@ -595,17 +578,13 @@ def write_null_page(reason, context='default'):
     reason : `str`
         the explanation for this null result
 
-    context : `str`, optional
-        the bootstrap context class for this result, see the bootstrap
-        docs for more details
-
     Returns
     -------
     index : `str`
         the path of the HTML written for this analysis
     """
     page = markup.page()
-    page.add(htmlio.alert(reason, context, dismiss=False))
+    page.add(htmlio.alert(reason, 'info', dismiss=False))
     return page
 
 

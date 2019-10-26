@@ -276,5 +276,5 @@ if analyzed:
     html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 else:
     reason = 'No significant channels found during active analysis segments'
-    html.write_null_page(ifo, gps, reason, **htmlv)
+    html.write_null_page(ifo, gps, reason)
 logger.info("-- index.html written, all done --")

@@ -237,6 +237,7 @@ logger.debug("%d read" % len(trigs))
 # -- prepare HTML -------------------------------------------------------------
 
 links = [
+    '%d-%d' % (int(args.gpsstart), int(args.gpsend)),
     ('Parameters', '#parameters'),
     ('Segments', (
         ('State flag', '#state-flag'),
@@ -249,24 +250,36 @@ if args.omega_scans:
 (brand, class_) = htmlio.get_brand(args.ifo, 'Scattering', args.gpsstart)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(
-    title='%s Scattering' % args.ifo,
+    title='%s Scattering | %d-%d' % (
+        args.ifo, int(args.gpsstart), int(args.gpsend)),
     navbar=navbar)
-page.div(class_='page-header')
+page.div(class_='pb-2 mt-3 mb-2 border-bottom')
 page.h1('%s Scattering: %d-%d'
         % (args.ifo, int(args.gpsstart), int(args.gpsend)))
-page.div.close()  # page-header
+page.div.close()  # pb-2 mt-3 mb-2 border-bottom
+page.h2('Parameters', class_='mt-4 mb-4', id_='parameters')
+page.div(class_='row')
+page.div(class_='col-md-9 col-sm-12')
 page.add(htmlio.parameter_table(
     start=int(args.gpsstart), end=int(args.gpsend), flag=args.state_flag))
-page.add('<hr class="row-divider">')
+page.div.close()  # col-md-9 col-sm-12
 
 # link to summary files
-page.add(htmlio.download_btn([
-    ('Segments (HDF)', segfile),
-    ('Triggers (CSV)', summfile),
-]))
+page.div(class_='col-md-3 col-sm-12')
+page.add(htmlio.download_btn(
+    [('Segments (HDF)', segfile),
+     ('Triggers (CSV)', summfile)],
+    btnclass='btn btn-%s dropdown-toggle' % args.ifo.lower(),
+))
+page.div.close()  # col-md-3 col-sm-12
+page.div.close()  # row
+
+# command-line
+page.h5('Command-line:')
+page.add(htmlio.get_command_line(about=False))
 
 # section header
-page.h2('Segments', id_='segments')
+page.h2('Segments', class_='mt-4', id_='segments')
 
 if statea:  # contextual information
     paper = markup.oneliner.a(
@@ -288,8 +301,8 @@ else:  # null segments
 
 # record state segments
 if args.state_flag is not None:
-    page.h3('State flag', id_='state-flag')
-    page.div(class_='panel-group', id_='accordion1')
+    page.h3('State flag', class_='mt-3', id_='state-flag')
+    page.div(id_='accordion1')
     page.add(htmlio.write_flag_html(
         state, span, 'state', parent='accordion1', context='success',
         plotdir='', facecolor=(0.2, 0.8, 0.2), edgecolor='darkgreen',
@@ -331,8 +344,8 @@ actives = SegmentList()
 
 # scattering based on OSEM velocity
 if statea:
-    page.h3('Optical sensors (OSEMs)', id_='osems')
-    page.div(class_='panel-group', id_='osems-group')
+    page.h3('Optical sensors (OSEMs)', class_='mt-3', id_='osems')
+    page.div(id_='osems-group')
 logger.info('Searching for scatter based on OSEM velocity')
 
 for i, channel in enumerate(sorted(osems)):
@@ -517,25 +530,26 @@ for i, channel in enumerate(sorted(osems)):
         context = 'warning'
     else:
         continue
-    page.div(class_='panel panel-%s' % context)
-    page.div(class_='panel-heading')
-    page.a(channel, class_="panel-title", href='#osem%s' % i,
-           **{'data-toggle': 'collapse', 'data-parent': '#accordion'})
-    page.div.close()
-    page.div(id_='osem%s' % i, class_='panel-collapse collapse')
+    page.div(class_='card border-%s mb-1 shadow-sm' % context)
+    page.div(class_='card-header text-white bg-%s' % context)
+    page.a(channel, class_='collapsed card-link cis-link',
+           href='#osem%s' % i, **{'data-toggle': 'collapse'})
+    page.div.close()  # card-header
+    page.div(id_='osem%s' % i, class_='collapse',
+             **{'data-parent': '#osems-group'})
+    page.div(class_='card-body')
     img = htmlio.FancyPlot(
         png, caption=scattering.SCATTER_CAPTION.format(CHANNEL=channel))
     page.add(htmlio.fancybox_img(img))
     himg = htmlio.FancyPlot(
         hpng, caption=scattering.HIST_CAPTION.format(CHANNEL=channel))
     page.add(htmlio.fancybox_img(himg))
-    page.div(class_='panel-body')
     segs = StringIO()
     if deadtime:
         page.p("%d segments were found predicting a scattering fringe above "
                "%.2f Hz." % (len(scatter_segments[channel].active),
                              args.frequency_threshold))
-        page.table(class_='table table-condensed table-hover')
+        page.table(class_='table table-sm table-hover')
         page.tbody()
         page.tr()
         page.th('Deadtime')
@@ -562,17 +576,17 @@ for i, channel in enumerate(sorted(osems)):
     else:
         page.p("No segments were found with scattering above %.2f Hz."
                % args.frequency_threshold)
-    page.div.close()
-    page.div.close()
-    page.div.close()
+    page.div.close()  # card-body
+    page.div.close()  # collapse
+    page.div.close()  # card
 
 if statea:  # close accordion
-    page.div.close()
+    page.div.close()  # osems-group
 
 # scattering based on transmon BLRMS
 if statea:
-    page.h3('Transmons', id_='transmons')
-    page.div(class_='panel-group', id_='transmons-group')
+    page.h3('Transmons', class_='mt-3', id_='transmons')
+    page.div(id_='transmons-group')
 logger.info('Searching for scatter based on band-limited RMS of transmons')
 
 for i, channel in enumerate(sorted(transmons)):
@@ -642,14 +656,13 @@ for i, channel in enumerate(sorted(transmons)):
         title=channel, context=context, plotdir=''))
 
 if statea:  # close accordion
-    page.div.close()
+    page.div.close()  # transmons-group
 
 actives = actives.coalesce()  # merge contiguous segments
 if statea and not actives:
     page.add(htmlio.alert(
         'No evidence of scattering found in the channels analyzed',
         dismiss=False))
-page.add('<hr class="row-divider">')
 
 # identify triggers during active segments
 logger.debug('Writing a summary CSV record')
@@ -686,13 +699,13 @@ if nscans > 0:
                                 outdir=scandir, condor_commands=condorcmds)
     logger.info('Launched {} omega scans to condor'.format(nscans))
     # render HTML
-    page.h2('Omega scans', id_='omega-scans')
+    page.h2('Omega scans', class_='mt-4', id_='omega-scans')
     msg = ('The following event times correspond to significant Omicron '
            'triggers that occur during the scattering segments found above. '
            'To compare these against fringe frequency projections, please '
            'use the scattering module:',
            markup.oneliner.pre('$ python -m gwdetchar.scattering --help'))
-    page.add(htmlio.alert(msg, context='default'))
+    page.add(htmlio.alert(msg, context='secondary'))
     page.add(htmlio.scaffold_omega_scans(
         omegatimes, args.main_channel, scandir=scandir))
 elif args.omega_scans:

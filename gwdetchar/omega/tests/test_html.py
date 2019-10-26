@@ -36,62 +36,46 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 VERSION = get_versions()['version']
 COMMIT = get_versions()['full-revisionid']
 
-HTML_HEADER = """<header class="navbar navbar-fixed-top navbar-{ifo}">
-<div class="container">
-<div class="navbar-header">
-<button class="navbar-toggle" data-toggle="collapse" type="button" data-target=".navbar-collapse">
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
+HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo} shadow-sm">
+<div class="container-fluid">
+<div class="navbar-brand border border-white rounded">{IFO} &Omega;-scan</div>
+<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+<span class="navbar-toggler-icon"></span>
 </button>
-<div class="navbar-brand">{IFO}</div>
-<div class="navbar-brand">Omega Scan</div>
-<div class="btn-group pull-right ifo-links">
-<a class="navbar-brand dropdown-toggle" href="#" data-toggle="dropdown">
-Links
-<b class="caret"></b>
-</a>
-<ul class="dropdown-menu">
-<li class="dropdown-header">Internal</li>
-<li>
-<a href="about">About this page</a>
+<div class="collapse navbar-collapse justify-content-between">
+<ul class="nav navbar-nav mr-auto">
+<li class="nav-item navbar-text">
+0
 </li>
-<li class="divider"></li>
-<li class="dropdown-header">External</li>
-<li>
-<a href="https://ldas-jobs.ligo-la.caltech.edu/~detchar/summary/day/19800106" target="_blank">LLO Summary Pages</a>
+<li class="nav-item">
+<a href="#" class="nav-link">Summary</a>
 </li>
-<li>
-<a href="https://alog.ligo-la.caltech.edu/aLOG" target="_blank">LLO Logbook</a>
+<li class="nav-item dropdown">
+<a href="#" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown">GW</a>
+<div class="dropdown-menu">
+<div class="">
+<h6 class="dropdown-header">Gravitational-Wave Strain</h6>
+<a href="#x1-test-aux" class="dropdown-item">X1:TEST-AUX</a>
+</div>
+</div>
 </li>
 </ul>
-</div>
-</div>
-<nav class="collapse navbar-collapse">
 <ul class="nav navbar-nav">
-<li>
-<a href="#">Summary</a>
-</li>
-<li class="dropdown">
-<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-GW
-<b class="caret"></b>
-</a>
-<ul class="dropdown-menu dropdown-1-col row">
-<li>
-<ul class="col-xs-12 col-sm-12 list-unstyled">
-<li class="dropdown-header">Gravitational-Wave Strain</li>
-<li>
-<a href="#x1-test-aux">X1:TEST-AUX</a>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</nav>
+<li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">Links</a>
+<div class="dropdown-menu dropdown-menu-right">
+<h6 class="dropdown-header">Internal</h6>
+<a href="about" class="dropdown-item">About this page</a>
+<div class="dropdown-divider"></div>
+<h6 class="dropdown-header">External</h6>
+<a href="https://ldas-jobs.ligo-la.caltech.edu/~detchar/summary/day/19800106" class="dropdown-item" target="_blank">LLO Summary Pages</a>
+<a href="https://alog.ligo-la.caltech.edu/aLOG" class="dropdown-item" target="_blank">LLO Logbook</a>
 </div>
-</header>"""  # noqa: E501
+</li>
+</ul>
+</div>
+</div>
+</nav>"""  # noqa: E501
 
 CONFIGURATION = u"""
 [primary]
@@ -143,18 +127,17 @@ for channel in ANALYZED['GW']['channels']:
     channel.stdev = 1
     channel.delay = 0
 
-BLOCK_HTML = """<div class="panel well panel-info">
-<div class="panel-heading clearfix">
-<h3 class="panel-title">GW: Gravitational-Wave Strain</h3>
+BLOCK_HTML = """<div class="card card-x1 mb-5 shadow-sm">
+<div class="card-header pb-0">
+<h5 class="card-title">GW: Gravitational-Wave Strain</h5>
 </div>
-<ul class="list-group">
-<li class="list-group-item">
-<div class="container">
+<div class="card-body">
+<div class="list-group">
+<div class="list-group-item flex-column align-items-start">
+<h5 class="card-title" id="x1-test-aux"><a class="cis-link" href="https://cis.ligo.org/channel/byname/X1:TEST-AUX" title="CIS entry for X1:TEST-AUX" target="_blank">X1:TEST-AUX</a></h5>
 <div class="row">
-<h4 id="x1-test-aux"><a href="https://cis.ligo.org/channel/byname/X1:TEST-AUX" title="CIS entry for X1:TEST-AUX" style="font-family: Monaco, &quot;Courier New&quot;, monospace; color: black;" target="_blank">X1:TEST-AUX</a></h4>
-<div class="row">
-<div class="col-md-7">
-<table class="table table-condensed table-hover table-bordered table-responsive desktop-only">
+<div class="col-sm-12 col-md-7">
+<table class="table table-sm table-hover table-bordered  d-none d-lg-table">
 <thead>
 <tr>
 <th scope="col">GPS Time</th>
@@ -179,37 +162,31 @@ BLOCK_HTML = """<div class="panel well panel-info">
 </tbody>
 </table>
 </div>
-<div class="col-xs-12 col-md-5">
+<div class="col-sm-12 col-md-5">
+<div class="btn-group flex-wrap" role="group">
 <div class="btn-group" role="group">
-<div class="btn-group" role="group">
-<button id="btnGroupTimeseries0" type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
-Timeseries view <span class="caret"></span>
-</button>
-<ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupTimeseries0">
-<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_raw-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_raw" data-t-ranges="[&quot;4&quot;]">raw</a></li>
-<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a></li>
-<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a></li>
-</ul>
+<button id="btnGroupTimeseries0" type="button" class="btn btn-x1 dropdown-toggle" data-toggle="dropdown">Timeseries</button>
+<div class="dropdown-menu" aria-labelledby="btnGroupTimeseries0">
+<a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_raw-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_raw" data-t-ranges="[&quot;4&quot;]">raw</a>
+<a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a>
+<a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a>
+</div>
 </div>
 <div class="btn-group" role="group">
-<button id="btnGroupQscan0" type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
-Spectrogram view <span class="caret"></span>
-</button>
-<ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupQscan0">
-<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a></li>
-<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a></li>
-<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_autoscaled-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_autoscaled" data-t-ranges="[&quot;4&quot;]">autoscaled</a></li>
-</ul>
+<button id="btnGroupQscan0" type="button" class="btn btn-x1 dropdown-toggle" data-toggle="dropdown">Spectrogram</button>
+<div class="dropdown-menu" aria-labelledby="btnGroupQscan0">
+<a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a>
+<a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a>
+<a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_autoscaled-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_autoscaled" data-t-ranges="[&quot;4&quot;]">autoscaled</a>
+</div>
 </div>
 <div class="btn-group" role="group">
-<button id="btnGroupEventgram0" type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
-Eventgram view <span class="caret"></span>
-</button>
-<ul class="dropdown-menu" role="menu" aria-labelledby="btnGroupEventgram0">
-<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a></li>
-<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a></li>
-<li><a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_autoscaled-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_autoscaled" data-t-ranges="[&quot;4&quot;]">autoscaled</a></li>
-</ul>
+<button id="btnGroupEventgram0" type="button" class="btn btn-x1 dropdown-toggle" data-toggle="dropdown">Eventgram</button>
+<div class="dropdown-menu" aria-labelledby="btnGroupEventgram0">
+<a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a>
+<a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a>
+<a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_autoscaled-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_autoscaled" data-t-ranges="[&quot;4&quot;]">autoscaled</a>
+</div>
 </div>
 </div>
 </div>
@@ -217,13 +194,13 @@ Eventgram view <span class="caret"></span>
 <div class="row">
 <div class="col-sm-12">
 <a href="plots/X1-TEST_AUX-qscan_whitened-4.png" id="a_X1-TEST_AUX_4" title="X1-TEST_AUX-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox="gallery" data-fancybox-group="images">
-<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-qscan_whitened-4.png" class="img-responsive lazy" data-src="plots/X1-TEST_AUX-qscan_whitened-4.png" />
+<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-qscan_whitened-4.png" class="img-fluid lazy" data-src="plots/X1-TEST_AUX-qscan_whitened-4.png" />
 </a>
 </div>
 </div>
 </div>
-</li>
-</ul>
+</div>
+</div>
 </div>"""  # noqa: E501
 
 
@@ -267,29 +244,26 @@ def test_write_summary_table(tmpdir):
 def test_write_summary():
     page = html.write_summary('L1', 0, incomplete=True)
     assert parse_html(str(page)) == parse_html(
-        '<div class="banner">\n<h2>Summary</h2>\n</div>\n<div class="row">\n'
-        '<div class="col-md-5">\n<table class="table table-condensed '
-        'table-hover table-responsive">\n<tbody>\n<tr>\n'
-        '<td scope="row"><b>Interferometer</b></td>\n'
-        '<td>LIGO Livingston (L1)</td>\n</tr>\n<tr>\n'
-        '<td scope="row"><b>UTC Time</b></td>\n<td>1980-01-06 00:00:00</td>\n'
-        '</tr>\n</tbody>\n</table>\n</div>\n<div class="col-xs-12 col-md-7">\n'
-        '<div class="btn-group">\n<button type="button" '
-        'class="btn btn-default dropdown-toggle" data-toggle="dropdown">\n'
-        'Download summary <span class="caret"></span>\n</button>\n'
-        '<ul class="dropdown-menu" role="menu" aria-labelledby='
-        '"summary_table_download">\n<li><a href="data/summary.txt" '
-        'download="L1_0_summary.txt">txt</a></li>\n<li><a href='
-        '"data/summary.csv" download="L1_0_summary.csv">csv</a></li>\n'
-        '<li><a href="data/summary.tex" download="L1_0_summary.tex">tex</a>'
-        '</li>\n</ul>\n</div>\n</div>\n</div>\n'
-        '<div class="alert alert-default alert-dismissable">\n'
-        '<button type="button" class="close" data-dismiss="alert">\n'
-        '<span aria-hidden="true">&times;</span>\n'
-        '<span class="sr-only">Close</span>\n</button>\n'
-        '<p><strong>Note</strong>: This scan is in progress, and will '
-        'auto-refresh every 60 seconds until completion.</p>\n</div>'
-    )
+        '<div class="banner">\n<h2>Summary</h2>\n</div>\n<div class="row">'
+        '\n<div class="col-md-5">\n<table class="table table-sm table-hover">'
+        '\n<tbody>\n<tr>\n<th scope="row">Interferometer</th>'
+        '\n<td>LIGO Livingston (L1)</td>\n</tr>\n<tr>'
+        '\n<th scope="row">UTC Time</th>\n<td>1980-01-06 00:00:00</td>'
+        '\n</tr>\n</tbody>\n</table>\n</div>\n<div class="col-sm-12 col-md-7">'
+        '\n<div class="dropdown float-right d-none d-lg-block">'
+        '\n<button type="button" class="btn btn-l1 dropdown-toggle" '
+        'data-toggle="dropdown" aria-expanded="false" aria-haspopup="true">'
+        'Download summary</button>\n<div class="dropdown-menu dropdown-menu-'
+        'right">\n<a href="data/summary.txt" download="L1_0_summary.txt" '
+        'class="dropdown-item">txt</a>\n<a href="data/summary.csv" download='
+        '"L1_0_summary.csv" class="dropdown-item">csv</a>'
+        '\n<a href="data/summary.tex" download="L1_0_summary.tex" '
+        'class="dropdown-item">tex</a>\n</div>\n</div>\n</div>\n</div>'
+        '\n<div class="alert alert-warning alert-dismissible fade show '
+        'shadow-sm">\n<button type="button" class="close" data-dismiss="alert"'
+        'aria-label="Close">\n<span aria-hidden="true">&times;</span>\n'
+        '</button>\n<strong>Note</strong>: This scan is in progress, and will '
+        'auto-refresh every 60 seconds until completion.\n</div>')
 
 
 def test_write_ranking():
@@ -297,30 +271,26 @@ def test_write_ranking():
     h1 = parse_html(str(page))
     h2 = parse_html(
         '<div class="row">\n<div class="col-md-12">\n<p>Below are the top 5 '
-        'channels ranked by matched-filter correlation within 100 ms of '
-        '<a href="plots/primary.png" title="Whitened timeseries of the '
-        'primary channel, X1:TEST-STRAIN." class="fancybox" '
-        'target="_blank" style="font-family: Monaco, &quot;Courier '
-        'New&quot;, monospace; color: black;" data-fancybox-group='
-        '"images">X1:TEST-STRAIN</a>.</p>\n'
-        '<table class="table table-condensed table-hover table-bordered '
-        'table-responsive">\n<thead>\n<tr>\n<th scope="col">Channel</th>\n'
-        '<th scope="col">GPS Time</th>\n<th scope="col">Frequency</th>\n'
-        '<th scope="col">Q</th>\n<th scope="col">Energy</th>\n'
-        '<th scope="col">SNR</th>\n<th scope="col">Correlation</th>\n'
-        '<th scope="col">Delay</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n'
-        '<td><a title="X1:TEST-AUX" href="#x1-test-aux" '
-        'style="font-family: Monaco, &quot;Courier New&quot;, monospace; '
-        'color: black;">X1:TEST-AUX</a></td>\n'
-        '<td>0</td>\n<td>100.0 Hz</td>\n<td>5</td>\n<td>1000</td>\n'
-        '<td>44.7</td>\n<td>100</td>\n<td>0 ms</td>\n'
-        '</tr>\n</tbody>\n</table>\n</div>\n</div>'
+        'channels ranked by matched-filter correlation within 100 ms of <a '
+        'href="plots/primary.png" title="Whitened timeseries of the primary '
+        'channel, X1:TEST-STRAIN." class="fancybox cis-link" target="_blank"'
+        'data-fancybox="gallery" data-fancybox-group="images">X1:TEST-STRAIN'
+        '</a>.</p>\n<table class="table table-sm table-hover table-bordered"'
+        '>\n<thead>\n<tr>\n<th scope="col">Channel</th>\n<th scope="col">GPS'
+        ' Time</th>\n<th scope="col">Frequency</th>\n<th scope="col">Q</th>'
+        '\n<th scope="col">Energy</th>\n<th scope="col">SNR</th>'
+        '\n<th scope="col">Correlation</th>\n<th scope="col">Delay</th>'
+        '\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><a title="X1:TEST-AUX" '
+        'class="cis-link" href="#x1-test-aux">X1:TEST-AUX</a></td>'
+        '\n<td>0</td>\n<td>100.0 Hz</td>\n<td>5</td>\n<td>1000</td>'
+        '\n<td>44.7</td>\n<td>100</td>\n<td>0 ms</td>\n</tr>\n</tbody>'
+        '\n</table>\n</div>\n</div>'
     )
     assert h1 == h2
 
 
 def test_write_block():
-    page = html.write_block('GW', ANALYZED['GW'], 'info')
+    page = html.write_block('GW', ANALYZED['GW'], 'x1')
     assert parse_html(str(page)) == parse_html(BLOCK_HTML)
 
 
@@ -347,7 +317,7 @@ def test_write_qscan_page(tmpdir):
 
 def test_write_null_page(tmpdir):
     os.chdir(str(tmpdir))
-    html.write_null_page('L1', 0, 'test', 'info')
+    html.write_null_page('L1', 0, 'test')
     shutil.rmtree(str(tmpdir), ignore_errors=True)
 
 

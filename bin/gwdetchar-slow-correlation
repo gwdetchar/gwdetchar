@@ -353,9 +353,10 @@ with open('results.txt', 'w') as f:
         print('%s %s %s %s %s' % (ch, corr1, corr2, corr1s, corr2s), file=f)
 
 # -- write html
-title = '%s Slow Correlations: %d-%d' % (args.ifo, start, end)
-links = [(s, '#%s' % s.lower()) for s in ['Parameters', 'Results']]
-(brand, class_) = htmlio.get_brand(args.ifo, 'Slow Correlations', start)
+trange = '%d-%d' % (start, end)
+title = '%s Slow Correlations: %s' % (args.ifo, trange)
+links = [trange] + [(s, '#%s' % s.lower()) for s in ['Parameters', 'Results']]
+(brand, class_) = htmlio.get_brand(args.ifo, 'Correlations', start)
 navbar = htmlio.navbar(links, class_=class_, brand=brand)
 page = htmlio.new_bootstrap_page(title=title, navbar=navbar)
 
@@ -367,7 +368,7 @@ else:
     pstr = primary
 if args.trend_type == 'minute':
     pstr += ' and <code>%s</code>' % rangechannel
-page.div(class_='page-header')
+page.div(class_='pb-2 mt-3 mb-2 border-bottom')
 page.h1(title)
 page.p("This analysis searched %d channels for linear correlations with %s"
        % (nchan, pstr))
@@ -383,7 +384,7 @@ contents = [
 page.add(htmlio.parameter_table(contents, start=start, end=end))
 
 # results
-page.h2('Results', id_='results')
+page.h2('Results', class_='mt-4', id_='results')
 r_blrms = "<i>r<sub>blrms</sub> </i>"
 r_range = "<i>r<sub>range</sub> </i>"
 r = "<i>r</i>"
@@ -422,7 +423,7 @@ if args.trend_type == 'minute':
            % (r_blrms, rho_blrms, primary, r_range, rho_range,
               rangechannel, r, corr_p, rho, corr_s))
 
-page.div(class_='panel-group', id_='results')
+page.div(id_='accordion')
 for i, (ch, corr1, corr2, plot1, plot2, plot3,
         corr1s, corr2s) in enumerate(results):
     if corr1 is None:
@@ -439,24 +440,25 @@ for i, (ch, corr1, corr2, plot1, plot2, plot3,
     else:
         h = '%s [%s = %.2f]' % (ch, r_blrms, corr1)
     if (corr1 is None) or (corr1 == 0) or (plot1 is None):
-        context = 'panel-default'
+        context = 'bg-light'
     elif((numpy.absolute(corr1) >= .6) or (numpy.absolute(corr1s) >= .6)
          or (numpy.absolute(corr2) >= .6) or (numpy.absolute(corr2s) >= .6)):
-        context = 'panel-danger'
+        context = 'text-white bg-danger'
     elif((numpy.absolute(corr1) >= .4) or (numpy.absolute(corr1s) >= .4)
          or (numpy.absolute(corr2) >= .4) or (numpy.absolute(corr2s) >= .4)):
-        context = 'panel-warning'
+        context = 'text-white bg-warning'
     else:
-        context = 'panel-info'
-    page.div(class_='panel %s' % context)
+        context = 'text-white bg-info'
+    page.div(class_='card %s' % context)
     # heading
-    page.div(class_='panel-heading')
-    page.a(h, class_='panel-title', href='#channel%d' % i,
-           **{'data-toggle': 'collapse', 'data-parent': '#results'})
-    page.div.close()
+    page.div(class_='card-header')
+    page.a(h, class_='collapsed card-link cis-link', href='#channel%d' % i,
+           **{'data-toggle': 'collapse'})
+    page.div.close()  # card-header
     # body
-    page.div(id_='channel%d' % i, class_='panel-collapse collapse')
-    page.div(class_='panel-body')
+    page.div(id_='channel%d' % i, class_='collapse',
+             **{'data-parent': '#accordion'})
+    page.div(class_='card-body')
     if corr1 is None:
         page.p("The amplitude data for this channel is flat"
                " (does not change) for the chosen time period.")
@@ -467,10 +469,10 @@ for i, (ch, corr1, corr2, plot1, plot2, plot3,
         for p in (plot1, plot2, plot3):
             img = htmlio.FancyPlot(p)
             page.add(htmlio.fancybox_img(img))
-    page.div.close()  # panel-body
-    page.div.close()  # panel-collapse
-    page.div.close()  # panel
-page.div.close()  # panel-group
+    page.div.close()  # card-body
+    page.div.close()  # collapse
+    page.div.close()  # card
+page.div.close()  # accordion
 htmlio.close_page(page, 'index.html')  # save and close
 
 logger.info("-- Process Completed")
