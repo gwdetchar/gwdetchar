@@ -785,7 +785,7 @@ def scaffold_plots(plots, nperrow=3, lazy=True):
     # scaffold plots
     for i, p in enumerate(plots):
         if i % nperrow == 0:
-            page.div(class_='row')
+            page.div(class_='row scaffold')
         page.div(class_='col-sm-%d' % x)
         page.add(fancybox_img(p, lazy=lazy))
         page.div.close()  # col
@@ -1066,7 +1066,7 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
         img = FancyPlot(
             img=png, caption='Known (small) and active (large) analysis '
                              'segments for {}'.format(title))
-        page.add(fancybox_img(img))
+        page.add(scaffold_plots([img], nperrow=1, lazy=False))
     # write segments
     segs = StringIO()
     try:

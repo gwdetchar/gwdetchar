@@ -538,12 +538,18 @@ for i, channel in enumerate(sorted(osems)):
     page.div(id_='osem%s' % i, class_='collapse',
              **{'data-parent': '#osems-group'})
     page.div(class_='card-body')
+    page.div(class_='row')
     img = htmlio.FancyPlot(
         png, caption=scattering.SCATTER_CAPTION.format(CHANNEL=channel))
+    page.div(class_='col-md-10 offset-md-1')
     page.add(htmlio.fancybox_img(img))
+    page.div.close()  # col-md-10 offset-md-1
     himg = htmlio.FancyPlot(
         hpng, caption=scattering.HIST_CAPTION.format(CHANNEL=channel))
+    page.div(class_='col-md-10 offset-md-1')
     page.add(htmlio.fancybox_img(himg))
+    page.div.close()  # col-md-10 offset-md-1
+    page.div.close()  # row
     segs = StringIO()
     if deadtime:
         page.p("%d segments were found predicting a scattering fringe above "
