@@ -638,7 +638,7 @@ page.add(htmlio.get_command_line(about=False))
 
 if args.band_pass:
     page.h2('Primary channel spectra', class_='mt-4', id_='spectra')
-    page.div(class_='card card-%s card-body shadow-sm' % args.ifo.lower())
+    page.div(class_='card border-light card-body shadow-sm')
     page.div(class_='row')
     page.div(class_='col-md-6')
     spectra_img1 = htmlio.FancyPlot(spectrum_plot_zoomed_out)
@@ -649,7 +649,7 @@ if args.band_pass:
     page.add(htmlio.fancybox_img(spectra_img2))
     page.div.close()  # col-md-6
     page.div.close()  # row
-    page.div.close()  # card card-<ifo> card-body shadow-sm
+    page.div.close()  # card border-light card-body shadow-sm
 
 # -- model information
 page.h2('Model information', class_='mt-4', id_='model')
@@ -708,16 +708,16 @@ for i, (ch, lassocoef, plot4, plot5, plot6, ts) in enumerate(results):
         h = '%s [lasso coefficient = %.4f]' % (ch, lassocoef)
     if ((lassocoef is None) or (lassocoef == 0)
             or (abs(lassocoef) < args.threshold)):
-        card = 'card outline-light mb-1 shadow-sm'
+        card = 'card border-light mb-1 shadow-sm'
         card_header = 'card-header bg-light'
     elif abs(lassocoef) >= .5:
-        card = 'card outline-danger mb-1 shadow-sm'
+        card = 'card border-danger mb-1 shadow-sm'
         card_header = 'card-header text-white bg-danger'
     elif abs(lassocoef) >= .2:
-        card = 'card outline-warning mb-1 shadow-sm'
+        card = 'card border-warning mb-1 shadow-sm'
         card_header = 'card-header text-white bg-warning'
     else:
-        card = 'card outline-info mb-1 shadow-sm'
+        card = 'card border-info mb-1 shadow-sm'
         card_header = 'card-header text-white bg-info'
     page.div(class_=card)
 

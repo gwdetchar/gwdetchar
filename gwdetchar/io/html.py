@@ -335,7 +335,7 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top shadow-sm',
     class_ : `str`, optional
         navbar object class, default: `'navbar navbar-expand-md fixed-top'`
 
-    brand : `str` or `~MarkupPy.markup.page`, optional
+    brand : `str`, `~MarkupPy.markup.page`, or `list`, optional
         branding for the navigation bar, default: None
 
     collapse : `bool`, optional
@@ -740,6 +740,7 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
         'title': img.caption,
         'class_': 'fancybox',
         'target': '_blank',
+        'data-caption': img.caption,
         'data-fancybox': 'gallery',
         'data-fancybox-group': 'images',
     }
@@ -752,7 +753,7 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
     src_attr = lazy and 'data-src' or 'src'
     imgparams = {
         'alt': os.path.basename(img),
-        'class_': lazy and 'img-fluid lazy' or 'img-fluid',
+        'class_': lazy and 'img-fluid w-100 lazy' or 'img-fluid w-100',
         src_attr: img.replace('.svg', '.png'),
     }
     imgparams.update(params)
@@ -785,7 +786,7 @@ def scaffold_plots(plots, nperrow=3, lazy=True):
     # scaffold plots
     for i, p in enumerate(plots):
         if i % nperrow == 0:
-            page.div(class_='row')
+            page.div(class_='row scaffold')
         page.div(class_='col-sm-%d' % x)
         page.add(fancybox_img(p, lazy=lazy))
         page.div.close()  # col
@@ -1066,7 +1067,7 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
         img = FancyPlot(
             img=png, caption='Known (small) and active (large) analysis '
                              'segments for {}'.format(title))
-        page.add(fancybox_img(img))
+        page.add(scaffold_plots([img], nperrow=1, lazy=False))
     # write segments
     segs = StringIO()
     try:
