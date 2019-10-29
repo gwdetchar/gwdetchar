@@ -335,7 +335,7 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top shadow-sm',
     class_ : `str`, optional
         navbar object class, default: `'navbar navbar-expand-md fixed-top'`
 
-    brand : `str` or `~MarkupPy.markup.page`, optional
+    brand : `str`, `~MarkupPy.markup.page`, or `list`, optional
         branding for the navigation bar, default: None
 
     collapse : `bool`, optional
