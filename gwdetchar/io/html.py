@@ -753,7 +753,7 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
     src_attr = lazy and 'data-src' or 'src'
     imgparams = {
         'alt': os.path.basename(img),
-        'class_': lazy and 'img-fluid lazy' or 'img-fluid',
+        'class_': lazy and 'img-fluid w-100 lazy' or 'img-fluid w-100',
         src_attr: img.replace('.svg', '.png'),
     }
     imgparams.update(params)
