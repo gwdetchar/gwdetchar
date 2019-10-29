@@ -163,10 +163,12 @@ FLAG_HTML_WITH_PLOTS = FLAG_CONTENT.format(
     plots='\n<div class="row scaffold">\n<div class="col-sm-12">\n<a '
           'href="plots/X1-TEST_FLAG-0-66.png" id="a_X1-TEST_FLAG_66" '
           'title="Known (small) and active (large) analysis segments for '
-          'X1:TEST_FLAG" class="fancybox" target="_blank" data-fancybox='
-          '"gallery" data-fancybox-group="images">\n<img id="img_X1-TEST_FLAG'
-          '_66" alt="X1-TEST_FLAG-0-66.png" class="img-fluid" src="plots/X1-'
-          'TEST_FLAG-0-66.png" />\n</a>\n</div>\n</div>')
+          'X1:TEST_FLAG" class="fancybox" target="_blank" data-caption='
+          '"Known (small) and active (large) analysis segments for '
+          'X1:TEST_FLAG" data-fancybox="gallery" data-fancybox-group="images"'
+          '>\n<img id="img_X1-TEST_FLAG_66" alt="X1-TEST_FLAG-0-66.png" '
+          'class="img-fluid" src="plots/X1-TEST_FLAG-0-66.png" />\n</a>\n'
+          '</div>\n</div>')
 
 FLAG_HTML_NO_SEGMENTS = FLAG_CONTENT.format(
     content='<p>No segments were found.</p>', plots='')
@@ -188,17 +190,17 @@ OMEGA_SCAFFOLD = """<div class="card card-x1">
 </div>
 <div class="row scaffold">
 <div class="col-sm-4">
-<a href="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" id="a_X1-STRAIN_1" title="X1-STRAIN-qscan_whitened-1.png" class="fancybox" target="_blank" data-fancybox="gallery" data-fancybox-group="images">
+<a href="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" id="a_X1-STRAIN_1" title="X1-STRAIN-qscan_whitened-1.png" class="fancybox" target="_blank" data-caption="X1-STRAIN-qscan_whitened-1.png" data-fancybox="gallery" data-fancybox-group="images">
 <img id="img_X1-STRAIN_1" alt="X1-STRAIN-qscan_whitened-1.png" class="img-fluid lazy" data-src="./1126259462/plots/X1-STRAIN-qscan_whitened-1.png" />
 </a>
 </div>
 <div class="col-sm-4">
-<a href="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" id="a_X1-STRAIN_4" title="X1-STRAIN-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox="gallery" data-fancybox-group="images">
+<a href="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" id="a_X1-STRAIN_4" title="X1-STRAIN-qscan_whitened-4.png" class="fancybox" target="_blank" data-caption="X1-STRAIN-qscan_whitened-4.png" data-fancybox="gallery" data-fancybox-group="images">
 <img id="img_X1-STRAIN_4" alt="X1-STRAIN-qscan_whitened-4.png" class="img-fluid lazy" data-src="./1126259462/plots/X1-STRAIN-qscan_whitened-4.png" />
 </a>
 </div>
 <div class="col-sm-4">
-<a href="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" id="a_X1-STRAIN_16" title="X1-STRAIN-qscan_whitened-16.png" class="fancybox" target="_blank" data-fancybox="gallery" data-fancybox-group="images">
+<a href="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" id="a_X1-STRAIN_16" title="X1-STRAIN-qscan_whitened-16.png" class="fancybox" target="_blank" data-caption="X1-STRAIN-qscan_whitened-16.png" data-fancybox="gallery" data-fancybox-group="images">
 <img id="img_X1-STRAIN_16" alt="X1-STRAIN-qscan_whitened-16.png" class="img-fluid lazy" data-src="./1126259462/plots/X1-STRAIN-qscan_whitened-16.png" />
 </a>
 </div>
@@ -404,9 +406,10 @@ def test_fancybox_img():
     assert parse_html(out) == parse_html(
         '<a href="X1-TEST_AUX-test-4.png" id="a_X1-TEST_AUX_4" '
         'title="X1-TEST_AUX-test-4.png" class="fancybox" target="_blank" '
-        'data-fancybox="gallery" data-fancybox-group="images">\n'
-        '<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-test-4.png" '
-        'class="img-fluid" src="X1-TEST_AUX-test-4.png" />\n</a>')
+        'data-caption="X1-TEST_AUX-test-4.png" data-fancybox="gallery" '
+        'data-fancybox-group="images">\n<img id="img_X1-TEST_AUX_4" '
+        'alt="X1-TEST_AUX-test-4.png" class="img-fluid" '
+        'src="X1-TEST_AUX-test-4.png" />\n</a>')
 
 
 def test_scaffold_plots():
@@ -417,13 +420,15 @@ def test_scaffold_plots():
         '<div class="row scaffold">\n<div class="col-sm-6">\n'
         '<a href="X1-TEST_AUX-test-4.png" id="a_X1-TEST_AUX_4" '
         'title="X1-TEST_AUX-test-4.png" class="fancybox" target="_blank" '
-        'data-fancybox="gallery" data-fancybox-group="images">\n'
+        'data-caption="X1-TEST_AUX-test-4.png" data-fancybox="gallery" '
+        'data-fancybox-group="images">\n'
         '<img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-test-4.png" '
         'class="img-fluid lazy" data-src="X1-TEST_AUX-test-4.png" />\n'
         '</a>\n</div>\n<div class="col-sm-6">\n'
         '<a href="X1-TEST_AUX-test-16.png" id="a_X1-TEST_AUX_16" '
         'title="X1-TEST_AUX-test-16.png" class="fancybox" target="_blank" '
-        'data-fancybox="gallery" data-fancybox-group="images">\n'
+        'data-caption="X1-TEST_AUX-test-16.png" data-fancybox="gallery" '
+        'data-fancybox-group="images">\n'
         '<img id="img_X1-TEST_AUX_16" alt="X1-TEST_AUX-test-16.png" '
         'class="img-fluid lazy" data-src="X1-TEST_AUX-test-16.png" />\n'
         '</a>\n</div>\n</div>')

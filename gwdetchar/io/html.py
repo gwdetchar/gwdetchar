@@ -740,6 +740,7 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
         'title': img.caption,
         'class_': 'fancybox',
         'target': '_blank',
+        'data-caption': img.caption,
         'data-fancybox': 'gallery',
         'data-fancybox-group': 'images',
     }

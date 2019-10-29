@@ -191,9 +191,9 @@ BLOCK_HTML = """<div class="card card-x1 mb-5 shadow-sm">
 </div>
 </div>
 </div>
-<div class="row">
+<div class="row scaffold">
 <div class="col-sm-12">
-<a href="plots/X1-TEST_AUX-qscan_whitened-4.png" id="a_X1-TEST_AUX_4" title="X1-TEST_AUX-qscan_whitened-4.png" class="fancybox" target="_blank" data-fancybox="gallery" data-fancybox-group="images">
+<a href="plots/X1-TEST_AUX-qscan_whitened-4.png" id="a_X1-TEST_AUX_4" title="X1-TEST_AUX-qscan_whitened-4.png" class="fancybox" target="_blank" data-caption="X1-TEST_AUX-qscan_whitened-4.png" data-fancybox="gallery" data-fancybox-group="images">
 <img id="img_X1-TEST_AUX_4" alt="X1-TEST_AUX-qscan_whitened-4.png" class="img-fluid lazy" data-src="plots/X1-TEST_AUX-qscan_whitened-4.png" />
 </a>
 </div>
