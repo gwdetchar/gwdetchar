@@ -445,13 +445,15 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
         column = ''
     else:
         ncol = min(ngroup, 4)
-        column = 'col-12 col-md-%d' % (12 // ncol)
+        column = 'col-sm-12 col-md-%d' % (12 // ncol)
 
     # dropdown elements
     if column:
-        page.ul(class_='dropdown-menu dropdown-%d-col row shadow' % ncol)
+        page.div(class_='dropdown-menu dropdown-%d-col shadow' % ncol)
+        page.div(class_='container')
+        page.div(class_='row')
     else:
-        page.ul(class_='dropdown-menu shadow')
+        page.div(class_='dropdown-menu shadow')
     for i, link in enumerate(links):
         if isinstance(active, int) and i == active:
             active_ = True
@@ -460,7 +462,10 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
         else:
             active_ = False
         dropdown_link(page, link, active=active_, class_=column)
-    page.ul.close()
+    if column:
+        page.div.close()  # row
+        page.div.close()  # container
+    page.div.close()
     return page()
 
 
@@ -482,25 +487,22 @@ def dropdown_link(page, link, active=False, class_=''):
     class_ : `str`, optional
         object class of the link, default: `''`
     """
-    if link is None:
-        page.li(class_='dropdown-divider')
-    elif active is True:
-        page.li(class_='active')
-    else:
-        page.li()
-    if isinstance(link, (tuple, list)):
+    if link in [None, '']:
+        page.div('', class_='dropdown-divider')
+    elif isinstance(link, (tuple, list)):
         if isinstance(link[1], (tuple, list)):
-            page.ul(class_=class_ + ' list-unstyled')
-            page.li(link[0], class_='dropdown-header')
+            page.div(class_=class_)
+            page.h6(link[0], class_='dropdown-header')
             for j, link2 in enumerate(link[1]):
                 dropdown_link(page, link2,
                               active=(type(active) is int and active == j))
-            page.ul.close()
+            page.div.close()
         else:
-            page.a(link[0], href=link[1], class_='dropdown-item')
+            page.a(link[0], href=link[1],
+                   class_=('dropdown-item active' if active is True
+                           else 'dropdown-item'))
     elif link is not None:
         page.add(str(link))
-    page.li.close()
 
 
 def get_brand(ifo, name, gps, about=None):
