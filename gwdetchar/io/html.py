@@ -450,7 +450,6 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
     # dropdown elements
     if column:
         page.div(class_='dropdown-menu dropdown-%d-col shadow' % ncol)
-        page.div(class_='container')
         page.div(class_='row')
     else:
         page.div(class_='dropdown-menu shadow')
@@ -464,7 +463,6 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
         dropdown_link(page, link, active=active_, class_=column)
     if column:
         page.div.close()  # row
-        page.div.close()  # container
     page.div.close()
     return page()
 
@@ -595,7 +593,7 @@ def about_this_page(config, packagelist=True):
     elif isinstance(config, list):
         page.div(id_='accordion')
         for i, cpfile in enumerate(config):
-            page.div(class_='card bg-light mb-1 shadow-sm')
+            page.div(class_='card mb-1 shadow-sm')
             page.div(class_='card-header')
             page.a(
                 os.path.basename(cpfile), class_='collapsed card-link',
@@ -1298,7 +1296,7 @@ def package_table(
     # create page and write <table>
     page = markup.page(separator="")
     if h2 is not None:
-        page.h2(h2)
+        page.h2(h2, class_='mt-4')
     headers = [head.title() for head in cols]
     data = [[pkg[col.lower()] for col in cols]
             for pkg in sorted(pkgs, key=itemgetter("name"))]

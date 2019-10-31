@@ -88,7 +88,7 @@ ABOUT = """<div class="row">
 <span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
 </pre></div>
 
-<h2>Environment</h2><table class="table table-sm table-hover table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-outline-secondary btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
+<h2 class="mt-4">Environment</h2><table class="table table-sm table-hover table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-outline-secondary btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
 </div>
 </div>""".format(sys.prefix)  # noqa: E501
 
@@ -103,7 +103,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
 <div id="accordion">
-<div class="card bg-light mb-1 shadow-sm">
+<div class="card mb-1 shadow-sm">
 <div class="card-header">
 <a class="collapsed card-link" href="#file0" data-toggle="collapse">test.ini</a>
 </div>
@@ -117,7 +117,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 </div>
 </div>
 </div>
-<h2>Environment</h2><table class="table table-sm table-hover table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-outline-secondary btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
+<h2 class="mt-4">Environment</h2><table class="table table-sm table-hover table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-outline-secondary btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
 </div>
 </div>""".format(sys.prefix)  # noqa: E501
 
@@ -562,7 +562,8 @@ def test_package_table(package_list):
     assert parse_html(
         html.package_table(class_="test", caption="Test"),
     ) == parse_html(
-        '<h2>Environment</h2><table class="test" id="package-table"><caption>'
+        '<h2 class="mt-4">Environment</h2>'
+        '<table class="test" id="package-table"><caption>'
         'Test</caption><thead><tr><th scope="col">Name</th><th scope="col">'
         'Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td>'
         '</tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button '
