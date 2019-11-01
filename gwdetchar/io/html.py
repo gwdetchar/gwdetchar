@@ -441,21 +441,28 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
     # work out columns
     ngroup = sum([isinstance(x, (tuple, list)) and len(x) and
                   isinstance(x[1], (tuple, list)) for x in links])
-    ncol = 1 or min(ngroup, 4)
-    column = 'col-sm-12 col-md-%d' % (12 // ncol)
+    ncol = min(ngroup, 4) or 1
+    page.div(class_='dropdown-menu dropdown-%d-col shadow' % ncol)
 
     # dropdown elements
-    page.div(class_='dropdown-menu dropdown-%d-col shadow' % ncol)
-    page.div(class_='row')
     for i, link in enumerate(links):
+        # handle active links
         if isinstance(active, int) and i == active:
             active_ = True
         elif isinstance(active, (list, tuple)) and i == active[0]:
             active_ = active[1]
         else:
             active_ = False
-        dropdown_link(page, link, active=active_, class_=column)
-    page.div.close()  # row
+        # handle multi-column
+        if isinstance(link, (tuple, list)):
+            page.div(class_='row')
+            dropdown_link(page, link, active=active_,
+                          class_='col-sm-12 col-md-%d' % (12 // ncol))
+            page.div.close()  # row
+        else:
+            dropdown_link(page, link, active=active_)
+
+    # close and return
     page.div.close()  # dropdown-menu
     return page()
 
