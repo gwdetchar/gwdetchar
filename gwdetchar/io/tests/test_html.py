@@ -105,7 +105,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <div id="accordion">
 <div class="card mb-1 shadow-sm">
 <div class="card-header">
-<a class="collapsed card-link" href="#file0" data-toggle="collapse">test.ini</a>
+<a class="collapsed card-link cis-link" href="#file0" data-toggle="collapse">test.ini</a>
 </div>
 <div id="file0" class="collapse" data-parent="#accordion">
 <div class="card-body">

@@ -596,8 +596,11 @@ def about_this_page(config, packagelist=True):
             page.div(class_='card mb-1 shadow-sm')
             page.div(class_='card-header')
             page.a(
-                os.path.basename(cpfile), class_='collapsed card-link',
-                href='#file%d' % i, **{'data-toggle': 'collapse'})
+                os.path.basename(cpfile),
+                class_='collapsed card-link cis-link',
+                href='#file%d' % i,
+                **{'data-toggle': 'collapse'}
+            )
             page.div.close()  # card-header
             page.div(id_='file%d' % i, class_='collapse',
                      **{'data-parent': '#accordion'})
