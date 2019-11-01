@@ -52,10 +52,12 @@ HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo} shad
 </li>
 <li class="nav-item dropdown">
 <a href="#" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown">GW</a>
-<div class="dropdown-menu shadow">
-<div class="">
+<div class="dropdown-menu dropdown-1-col shadow">
+<div class="row">
+<div class="col-sm-12 col-md-12">
 <h6 class="dropdown-header">Gravitational-Wave Strain</h6>
 <a href="#x1-test-aux" class="dropdown-item">X1:TEST-AUX</a>
+</div>
 </div>
 </div>
 </li>
