@@ -434,13 +434,22 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
                <li>link</li>
            </ul>
     """
+    def has_columns(items_):
+        return (isinstance(items_, (tuple, list)) and len(items_)
+                and isinstance(items_[1], (tuple, list)))
+
+    def has_open_row(page_):
+        tags = page_.content
+        divs = [t for t in tags if ('<div' in t)]
+        cldivs = [t for t in tags if ('</div' in t)]
+        return len(cldivs) != len(divs) - 1
+
     page = markup.page()
     page.a(text, href='#', class_=class_, role='button',
            **{'data-toggle': 'dropdown'})
 
     # work out columns
-    ngroup = sum([isinstance(x, (tuple, list)) and len(x) and
-                  isinstance(x[1], (tuple, list)) for x in links])
+    ngroup = sum([has_columns(x) for x in links])
     ncol = min(ngroup, 4) or 1
     page.div(class_='dropdown-menu dropdown-%d-col shadow' % ncol)
 
@@ -454,15 +463,17 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
         else:
             active_ = False
         # handle multi-column
-        if isinstance(link, (tuple, list)):
-            page.div(class_='row')
+        if has_columns(link):
+            if not has_open_row(page):
+                page.div(class_='row')
             dropdown_link(page, link, active=active_,
                           class_='col-sm-12 col-md-%d' % (12 // ncol))
-            page.div.close()  # row
         else:
             dropdown_link(page, link, active=active_)
 
     # close and return
+    if has_open_row(page):
+        page.div.close()  # row
     page.div.close()  # dropdown-menu
     return page()
 

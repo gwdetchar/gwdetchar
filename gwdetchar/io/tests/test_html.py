@@ -273,26 +273,26 @@ def test_dropdown():
     menu = html.dropdown('test', [])
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu shadow">'
-        '\n</div>')
+        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu '
+        'dropdown-1-col shadow">\n</div>')
 
     menu = html.dropdown('test', ['test', '#'], active=0)
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu shadow">'
-        '\ntest\n#\n</div>')
+        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu '
+        'dropdown-1-col shadow">\ntest\n#\n</div>')
 
     menu = html.dropdown('test', ['test', '#'], active=[0, 1])
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu shadow">\n'
-        'test\n#\n</div>')
+        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu '
+        'dropdown-1-col shadow">\ntest\n#\n</div>')
 
     menu = html.dropdown('<test />', ['test', '#'], active=[0, 1])
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
         'data-toggle="dropdown"><test /></a>\n<div class="dropdown-menu '
-        'shadow">\ntest\n#\n</div>')
+        'dropdown-1-col shadow">\ntest\n#\n</div>')
 
 
 def test_dropdown_link():
