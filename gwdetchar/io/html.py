@@ -1017,7 +1017,7 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
     # add export button
     if id:
         page.button(
-            'Export to CSV', class_='btn btn-outline-secondary btn-table',
+            'Export to CSV', class_='btn btn-outline-secondary btn-table mt-2',
             **{'data-table-id': id, 'data-filename': '%s.csv' % id})
     return page()
 
