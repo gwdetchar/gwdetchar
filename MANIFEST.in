@@ -1,5 +1,3 @@
 include README.rst LICENSE MANIFEST.in
-include versioneer.py setup.py _setup_utils.py
+include versioneer.py setup.py
 include gwdetchar/_version.py
-recursive-include gwdetchar/_static *.min.css *.min.js
-recursive-include gwbootstrap *.scss *.js
