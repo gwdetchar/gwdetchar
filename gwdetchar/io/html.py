@@ -944,7 +944,6 @@ def alert(text, context='info', dismiss=True):
         the rendered dialog box object
     """
     page = markup.page()
-    text = (text,) if isinstance(text, str) else text
     class_ = ('alert alert-%s alert-dismissible fade show shadow-sm' % context
               if dismiss else 'alert alert-%s shadow-sm' % context)
     page.div(class_=class_)
@@ -953,8 +952,11 @@ def alert(text, context='info', dismiss=True):
                     **{'data-dismiss': 'alert', 'aria-label': 'Close'})
         page.span('&times;', **{'aria-hidden': "true"})
         page.button.close()
-    for msg in text:
-        page.add(str(msg))
+    if isinstance(text, (list, tuple)):
+        for msg in text:
+            page.p(str(msg))
+    else:
+        page.add(str(text))
     page.div.close()
     return page()
 
