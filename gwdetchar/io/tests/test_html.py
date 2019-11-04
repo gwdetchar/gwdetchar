@@ -88,7 +88,7 @@ ABOUT = """<div class="row">
 <span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
 </pre></div>
 
-<h2>Environment</h2><table class="table table-sm table-hover table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-outline-secondary btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
+<h2 class="mt-4">Environment</h2><table class="table table-sm table-hover table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-outline-secondary btn-table mt-2" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
 </div>
 </div>""".format(sys.prefix)  # noqa: E501
 
@@ -103,9 +103,9 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
 <div id="accordion">
-<div class="card bg-light mb-1 shadow-sm">
+<div class="card mb-1 shadow-sm">
 <div class="card-header">
-<a class="collapsed card-link" href="#file0" data-toggle="collapse">test.ini</a>
+<a class="collapsed card-link cis-link" href="#file0" data-toggle="collapse">test.ini</a>
 </div>
 <div id="file0" class="collapse" data-parent="#accordion">
 <div class="card-body">
@@ -117,7 +117,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 </div>
 </div>
 </div>
-<h2>Environment</h2><table class="table table-sm table-hover table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-outline-secondary btn-table" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
+<h2 class="mt-4">Environment</h2><table class="table table-sm table-hover table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-outline-secondary btn-table mt-2" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
 </div>
 </div>""".format(sys.prefix)  # noqa: E501
 
@@ -273,26 +273,26 @@ def test_dropdown():
     menu = html.dropdown('test', [])
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu">'
-        '\n</div>')
+        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu '
+        'dropdown-1-col shadow">\n</div>')
 
     menu = html.dropdown('test', ['test', '#'], active=0)
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu">'
-        '\ntest\n#\n</div>')
+        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu '
+        'dropdown-1-col shadow">\ntest\n#\n</div>')
 
     menu = html.dropdown('test', ['test', '#'], active=[0, 1])
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu">\n'
-        'test\n#\n</div>')
+        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu '
+        'dropdown-1-col shadow">\ntest\n#\n</div>')
 
     menu = html.dropdown('<test />', ['test', '#'], active=[0, 1])
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown"><test /></a>\n<div class="dropdown-menu">\n'
-        'test\n#\n</div>')
+        'data-toggle="dropdown"><test /></a>\n<div class="dropdown-menu '
+        'dropdown-1-col shadow">\ntest\n#\n</div>')
 
 
 def test_dropdown_link():
@@ -319,8 +319,8 @@ def test_get_brand():
         '<ul class="nav navbar-nav">\n<li class="nav-item dropdown">\n'
         '<a class="nav-link dropdown-toggle" href="#" role="button" '
         'data-toggle="dropdown">Links</a>\n<div class="dropdown-menu '
-        'dropdown-menu-right">\n<h6 class="dropdown-header">Internal</h6>\n'
-        '<a href="about" class="dropdown-item">About this page</a>\n'
+        'dropdown-menu-right shadow">\n<h6 class="dropdown-header">Internal'
+        '</h6>\n<a href="about" class="dropdown-item">About this page</a>\n'
         '<div class="dropdown-divider"></div>\n<h6 class="dropdown-header">'
         'External</h6>\n<a href="https://ldas-jobs.ligo-wa.caltech.edu/'
         '~detchar/summary/day/19800106" class="dropdown-item" target="_blank">'
@@ -441,7 +441,7 @@ def test_download_btn():
         '<button type="button" class="btn btn-outline-secondary '
         'dropdown-toggle" data-toggle="dropdown" aria-expanded="false" '
         'aria-haspopup="true">Download summary</button>\n<div '
-        'class="dropdown-menu dropdown-menu-right">\n<a href="test" '
+        'class="dropdown-menu dropdown-menu-right shadow">\n<a href="test" '
         'download="test" class="dropdown-item">test</a>\n</div>\n</div>')
 
 
@@ -467,16 +467,25 @@ def test_alert():
         '</button>\ntest\n</div>')
 
 
+def test_alert_with_list():
+    page = html.alert(['test'])
+    assert parse_html(page) == parse_html(
+        '<div class="alert alert-info alert-dismissible fade show shadow-sm">'
+        '\n<button type="button" class="close" data-dismiss="alert" '
+        'aria-label="Close">\n<span aria-hidden="true">&times;</span>'
+        '\n</button>\n<p>test</p>\n</div>')
+
+
 def test_table():
     headers = ['Test']
     data = [['test']]
     caption = 'This is a test table.'
     page = html.table(headers=headers, data=data, caption=caption, id='test')
     assert parse_html(page) == parse_html(
-        '<table class="table table-sm table-hover" id="test">'
-        '<caption>This is a test table.</caption><thead><tr>'
-        '<th scope="col">Test</th></tr></thead><tbody><tr><td>test</td></tr>'
-        '</tbody></table><button class="btn btn-outline-secondary btn-table" '
+        '<table class="table table-sm table-hover" id="test"><caption>'
+        'This is a test table.</caption><thead><tr><th scope="col">Test'
+        '</th></tr></thead><tbody><tr><td>test</td></tr></tbody></table>'
+        '<button class="btn btn-outline-secondary btn-table mt-2" '
         'data-table-id="test" data-filename="test.csv">Export to CSV</button>')
 
 
@@ -562,11 +571,12 @@ def test_package_table(package_list):
     assert parse_html(
         html.package_table(class_="test", caption="Test"),
     ) == parse_html(
-        '<h2>Environment</h2><table class="test" id="package-table"><caption>'
+        '<h2 class="mt-4">Environment</h2>'
+        '<table class="test" id="package-table"><caption>'
         'Test</caption><thead><tr><th scope="col">Name</th><th scope="col">'
         'Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td>'
         '</tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button '
-        'class="btn btn-outline-secondary btn-table" data-table-id='
+        'class="btn btn-outline-secondary btn-table mt-2" data-table-id='
         '"package-table" data-filename="package-table.csv">Export to CSV'
         '</button>'
     )

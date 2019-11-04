@@ -501,7 +501,7 @@ def write_block(blockkey, block, context,
             page.button(ptitle, id_=_id, type='button',
                         class_='btn btn-%s dropdown-toggle' % context,
                         **{'data-toggle': 'dropdown'})
-            page.div(class_='dropdown-menu', **{'aria-labelledby': _id})
+            page.div(class_='dropdown-menu shadow', **{'aria-labelledby': _id})
             for ptype in ptypes:
                 page.add(toggle_link('{0}_{1}'.format(pclass, ptype),
                                      channel, channel.pranges))

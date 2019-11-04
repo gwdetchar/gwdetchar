@@ -52,10 +52,12 @@ HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo} shad
 </li>
 <li class="nav-item dropdown">
 <a href="#" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown">GW</a>
-<div class="dropdown-menu">
-<div class="">
+<div class="dropdown-menu dropdown-1-col shadow">
+<div class="row">
+<div class="col-sm-12 col-md-12">
 <h6 class="dropdown-header">Gravitational-Wave Strain</h6>
 <a href="#x1-test-aux" class="dropdown-item">X1:TEST-AUX</a>
+</div>
 </div>
 </div>
 </li>
@@ -63,7 +65,7 @@ HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo} shad
 <ul class="nav navbar-nav">
 <li class="nav-item dropdown">
 <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">Links</a>
-<div class="dropdown-menu dropdown-menu-right">
+<div class="dropdown-menu dropdown-menu-right shadow">
 <h6 class="dropdown-header">Internal</h6>
 <a href="about" class="dropdown-item">About this page</a>
 <div class="dropdown-divider"></div>
@@ -166,7 +168,7 @@ BLOCK_HTML = """<div class="card card-x1 mb-5 shadow-sm">
 <div class="btn-group flex-wrap" role="group">
 <div class="btn-group" role="group">
 <button id="btnGroupTimeseries0" type="button" class="btn btn-x1 dropdown-toggle" data-toggle="dropdown">Timeseries</button>
-<div class="dropdown-menu" aria-labelledby="btnGroupTimeseries0">
+<div class="dropdown-menu shadow" aria-labelledby="btnGroupTimeseries0">
 <a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_raw-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_raw" data-t-ranges="[&quot;4&quot;]">raw</a>
 <a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a>
 <a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-timeseries_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="timeseries_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a>
@@ -174,7 +176,7 @@ BLOCK_HTML = """<div class="card card-x1 mb-5 shadow-sm">
 </div>
 <div class="btn-group" role="group">
 <button id="btnGroupQscan0" type="button" class="btn btn-x1 dropdown-toggle" data-toggle="dropdown">Spectrogram</button>
-<div class="dropdown-menu" aria-labelledby="btnGroupQscan0">
+<div class="dropdown-menu shadow" aria-labelledby="btnGroupQscan0">
 <a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a>
 <a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a>
 <a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-qscan_autoscaled-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="qscan_autoscaled" data-t-ranges="[&quot;4&quot;]">autoscaled</a>
@@ -182,7 +184,7 @@ BLOCK_HTML = """<div class="card card-x1 mb-5 shadow-sm">
 </div>
 <div class="btn-group" role="group">
 <button id="btnGroupEventgram0" type="button" class="btn btn-x1 dropdown-toggle" data-toggle="dropdown">Eventgram</button>
-<div class="dropdown-menu" aria-labelledby="btnGroupEventgram0">
+<div class="dropdown-menu shadow" aria-labelledby="btnGroupEventgram0">
 <a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_highpassed-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_highpassed" data-t-ranges="[&quot;4&quot;]">highpassed</a>
 <a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_whitened-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_whitened" data-t-ranges="[&quot;4&quot;]">whitened</a>
 <a class="dropdown-item image-switch" data-captions="[&quot;X1-TEST_AUX-eventgram_autoscaled-4.png&quot;]" data-channel-name="X1-TEST_AUX" data-image-dir="plots" data-image-type="eventgram_autoscaled" data-t-ranges="[&quot;4&quot;]">autoscaled</a>
@@ -254,8 +256,8 @@ def test_write_summary():
         '\n<button type="button" class="btn btn-l1 dropdown-toggle" '
         'data-toggle="dropdown" aria-expanded="false" aria-haspopup="true">'
         'Download summary</button>\n<div class="dropdown-menu dropdown-menu-'
-        'right">\n<a href="data/summary.txt" download="L1_0_summary.txt" '
-        'class="dropdown-item">txt</a>\n<a href="data/summary.csv" download='
+        'right shadow">\n<a href="data/summary.txt" download="L1_0_summary.txt'
+        '" class="dropdown-item">txt</a>\n<a href="data/summary.csv" download='
         '"L1_0_summary.csv" class="dropdown-item">csv</a>'
         '\n<a href="data/summary.tex" download="L1_0_summary.tex" '
         'class="dropdown-item">tex</a>\n</div>\n</div>\n</div>\n</div>'

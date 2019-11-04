@@ -434,33 +434,47 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
                <li>link</li>
            </ul>
     """
+    def has_columns(items_):
+        return (isinstance(items_, (tuple, list)) and len(items_)
+                and isinstance(items_[1], (tuple, list)))
+
+    def has_open_row(page_):
+        tags = page_.content
+        divs = [t for t in tags if ('<div' in t)]
+        cldivs = [t for t in tags if ('</div' in t)]
+        return len(cldivs) != len(divs) - 1
+
     page = markup.page()
     page.a(text, href='#', class_=class_, role='button',
            **{'data-toggle': 'dropdown'})
 
     # work out columns
-    ngroup = sum([isinstance(x, (tuple, list)) and len(x) and
-                 isinstance(x[1], (tuple, list)) for x in links])
-    if ngroup < 2:
-        column = ''
-    else:
-        ncol = min(ngroup, 4)
-        column = 'col-12 col-md-%d' % (12 // ncol)
+    ngroup = sum([has_columns(x) for x in links])
+    ncol = min(ngroup, 4) or 1
+    page.div(class_='dropdown-menu dropdown-%d-col shadow' % ncol)
 
     # dropdown elements
-    if column:
-        page.div(class_='dropdown-menu dropdown-%d-col row' % ncol)
-    else:
-        page.div(class_='dropdown-menu')
     for i, link in enumerate(links):
+        # handle active links
         if isinstance(active, int) and i == active:
             active_ = True
         elif isinstance(active, (list, tuple)) and i == active[0]:
             active_ = active[1]
         else:
             active_ = False
-        dropdown_link(page, link, active=active_, class_=column)
-    page.div.close()
+        # handle multi-column
+        if has_columns(link):
+            if not has_open_row(page):
+                page.div(class_='row')
+            dropdown_link(page, link, active=active_,
+                          class_='col-sm-12 col-md-%d' % (12 // ncol))
+        else:
+            dropdown_link(page, link, active=active_)
+
+    # close and return
+    if has_open_row(page):
+        page.div.close()  # row
+    page.div.close()  # dropdown-menu
     return page()
 
 
@@ -536,7 +550,7 @@ def get_brand(ifo, name, gps, about=None):
     page.li(class_='nav-item dropdown')
     page.a('Links', class_='nav-link dropdown-toggle',
            href='#', role='button', **{'data-toggle': 'dropdown'})
-    page.div(class_='dropdown-menu dropdown-menu-right')
+    page.div(class_='dropdown-menu dropdown-menu-right shadow')
     if about is not None:
         page.h6('Internal', class_='dropdown-header')
         page.a('About this page', href=about, class_='dropdown-item')
@@ -590,11 +604,14 @@ def about_this_page(config, packagelist=True):
     elif isinstance(config, list):
         page.div(id_='accordion')
         for i, cpfile in enumerate(config):
-            page.div(class_='card bg-light mb-1 shadow-sm')
+            page.div(class_='card mb-1 shadow-sm')
             page.div(class_='card-header')
             page.a(
-                os.path.basename(cpfile), class_='collapsed card-link',
-                href='#file%d' % i, **{'data-toggle': 'collapse'})
+                os.path.basename(cpfile),
+                class_='collapsed card-link cis-link',
+                href='#file%d' % i,
+                **{'data-toggle': 'collapse'}
+            )
             page.div.close()  # card-header
             page.div(id_='file%d' % i, class_='collapse',
                      **{'data-parent': '#accordion'})
@@ -832,7 +849,7 @@ def download_btn(content, label='Download summary',
                 **{'data-toggle': 'dropdown',
                    'aria-expanded': 'false',
                    'aria-haspopup': 'true'})
-    page.div(class_='dropdown-menu dropdown-menu-right')
+    page.div(class_='dropdown-menu dropdown-menu-right shadow')
     for item in content:
         if len(item) == 2:
             text, href = item
@@ -927,7 +944,6 @@ def alert(text, context='info', dismiss=True):
         the rendered dialog box object
     """
     page = markup.page()
-    text = (text,) if isinstance(text, str) else text
     class_ = ('alert alert-%s alert-dismissible fade show shadow-sm' % context
               if dismiss else 'alert alert-%s shadow-sm' % context)
     page.div(class_=class_)
@@ -936,8 +952,11 @@ def alert(text, context='info', dismiss=True):
                     **{'data-dismiss': 'alert', 'aria-label': 'Close'})
         page.span('&times;', **{'aria-hidden': "true"})
         page.button.close()
-    for msg in text:
-        page.add(str(msg))
+    if isinstance(text, (list, tuple)):
+        for msg in text:
+            page.p(str(msg))
+    else:
+        page.add(str(text))
     page.div.close()
     return page()
 
@@ -1000,7 +1019,7 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
     # add export button
     if id:
         page.button(
-            'Export to CSV', class_='btn btn-outline-secondary btn-table',
+            'Export to CSV', class_='btn btn-outline-secondary btn-table mt-2',
             **{'data-table-id': id, 'data-filename': '%s.csv' % id})
     return page()
 
@@ -1293,7 +1312,7 @@ def package_table(
     # create page and write <table>
     page = markup.page(separator="")
     if h2 is not None:
-        page.h2(h2)
+        page.h2(h2, class_='mt-4')
     headers = [head.title() for head in cols]
     data = [[pkg[col.lower()] for col in cols]
             for pkg in sorted(pkgs, key=itemgetter("name"))]
