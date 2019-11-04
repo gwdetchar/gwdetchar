@@ -39,7 +39,6 @@ except ImportError:  # python >= 3.6
     from pathlib import Path
 
 from inspect import (getmodule, stack)
-from pkg_resources import resource_filename
 
 from MarkupPy import markup
 
