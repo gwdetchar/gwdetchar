@@ -39,7 +39,6 @@ except ImportError:  # python >= 3.6
     from pathlib import Path
 
 from inspect import (getmodule, stack)
-from pkg_resources import resource_filename
 
 from MarkupPy import markup
 
@@ -125,12 +124,10 @@ BOOTSTRAP_JS = ('https://stackpath.bootstrapcdn.com/bootstrap/'
 FANCYBOX_JS = ('https://cdnjs.cloudflare.com/ajax/libs/'
                'fancybox/3.5.7/jquery.fancybox.min.js')
 
-GWBOOTSTRAP_CSS = resource_filename(
-    'gwdetchar',
-    '_static/gwbootstrap.min.css')
-GWBOOTSTRAP_JS = resource_filename(
-    'gwdetchar',
-    '_static/gwbootstrap.min.js')
+GWBOOTSTRAP_CSS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.1.0/'
+                   'lib/gwbootstrap.min.css')
+GWBOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.1.0/'
+                  'lib/gwbootstrap.min.js')
 
 CSS_FILES = [
     FONT_AWESOME_CSS,

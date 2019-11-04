@@ -26,9 +26,6 @@ import sys
 
 from setuptools import (setup, find_packages)
 
-# local setup utilities
-from _setup_utils import CMDCLASS as cmdclass
-
 # set basic metadata
 PACKAGENAME = 'gwdetchar'
 DISTNAME = 'gwdetchar'
@@ -100,7 +97,6 @@ setup(name=DISTNAME,
       url='https://github.com/gwdetchar/gwdetchar',
       packages=packagenames,
       include_package_data=True,
-      cmdclass=cmdclass,
       scripts=scripts,
       setup_requires=setup_requires,
       install_requires=install_requires,
