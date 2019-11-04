@@ -104,7 +104,7 @@ parser.add_argument('-L', '--bandpass-flow', type=float, default=4.0,
 parser.add_argument('-H', '--bandpass-fhigh', type=float, default=10.0,
                     help='upper-limit (Hz) of the passband for whitened '
                          'BLRMS, default: %(default)s')
-parser.add_argument('-S', '--sigma', type=float, default=6,
+parser.add_argument('-S', '--sigma', type=float, default=2,
                     help='significance threshold on whitened BLRMS, '
                          'default: %(default)s')
 parser.add_argument('-c', '--main-channel', default='{IFO}:GDS-CALIB_STRAIN',
@@ -633,6 +633,7 @@ for i, channel in enumerate(sorted(transmons)):
         deadtimepc = 0.
     logger.info("Deadtime: %.2f%% (%.2f/%ds)"
                 % (deadtimepc, deadtime, livetime))
+    highsnrtrigs = trigs[trigs['snr'] <= 200]
     efficiency = in_segmentlist(highsnrtrigs[names[0]],
                                 scatter_segments[channel].active).sum()
     try:
