@@ -42,8 +42,6 @@ __version__ = versioneer.get_version()
 
 # build
 setup_requires = [
-    'jsmin',
-    'libsass',
     'setuptools',
 ]
 

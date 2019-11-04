@@ -5,9 +5,7 @@ dqsegdb
 gwdatafind
 gwpy >= 0.13.0
 gwtrigfind
-jsmin
 lalsuite
-libsass
 lscsoft-glue >= 2.0.0
 lxml
 matplotlib >= 2.0.0
