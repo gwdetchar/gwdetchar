@@ -463,18 +463,18 @@ def test_parameter_table():
 def test_alert():
     page = html.alert('test')
     assert parse_html(page) == parse_html(
-        '<div class="alert alert-info alert-dismissible fade show shadow-sm">'
-        '\n<button type="button" class="close" data-dismiss="alert" '
-        'aria-label="Close">\n<span aria-hidden="true">&times;</span>\n'
-        '</button>\ntest\n</div>')
+        '<div class="alert alert-info alert-dismissible fade show text-justify'
+        ' shadow-sm">\n<button type="button" class="close" data-dismiss='
+        '"alert" aria-label="Close">\n<span aria-hidden="true">&times;</span>'
+        '\n</button>\ntest\n</div>')
 
 
 def test_alert_with_list():
     page = html.alert(['test'])
     assert parse_html(page) == parse_html(
-        '<div class="alert alert-info alert-dismissible fade show shadow-sm">'
-        '\n<button type="button" class="close" data-dismiss="alert" '
-        'aria-label="Close">\n<span aria-hidden="true">&times;</span>'
+        '<div class="alert alert-info alert-dismissible fade show text-justify'
+        ' shadow-sm">\n<button type="button" class="close" data-dismiss='
+        '"alert" aria-label="Close">\n<span aria-hidden="true">&times;</span>'
         '\n</button>\n<p>test</p>\n</div>')
 
 

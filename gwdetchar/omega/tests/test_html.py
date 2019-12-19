@@ -261,9 +261,9 @@ def test_write_summary():
         '"L1_0_summary.csv" class="dropdown-item">csv</a>'
         '\n<a href="data/summary.tex" download="L1_0_summary.tex" '
         'class="dropdown-item">tex</a>\n</div>\n</div>\n</div>\n</div>'
-        '\n<div class="alert alert-l1 alert-dismissible fade show '
-        'shadow-sm">\n<button type="button" class="close" data-dismiss="alert"'
-        'aria-label="Close">\n<span aria-hidden="true">&times;</span>\n'
+        '\n<div class="alert alert-l1 alert-dismissible fade show text-justify'
+        ' shadow-sm">\n<button type="button" class="close" data-dismiss='
+        '"alert"aria-label="Close">\n<span aria-hidden="true">&times;</span>\n'
         '</button>\n<strong>Note</strong>: This scan is in progress, and will '
         'auto-refresh every 60 seconds until completion.\n</div>')
 

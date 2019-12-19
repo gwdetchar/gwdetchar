@@ -941,8 +941,9 @@ def alert(text, context='info', dismiss=True):
         the rendered dialog box object
     """
     page = markup.page()
-    class_ = ('alert alert-%s alert-dismissible fade show shadow-sm' % context
-              if dismiss else 'alert alert-%s shadow-sm' % context)
+    class_ = ('alert alert-%s alert-dismissible fade show text-justify '
+              'shadow-sm' % context if dismiss else
+              'alert alert-%s text-justify shadow-sm' % context)
     page.div(class_=class_)
     if dismiss:  # add close button
         page.button(type_="button", class_="close",
