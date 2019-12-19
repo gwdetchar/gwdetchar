@@ -251,7 +251,7 @@ if args.html:
            "the LIMIT value set in software. Signals that achieve saturation "
            "are shown below, and saturation segments are available by "
            "expanding a given panel.").format(sum(map(len, channels)))
-    page.add(htmlio.alert(msg))
+    page.add(htmlio.alert(msg), context=ifo.lower())
     # record state segments
     if args.state_flag:
         page.h3('State flag', class_='mt-3', id_='state-flag')
@@ -276,11 +276,11 @@ if args.html:
         page.div.close()
     else:
         page.add(htmlio.alert('No software saturations were found in this '
-                              'analysis', dismiss=False))
+                              'analysis', context=ifo.lower(), dismiss=False))
     # -- results table
     page.h2('Results summary', class_='mt-4', id_='results')
     page.add(htmlio.alert("All channels for which the LIMIT setting was "
-                          "active are shown below."))
+                          "active are shown below.", context=ifo.lower()))
     page.table(class_='table table-striped table-hover')
     # write table header
     page.thead()

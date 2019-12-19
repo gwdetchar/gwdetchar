@@ -315,7 +315,7 @@ def write_summary(
         page.add(htmlio.alert(
             ('<strong>Note</strong>: This scan is in progress, and will '
              'auto-refresh every 60 seconds until completion.'),
-            context='warning'))
+            context=ifo.lower()))
     return page()
 
 
@@ -564,7 +564,7 @@ def write_qscan_page(blocks, context):
 
 
 @wrap_html
-def write_null_page(reason):
+def write_null_page(reason, context='info'):
     """Write the Qscan results to HTML
 
     Parameters
@@ -578,13 +578,16 @@ def write_null_page(reason):
     reason : `str`
         the explanation for this null result
 
+    context : `str`
+        type of bootstrap alert box to use, default: ``info``
+
     Returns
     -------
     index : `str`
         the path of the HTML written for this analysis
     """
     page = markup.page()
-    page.add(htmlio.alert(reason, 'info', dismiss=False))
+    page.add(htmlio.alert(reason, context=context, dismiss=False))
     return page
 
 
