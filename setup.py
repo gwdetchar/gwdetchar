@@ -53,7 +53,7 @@ install_requires = [
     'gwtrigfind',
     'MarkupPy>=1.14',
     'matplotlib>=2.0.0',
-    'numpy>=1.10',
+    'numpy>=1.16',
     'pandas',
     'pycondor',
     'pytz',

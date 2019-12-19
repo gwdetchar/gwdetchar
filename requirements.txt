@@ -10,7 +10,7 @@ lscsoft-glue >= 2.0.0
 lxml
 matplotlib >= 2.0.0
 MarkupPy >=1.14
-numpy >= 1.10
+numpy >= 1.16
 pandas
 pycondor
 pytz

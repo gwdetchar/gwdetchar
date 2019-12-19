@@ -294,7 +294,7 @@ if statea:  # contextual information
            "yellow panels denote weak evidence for scattering, while red "
            "panels denote strong evidence.").format(
                args.fmin, multiplier * args.frequency_threshold, str(paper))
-    page.add(htmlio.alert(msg))
+    page.add(htmlio.alert(msg), context=args.ifo.lower())
 else:  # null segments
     page.add(htmlio.alert('No active analysis segments were found',
                           context='warning', dismiss=False))
@@ -669,7 +669,7 @@ actives = actives.coalesce()  # merge contiguous segments
 if statea and not actives:
     page.add(htmlio.alert(
         'No evidence of scattering found in the channels analyzed',
-        dismiss=False))
+        context=args.ifo.lower(), dismiss=False))
 
 # identify triggers during active segments
 logger.debug('Writing a summary CSV record')
@@ -712,7 +712,7 @@ if nscans > 0:
            'To compare these against fringe frequency projections, please '
            'use the scattering module:',
            markup.oneliner.pre('$ python -m gwdetchar.scattering --help'))
-    page.add(htmlio.alert(msg, context='secondary'))
+    page.add(htmlio.alert(msg, context=args.ifo.lower()))
     page.add(htmlio.scaffold_omega_scans(
         omegatimes, args.main_channel, scandir=scandir))
 elif args.omega_scans:
