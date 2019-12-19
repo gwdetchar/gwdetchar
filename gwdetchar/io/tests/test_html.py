@@ -57,14 +57,14 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 <base href="{base}" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/fontawesome.min.css" rel="stylesheet" media="all" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/solid.min.css" rel="stylesheet" media="all" />
-<link href="https://cdn.jsdelivr.net/npm/gwbootstrap@1.1.0/lib/gwbootstrap.min.css" rel="stylesheet" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" media="all" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" media="all" />
+<link href="https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.0/lib/gwbootstrap.min.css" rel="stylesheet" media="all" />
 <script src="https://code.jquery.com/jquery-3.4.1.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.9/jquery.lazy.min.js" type="text/javascript"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.10/jquery.lazy.min.js" type="text/javascript"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" type="text/javascript"></script>
-<script src="https://cdn.jsdelivr.net/npm/gwbootstrap@1.1.0/lib/gwbootstrap.min.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.0/lib/gwbootstrap.min.js" type="text/javascript"></script>
 </head>
 <body>
 <div class="container">
@@ -234,21 +234,21 @@ def test_finalize_static_urls(tmpdir):
         static, base, html.CSS_FILES, html.JS_FILES)
     assert css == [
         'https://cdnjs.cloudflare.com/ajax/libs/'
-            'font-awesome/5.10.2/css/fontawesome.min.css',  # noqa: E131
+            'font-awesome/5.11.2/css/fontawesome.min.css',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
-            '5.10.2/css/solid.min.css',  # noqa: E131
-        'https://cdn.jsdelivr.net/npm/gwbootstrap@1.1.0/'
+            '5.11.2/css/solid.min.css',  # noqa: E131
+        'https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.0/'
             'lib/gwbootstrap.min.css',  # noqa E131
     ]
     assert js == [
         'https://code.jquery.com/jquery-3.4.1.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.9/'
+        'https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.10/'
             'jquery.lazy.min.js',  # noqa: E131
-        'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/'
+        'https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/'
             'bootstrap.bundle.min.js',  # noqa: E131
         'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
             'jquery.fancybox.min.js',  # noqa E131
-        'https://cdn.jsdelivr.net/npm/gwbootstrap@1.1.0/'
+        'https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.0/'
             'lib/gwbootstrap.min.js',  # noqa E131
     ]
     shutil.rmtree(str(tmpdir), ignore_errors=True)
