@@ -368,7 +368,7 @@ def write_ranking(toc, primary, thresh=6.5,
     pind = numpy.nonzero(entries['Channel'] == primary)
     # sort by matched-filter correlation
     ind_sorted = numpy.argsort(entries['Correlation'])[::-1]
-    if ind_sorted[0] != pind:
+    if not numpy.array_equiv(ind_sorted[0], pind):
         # prepend the primary channel
         dind = numpy.nonzero(ind_sorted == pind)
         ind_sorted = numpy.delete(ind_sorted, dind)
