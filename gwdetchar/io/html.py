@@ -124,9 +124,9 @@ BOOTSTRAP_JS = ('https://stackpath.bootstrapcdn.com/bootstrap/'
 FANCYBOX_JS = ('https://cdnjs.cloudflare.com/ajax/libs/'
                'fancybox/3.5.7/jquery.fancybox.min.js')
 
-GWBOOTSTRAP_CSS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.0/'
+GWBOOTSTRAP_CSS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.1/'
                    'lib/gwbootstrap.min.css')
-GWBOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.0/'
+GWBOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.1/'
                   'lib/gwbootstrap.min.js')
 
 CSS_FILES = [
