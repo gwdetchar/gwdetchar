@@ -103,7 +103,7 @@ def make_spectrum_plots(start, end, flower, fupper, channel_name,
     x_label = 'Frequency [Hz]'
     if ':GDS-CALIB_STRAIN' in channel_name:
         y_label = ('GW amplitude spectral density '
-                   '[strain/$\sqrt{\mathrm{Hz}}]$')  # noqa: W605
+                   '[strain/$\\sqrt{\\mathrm{Hz}}]$')
     else:
         y_label = 'Primary channel units'
     y_min = 0.1 * filtered_spectrum.min().value

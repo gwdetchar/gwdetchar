@@ -20,6 +20,7 @@
 """
 
 import os
+import pytest
 import shutil
 
 import numpy
@@ -32,12 +33,6 @@ from gwpy.timeseries import TimeSeries
 from .. import plot
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
-
-
-# global test objects
-
-DATA = numpy.random.normal(loc=0, scale=1, size=24*60)
-SERIES = TimeSeries(DATA, sample_rate=60, unit='Mpc', name='X1:TEST')
 
 
 # -- make sure plots run end-to-end -------------------------------------------
@@ -53,9 +48,18 @@ def test_configure_mpl_tex():
 
 def test_save_figure(tmpdir):
     base = str(tmpdir)
-    fig = SERIES.plot()
+    series = TimeSeries(numpy.random.normal(loc=0, scale=1, size=24*60),
+                        sample_rate=60, unit='Mpc', name='X1:TEST')
+    fig = series.plot()
     tsplot = plot.save_figure(fig, os.path.join(base, 'test.png'))
     assert tsplot == os.path.join(base, 'test.png')
-    noneplot = plot.save_figure(fig, os.path.join('tgpflk', 'test.png'))
+
+    # no-directory should raise warning
+    with pytest.warns(UserWarning) as record:
+        noneplot = plot.save_figure(fig, os.path.join('tgpflk', 'test.png'))
     assert noneplot is None
+    assert len(record.list) == 1
+    assert 'Error saving' in str(record.list[0].message)
+
+    # remove base directory
     shutil.rmtree(base, ignore_errors=True)
