@@ -29,7 +29,7 @@ from gwpy.segments import DataQualityFlag
 from matplotlib import (
     use,
     rcParams,
-    MatplotlibDeprecationWarning
+    MatplotlibDeprecationWarning,
 )
 use('agg')  # noqa
 
