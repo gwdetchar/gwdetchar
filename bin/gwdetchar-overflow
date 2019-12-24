@@ -325,7 +325,7 @@ if args.html:
     msg += ("Consant overflow is shown as yellow, while transient overflow "
             "is shown as red. If a data-quality flag was loaded for this "
             "analysis, it will be displayed in green.")
-    page.add(htmlio.alert(msg), context=args.ifo.lower())
+    page.add(htmlio.alert(msg, context=args.ifo.lower()))
     # record state segments
     if args.state_flag:
         page.h3('State flag', class_='mt-3', id_='state-flag')
