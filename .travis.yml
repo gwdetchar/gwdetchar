@@ -27,8 +27,8 @@ before_install:
     else
         curl -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh;
     fi
-  - bash miniconda.sh -b -p ${TRAVIS_BUILD_DIR}/miniconda
-  - source "${TRAVIS_BUILD_DIR}/miniconda/etc/profile.d/conda.sh"
+  - bash miniconda.sh -b -p ${HOME}/miniconda
+  - source "${HOME}/miniconda/etc/profile.d/conda.sh"
   - conda config --set always_yes yes --set changeps1 no
   - conda config --add channels conda-forge
   - conda update --quiet --yes conda
