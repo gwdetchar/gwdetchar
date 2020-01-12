@@ -58,7 +58,9 @@ install:
         pandas
         pytz
         scipy
-  # then install this version (and any new/updated dependencies)
+  # install new/updated requirements with pip
+  - python -m pip install -r requirements.txt
+  # install this version
   - python -m pip install --editable .
 
 script:
