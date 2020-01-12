@@ -31,21 +31,21 @@ before_install:
   - source "${HOME}/miniconda/etc/profile.d/conda.sh"
   - conda config --set always_yes yes --set changeps1 no
   - conda config --add channels conda-forge
-  - conda update --quiet --yes conda
+  - travis_retry conda update --quiet --yes conda
   # Useful for debugging any issues with conda
   - conda info --all
 
 install:
   # create a conda environment
-  - conda create --quiet --yes --name gwdetchar python=${PYTHON_VERSION} pip setuptools
-  - conda activate gwdetchar
+  - travis_retry conda create --quiet --yes --name gwdetchar python=${PYTHON_VERSION} pip setuptools
+  - travis_retry conda activate gwdetchar
   # install testing dependencies with conda
-  - conda install --quiet --yes --update-deps --name gwdetchar
+  - travis_retry conda install --quiet --yes --update-deps --name gwdetchar
         coverage
         flake8
         pytest-cov
   # install a bunch of the larger/compiled runtime dependencies with conda
-  - conda install --quiet --yes --update-deps --name gwdetchar
+  - travis_retry conda install --quiet --yes --update-deps --name gwdetchar
         astropy
         gwpy
         jsmin
@@ -70,12 +70,12 @@ script:
   - bash ci/test-bin.sh
 
 after_success:
-  - conda install --quiet --yes --name gwdetchar codecov
+  - travis_retry conda install --quiet --yes --name gwdetchar codecov
   - python -m coverage report
   - python -m codecov --flags $(uname) python${PYTHON_VERSION/./}
 
 before_cache:
-  - conda clean --quiet --yes --all
+  - travis_retry conda clean --quiet --yes --all
   - rm -f $HOME/.cache/pip/log/debug.log
 cache:
   pip: true
