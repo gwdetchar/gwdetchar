@@ -13,28 +13,15 @@ matrix:
 
   include:
     - python: '3.5'
-      env: PIP_FLAGS="--quiet"
     - python: '3.6'
-      env: PIP_FLAGS="--quiet"
     - python: '3.7'
-      env: PIP_FLAGS="--quiet"
     - python: '3.8'
-      env: PIP_FLAGS="--quiet"
-
-    - python: '3.5'
-      env: PIP_FLAGS="--quiet --pre"
-    - python: '3.6'
-      env: PIP_FLAGS="--quiet --pre"
-    - python: '3.7'
-      env: PIP_FLAGS="--quiet --pre"
-    - python: '3.8'
-      env: PIP_FLAGS="--quiet --pre"
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh;
+        curl -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh;
     else
-        curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda-latest-MacOSX-x86_64.sh;
+        curl -o miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh;
     fi
   - bash miniconda.sh -b -p ${TRAVIS_BUILD_DIR}/miniconda
   - source "${TRAVIS_BUILD_DIR}/miniconda/etc/profile.d/conda.sh"
@@ -52,7 +39,7 @@ install:
   # clean the conda pkgs dir
   - conda clean --quiet --yes --all
   # then install this version (and any new/updated dependencies)
-  - python -m pip install ${PIP_FLAGS} --editable .
+  - python -m pip install --editable .
 
 script:
   - python -m flake8 .
