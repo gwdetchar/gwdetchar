@@ -33,7 +33,8 @@ before_install:
     fi
   - bash miniconda.sh -b -p ${TRAVIS_BUILD_DIR}/miniconda
   - source "${TRAVIS_BUILD_DIR}/miniconda/etc/profile.d/conda.sh"
-  - conda config --set always_yes yes --set changeps1 no --add channels conda-forge
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --add channels conda-forge
   - conda update --quiet --yes conda
   # Useful for debugging any issues with conda
   - conda info --all
