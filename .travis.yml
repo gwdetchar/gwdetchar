@@ -64,9 +64,8 @@ install:
   - python -m pip install --editable .
 
 script:
-  - python -m flake8 .
-  - python -m flake8 bin/*
-  - python -m coverage run ./setup.py test
+  - python -m flake8 . bin/*
+  - python -m pytest --verbose --cov --pyargs gwdetchar
   - bash ci/test-bin.sh
 
 after_success:

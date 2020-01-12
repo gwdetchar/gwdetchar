@@ -22,7 +22,6 @@
 
 import glob
 import os.path
-import sys
 
 from setuptools import (setup, find_packages)
 
@@ -66,12 +65,10 @@ install_requires = [
 ]
 
 # test
-if 'test' in sys.argv:
-    setup_requires.append('pytest-runner')
 tests_require = [
     'flake8',
     'pytest',
-    'coverage',
+    'pytest-cov',
 ]
 
 # -- run setup ----------------------------------------------------------------
