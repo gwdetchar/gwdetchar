@@ -40,12 +40,12 @@ install:
   - conda create --quiet --yes --name gwdetchar python=${PYTHON_VERSION} pip setuptools
   - conda activate gwdetchar
   # install testing dependencies with conda
-  - conda install --quiet --yes --update-deps
+  - conda install --quiet --yes --update-deps --name gwdetchar
         coverage
         flake8
         pytest-cov
   # install a bunch of the larger/compiled runtime dependencies with conda
-  - conda install --quiet --yes --update-deps
+  - conda install --quiet --yes --update-deps --name gwdetchar
         astropy
         gwpy
         jsmin
@@ -58,8 +58,6 @@ install:
         pandas
         pytz
         scipy
-  # clean the conda pkgs dir
-  - conda clean --quiet --yes --all
   # then install this version (and any new/updated dependencies)
   - python -m pip install --editable .
 
@@ -70,7 +68,7 @@ script:
   - bash ci/test-bin.sh
 
 after_success:
-  - conda install --name gwdetchar codecov
+  - conda install --quiet --yes --name gwdetchar codecov
   - python -m coverage report
   - python -m codecov --flags $(uname) python${PYTHON_VERSION/./}
 
