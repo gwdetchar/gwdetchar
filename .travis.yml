@@ -1,33 +1,57 @@
 language: python
 
+os:
+  - linux
+  - osx
+
+env:
+  - CONDA_PKGS_DIRS="${HOME}/.cache/conda/pkgs"
+
 matrix:
   # bail-out early for failures
   fast_finish: true
 
   include:
     - python: '3.5'
-      env: PIP_FLAGS="--quiet --pre"
+      env: PIP_FLAGS="--quiet"
     - python: '3.6'
-      env: PIP_FLAGS="--quiet --pre"
+      env: PIP_FLAGS="--quiet"
     - python: '3.7'
-      env: PIP_FLAGS="--quiet --pre"
+      env: PIP_FLAGS="--quiet"
     - python: '3.8'
-      env: PIP_FLAGS="--quiet --pre"
+      env: PIP_FLAGS="--quiet"
 
     - python: '3.5'
-      env: PIP_FLAGS="--quiet"
+      env: PIP_FLAGS="--quiet --pre"
     - python: '3.6'
-      env: PIP_FLAGS="--quiet"
+      env: PIP_FLAGS="--quiet --pre"
     - python: '3.7'
-      env: PIP_FLAGS="--quiet"
+      env: PIP_FLAGS="--quiet --pre"
     - python: '3.8'
-      env: PIP_FLAGS="--quiet"
+      env: PIP_FLAGS="--quiet --pre"
 
 before_install:
-  - python -m pip install ${PIP_FLAGS} --upgrade pip
-  - python -m pip install ${PIP_FLAGS} -r requirements.txt
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh;
+    else
+        curl -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda-latest-MacOSX-x86_64.sh;
+    fi
+  - bash miniconda.sh -b -p ${TRAVIS_BUILD_DIR}/miniconda
+  - source "${TRAVIS_BUILD_DIR}/miniconda/etc/profile.d/conda.sh"
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
 
 install:
+  # create a conda environment
+  - conda create --quiet --yes --name gwdetchar python=${TRAVIS_PYTHON_VERSION}
+  - conda activate gwdetchar
+  # install the latest gwdetchar version's dependencies
+  - conda install --quiet --yes --update-deps --only-deps gwdetchar
+  # clean the conda pkgs dir
+  - conda clean --quiet --yes --all
+  # then install this version (and any new/updated dependencies)
   - python -m pip install ${PIP_FLAGS} --editable .
 
 script:
@@ -37,9 +61,14 @@ script:
   - bash ci/test-bin.sh
 
 after_success:
-  - python -m pip install ${PIP_FLAGS} codecov
+  - conda install --name gwdetchar codecov
   - python -m coverage report
   - python -m codecov --flags $(uname) python${TRAVIS_PYTHON_VERSION/./}
 
+before_cache:
+  - conda clean --quiet --yes --all
+  - rm -f $HOME/.cache/pip/log/debug.log
 cache:
   pip: true
+  directories:
+    - ${HOME}/.cache/conda/pkgs
