@@ -22,7 +22,6 @@
 
 import glob
 import os.path
-import sys
 
 from setuptools import (setup, find_packages)
 
@@ -66,12 +65,10 @@ install_requires = [
 ]
 
 # test
-if 'test' in sys.argv:
-    setup_requires.append('pytest-runner')
 tests_require = [
     'flake8',
     'pytest',
-    'coverage',
+    'pytest-cov',
 ]
 
 # -- run setup ----------------------------------------------------------------
@@ -111,9 +108,9 @@ setup(name=DISTNAME,
           'Operating System :: Unix',
           'Operating System :: MacOS',
           'Programming Language :: Python',
-          'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
           'Topic :: Scientific/Engineering',
           'Topic :: Scientific/Engineering :: Astronomy',
           'Topic :: Scientific/Engineering :: Physics',
