@@ -83,6 +83,8 @@ parser.add_argument('-p', '--primary-channel',
 parser.add_argument('-P', '--primary-frametype', default=None,
                     help='frametype for --primary-channel, default: guess '
                          'by channel name')
+parser.add_argument( '--primary-cache', default=None,
+                    help='cache file for --primary-channel, default: None')
 parser.add_argument('-O', '--remove-outliers', type=float, default=None,
                     help='Std. dev. limit for removing outliers')
 parser.add_argument('-t', '--threshold', type=float, default=0.0001,
@@ -123,7 +125,9 @@ logger.info('{} Lasso correlations {}-{}'.format(args.ifo, start, end))
 # get primary channel frametype
 primary = args.primary_channel.format(ifo=args.ifo)
 range_is_primary = 'EFFECTIVE_RANGE_MPC' in args.primary_channel
-if args.primary_frametype is None:
+if args.primary_cache is not None: 
+    logger.info("Using custom primary cache file")
+elif args.primary_frametype is None:
     try:
         args.primary_frametype = DEFAULT_FRAMETYPE[
             args.primary_channel.split(':')[1]].format(ifo=args.ifo)
@@ -149,7 +153,8 @@ if args.band_pass:
     logger.info("-- Loading primary channel data")
     bandts = get_data(
         primary, start-pad, end+pad, verbose='Reading primary:'.rjust(30),
-        frametype=args.primary_frametype, nproc=args.nproc)
+        frametype=args.primary_frametype, source=args.primary_cache, 
+        nproc=args.nproc)
     if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
         raise ValueError("bandpass frequency is out of range for this "
                          "channel, band (Hz): {0}, sample rate: {1}".format(
@@ -191,7 +196,7 @@ else:
     # load primary channel data
     logger.info("-- Loading primary channel data")
     primaryts = get_data(primary, start, end, frametype=args.primary_frametype,
-                         verbose='Reading:'.rjust(30),
+                         source=args.primary_cache, verbose='Reading:'.rjust(30),
                          nproc=args.nproc).crop(start, end)
 
 if args.remove_outliers:
@@ -606,6 +611,7 @@ page.h1(title, class_='pb-2 mt-3 mb-2 border-bottom')
 content = [
     ('Primary channel', markup.oneliner.code(primary)),
     ('Primary frametype', markup.oneliner.code(args.primary_frametype) or '-'),
+    ('Primary cache file', markup.oneliner.code(args.primary_cache) or '-'),
     ('Outlier threshold', '%s sigma' % args.remove_outliers),
     ('Lasso coefficient threshold', str(args.threshold)),
     ('Cluster coefficient threshold', str(args.cluster_coefficient)),
