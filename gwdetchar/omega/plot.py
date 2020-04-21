@@ -211,7 +211,7 @@ def spectral_plot(data, gps, span, channel, output, colormap='viridis',
     plot.close()
 
 
-def write_qscan_plots(gps, channel, series, yscale='log', colormap='viridis'):
+def write_qscan_plots(gps, channel, series, fscale='log', colormap='viridis'):
     """Custom plot utility for a full omega scan
 
     Parameters
@@ -225,7 +225,7 @@ def write_qscan_plots(gps, channel, series, yscale='log', colormap='viridis'):
     series : `tuple`
         a collection of `TimeSeries`, `Spectrogram`, and `QGram` objects
 
-    yscale : `str`
+    fscale : `str`
         scaling of the frequency axis, default: log
 
     colormap : `str`, optional
@@ -245,14 +245,14 @@ def write_qscan_plots(gps, channel, series, yscale='log', colormap='viridis'):
         # plot whitened qscan
         spectral_plot(
             qspec, gps, span, channel.name, str(png1), clim=(0, 25),
-            yscale=yscale, colormap=colormap)
+            yscale=fscale, colormap=colormap)
         # plot autoscaled, whitened qscan
         spectral_plot(qspec, gps, span, channel.name, str(png2),
-                      yscale=yscale, colormap=colormap)
+                      yscale=fscale, colormap=colormap)
         # plot raw qscan
         spectral_plot(
             rqspec, gps, span, channel.name, str(png3), clim=(0, 25),
-            yscale=yscale, colormap=colormap)
+            yscale=fscale, colormap=colormap)
         # plot raw timeseries
         timeseries_plot(xoft, gps, span, channel.name, str(png4),
                         ylabel='Amplitude')
@@ -266,13 +266,13 @@ def write_qscan_plots(gps, channel, series, yscale='log', colormap='viridis'):
         rtable = rqgram.table(snrthresh=channel.snrthresh)
         spectral_plot(
             rtable, gps, span, channel.name, str(png7), clim=(0, 25),
-            yscale=yscale, colormap=colormap)
+            yscale=fscale, colormap=colormap)
         # plot whitened eventgram
         table = qgram.table(snrthresh=channel.snrthresh)
         spectral_plot(
             table, gps, span, channel.name, str(png8), clim=(0, 25),
-            yscale=yscale, colormap=colormap)
+            yscale=fscale, colormap=colormap)
         # plot autoscaled whitened eventgram
         spectral_plot(table, gps, span, channel.name, str(png9),
-                      yscale=yscale, colormap=colormap)
+                      yscale=fscale, colormap=colormap)
     return

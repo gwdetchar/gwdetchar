@@ -254,7 +254,7 @@ for block in blocks.values():
         logger.info(
             ' -- Plotting omega scan products for {}'.format(channel.name))
         plot.write_qscan_plots(gps, channel, series,
-                               yscale=args.frequency_scale,
+                               fscale=args.frequency_scale,
                                colormap=args.colormap)
 
         if correlate is not None:
