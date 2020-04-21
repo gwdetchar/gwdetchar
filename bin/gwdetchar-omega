@@ -69,6 +69,8 @@ parser.add_argument('-s', '--ignore-state-flags', action='store_true',
 parser.add_argument('-t', '--far-threshold', type=float, default=3.171e-8,
                     help='white noise false alarm rate threshold (Hz) for '
                          'processing channels, default: %(default)s')
+parser.add_argument('-y', '--yscale', default='log',
+                    help='scale of the frequency axis, default: %(default)s')
 parser.add_argument('-c', '--colormap', default='viridis',
                     help='name of colormap to use, default: %(default)s')
 cli.add_nproc_option(parser)
@@ -251,7 +253,9 @@ for block in blocks.values():
 
         logger.info(
             ' -- Plotting omega scan products for {}'.format(channel.name))
-        plot.write_qscan_plots(gps, channel, series, colormap=args.colormap)
+        plot.write_qscan_plots(gps, channel, series,
+                               yscale=args.yscale,
+                               colormap=args.colormap)
 
         if correlate is not None:
             logger.info(' -- Cross-correlating {}'.format(channel.name))

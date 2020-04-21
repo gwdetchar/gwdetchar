@@ -53,7 +53,9 @@ parser.add_argument(
     '-f', '--config-file',
     help='path to configuration file to use, default: '
          'choose based on observatory, epoch, and pipeline')
-parser.add_argument('--colormap', default='viridis',
+parser.add_argument('-y', '--yscale', default='log',
+                    help='scale of the frequency axis, default: %(default)s')
+parser.add_argument('-c', '--colormap', default='viridis',
                     help='name of colormap to use, default: %(default)s')
 parser.add_argument('-d', '--disable-correlation', action='store_true',
                     default=False, help='disable cross-correlation of aux '
