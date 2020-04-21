@@ -39,13 +39,15 @@ ACCOUNTING_GROUP_USER = os.getenv(
 
 # -- utilities ----------------------------------------------------------------
 
-def get_command_line_flags(ifo, colormap='viridis', nproc=8, far=3.171e-8,
-                           config_file=None, disable_correlation=False,
-                           disable_checkpoint=False, ignore_state_flags=False):
+def get_command_line_flags(ifo, fscale='log', colormap='viridis', nproc=8,
+                           far=3.171e-8, config_file=None,
+                           disable_correlation=False, disable_checkpoint=False,
+                           ignore_state_flags=False):
     """Get a list of optional command-line arguments to `gwdetchar-omega`
     """
     flags = [
         "--ifo", ifo,
+        "--frequency-scale", fscale,
         "--colormap", colormap,
         "--nproc", str(nproc),
         "--far-threshold", str(far),
