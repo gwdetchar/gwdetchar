@@ -36,7 +36,7 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 FLAGS = [
     '--ifo', 'X1',
-    '--frequency-scale', 'log',
+    '--frequency-scaling', 'log',
     '--colormap', 'viridis',
     '--nproc', '8',
     '--far-threshold', '3.171e-08',

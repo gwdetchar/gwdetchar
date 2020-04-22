@@ -69,8 +69,8 @@ parser.add_argument('-s', '--ignore-state-flags', action='store_true',
 parser.add_argument('-t', '--far-threshold', type=float, default=3.171e-8,
                     help='white noise false alarm rate threshold (Hz) for '
                          'processing channels, default: %(default)s')
-parser.add_argument('-y', '--frequency-scale', default='log',
-                    help='scale of all frequency axes, default: %(default)s')
+parser.add_argument('-y', '--frequency-scaling', default='log',
+                    help='scaling of all frequency axes, default: %(default)s')
 parser.add_argument('-c', '--colormap', default='viridis',
                     help='name of colormap to use, default: %(default)s')
 cli.add_nproc_option(parser)
@@ -239,7 +239,7 @@ for block in blocks.values():
             series = omega.scan(
                 gps, channel, data[channel.name].astype('float64'), fftlength,
                 resample=block.resample, fthresh=args.far_threshold,
-                search=block.search)
+                search=block.search, logf=(args.frequency_scaling == 'log'))
         except (ValueError, KeyError) as exc:
             warnings.warn("Skipping {}: [{}] {}".format(
                 channel.name, type(exc), str(exc)), UserWarning)
@@ -254,7 +254,7 @@ for block in blocks.values():
         logger.info(
             ' -- Plotting omega scan products for {}'.format(channel.name))
         plot.write_qscan_plots(gps, channel, series,
-                               fscale=args.frequency_scale,
+                               fscale=args.frequency_scaling,
                                colormap=args.colormap)
 
         if correlate is not None:

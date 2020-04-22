@@ -47,7 +47,7 @@ def get_command_line_flags(ifo, fscale='log', colormap='viridis', nproc=8,
     """
     flags = [
         "--ifo", ifo,
-        "--frequency-scale", fscale,
+        "--frequency-scaling", fscale,
         "--colormap", colormap,
         "--nproc", str(nproc),
         "--far-threshold", str(far),
