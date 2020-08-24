@@ -24,7 +24,8 @@ import pytest
 import numpy
 from numpy import testing as nptest
 
-from gwpy.testing.compat import mock
+from unittest import mock
+
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.segments import (Segment, DataQualityFlag)
 

@@ -24,10 +24,11 @@ import pytest
 import numpy
 from numpy.testing import assert_array_equal
 
+from unittest import mock
+
 from gwpy.segments import (Segment, SegmentList, DataQualityFlag)
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.testing.utils import assert_segmentlist_equal
-from gwpy.testing.compat import mock
 
 from .. import saturation
 

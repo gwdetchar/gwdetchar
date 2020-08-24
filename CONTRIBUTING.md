@@ -51,7 +51,7 @@ And that's it.
 
 ### Python compatibility
 
-**GW-DetChar code must be compatible with Python versions >=3.5.**
+**GW-DetChar code must be compatible with Python versions >=3.6.**
 
 ### Style
 
