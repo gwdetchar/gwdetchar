@@ -21,5 +21,6 @@ setuptools
 pygments
 # testing
 flake8
-pytest
+pytest >= 3.3.0
+pytest-cov >= 2.4.0
 coverage

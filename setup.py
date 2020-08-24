@@ -66,8 +66,8 @@ install_requires = [
 # test
 tests_require = [
     'flake8',
-    'pytest',
-    'pytest-cov',
+    'pytest>=3.3.0',
+    'pytest-cov>=2.4.0',
 ]
 
 # -- run setup ----------------------------------------------------------------

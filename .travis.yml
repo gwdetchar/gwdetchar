@@ -4,7 +4,6 @@ os: linux
 
 env:
   global:
-    - COVERAGE_STORAGE="json"
     - CONDA_PKGS_DIRS="${HOME}/.cache/conda/pkgs"
 
 matrix:
@@ -42,7 +41,7 @@ install:
 
 script:
   - python -m flake8 . bin/*
-  - python -m coverage run -m pytest --verbose --pyargs gwdetchar
+  - python -m pytest --verbose --cov --pyargs gwdetchar
   - bash ci/test-bin.sh
 
 after_success:
