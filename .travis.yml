@@ -2,10 +2,6 @@ language: minimal
 
 os: linux
 
-env:
-  global:
-    - CONDA_PKGS_DIRS="${HOME}/.cache/conda/pkgs"
-
 matrix:
   fast_finish: true
 
@@ -54,5 +50,3 @@ before_cache:
   - rm -f $HOME/.cache/pip/log/debug.log
 cache:
   pip: true
-  directories:
-    - ${HOME}/.cache/conda/pkgs
