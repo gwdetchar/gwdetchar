@@ -19,13 +19,10 @@
 """Tests for `gwdetchar.lasso.plot`
 """
 
+import numpy
 import os
 import pytest
 import shutil
-
-import numpy
-
-from matplotlib import (use, rcParams, rcParamsDefault)
 
 from gwpy.timeseries import TimeSeries
 

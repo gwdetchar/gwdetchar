@@ -204,11 +204,11 @@ primary_mean = numpy.mean(primaryts.value)
 primary_std = numpy.std(primaryts.value)
 
 
-def descaler(l, *coef):
+def descaler(iterable, *coef):
     if coef:
-        return [((x * primary_std * coef[0]) + primary_mean) for x in l]
+        return [((x * primary_std * coef[0]) + primary_mean) for x in iterable]
     else:
-        return [((x * primary_std) + primary_mean) for x in l]
+        return [((x * primary_std) + primary_mean) for x in iterable]
 
 
 # get aux data

@@ -28,7 +28,7 @@ from scipy import signal
 
 from gwpy.timeseries import TimeSeries
 
-from . import (config, core)
+from .. import (config, core)
 
 from matplotlib import use
 use('agg')  # noqa
