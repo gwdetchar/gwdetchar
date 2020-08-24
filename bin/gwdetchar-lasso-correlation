@@ -17,18 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
+import multiprocessing
 import os
 import re
 import sys
-import multiprocessing
 
 import numpy
 
 from MarkupPy import markup
-
-from matplotlib import (use, rcParams)
-use('agg')  # noqa
-from matplotlib.cm import get_cmap
 
 from astropy.table import Table
 
@@ -37,15 +33,21 @@ from sklearn.preprocessing import scale
 
 from pandas import set_option
 
-from gwpy.plot import Plot
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
 from gwdetchar import (cli, lasso as gwlasso)
-from gwdetchar.lasso import plot as gwplot
 from gwdetchar.io.datafind import get_data
 from gwdetchar.io import html as htmlio
-from gwdetchar.plot import texify
+
+from matplotlib import (use, rcParams)
+use('Agg')
+
+# backend-dependent imports
+from matplotlib.cm import get_cmap  # noqa: E402
+from gwpy.plot import Plot  # noqa: E402
+from gwdetchar.lasso import plot as gwplot  # noqa: E402
+from gwdetchar.plot import texify  # noqa: E402
 
 # LaTeX use
 USETEX = rcParams["text.usetex"]

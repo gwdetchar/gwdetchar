@@ -26,9 +26,10 @@ import shutil
 from gwpy.timeseries import TimeSeries
 
 from matplotlib import use
-use('agg')  # noqa: E402
+use('Agg')
 
-from .. import plot
+# backend-dependent import
+from .. import plot  # noqa: E402
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 

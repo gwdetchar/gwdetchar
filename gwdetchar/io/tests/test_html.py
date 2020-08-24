@@ -19,28 +19,25 @@
 """Tests for `gwdetchar.io.html`
 """
 
-import os
-import sys
-import shutil
 import datetime
-from pytz import reference
+import os
+import pytest
+import shutil
+import sys
+
 from getpass import getuser
 from MarkupPy import markup
-try:
-    from unittest import mock  # noqa
-except ImportError:  # python < 3
-    import mock  # noqa
-
-import pytest
-
-from matplotlib import use
-use('Agg')  # noqa
+from pytz import reference
+from unittest import mock
 
 from gwpy.segments import (Segment, DataQualityFlag)
 
 from .. import html
 from ..._version import get_versions
 from ...utils import parse_html
+
+from matplotlib import use
+use('Agg')
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 

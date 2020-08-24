@@ -20,13 +20,9 @@
 """Find channels clipping their software saturation limits
 """
 
+import gwdatafind
 import os
 import sys
-
-from matplotlib import use
-use('agg')  # noqa
-
-import gwdatafind
 
 from MarkupPy import markup
 
@@ -37,6 +33,9 @@ from gwpy.segments import (Segment, SegmentList,
 
 from gwdetchar import (cli, const, saturation)
 from gwdetchar.io import html as htmlio
+
+from matplotlib import use
+use('Agg')
 
 __author__ = 'Dan Hoak <daniel.hoak@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'

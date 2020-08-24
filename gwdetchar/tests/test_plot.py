@@ -22,6 +22,7 @@
 import os
 import shutil
 import warnings
+
 from unittest.mock import patch
 
 from gwpy.segments import DataQualityFlag
@@ -31,9 +32,10 @@ from matplotlib import (
     rcParams,
     MatplotlibDeprecationWarning,
 )
-use('agg')  # noqa
+use('Agg')
 
-from .. import plot
+# backend-dependent import
+from .. import plot  # noqa: E402
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 

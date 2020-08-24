@@ -28,10 +28,13 @@ from scipy import signal
 
 from gwpy.timeseries import TimeSeries
 
+from . import (config, core)
+
 from matplotlib import use
 use('agg')  # noqa
 
-from .. import (config, core, plot)
+# backend-dependent import
+from .. import plot  # noqa: E402
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 

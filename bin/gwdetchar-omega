@@ -25,20 +25,23 @@ configuration file that lists processing options and channels in contextual
 blocks. For more information, see gwdetchar.omega.config.
 """
 
+import numpy
 import os
 import sys
 import warnings
-import numpy
 
 from gwpy.table import Table
 from gwpy.time import to_gps
 
-from matplotlib import use
-use('agg')  # noqa
-
 from gwdetchar import (cli, omega)
-from gwdetchar.omega import (config, html, plot)
 from gwdetchar.io.datafind import (check_flag, get_data)
+from gwdetchar.omega import (config, html)
+
+from matplotlib import use
+use('Agg')
+
+# backend-dependent import
+from gwdetchar.omega import plot  # noqa: E402
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'

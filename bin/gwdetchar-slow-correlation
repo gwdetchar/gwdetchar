@@ -17,27 +17,29 @@
 # You should have received a copy of the GNU General Public License
 # along with GW DetChar.  If not, see <http://www.gnu.org/licenses/>.
 
+import multiprocessing
+import numpy
 import os
 import re
-import multiprocessing
 import sys
 
-import numpy
 from scipy.stats import spearmanr
 
-from matplotlib import use
-use('agg')  # noqa
-import matplotlib.pyplot as plt
-
-from gwpy.plot import Plot
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
+from gwdetchar import (cli, lasso as gwlasso)
 from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
-from gwdetchar import (cli, lasso as gwlasso)
 
 from sklearn import linear_model
+
+from matplotlib import use
+use('Agg')
+
+# backend-dependent import
+import matplotlib.pyplot as plt  # noqa: E402
+from gwpy.plot import Plot  # noqa: E402
 
 parser = cli.create_parser(
     description=__doc__,

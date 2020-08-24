@@ -25,32 +25,33 @@ time please use the command-line module:
 `python -m gwdetchar.scattering --help`
 """
 
-import re
-import random
-import os.path
-import warnings
-from io import StringIO
-
 import numpy
+import os.path
+import random
+import re
+import warnings
 
+from io import StringIO
 from MarkupPy import markup
-
-from matplotlib import (use, rcParams)
-use('agg')  # noqa
 
 import gwtrigfind
 
-from gwpy.plot import Plot
-from gwpy.table import (Table, EventTable)
-from gwpy.table.filters import in_segmentlist
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
+from gwpy.table import EventTable
+from gwpy.table.filters import in_segmentlist
 
 from gwdetchar import (cli, const, scattering)
 from gwdetchar.io import html as htmlio
 from gwdetchar.io.datafind import get_data
-from gwdetchar.plot import texify
 from gwdetchar.omega import batch
+
+from matplotlib import (use, rcParams)
+use('Agg')
+
+# backend-dependent imports
+from gwpy.plot import Plot  # noqa: E402
+from gwdetchar.plot import texify  # noqa: E402
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \
@@ -679,7 +680,7 @@ gps = highsnrtrigs[names[0]][ind]
 freq = highsnrtrigs[names[1]][ind]
 snr = highsnrtrigs[names[2]][ind]
 segs = [y for x in gps for y in actives if x in y]
-table = Table(
+table = EventTable(
     [gps, freq, snr, [seg[0] for seg in segs], [seg[1] for seg in segs]],
     names=('trigger_time', 'trigger_frequency', 'trigger_snr',
            'segment_start', 'segment_end'))
