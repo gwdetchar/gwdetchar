@@ -4,6 +4,7 @@ os: linux
 
 env:
   global:
+    - COVERAGE_STORAGE="json"
     - CONDA_PKGS_DIRS="${HOME}/.cache/conda/pkgs"
 
 matrix:
