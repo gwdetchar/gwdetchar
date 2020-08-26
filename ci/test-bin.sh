@@ -26,6 +26,8 @@ for EXE in bin/*; do
     fi
 done
 
+echo "---- Testing python -m modules ----"
+
 # loop over python modules
 modules=(
     gwdetchar.nagios

@@ -25,8 +25,7 @@ import numpy.testing as nptest
 
 from getpass import getuser
 from pycondor import Dagman
-
-from gwpy.testing.compat import mock
+from unittest import mock
 
 from .. import batch
 

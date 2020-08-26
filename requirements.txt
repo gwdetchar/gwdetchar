@@ -18,9 +18,8 @@ coloredlogs
 scikit-learn
 scipy >= 1.2.0
 setuptools
-pathlib2 ; python_version < '3.6'
 pygments
 # testing
 flake8
-pytest
-coverage
+pytest >= 3.3.0
+pytest-cov >= 2.4.0

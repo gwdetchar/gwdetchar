@@ -30,9 +30,6 @@ command-line script: `gwdetchar-scattering --help`
 import os
 import sys
 
-from matplotlib import use
-use('agg')  # noqa: E402
-
 from gwpy.time import to_gps
 
 from .. import (cli, const)
@@ -42,8 +39,13 @@ from ..io.datafind import get_data
 from . import (
     OPTIC_MOTION_CHANNELS,
     get_fringe_frequency,
-    plot,
 )
+
+from matplotlib import use
+use('Agg')
+
+# backend-dependent import
+from . import plot  # noqa: E402
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Joshua Smith <joshua.smith@ligo.org>' \

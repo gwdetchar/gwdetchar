@@ -30,7 +30,7 @@ PACKAGENAME = 'gwdetchar'
 DISTNAME = 'gwdetchar'
 AUTHOR = 'Alex Urban, Duncan Macleod'
 AUTHOR_EMAIL = 'alexander.urban@ligo.org'
-LICENSE = 'GPLv3'
+LICENSE = 'GPL-3.0-or-later'
 
 # -- versioning ---------------------------------------------------------------
 
@@ -60,15 +60,14 @@ install_requires = [
     'scikit-learn',
     'scipy>=1.2.0',
     'setuptools',
-    'pathlib2 ; python_version < \'3.6\'',
     'pygments',
 ]
 
 # test
 tests_require = [
     'flake8',
-    'pytest',
-    'pytest-cov',
+    'pytest>=3.3.0',
+    'pytest-cov>=2.4.0',
 ]
 
 # -- run setup ----------------------------------------------------------------

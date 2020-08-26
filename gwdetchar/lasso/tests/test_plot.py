@@ -19,18 +19,22 @@
 """Tests for `gwdetchar.lasso.plot`
 """
 
+import numpy
 import os
 import pytest
 import shutil
 
-import numpy
-
-from matplotlib import (use, rcParams, rcParamsDefault)
-use('agg')  # noqa
-
 from gwpy.timeseries import TimeSeries
 
-from .. import plot
+from matplotlib import (
+    use,
+    rcParams,
+    rcParamsDefault,
+)
+use('Agg')
+
+# backend-dependent import
+from .. import plot  # noqa: E402
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 

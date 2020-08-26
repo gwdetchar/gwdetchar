@@ -20,14 +20,10 @@
 """Find overflows associated with a particular front-end model
 """
 
+import h5py
 import os
 import tqdm
 import warnings
-
-from matplotlib import use
-use('agg')  # noqa
-
-import h5py
 
 import gwdatafind
 
@@ -39,6 +35,9 @@ from gwdetchar import (cds, cli, const, daq)
 from gwdetchar.io import (html as htmlio)
 from gwdetchar.io.datafind import get_data
 from gwdetchar.utils import table_from_segments
+
+from matplotlib import use
+use('Agg')
 
 SITE_MAP = {
     'H1': 'LIGO-Hanford',
