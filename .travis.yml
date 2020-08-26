@@ -35,7 +35,8 @@ install:
   - travis_retry conda activate gwdetcharci
   - travis_retry python ./parse-conda-requirements.py requirements.txt -o conda-reqs.txt
   - travis_retry conda install --quiet --yes --update-all --name gwdetcharci --file conda-reqs.txt
-  - rm -f conda-reqs.txt  # clean up
+  # clean up
+  - rm -f conda-reqs.txt parse-conda-requirements.py
   # install this version
   # note: need --editable for coverage with `which ...` to work
   - python -m pip install --editable .
