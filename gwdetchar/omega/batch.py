@@ -379,7 +379,7 @@ def main(args=None):
     )
 
     # monitor progress
-    if args.submit and args.monitor:
+    if (args.submit and args.monitor):
         print("Monitoring progress of {0.submit_file}".format(dagman))
         try:
             subprocess.check_call(
