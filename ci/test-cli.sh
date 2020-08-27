@@ -1,7 +1,8 @@
 #!/bin/bash
 #
-# Travis CI test runner: test --help for all command-line executables
+# Travis CI test runner: test --help for all command-line interfaces
 # Author: Duncan Macleod <duncan.macleod@ligo.org> (2019)
+#         Alex Urban <alexander.urban@ligo.org> (2019-2020)
 
 FAILED=()
 
