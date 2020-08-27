@@ -31,6 +31,7 @@ echo "---- Testing python -m modules ----"
 # loop over python modules
 modules=(
     gwdetchar.nagios
+    gwdetchar.omega
     gwdetchar.scattering
 )
 for MODULE in "${modules[@]}"; do
