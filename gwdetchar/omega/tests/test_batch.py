@@ -78,8 +78,8 @@ def test_generate_dag(dag, tmpdir, capsys):
     dagman = batch.generate_dag(
         times, flags=FLAGS, outdir=outdir, condor_commands=CONDORCMDS)
     assert isinstance(dagman, Dagman)
-    assert os.path.ispath(os.path.join(outdir, 'condor'))
-    assert os.path.ispath(os.path.join(outdir, 'logs'))
+    assert os.path.listdir(os.path.join(outdir, 'condor'))
+    assert os.path.isdir(os.path.join(outdir, 'logs'))
     (out, err) = capsys.readouterr()
     assert not err
     assert out.startswith('The directory')
@@ -111,6 +111,6 @@ def test_main(subp, dag, loadtxt, args, tmpdir):
     batch.main(args + ['--output-dir', outdir])
     # test output
     assert os.path.listdir(os.path.join(outdir, 'condor'))
-    assert os.path.ispath(os.path.join(outdir, 'logs'))
+    assert os.path.isdir(os.path.join(outdir, 'logs'))
     # clean up
     shutil.rmtree(outdir, ignore_errors=True)
