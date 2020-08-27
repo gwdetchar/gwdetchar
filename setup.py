@@ -24,6 +24,10 @@ from setuptools import setup
 
 import versioneer
 
+# versioneer
+version = versioneer.get_version()
+cmdclass = versioneer.get_cmdclass()
+
 # import sphinx commands
 try:
     from sphinx.setup_command import BuildDoc
@@ -31,10 +35,6 @@ except ImportError:
     pass
 else:
     cmdclass['build_sphinx'] = BuildDoc
-
-# versioneer
-version = versioneer.get_version()
-cmdclass = versioneer.get_cmdclass()
 
 # run setup
 # NOTE: all other metadata and options come from setup.cfg

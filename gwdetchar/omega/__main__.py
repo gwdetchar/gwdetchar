@@ -50,6 +50,7 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 # set up logger
 LOGGER = cli.logger(name='gwdetchar.omega')
 
+
 # -- parse command line -------------------------------------------------------
 
 def create_parser():
@@ -203,7 +204,6 @@ def main(args=None):
     os.chdir(outdir)
     LOGGER.debug('Output directory created as {}'.format(outdir))
 
-
     # -- compute Q-scan ---------------
 
     # make subdirectories
@@ -335,7 +335,6 @@ def main(args=None):
                                        name=blocks[channel.section].name)
             htmlv['toc'] = analyzed
             html.write_qscan_page(ifo, gps, analyzed, **htmlv)
-
 
     # -- prepare HTML -----------------
 
