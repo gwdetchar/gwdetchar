@@ -20,98 +20,25 @@
 """Setup the gwdetchar package
 """
 
-import glob
-import os.path
+from setuptools import setup
 
-from setuptools import (setup, find_packages)
+import versioneer
 
-# set basic metadata
-PACKAGENAME = 'gwdetchar'
-DISTNAME = 'gwdetchar'
-AUTHOR = 'Alex Urban, Duncan Macleod'
-AUTHOR_EMAIL = 'alexander.urban@ligo.org'
-LICENSE = 'GPL-3.0-or-later'
+# import sphinx commands
+try:
+    from sphinx.setup_command import BuildDoc
+except ImportError:
+    pass
+else:
+    cmdclass['build_sphinx'] = BuildDoc
 
-# -- versioning ---------------------------------------------------------------
+# versioneer
+version = versioneer.get_version()
+cmdclass = versioneer.get_cmdclass()
 
-import versioneer  # noqa: E402
-__version__ = versioneer.get_version()
-
-# -- dependencies -------------------------------------------------------------
-
-# build
-setup_requires = [
-    'setuptools',
-]
-
-# run
-install_requires = [
-    'astropy>=1.2',
-    'gwdatafind',
-    'gwpy>=0.13.0',
-    'gwtrigfind',
-    'MarkupPy>=1.14',
-    'matplotlib>=2.0.0',
-    'numpy>=1.16',
-    'pandas',
-    'pycondor',
-    'pytz',
-    'coloredlogs',
-    'scikit-learn',
-    'scipy>=1.2.0',
-    'setuptools',
-    'pygments',
-]
-
-# test
-tests_require = [
-    'flake8',
-    'pytest>=3.3.0',
-    'pytest-cov>=2.4.0',
-]
-
-# -- run setup ----------------------------------------------------------------
-
-packagenames = find_packages()
-scripts = glob.glob(os.path.join('bin', '*'))
-
-# read description
-with open('README.rst', 'rb') as f:
-    longdesc = f.read().decode().strip()
-
-setup(name=DISTNAME,
-      provides=[PACKAGENAME],
-      version=__version__,
-      description=("A python package for gravitational-wave "
-                   "detector characterisation"),
-      long_description=longdesc,
-      author=AUTHOR,
-      author_email=AUTHOR_EMAIL,
-      license=LICENSE,
-      url='https://github.com/gwdetchar/gwdetchar',
-      packages=packagenames,
-      include_package_data=True,
-      scripts=scripts,
-      setup_requires=setup_requires,
-      install_requires=install_requires,
-      use_2to3=False,
-      classifiers=[
-          'Development Status :: 4 - Beta',
-          'Intended Audience :: Science/Research',
-          'Intended Audience :: End Users/Desktop',
-          'Intended Audience :: Developers',
-          ('License :: OSI Approved :: GNU General Public '
-           'License v3 or later (GPLv3+)'),
-          'Natural Language :: English',
-          'Operating System :: POSIX',
-          'Operating System :: Unix',
-          'Operating System :: MacOS',
-          'Programming Language :: Python',
-          'Programming Language :: Python :: 3.6',
-          'Programming Language :: Python :: 3.7',
-          'Programming Language :: Python :: 3.8',
-          'Topic :: Scientific/Engineering',
-          'Topic :: Scientific/Engineering :: Astronomy',
-          'Topic :: Scientific/Engineering :: Physics',
-      ],
-      )
+# run setup
+# NOTE: all other metadata and options come from setup.cfg
+setup(
+    version=version,
+    cmdclass=cmdclass,
+)
