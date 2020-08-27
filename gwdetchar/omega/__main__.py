@@ -74,49 +74,49 @@ def create_parser():
     parser.add_argument(
         '-o',
         '--output-directory',
-        help=('output directory for the omega scan, '
-              'default: ~/public_html/wdq/{IFO}_{gpstime}'),
+        help='output directory for the omega scan, '
+             'default: ~/public_html/wdq/{IFO}_{gpstime}',
     )
     parser.add_argument(
         '-f',
         '--config-file',
         action='append',
         default=None,
-        help=('path to configuration file to use, can be given '
-              'multiple times (files read in order), default: '
-              'choose a standard one based on IFO and GPS time'),
+        help='path to configuration file to use, can be given '
+             'multiple times (files read in order), default: '
+             'choose a standard one based on IFO and GPS time',
     )
     parser.add_argument(
         '-d',
         '--disable-correlation',
         action='store_true',
         default=False,
-        help=('disable cross-correlation of aux '
-              'channels, default: False'),
+        help='disable cross-correlation of aux '
+             'channels, default: False',
     )
     parser.add_argument(
         '-D',
         '--disable-checkpoint',
         action='store_true',
         default=False,
-        help=('disable checkpointing from previous '
-              'runs, default: False'),
+        help='disable checkpointing from previous '
+             'runs, default: False',
     )
     parser.add_argument(
         '-s',
         '--ignore-state-flags',
         action='store_true',
         default=False,
-        help=('ignore state flag definitions in '
-              'the configuration, default: False'),
+        help='ignore state flag definitions in '
+             'the configuration, default: False',
     )
     parser.add_argument(
         '-t',
         '--far-threshold',
         type=float,
         default=3.171e-8,
-        help=('white noise false alarm rate threshold (Hz) for '
-              'processing channels, default: %(default)s'),
+        help='white noise false alarm rate threshold (Hz) for '
+             'processing channels, default: %(default)s',
     )
     parser.add_argument(
         '-y',

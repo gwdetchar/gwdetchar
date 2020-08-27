@@ -20,21 +20,40 @@
 """
 
 import os
+import subprocess
 
 from getpass import getuser
-from distutils.spawn import find_executable
 from pycondor import (Dagman, Job)
+from sys import executable
 
-from .. import condor
+from .. import (cli, condor)
 
+# authorship credits
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
+# set CLI docstring
+CLI_DOCSTRING = """Batch-generate a series of Omega scans
+
+GPS times can be given individually on the command-line, one after the other,
+or can be bundled into one file formatted where the first column contains
+the GPS times (other columns are ignored).
+
+The output of this script is a condor workflow in the form of a DAG file,
+with associated condor submit (`.sub`) file in the output directory.
+Submitting the workflow to Condor will result in the scans being processed
+in parallel.
+"""
+
 # set default accounting information
 ACCOUNTING_GROUP = os.getenv(
-    '_CONDOR_ACCOUNTING_GROUP', 'ligo.dev.{epoch}.detchar.user_req.omegascan')
+    '_CONDOR_ACCOUNTING_GROUP',
+    'ligo.dev.{epoch}.detchar.user_req.omegascan',
+)
 ACCOUNTING_GROUP_USER = os.getenv(
-    '_CONDOR_ACCOUNTING_USER', getuser())
+    '_CONDOR_ACCOUNTING_USER',
+    getuser(),
+)
 
 
 # -- utilities ----------------------------------------------------------------
@@ -127,12 +146,11 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
     """
     logdir = os.path.join(outdir, 'logs')
     subdir = os.path.join(outdir, 'condor')
-    executable = find_executable('gwdetchar-omega')
     # create DAG and jobs
     dagman = Dagman(name=tag, submit=subdir)
     job = Job(
         dag=dagman,
-        name=os.path.basename(executable),
+        name='gwdetchar-omega',
         executable=executable,
         universe=universe,
         submit=subdir,
@@ -144,7 +162,7 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
     )
     # make a node in the workflow for each event time
     for t in times:
-        cmd = " ".join([str(t)] + [
+        cmd = " ".join(["-m", "gwdetchar.omega", str(t)] + [
             "--output-directory", os.path.join(outdir, str(t))] + flags)
         job.add_arg(cmd, name=str(t).replace(".", "_"))
     # write and submit the DAG
@@ -162,3 +180,216 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
             "$ condor_submit_dag {0.submit_file}".format(dagman),
         )
     return dagman
+
+
+# -- parse command line -------------------------------------------------------
+
+def create_parser():
+    """Create a command-line parser for this entry point
+    """
+    # initialize argument parser
+    parser = cli.create_parser(description=CLI_DOCSTRING)
+    pargs = parser.add_argument_group('Omega scan options')
+    cargs = parser.add_argument_group('Condor options')
+
+    # required arguments
+    parser.add_argument(
+        'gpstime',
+        nargs='+',
+        help='GPS time(s) to scan, or path to a file'
+             'containing a single column of such times',
+    )
+    cli.add_ifo_option(
+        parser,
+    )
+    parser.add_argument(
+        '-o',
+        '--output-dir',
+        default=os.getcwd(),
+        help='output directory for all scans, default: %(default)s',
+    )
+
+    # optional omega scan arguments
+    pargs.add_argument(
+        '-f',
+        '--config-file',
+        help='path to configuration file to use, default: '
+             'choose based on observatory, epoch, and pipeline',
+    )
+    pargs.add_argument(
+        '-d',
+        '--disable-correlation',
+        action='store_true',
+        default=False,
+        help='disable cross-correlation of aux '
+             'channels, default: False',
+    )
+    pargs.add_argument(
+        '-D',
+        '--disable-checkpoint',
+        action='store_true',
+        default=False,
+        help='disable checkpointing from previous '
+             'runs, default: False',
+    )
+    pargs.add_argument(
+        '-s',
+        '--ignore-state-flags',
+        action='store_true',
+        default=False,
+        help='ignore state flag definitions in '
+             'the configuration, default: False',
+    )
+    pargs.add_argument(
+        '-t',
+        '--far-threshold',
+        type=float,
+        default=3.171e-8,
+        help='white noise false alarm rate threshold (Hz) for '
+             'processing channels, default: %(default)s',
+    )
+    pargs.add_argument(
+        '-y',
+        '--frequency-scaling',
+        default='log',
+        help='scaling of all frequency axes, default: %(default)s',
+    )
+    pargs.add_argument(
+        '-c',
+        '--colormap',
+        default='viridis',
+        help='name of colormap to use, default: %(default)s',
+    )
+    cli.add_nproc_option(
+        pargs,
+    )
+
+    # optional condor arguments
+    cargs.add_argument(
+        '-u',
+        '--universe',
+        default='vanilla',
+        type=str,
+        help='universe for condor processing',
+    )
+    cargs.add_argument(
+        '--submit',
+        action='store_true',
+        default=False,
+        help='submit DAG directly to condor queue',
+    )
+    cargs.add_argument(
+        '--monitor',
+        action='store_true',
+        default=False,
+        help='monitor the DAG progress after submission; '
+             'only used with --submit',
+    )
+    cargs.add_argument(
+        '--condor-accounting-group',
+        default=ACCOUNTING_GROUP,
+        help='accounting_group for condor submission on the LIGO '
+             'Data Grid, include \'{epoch}\' (with curly brackets) '
+             'to auto-substitute the appropriate epoch based on '
+             'the GPS times',
+    )
+    cargs.add_argument(
+        '--condor-accounting-group-user',
+        default=ACCOUNTING_GROUP_USER,
+        help='accounting_group_user for condor submission on the '
+             'LIGO Data Grid',
+    )
+    cargs.add_argument(
+        '--condor-timeout',
+        type=float,
+        default=None,
+        metavar='T',
+        help='configure condor to terminate jobs after T hours '
+             'to prevent idling, default: %(default)s',
+    )
+    cargs.add_argument(
+        '--condor-command',
+        action='append',
+        default=[],
+        help='Extra condor submit commands to add to '
+             'gw_summary submit file. Can be given '
+             'multiple times in the form "key=value"',
+    )
+
+    # return the argument parser
+    return parser
+
+
+# -- main code block ----------------------------------------------------------
+
+def main(args=None):
+    """Run the command-line Omega scan tool in batch mode
+    """
+    parser = create_parser()
+    args = parser.parse_args(args=args)
+
+    # set up output directory
+    outdir = os.path.abspath(os.path.expanduser(args.output_dir))
+
+    # parse times
+    times = getattr(args, 'gps-time')
+
+    if len(times) == 1:
+        try:  # try converting to GPS
+            times = [float(times[0])]
+        except (TypeError, ValueError):  # otherwise read as file
+            import numpy
+            times = numpy.loadtxt(times[0], dtype=float, ndmin=1)
+    else:
+        times = list(map(float, times))
+
+    # get condor arguments
+    condorcmds = get_condor_arguments(
+        accounting_group=args.condor_accounting_group,
+        accounting_group_user=args.condor_accounting_group_user,
+        timeout=args.condor_timeout,
+        extra_commands=args.condor_command,
+        gps=max(times),
+    )
+
+    # get command-line flags
+    flags = get_command_line_flags(
+        args.ifo,
+        fscale=args.frequency_scaling,
+        colormap=args.colormap,
+        nproc=args.nproc,
+        far=args.far_threshold,
+        config_file=args.config_file,
+        disable_correlation=args.disable_correlation,
+        disable_checkpoint=args.disable_checkpoint,
+        ignore_state_flags=args.ignore_state_flags,
+    )
+
+    # -- generate workflow ------------
+
+    # write and submit the DAG
+    dagman = generate_dag(
+        times,
+        flags=flags,
+        tag="gwdetchar-omega-batch",
+        submit=args.submit,
+        outdir=outdir,
+        universe=args.universe,
+        condor_commands=condorcmds,
+    )
+
+    # monitor progress
+    if args.submit and args.monitor:
+        print("Monitoring progress of {0.submit_file}".format(dagman))
+        try:
+            subprocess.check_call(
+                ["pycondor", "monitor", dagman.submit_file],
+            )
+        except KeyboardInterrupt:
+            pass
+
+
+# -- run from command line ----------------------------------------------------
+
+if __name__ == "__main__":
+    main()
