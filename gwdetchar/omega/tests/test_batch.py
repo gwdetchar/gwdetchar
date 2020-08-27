@@ -97,7 +97,7 @@ def test_generate_dag(dag, tmpdir, capsys):
 
 # -- cli tests ----------------------------------------------------------------
 
-@pytest.mark.parametrize('args' [
+@pytest.mark.parametrize('args', [
     (['1126259462.4'], ),
     (['1128678900.4', '1135136350.6', '--submit'], ),
     (['event-times.txt', '--submit', '--monitor'], ),
