@@ -273,3 +273,16 @@ def test_main_inactive_segments(segserver, caplog):
     os.remove('config.ini')
     os.remove('data.h5')
     shutil.rmtree(outdir, ignore_errors=True)
+
+
+def test_main_no_config_file():
+    ini_source = '/does/not/exist.ini'
+    args = [
+        str(GPS),
+        '--ifo', 'V1',
+        '--config-file', ini_source,
+    ]
+    # test that a non-existing configuration file raises OSError
+    with pytest.raises(OSError) as exc:
+        omega_cli.main(args)
+    assert str(exc.value) == "Cannot read file '{}'".format(ini_source)
