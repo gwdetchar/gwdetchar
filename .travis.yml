@@ -45,7 +45,7 @@ install:
 script:
   - python -m flake8 . bin/*
   - python -m pytest --verbose --cov --pyargs gwdetchar
-  - bash ci/test-bin.sh
+  - bash ci/test-cli.sh
 
 after_success:
   - travis_retry conda install --quiet --yes --name gwdetcharci codecov
