@@ -54,7 +54,7 @@ channel = K1:GW-PRIMARY_CHANNEL
 [GW]
 name = Gravitational Wave Strain
 q-range = 3.3166,150.0
-frequency-range = 10.0,4096.0
+frequency-range = 10.0,1024.0
 source = {path}
 state-flag = K1:DCH-TEST_FLAG:1
 duration = 32
@@ -68,7 +68,7 @@ channels = K1:GW-PRIMARY_CHANNEL
 [AUX]
 name = Auxiliary Sensors
 q-range = 3.3166,100.0
-frequency-range = 4.0,4096.0
+frequency-range = 4.0,1024.0
 source = {path}
 state-flag = K1:DCH-TEST_FLAG:1
 duration = 32
@@ -85,7 +85,7 @@ channels = K1:AUX-HIGH_SIGNIFICANCE
 NETWORK_CONFIG = u"""[H1]
 name = LIGO-Hanford
 q-range = 3.3166,150.0
-frequency-range = 10.0,4096.0
+frequency-range = 10.0,1024.0
 source = {path}
 duration = 32
 fftlength = 8
@@ -98,7 +98,7 @@ channels = H1:GW-PRIMARY_CHANNEL
 [L1]
 name = LIGO-Livingston
 q-range = 3.3166,150.0
-frequency-range = 10.0,4096.0
+frequency-range = 10.0,1024.0
 source = {path}
 duration = 32
 fftlength = 8
@@ -183,13 +183,13 @@ def _get_inputs(workdir, config, data):
     # write to data files and return
     with open(ini_target, 'w') as f:
         f.write(config.format(path=data_target))
-    data.write(data_target, format="hdf5")
+    data.write(data_target, format="hdf5", overwrite=True)
     return ini_target
 
 
 # -- cli tests ----------------------------------------------------------------
 
-def test_main_single_ifo(tmpdir, capsys):
+def test_main_single_ifo(tmpdir, caplog):
     outdir = str(tmpdir)
     ini_source = _get_inputs(outdir, K1_CONFIG, K1_DATA)
     args = [
@@ -200,22 +200,22 @@ def test_main_single_ifo(tmpdir, capsys):
         '--ignore-state-flags',
     ]
     # test from scratch
-    omega_cli.main(args)
-    (out, err) = capsys.readouterr()
-    assert not err
-    assert 'K1 Omega Scan {}'.format(GPS) in out
+    with pytest.warns(UserWarning) as record:
+        omega_cli.main(args)
+    assert 'K1 Omega Scan {:.1f}'.format(GPS) in caplog.text
     assert os.path.isfile(os.path.join(outdir, 'index.html'))
-    assert os.path.isfile(os.path.join(outdir, 'summary.csv'))
+    assert os.path.isfile(os.path.join(outdir, 'data', 'summary.csv'))
+    assert 'array must not contain infs or NaNs' in record[-1].message.args[0]
     # test with checkpointing
-    omega_cli.main(args)
-    (out, err) = capsys.readouterr()
-    assert not err
-    assert 'Checkpointing from {}'.format(outdir) in out
+    with pytest.warns(UserWarning) as record:
+        omega_cli.main(args)
+    assert 'Checkpointing from {}'.format(outdir) in caplog.text
+    assert 'array must not contain infs or NaNs' in record[-1].message.args[0]
     # clean up
     shutil.rmtree(outdir, ignore_errors=True)
 
 
-def test_main_multi_ifo(tmpdir, capsys):
+def test_main_multi_ifo(tmpdir, caplog):
     outdir = str(tmpdir)
     ini_source = _get_inputs(outdir, NETWORK_CONFIG, NETWORK_DATA)
     args = [
@@ -226,18 +226,14 @@ def test_main_multi_ifo(tmpdir, capsys):
     ]
     # test from scratch
     omega_cli.main(args)
-    (out, err) = capsys.readouterr()
-    assert not err
-    assert 'Network Omega Scan {}'.format(GPS) in out
+    assert 'Network Omega Scan {}'.format(GPS) in caplog.text
     assert os.path.isfile(os.path.join(outdir, 'index.html'))
-    assert os.path.isfile(os.path.join(outdir, 'summary.csv'))
+    assert os.path.isfile(os.path.join(outdir, 'data', 'summary.csv'))
     # test with checkpointing and --disable-correlation
     ini_source = _get_inputs(
         outdir, NETWORK_CONFIG_WITH_PRIMARY, NETWORK_DATA)
     omega_cli.main(args + ['--disable-correlation'])
-    (out, err) = capsys.readouterr()
-    assert not err
-    assert 'Checkpointing from {}'.format(outdir) in out
+    assert 'Checkpointing from {}'.format(outdir) in caplog.text
     # test with checkpointing that expects cross-correlation
     with pytest.raises(KeyError) as exc:
         omega_cli.main(args)
@@ -248,7 +244,7 @@ def test_main_multi_ifo(tmpdir, capsys):
 
 @mock.patch('gwpy.segments.DataQualityFlag.query',
             return_value=TEST_FLAG)
-def test_main_inactive_segments(segserver, tmpdir, capsys):
+def test_main_inactive_segments(segserver, tmpdir, caplog):
     outdir = str(tmpdir)
     ini_source = _get_inputs(outdir, K1_CONFIG, K1_DATA)
     args = [
@@ -259,9 +255,7 @@ def test_main_inactive_segments(segserver, tmpdir, capsys):
     ]
     omega_cli.main(args)
     # test output
-    (out, err) = capsys.readouterr()
-    assert not err
-    assert 'Finalizing HTML at {}'.format(outdir) in out
+    assert 'Finalizing HTML at {}'.format(outdir) in caplog.text
     with open(os.path.join(outdir, "index.html"), 'r') as f:
         assert ('No significant channels found during '
                 'active analysis segments') in f.read()

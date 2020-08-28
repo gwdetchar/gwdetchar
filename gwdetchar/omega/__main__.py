@@ -119,7 +119,7 @@ def _parse_configuration(inifiles, ifo=None, gps=None):
 
 
 def _scan_channel(channel, data, analyzed, gps, block, fthresh,
-                  logf, fscale, colormap, correlate=None):
+                  logf, fscale, colormap, block_name, correlate=None):
     """Perform Omega scan on an individual data channel
     """
     try:  # scan the channel
@@ -152,8 +152,7 @@ def _scan_channel(channel, data, analyzed, gps, block, fthresh,
     else:
         channel.save_loudest_tile_features(series[3])
     # update the record of analyzed channels
-    return html.update_toc(analyzed, channel,
-                           block[channel.section].name)
+    return html.update_toc(analyzed, channel, block_name)
 
 
 # -- parse command line -------------------------------------------------------
@@ -252,7 +251,7 @@ def main(args=None):
     args = parser.parse_args(args=args)
 
     # get critical arguments
-    ifo = 'Network' or args.ifo
+    ifo = args.ifo or 'Network'
     gps = numpy.around(float(args.gpstime), 2)
     LOGGER.info("{} Omega Scan {}".format(ifo, gps))
 
@@ -380,7 +379,8 @@ def main(args=None):
             analyzed = _scan_channel(
                 channel, data[channel.name], analyzed, gps, block,
                 args.far_threshold, (args.frequency_scaling == 'log'),
-                args.frequency_scaling, args.colormap, correlate)
+                args.frequency_scaling, args.colormap,
+                blocks[channel.section].name, correlate)
             htmlv['toc'] = analyzed
             html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 
