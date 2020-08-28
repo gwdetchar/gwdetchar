@@ -98,9 +98,9 @@ def test_generate_dag(dag, tmpdir, capsys):
 # -- cli tests ----------------------------------------------------------------
 
 @pytest.mark.parametrize('args', (
-    ['1126259462.4'],
-    ['1128678900.4', '1135136350.6', '--submit'],
-    ['event-times.txt', '--submit', '--monitor'],
+    ['1126259462.4', '--ifo', 'H1'],
+    ['1128678900.4', '1135136350.6', '--submit', '--ifo', 'L1'],
+    ['event-times.txt', '--submit', '--monitor', '--ifo', 'Network'],
 ))
 @mock.patch('numpy.loadtxt', return_value=[
     1167559936.6, 1180922494.5, 1185389807.3])
