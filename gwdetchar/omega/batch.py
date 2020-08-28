@@ -332,7 +332,7 @@ def main(args=None):
     outdir = os.path.abspath(os.path.expanduser(args.output_dir))
 
     # parse times
-    times = getattr(args, 'gps-time')
+    times = getattr(args, 'gpstime')
 
     if len(times) == 1:
         try:  # try converting to GPS
