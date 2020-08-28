@@ -58,6 +58,32 @@ ACCOUNTING_GROUP_USER = os.getenv(
 
 # -- utilities ----------------------------------------------------------------
 
+def _monitor_dag_workflow(dagman):
+    """Monitor a batch of Omega scans through the Condor pool
+    """
+    print("Monitoring progress of {0.submit_file}".format(dagman))
+    try:
+        subprocess.check_call(
+            ["pycondor", "monitor", dagman.submit_file],
+        )
+    except KeyboardInterrupt:
+        pass
+
+
+def _parse_analysis_times(tlist):
+    """Parse an iterable of GPS time data for a batch of Omega scans
+    """
+    if len(tlist) == 1:
+        try:  # try converting to GPS
+            tlist = [float(tlist[0])]
+        except (TypeError, ValueError):  # otherwise read as file
+            import numpy
+            tlist = numpy.loadtxt(tlist[0], dtype=float, ndmin=1)
+    else:
+        tlist = list(map(float, tlist))
+    return tlist
+
+
 def get_command_line_flags(ifo, fscale='log', colormap='viridis', nproc=8,
                            far=3.171e-8, config_file=None,
                            disable_correlation=False, disable_checkpoint=False,
@@ -329,19 +355,12 @@ def main(args=None):
     args = parser.parse_args(args=args)
 
     # set up output directory
-    outdir = os.path.abspath(os.path.expanduser(args.output_dir))
+    outdir = os.path.abspath(
+        os.path.expanduser(args.output_dir))
 
-    # parse times
-    times = getattr(args, 'gpstime')
-
-    if len(times) == 1:
-        try:  # try converting to GPS
-            times = [float(times[0])]
-        except (TypeError, ValueError):  # otherwise read as file
-            import numpy
-            times = numpy.loadtxt(times[0], dtype=float, ndmin=1)
-    else:
-        times = list(map(float, times))
+    # parse analysis times
+    times = _parse_analysis_times(
+        getattr(args, 'gpstime'))
 
     # get condor arguments
     condorcmds = get_condor_arguments(
@@ -378,15 +397,9 @@ def main(args=None):
         condor_commands=condorcmds,
     )
 
-    # monitor progress
+    # monitor DAG progress
     if (args.submit and args.monitor):
-        print("Monitoring progress of {0.submit_file}".format(dagman))
-        try:
-            subprocess.check_call(
-                ["pycondor", "monitor", dagman.submit_file],
-            )
-        except KeyboardInterrupt:
-            pass
+        _monitor_dag_workflow(dagman)
 
 
 # -- run from command line ----------------------------------------------------
