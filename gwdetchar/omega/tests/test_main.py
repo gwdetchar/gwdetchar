@@ -119,6 +119,15 @@ channel = L1:GW-PRIMARY_CHANNEL
 
 """ + NETWORK_CONFIG
 
+MOCK_SUMMARY = """Channel,Central Time,Central Frequency (Hz),Q,Energy,SNR,Correlation,Standard Deviation,Delay (ms)
+H1:GW-PRIMARY_CHANNEL,17.0,69.0,8.6,3021.39990234375,77.7,3.5,1.224587425297728,-50
+L1:GW-PRIMARY_CHANNEL,17.0,78.6,8.6,31.200000762939453,7.9,6.3,1.3387611859727206,19
+K1:GW-PRIMARY_CHANNEL,17.0,88.0,8.6,70.9000015258789,11.9,221.9,16.73187955362334,0
+K1:AUX-HIGH_SIGNIFICANCE,17.0,62.4,8.6,43.400001525878906,9.3,6.9,1.7532027279924842,-50
+K1:AUX-LOW_SIGNIFICANCE,17.0,102.7,44.2,33.79999923706055,8.2,13.7,4.709735874989297,2
+K1:AUX-INVALID_DATA,17.0,103.0,69.0,103.5999984741211,14.4,5.0,1.445966601520126,-55
+"""  # noqa: E501
+
 # -- test data
 
 GPS = 17
@@ -275,7 +284,7 @@ def test_main_inactive_segments(segserver, caplog):
     shutil.rmtree(outdir, ignore_errors=True)
 
 
-def test_main_no_config_file():
+def test_main_no_config_files():
     ini_source = '/does/not/exist.ini'
     args = [
         str(GPS),
@@ -286,3 +295,27 @@ def test_main_no_config_file():
     with pytest.raises(OSError) as exc:
         omega_cli.main(args)
     assert str(exc.value) == "Cannot read file '{}'".format(ini_source)
+
+
+def test_main_multiple_config_files(tmpdir):
+    outdir = str(tmpdir)
+    os.mkdir(os.path.join(outdir, 'data'))
+    ini1 = _get_inputs(outdir, K1_CONFIG, K1_DATA)
+    ini2 = os.path.join(outdir, 'network-config.ini')
+    with open(ini2, 'w') as f:
+        f.write(K1_CONFIG.format(path='data.h5'))
+    with open(os.path.join(outdir, 'data', 'summary.csv'), 'w') as f:
+        f.write(MOCK_SUMMARY)
+    args = [
+        str(GPS),
+        '--ifo', 'Network',
+        '--config-file', ini1,
+        '--config-file', ini2,
+        '--output-dir', outdir,
+        '--ignore-state-flags',
+    ]
+    # test output
+    omega_cli.main(args)
+    assert os.path.exists(os.path.join(outdir, 'index.html'))
+    # clean up
+    shutil.rmtree(outdir, ignore_errors=True)
