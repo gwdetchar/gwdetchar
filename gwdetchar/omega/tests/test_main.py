@@ -179,7 +179,7 @@ def _get_inputs(workdir, config, data):
     """
     # get path to data files
     ini_target = os.path.join(workdir, "config.ini")
-    data_target = os.path.join(workdir, "data.h5")
+    data_target = os.path.abspath(os.path.join(workdir, "data.h5"))
     # write to data files and return
     with open(ini_target, 'w') as f:
         f.write(config.format(path=data_target))
@@ -251,9 +251,11 @@ def test_main_multi_ifo(tmpdir, caplog):
 
 @mock.patch('gwpy.segments.DataQualityFlag.query',
             return_value=TEST_FLAG)
-def test_main_inactive_segments(segserver, tmpdir, caplog):
-    outdir = str(tmpdir)
-    ini_source = _get_inputs(outdir, K1_CONFIG, K1_DATA)
+def test_main_inactive_segments(segserver, caplog):
+    outdir = 'null-test'
+    # write input data products to current working directory
+    # this is done to test Omega scans' relative path construction
+    ini_source = _get_inputs(os.path.curdir, K1_CONFIG, K1_DATA)
     args = [
         str(GPS),
         '--ifo', 'K1',
@@ -262,9 +264,12 @@ def test_main_inactive_segments(segserver, tmpdir, caplog):
     ]
     omega_cli.main(args)
     # test output
-    assert 'Finalizing HTML at {}'.format(outdir) in caplog.text
+    assert 'Finalizing HTML at {}'.format(
+        os.path.abspath(outdir)) in caplog.text
     with open(os.path.join(outdir, "index.html"), 'r') as f:
         assert ('No significant channels found during '
                 'active analysis segments') in f.read()
     # clean up
+    os.remove('config.ini')
+    os.remove('data.h5')
     shutil.rmtree(outdir, ignore_errors=True)

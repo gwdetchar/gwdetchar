@@ -286,6 +286,7 @@ def main(args=None):
     }
 
     # set output directory
+    indir = os.getcwd()
     outdir = os.path.abspath(
         args.output_directory or
         os.path.expanduser(
@@ -384,12 +385,15 @@ def main(args=None):
             htmlv['toc'] = analyzed
             html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 
-    # -- prepare HTML -----------------
+    # -- finalize HTML ----------------
 
     # write HTML page and finish
     LOGGER.debug('Finalizing HTML at {}/index.html'.format(outdir))
     _finalize_html(analyzed, ifo, gps, htmlv)
     LOGGER.info("-- index.html written, all done --")
+
+    # return to original directory
+    os.chdir(indir)
 
 
 # -- run code -----------------------------------------------------------------
