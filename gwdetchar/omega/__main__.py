@@ -41,7 +41,7 @@ from matplotlib import use
 use('Agg')
 
 # backend-dependent import
-from gwdetchar.omega import plot  # noqa: E402
+from . import plot  # noqa: E402
 
 # authorship credits
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -49,6 +49,112 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 # set up logger
 LOGGER = cli.logger(name='gwdetchar.omega')
+
+
+# -- utilities ----------------------------------------------------------------
+
+def _finalize_html(analyzed, ifo, gps, htmlv):
+    """Write the final HTML data product for this analysis
+    """
+    LOGGER.debug('Finalizing HTML at {}/index.html'.format(outdir))
+    htmlv['refresh'] = False  # turn off auto-refresh
+    if analyzed:
+        html.write_qscan_page(ifo, gps, analyzed, **htmlv)
+        return
+    reason = ('No significant channels found '
+              'during active analysis segments')
+    html.write_null_page(ifo, gps, reason, context=ifo.lower())
+
+
+def _init_analyzed_channels():
+    """Initialize a running, ordered record of analyzed channels
+    """
+    if sys.version_info >= (3, 7):  # python 3.7+
+        return {}
+    from collections import OrderedDict
+    return OrderedDict()
+
+
+def _load_channel_record(summary, use_checkpoint=True, correlate=True):
+    """Load a previous Omega scan from its last saved checkpoint
+    """
+    if not (use_checkpoint and os.path.exists(summary)):
+        return ([], [])
+    LOGGER.debug('Checkpointing from {}'.format(
+        os.path.abspath(summary)))
+    record = Table.read(summary)
+    if correlate and ('Standard Deviation' not in record.colnames):
+        raise KeyError(
+            'Cross-correlation is not available from this record, '
+            'consider running without correlation or starting from '
+            'scratch with --disable-checkpoint')
+    completed = list(record['Channel'])
+    return (record, completed)
+
+
+def _load_channel_from_checkpoint(block_name, channel, analyzed,
+                                  completed, record, correlated):
+    """Load channel data from a previous analysis
+    """
+    LOGGER.info(' -- Checkpointing {} from a previous '
+                'run'.format(channel.name))
+    cindex = completed.index(channel.name)
+    channel.load_loudest_tile_features(
+        record[cindex], correlated=correlated)
+    return html.update_toc(analyzed, channel, name=block_name)
+
+
+def _parse_configuration(inifiles):
+    """Parse configuration files for this Omega scan
+    """
+    # get path(s) to configuration files
+    inifiles = [os.path.abspath(f) for f in (
+        inifiles or
+        config.get_default_configuration(ifo, gps)
+    )]
+    # parse configuration files
+    LOGGER.debug('Parsing the following configuration files:')
+    for fname in inifiles:
+        LOGGER.debug(''.join([' -- ', fname]))
+    return inifiles
+
+
+def _scan_channel(channel, data, analyzed, gps, block, fthresh,
+                  logf, fscale, colormap, correlate=None):
+    """Perform Omega scan on an individual data channel
+    """
+    try:  # scan the channel
+        LOGGER.info(' -- Scanning channel {}'.format(channel.name))
+        series = omega.scan(
+            gps, channel, data.astype('float64'), block.fftlength,
+            resample=block.resample, fthresh=fthresh, search=block.search,
+            logf=(args.frequency_scaling == 'log'))
+    except (ValueError, KeyError) as exc:
+        warnings.warn("Skipping {}: [{}] {}".format(
+            channel.name, type(exc), str(exc)), UserWarning)
+        return analyzed
+    # if channel is insignificant, skip it
+    if series is None:
+        LOGGER.warning(
+            ' -- Channel not significant at white noise false alarm '
+            'rate {} Hz'.format(fthresh))
+        return analyzed
+    # plot Omega scan products
+    LOGGER.info(
+        ' -- Plotting Omega scan products for {}'.format(channel.name))
+    plot.write_qscan_plots(gps, channel, series, fscale=scale,
+                           colormap=args.colormap)
+    # handle cross-correlation
+    if correlate is not None:
+        LOGGER.info(' -- Cross-correlating {}'.format(channel.name))
+        correlation = omega.cross_correlate(series[2], correlate)
+        channel.save_loudest_tile_features(
+            series[3], correlation, gps=gps, dt=block.dt)
+    else:
+        channel.save_loudest_tile_features(series[3])
+    # update the record of analyzed channels
+    return html.update_toc(analyzed, channel,
+                           block[channel.section].name)
 
 
 # -- parse command line -------------------------------------------------------
@@ -74,7 +180,7 @@ def create_parser():
     parser.add_argument(
         '-o',
         '--output-directory',
-        help='output directory for the omega scan, '
+        help='output directory for the Omega scan, '
              'default: ~/public_html/wdq/{IFO}_{gpstime}',
     )
     parser.add_argument(
@@ -151,16 +257,8 @@ def main(args=None):
     gps = numpy.around(float(args.gpstime), 2)
     LOGGER.info("{} Omega Scan {}".format(ifo, gps))
 
-    # get path(s) to configuration files
-    args.config_file = [os.path.abspath(f) for f in (
-        args.config_file or
-        config.get_default_configuration(ifo, gps)
-    )]
-
     # parse configuration files
-    LOGGER.debug('Parsing the following configuration files:')
-    for fname in args.config_file:
-        LOGGER.debug(''.join([' -- ', fname]))
+    args.config_file = _parse_configuration(args.config_file)
     cp = config.OmegaConfigParser(ifo=ifo)
     cp.read(args.config_file)
 
@@ -179,11 +277,7 @@ def main(args=None):
     blocks = cp.get_channel_blocks()
 
     # set up analyzed channel dict
-    if sys.version_info >= (3, 7):  # python 3.7+
-        analyzed = {}
-    else:
-        from collections import OrderedDict
-        analyzed = OrderedDict()
+    analyzed = _init_analyzed_channels()
 
     # prepare html variables
     htmlv = {
@@ -197,46 +291,34 @@ def main(args=None):
         args.output_directory or
         os.path.expanduser(
             '~/public_html/wdq/{ifo}_{gps}'.format(ifo=ifo, gps=gps),
-        )
-    )
+        ))
     if not os.path.isdir(outdir):
         os.makedirs(outdir)
     os.chdir(outdir)
     LOGGER.debug('Output directory created as {}'.format(outdir))
 
-    # -- compute Q-scan ---------------
-
     # make subdirectories
-    plotdir = 'plots'
-    aboutdir = 'about'
-    datadir = 'data'
-    for d in [plotdir, aboutdir, datadir]:
+    for d in ['plots', 'about', 'data']:
         if not os.path.isdir(d):
             os.makedirs(d)
 
-    # determine checkpoints
-    summary = os.path.join(datadir, 'summary.csv')
-    if os.path.exists(summary) and not args.disable_checkpoint:
-        LOGGER.debug('Checkpointing from {}'.format(
-            os.path.abspath(summary)))
-        record = Table.read(summary)
-        completed = list(record['Channel'])
-        if not args.disable_correlation and ('Standard Deviation'
-                                             not in record.colnames):
-            raise KeyError(
-                'Cross-correlation is not available from this record, '
-                'consider running without correlation or starting from '
-                'scratch with --disable-checkpoint')
-    else:
-        record = []
-        completed = []
+    # load checkpoints, if requested
+    summary = os.path.join('data', 'summary.csv')
+    (record, completed) = _load_channel_record(
+        summary,
+        use_checkpoint=(not args.disable_checkpoint),
+        correlate=(not args.disable_correlation),
+    )
 
     # set up html output
-    LOGGER.debug('Setting up HTML at {}/index.html'.format(outdir))
+    LOGGER.debug('Setting up HTML at {}'.format(
+        os.path.join(outdir, 'index.html')))
     html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 
-    # launch omega scans
-    LOGGER.info('Launching omega scans')
+    # -- compute Q-scan ---------------
+
+    # launch Omega scans
+    LOGGER.info('Launching Omega scans')
 
     # construct a matched-filter from primary channel
     if not args.disable_correlation:
@@ -288,65 +370,24 @@ def main(args=None):
         # process individual channels
         for channel in block.channels:
             if channel.name in completed:  # load checkpoint
-                LOGGER.info(' -- Checkpointing {} from a previous '
-                            'run'.format(channel.name))
-                cindex = completed.index(channel.name)
-                channel.load_loudest_tile_features(
-                    record[cindex], correlated=correlate is not None)
-                analyzed = html.update_toc(analyzed, channel,
-                                           name=blocks[channel.section].name)
+                analyzed = _load_channel_from_checkpoint(
+                    blocks[channel.section].name, channel, analyzed,
+                    completed, record, (correlate is not None))
                 htmlv['toc'] = analyzed
                 html.write_qscan_page(ifo, gps, analyzed, **htmlv)
                 continue
 
-            try:  # scan the channel
-                LOGGER.info(' -- Scanning channel {}'.format(channel.name))
-                series = omega.scan(
-                    gps, channel, data[channel.name].astype('float64'),
-                    fftlength, resample=block.resample,
-                    fthresh=args.far_threshold, search=block.search,
-                    logf=(args.frequency_scaling == 'log'))
-            except (ValueError, KeyError) as exc:
-                warnings.warn("Skipping {}: [{}] {}".format(
-                    channel.name, type(exc), str(exc)), UserWarning)
-                continue
-
-            if series is None:
-                LOGGER.warning(
-                    ' -- Channel not significant at white noise false alarm '
-                    'rate {} Hz'.format(args.far_threshold))
-                continue  # channel is insignificant, skip it
-
-            LOGGER.info(
-                ' -- Plotting omega scan products for {}'.format(channel.name))
-            plot.write_qscan_plots(gps, channel, series,
-                                   fscale=args.frequency_scaling,
-                                   colormap=args.colormap)
-
-            if correlate is not None:
-                LOGGER.info(' -- Cross-correlating {}'.format(channel.name))
-                correlation = omega.cross_correlate(series[2], correlate)
-                channel.save_loudest_tile_features(
-                    series[3], correlation, gps=gps, dt=block.dt)
-            else:
-                channel.save_loudest_tile_features(series[3])
-
-            analyzed = html.update_toc(analyzed, channel,
-                                       name=blocks[channel.section].name)
+            analyzed = _scan_channel(
+                channel, data[channel.name], analyzed, gps, block,
+                args.far_threshold, (args.frequency_scaling == 'log'),
+                args.frequency_scaling, args.colormap, correlate)
             htmlv['toc'] = analyzed
             html.write_qscan_page(ifo, gps, analyzed, **htmlv)
 
     # -- prepare HTML -----------------
 
     # write HTML page and finish
-    LOGGER.debug('Finalizing HTML at {}/index.html'.format(outdir))
-    htmlv['refresh'] = False  # turn off auto-refresh
-    if analyzed:
-        html.write_qscan_page(ifo, gps, analyzed, **htmlv)
-    else:
-        reason = ('No significant channels found '
-                  'during active analysis segments')
-        html.write_null_page(ifo, gps, reason, context=ifo.lower())
+    _finalize_html(analyzed, ifo, gps, htmlv)
     LOGGER.info("-- index.html written, all done --")
 
 
