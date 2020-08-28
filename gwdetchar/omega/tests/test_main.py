@@ -24,7 +24,7 @@ import numpy
 import pytest
 import shutil
 
-from io import StringIO
+from scipy.signal import gausspulse
 from unittest import mock
 
 from gwpy.segments import (
@@ -78,8 +78,8 @@ snr-threshold = 5.5
 always-plot = False
 plot-time-durations = 1,4,16
 channels = K1:AUX-HIGH_SIGNIFICANCE
-	K1:AUX-LOW_SIGNIFICANCE
-	K1:AUX-INVALID_DATA
+    K1:AUX-LOW_SIGNIFICANCE
+    K1:AUX-INVALID_DATA
 """.rstrip()
 
 NETWORK_CONFIG = u"""[H1]
@@ -124,7 +124,7 @@ channel = L1:GW-PRIMARY_CHANNEL
 GPS = 17
 
 SIGNAL = TimeSeries(
-    signal.gausspulse(numpy.arange(-1, 1, 1./4096), bw=100),
+    gausspulse(numpy.arange(-1, 1, 1./4096), bw=100),
     sample_rate=4096,
     epoch=GPS - 1,
 ) * 1e-4
