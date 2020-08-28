@@ -56,7 +56,6 @@ LOGGER = cli.logger(name='gwdetchar.omega')
 def _finalize_html(analyzed, ifo, gps, htmlv):
     """Write the final HTML data product for this analysis
     """
-    LOGGER.debug('Finalizing HTML at {}/index.html'.format(outdir))
     htmlv['refresh'] = False  # turn off auto-refresh
     if analyzed:
         html.write_qscan_page(ifo, gps, analyzed, **htmlv)
@@ -104,7 +103,7 @@ def _load_channel_from_checkpoint(block_name, channel, analyzed,
     return html.update_toc(analyzed, channel, name=block_name)
 
 
-def _parse_configuration(inifiles):
+def _parse_configuration(inifiles, ifo=None, gps=None):
     """Parse configuration files for this Omega scan
     """
     # get path(s) to configuration files
@@ -128,7 +127,7 @@ def _scan_channel(channel, data, analyzed, gps, block, fthresh,
         series = omega.scan(
             gps, channel, data.astype('float64'), block.fftlength,
             resample=block.resample, fthresh=fthresh, search=block.search,
-            logf=(args.frequency_scaling == 'log'))
+            logf=logf)
     except (ValueError, KeyError) as exc:
         warnings.warn("Skipping {}: [{}] {}".format(
             channel.name, type(exc), str(exc)), UserWarning)
@@ -142,8 +141,8 @@ def _scan_channel(channel, data, analyzed, gps, block, fthresh,
     # plot Omega scan products
     LOGGER.info(
         ' -- Plotting Omega scan products for {}'.format(channel.name))
-    plot.write_qscan_plots(gps, channel, series, fscale=scale,
-                           colormap=args.colormap)
+    plot.write_qscan_plots(gps, channel, series, fscale=fscale,
+                           colormap=colormap)
     # handle cross-correlation
     if correlate is not None:
         LOGGER.info(' -- Cross-correlating {}'.format(channel.name))
@@ -258,7 +257,8 @@ def main(args=None):
     LOGGER.info("{} Omega Scan {}".format(ifo, gps))
 
     # parse configuration files
-    args.config_file = _parse_configuration(args.config_file)
+    args.config_file = _parse_configuration(
+        args.config_file, ifo=ifo, gps=gps)
     cp = config.OmegaConfigParser(ifo=ifo)
     cp.read(args.config_file)
 
@@ -387,6 +387,7 @@ def main(args=None):
     # -- prepare HTML -----------------
 
     # write HTML page and finish
+    LOGGER.debug('Finalizing HTML at {}/index.html'.format(outdir))
     _finalize_html(analyzed, ifo, gps, htmlv)
     LOGGER.info("-- index.html written, all done --")
 
