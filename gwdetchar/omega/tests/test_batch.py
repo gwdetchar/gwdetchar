@@ -70,7 +70,7 @@ def test_get_condor_arguments():
     nptest.assert_array_equal(condorcmds, CONDORCMDS)
 
 
-@mock.patch('pycondor.Dagman.submit_dag', return_value=1)
+@mock.patch('pycondor.Dagman.submit_dag', return_value=None)
 def test_generate_dag(dag, tmpdir, capsys):
     outdir = str(tmpdir)
     times = [1187008882]
@@ -97,15 +97,15 @@ def test_generate_dag(dag, tmpdir, capsys):
 
 # -- cli tests ----------------------------------------------------------------
 
-@pytest.mark.parametrize('args', [
-    (['1126259462.4'], ),
-    (['1128678900.4', '1135136350.6', '--submit'], ),
-    (['event-times.txt', '--submit', '--monitor'], ),
-])
+@pytest.mark.parametrize('args', (
+    ['1126259462.4'],
+    ['1128678900.4', '1135136350.6', '--submit'],
+    ['event-times.txt', '--submit', '--monitor'],
+))
 @mock.patch('numpy.loadtxt', return_value=[
     1167559936.6, 1180922494.5, 1185389807.3])
-@mock.patch('pycondor.Dagman.submit_dag', return_value=1)
-@mock.patch('subprocess.check_call', return_value=1)
+@mock.patch('pycondor.Dagman.submit_dag', return_value=None)
+@mock.patch('subprocess.check_call', return_value=None)
 def test_main(subp, dag, loadtxt, args, tmpdir):
     outdir = str(tmpdir)
     batch.main(args + ['--output-dir', outdir])
