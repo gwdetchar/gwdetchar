@@ -28,6 +28,8 @@ for EXE in bin/*; do
     fi
 done
 
+echo ""
+echo ""
 echo "---- Testing python -m modules ----"
 
 # loop over python modules
