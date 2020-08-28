@@ -19,7 +19,7 @@ for EXE in bin/*; do
     fi
 
     # execute --help with coverage
-    echo "$ ${EXENAME} --help..."
+    echo "\n$ ${EXENAME} --help"
     python -m coverage run --append --source=gwdetchar ${EXEPATH} --help;
     if [ "$?" -ne 0 ]; then
         FAILED+=("${EXENAME}")
@@ -38,7 +38,7 @@ modules=(
 )
 for MODULE in "${modules[@]}"; do
     # execute --help with coverage
-    echo "$ python -m ${MODULE} --help..."
+    echo "\n$ python -m ${MODULE} --help..."
     python -m coverage run --append --source=gwdetchar -m ${MODULE} --help;
     if [ "$?" -ne 0 ]; then                                                     
         FAILED+=("${MODULE}")                                                  
