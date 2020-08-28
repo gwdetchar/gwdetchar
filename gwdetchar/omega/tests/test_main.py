@@ -127,7 +127,7 @@ SIGNAL = TimeSeries(
     gausspulse(numpy.arange(-1, 1, 1./4096), bw=100),
     sample_rate=4096,
     epoch=GPS - 1,
-) * 1e-4
+)
 
 TEST_FLAG = DataQualityFlag(
     name="K1:DCH-TEST_FLAG:1",
@@ -203,13 +203,20 @@ def test_main_single_ifo(tmpdir, caplog):
     with pytest.warns(UserWarning) as record:
         omega_cli.main(args)
     assert 'K1 Omega Scan {:.1f}'.format(GPS) in caplog.text
+    assert caplog.text.count('Channel not significant') == 1
     assert os.path.isfile(os.path.join(outdir, 'index.html'))
     assert os.path.isfile(os.path.join(outdir, 'data', 'summary.csv'))
     assert 'array must not contain infs or NaNs' in record[-1].message.args[0]
     # test with checkpointing
+    caplog.clear()
     with pytest.warns(UserWarning) as record:
         omega_cli.main(args)
-    assert 'Checkpointing from {}'.format(outdir) in caplog.text
+    assert caplog.text.count('Checkpointing from {}'.format(outdir)) == 1
+    assert caplog.text.count('Checkpointing K1:GW-PRIMARY_CHANNEL '
+                             'from a previous run') == 1
+    assert caplog.text.count('Checkpointing K1:AUX-HIGH_SIGNIFICANCE '
+                             'from a previous run') == 1
+    assert caplog.text.count('Channel not significant') == 1
     assert 'array must not contain infs or NaNs' in record[-1].message.args[0]
     # clean up
     shutil.rmtree(outdir, ignore_errors=True)
