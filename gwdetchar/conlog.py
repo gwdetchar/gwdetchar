@@ -85,6 +85,20 @@ def _discover_data(channels, caches, start, end, preview, nproc=1):
     return (data1, data2)
 
 
+def _get_available_channels(caches):
+    """Determine available channels from local gravitational-wave frame files
+    """
+    (cache1, cache2) = caches
+    try:
+        available = (
+            set(io_gwf.iter_channel_names(cache1[-1])) &
+            set(io_gwf.iter_channel_names(cache2[0]))
+        )
+    except (IndexError, TypeError):
+        raise RuntimeError("Could not find data in the time range requested")
+    return available
+
+
 # -- parse command-line -------------------------------------------------------
 
 def create_parser():
@@ -164,11 +178,10 @@ def main(args=None):
 
     # get list of channels to analyze
     LOGGER.info('Determining channels to analyze')
-    available = set(io_gwf.iter_channel_names(cache1[-1]))
-    available &= set(io_gwf.iter_channel_names(cache2[0]))
+    available = _get_available_channels((cache1, cache2))
     if args.channels:
-        allchannels = set(numpy.loadtxt(args.channels, dtype=str, ndmin=1))
-        channels = list(allchannels & available)
+        reqchannels = set(numpy.loadtxt(args.channels, dtype=str, ndmin=1))
+        channels = list(reqchannels & available)
     else:
         channels = [x for x in available if x.endswith('.mean')]
     if args.search:  # if requested, get channels matching regex patterns

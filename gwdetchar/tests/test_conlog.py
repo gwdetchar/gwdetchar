@@ -103,18 +103,19 @@ END_DATA = TimeSeriesDict({
 )
 @mock.patch(
     'gwdetchar.conlog._discover_data_source',
-    return_value=([''], ['']),
+    return_value=(['/path/to/data1.gwf'],
+                  ['/path/to/data2.gwf']),
 )
 @mock.patch(
-    'gwpy.io.gwf.iter_channel_names',
-    return_value=list(START_DATA.keys()),
+    'gwdetchar.conlog._get_available_channels',
+    return_value=set(START_DATA.keys()),
 )
 def test_main(gwf, src, data, args, caplog, tmpdir):
     outdir = str(tmpdir)
-    outfile = os.path.join(outdir, 'changes.csv')
+    outfile = os.path.join(outdir, "changes.csv")
     # write channels file
     if '--channels' in args:
-        channels = os.path.join(outdir, 'channels.txt')
+        channels = os.path.join(outdir, "channels.txt")
         with open(channels, 'w') as fobj:
             fobj.write("H1:AUX-CHANNEL_4.mean")
         args.append(channels)
@@ -132,5 +133,53 @@ def test_main(gwf, src, data, args, caplog, tmpdir):
         START, END) in caplog.text
     assert 'Output written to {}'.format(outfile) in caplog.text
     assert os.path.getsize(outfile)
+    # clean up
+    shutil.rmtree(outdir, ignore_errors=True)
+
+
+@mock.patch(
+    'gwdatafind.find_urls',
+    return_value=[],
+)
+def test_main_no_data(src):
+    args = [
+        str(START),
+        str(END),
+        '-i', 'L1',
+    ]
+    with pytest.raises(RuntimeError) as exc:
+        conlog.main(args)
+    assert str(exc.value) == 'Could not find data in the time range requested'
+
+
+@mock.patch(
+    'gwpy.timeseries.TimeSeriesDict.read',
+    return_value=END_DATA,
+)
+@mock.patch(
+    'gwdetchar.conlog._discover_data_source',
+    return_value=(['/path/to/data1.gwf'],
+                  ['/path/to/data2.gwf']),
+)
+@mock.patch(
+    'gwpy.io.gwf.iter_channel_names',
+    return_value=list(END_DATA.keys()),
+)
+def test_main_no_change(gwf, src, data, tmpdir):
+    outdir = str(tmpdir)
+    outfile = os.path.join(outdir, "changes.csv")
+    # determine command-line arguments
+    args = [
+        str(START),
+        str(END),
+        '-i', 'H1',
+        '--preview', '1',
+        '--output', outfile,
+    ]
+    # test command-line tool
+    conlog.main(args)
+    with open(outfile, 'r') as fobj:
+        table = fobj.read()
+    assert table == 'channel,initial_value,final_value,difference\n'
     # clean up
     shutil.rmtree(outdir, ignore_errors=True)
