@@ -21,7 +21,6 @@
 """
 
 import re
-import os.path
 
 import numpy
 
