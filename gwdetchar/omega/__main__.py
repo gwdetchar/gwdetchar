@@ -155,7 +155,7 @@ def _scan_channel(channel, data, analyzed, gps, block, fthresh,
     return html.update_toc(analyzed, channel, block_name)
 
 
-# -- parse command line -------------------------------------------------------
+# -- parse command-line -------------------------------------------------------
 
 def create_parser():
     """Create a command-line parser for this entry point

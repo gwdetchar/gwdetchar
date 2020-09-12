@@ -34,6 +34,7 @@ echo "---- Testing python -m modules ----"
 
 # loop over python modules
 modules=(
+    gwdetchar.conlog
     gwdetchar.nagios
     gwdetchar.omega
     gwdetchar.omega.batch
