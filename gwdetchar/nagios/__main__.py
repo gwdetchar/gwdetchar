@@ -20,52 +20,85 @@
 """
 
 import os
-import sys
 
 from .. import cli
-from .core import (
-    write_status,
-)
+from .core import write_status
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 logger = cli.logger('gwdetchar.nagios')
 
 
-# -- main routine ---------------------------------------------------------
+# -- parse command line -------------------------------------------------------
 
-def main(args=None):  # pragma: no-cover
-    # define command-line arguments
+def create_parser():
+    """Create a command-line parser for this entry point
+    """
+    # initialize argument parser
     parser = cli.create_parser(description=__doc__)
-    parser.add_argument('code', type=int,
-                        help='exit code for Nagios, should be one of: '
-                             '0 (success), 1 (warning), or 2 (critical)')
-    parser.add_argument('message', type=str,
-                        help='status message for Nagios')
-    parser.add_argument('-t', '--timeout', type=int, default=0,
-                        help='timeout length in seconds, default: no timeout')
-    parser.add_argument('-m', '--timeout-message', default='Process timed out',
-                        help='Error message upon timeout')
-    parser.add_argument('-o', '--output-file', default='nagios.json',
-                        help='full path to the output JSON file, '
-                             'default: %(default)s')
 
-    # parse arguments
+    # required arguments
+    parser.add_argument(
+        'code',
+        type=int,
+        help='exit code for Nagios, should be one of: '
+             '0 (success), 1 (warning), or 2 (critical)',
+    )
+    parser.add_argument(
+        'message',
+        type=str,
+        help='status message for Nagios',
+    )
+
+    # optional arguments
+    parser.add_argument(
+        '-t',
+        '--timeout',
+        type=int,
+        default=0,
+        help='timeout length in seconds, default: no timeout',
+    )
+    parser.add_argument(
+        '-m',
+        '--timeout-message',
+        default='Process timed out',
+        help='Error message upon timeout',
+    )
+    parser.add_argument(
+        '-o',
+        '--output-file',
+        default='nagios.json',
+        help='full path to the output JSON file, '
+             'default: %(default)s',
+    )
+
+    # return the argument parser
+    return parser
+
+
+# -- main code block ----------------------------------------------------------
+
+def main(args=None):
+    """Run the command-line Nagios status generator
+    """
+    parser = create_parser()
     args = parser.parse_args(args)
-    code = args.code
-    message = args.message
-    timeout = args.timeout
-    tmessage = args.timeout_message
-    nagiosfile = args.output_file
 
     # write nagios file
-    write_status(message, code, timeout=timeout,
-                 tmessage=tmessage, nagiosfile=nagiosfile)
+    write_status(
+        args.message,
+        args.code,
+        timeout=args.timeout,
+        tmessage=args.timeout_message,
+        nagiosfile=args.output_file,
+    )
 
-    # log file path
-    abspath = os.path.abspath(nagiosfile)
-    logger.info('Status written to {}'.format(abspath))
+    # log output file path
+    logger.info('Status written to {}'.format(
+        os.path.abspath(args.output_file)))
 
 
-if __name__ == '__main__':  # pragma: no-cover
-    sys.exit(main())
+# -- run from command line ----------------------------------------------------
+
+if __name__ == '__main__':
+    main()
