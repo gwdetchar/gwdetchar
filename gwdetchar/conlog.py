@@ -40,6 +40,51 @@ __credits__ = 'Andrew Lundgren <andrew.lundgren@ligo.org>, ' \
 LOGGER = cli.logger(name='gwdetchar.conlog')
 
 
+# -- utilities ----------------------------------------------------------------
+
+def _discover_data_source(obs, frametype, start, end, preview):
+    """Determine filepaths to local gravitational-wave frame files
+    """
+    # get paths to frame files
+    cache1 = gwdatafind.find_urls(
+        obs,
+        frametype,
+        start - preview,
+        start,
+    )
+    cache2 = gwdatafind.find_urls(
+        obs,
+        frametype,
+        end,
+        end + 1,
+    )
+    return (cache1, cache2)
+
+
+def _discover_data(channels, caches, start, end, preview, nproc=1):
+    """Load timeseries data from local gravitational-wave frame files
+    """
+    (cache1, cache2) = caches
+    # get data from frames
+    data1 = get_data(
+        channels,
+        start=start - preview,
+        end=start,
+        source=cache1,
+        nproc=nproc,
+        verbose='Reading initial data:'.rjust(30),
+    )
+    data2 = get_data(
+        channels,
+        start=end,
+        end=end + 1,
+        source=cache2,
+        nproc=nproc,
+        verbose='Reading final data:'.rjust(30),
+    )
+    return (data1, data2)
+
+
 # -- parse command-line -------------------------------------------------------
 
 def create_parser():
@@ -100,7 +145,7 @@ def main(args=None):
     """Run the Conlog command-line tool
     """
     parser = create_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
 
     # get IFO and frametype
     ifo = args.ifo.upper()
@@ -109,17 +154,12 @@ def main(args=None):
     preview_time = max(1, args.preview)
 
     # get paths to frame files
-    cache1 = gwdatafind.find_urls(
+    (cache1, cache2) = _discover_data_source(
         obs,
         frametype,
-        args.gpsstart - preview_time,
         args.gpsstart,
-    )
-    cache2 = gwdatafind.find_urls(
-        obs,
-        frametype,
         args.gpsend,
-        args.gpsend + 1,
+        preview_time,
     )
 
     # get list of channels to analyze
@@ -137,26 +177,17 @@ def main(args=None):
     LOGGER.debug('Found {} channels in frames'.format(len(channels)))
 
     # get data from frames
-    data1 = get_data(
+    (data1, data2) = _discover_data(
         channels,
-        start=args.gpsstart - preview_time,
-        end=args.gpsstart,
-        source=cache1,
+        (cache1, cache2),
+        args.gpsstart,
+        args.gpsend,
+        preview_time,
         nproc=args.nproc,
-        verbose='Reading initial data:'.rjust(30),
     )
-    data2 = get_data(
-        channels,
-        start=args.gpsend,
-        end=args.gpsend+1,
-        source=cache2,
-        nproc=args.nproc,
-        verbose='Reading final data:'.rjust(30),
-    )
-
-    LOGGER.debug('Analyzing {} channels'.format(len(data1)))
 
     # initialize columns
+    LOGGER.debug('Analyzing {} channels'.format(len(data1)))
     changes = []
     value1 = []
     value2 = []
@@ -182,8 +213,8 @@ def main(args=None):
                          'final_value', 'difference'))
 
     # log output
-    LOGGER.info('The following {} channels record a state '
-                'change between {} and {}:\n\n'.format(
+    LOGGER.info('The following {0} channels record a state '
+                'change between {1} and {2}:\n\n'.format(
                     len(changes),
                     args.gpsstart,
                     args.gpsend,
