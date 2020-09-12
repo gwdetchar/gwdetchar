@@ -649,7 +649,7 @@ def render_code(code, language):
 
 
 def get_command_line(language='bash', about=True):
-    """Render the command line invocation used to generate a page
+    """Render the command-line invocation used to generate a page
 
     Parameters
     ----------

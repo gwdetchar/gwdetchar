@@ -40,7 +40,7 @@ __credits__ = 'Andrew Lundgren <andrew.lundgren@ligo.org>, ' \
 LOGGER = cli.logger(name='gwdetchar.conlog')
 
 
-# -- parse command line -------------------------------------------------------
+# -- parse command-line -------------------------------------------------------
 
 def create_parser():
     """Create a command-line parser for this entry point

@@ -144,7 +144,7 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
         list of GPS times to scan
 
     flags : `list` of `str`, optional
-        a list of command line flags to run for each job, defaults to an
+        a list of command-line flags to run for each job, defaults to an
         empty list
 
     tag : `str`, optional
@@ -208,7 +208,7 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
     return dagman
 
 
-# -- parse command line -------------------------------------------------------
+# -- parse command-line -------------------------------------------------------
 
 def create_parser():
     """Create a command-line parser for this entry point
@@ -402,7 +402,7 @@ def main(args=None):
         _monitor_dag_workflow(dagman)
 
 
-# -- run from command line ----------------------------------------------------
+# -- run from command-line ----------------------------------------------------
 
 if __name__ == "__main__":
     main()

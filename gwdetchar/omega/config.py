@@ -48,7 +48,7 @@ Keywords
 ``source``               Path to a LAL-format cache pointing to frame files
 ``state-flag``           A data quality flag to require to be active before
                          processing this block (can be superceded by passing
-                         ``--ignore-state-flags`` on the command line;
+                         ``--ignore-state-flags`` on the command-line;
                          optional)
 ``duration``             The duration of data to process in this block
                          (required)

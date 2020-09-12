@@ -29,7 +29,7 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 logger = cli.logger('gwdetchar.nagios')
 
 
-# -- parse command line -------------------------------------------------------
+# -- parse command-line -------------------------------------------------------
 
 def create_parser():
     """Create a command-line parser for this entry point
@@ -98,7 +98,7 @@ def main(args=None):
         os.path.abspath(args.output_file)))
 
 
-# -- run from command line ----------------------------------------------------
+# -- run from command-line ----------------------------------------------------
 
 if __name__ == '__main__':
     main()
