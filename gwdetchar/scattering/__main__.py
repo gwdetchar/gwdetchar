@@ -141,7 +141,7 @@ def create_parser():
         action='append',
         help='optic to search for scattering signal, can be given '
              'multiple times, default: {}'.format(
-                 OPTIC_MOTION_CHANNELS.keys()),
+                 list(OPTIC_MOTION_CHANNELS.keys())),
     )
     parser.add_argument(
         '-p',
