@@ -20,8 +20,8 @@
 """Search for evidence of beam scattering based on optic velocity
 
 This tool identifies broad time segments over which evidence for scattering is
-strong, to compare projected fringes against spectrogram measurements for a
-specific narrow time range, please use the `simple` command-line module:
+strong. To compare projected fringes against spectrogram measurements for a
+specific, narrow time range, please use the `simple` command-line module:
 
 `python -m gwdetchar.scattering.simple --help`
 """

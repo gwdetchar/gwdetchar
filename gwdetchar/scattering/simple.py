@@ -23,8 +23,8 @@ fringe frequencies. For those channels with fringes above a user-specified
 threshold, a plot is created comparing the fringes to a high-resolution Q-scan
 spectrogram.
 
-To identify time segments where scattering is likely, please use the
-main command-line module:
+To identify broader time segments where scattering is likely in the first
+place, please use the main command-line module:
 
 `python -m gwdetchar.scattering --help`
 """
