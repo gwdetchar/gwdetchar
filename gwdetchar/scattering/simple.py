@@ -153,6 +153,9 @@ def create_parser():
         help='name of colormap to use, default: %(default)s',
     )
 
+    # return the argument parser
+    return parser
+
 
 # -- main code block ----------------------------------------------------------
 
@@ -160,7 +163,7 @@ def main(args=None):
     """Run the simple version of the scattering command-line tool
     """
     parser = create_parser()
-    args = parser.parse_args(args)
+    args = parser.parse_args(args=args)
 
     # store arguments
     ifo = args.ifo

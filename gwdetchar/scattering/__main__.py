@@ -238,7 +238,7 @@ def main(args=None):
     """Run the primary scattering command-line tool
     """
     parser = create_parser()
-    args = parser.parse_args(args)
+    args = parser.parse_args(args=args)
 
     # set up logger
     logger = cli.logger(
