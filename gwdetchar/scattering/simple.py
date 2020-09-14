@@ -18,12 +18,12 @@
 
 """Simple command-line interface to gwdetchar.scattering
 
-This module scans through records of optic motion and projects scattering
-fringe frequencies. For those channels with fringes above a user-specified
-threshold, a plot is created comparing the fringes to a high-resolution Q-scan
-spectrogram.
+Given a specific GPS time of interest, this module scans through records of
+optic motion and projects fringe frequencies due to optical scattering. For
+those channels with fringes above a user-specified threshold, a plot is
+created comparing the fringes to a high-resolution Q-scan spectrogram.
 
-To identify broader time segments where scattering is likely in the first
+To identify broader time segments when scattering is likely in the first
 place, please use the main command-line module:
 
 `python -m gwdetchar.scattering --help`
