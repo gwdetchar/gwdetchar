@@ -67,6 +67,29 @@ MOTION_CHANNELS = [channel for key in OPTIC_MOTION_CHANNELS.keys()
 logger = cli.logger('gwdetchar.scattering.simple')
 
 
+# -- utilities ----------------------------------------------------------------
+
+def _discover_data(primary, channels, start, end,
+                   primary_frametype, aux_frametype):
+    """Load timeseries data from local gravitational-wave frame files
+    """
+    hoft = get_data(
+        primary,
+        start=start - ASD_KW['overlap'],
+        end=end + ASD_KW['overlap'],
+        frametype=primary_frametype,
+        verbose='Reading primary channel:'.rjust(30),
+    )
+    aux = get_data(
+        channels,
+        start=start,
+        end=end,
+        frametype=aux_frametype,
+        verbose='Reading auxiliary sensors:'.rjust(30),
+    )
+    return (hoft, aux)
+
+
 # -- parse command-line -------------------------------------------------------
 
 def create_parser():
@@ -171,6 +194,7 @@ def main(args=None):
     gpsstart = gps - 0.5 * args.duration
     gpsend = gps + 0.5 * args.duration
     primary = ':'.join([ifo, args.primary_channel])
+    channels = [':'.join([ifo, c]) for c in MOTION_CHANNELS]
     thresh = args.frequency_threshold
     multipliers = [int(x) for x in args.multipliers.split(',')]
     harmonic = args.multiplier_for_threshold
@@ -180,21 +204,18 @@ def main(args=None):
         args.aux_frametype = args.aux_frametype.format(IFO=ifo)
     logger.info('{0} Scattering: {1}'.format(ifo, gps))
 
+    # retrieve data
+    (hoft, data) = _discover_data(primary, channels, gpsstart, gpsend,
+                                  args.primary_frametype, args.aux_frametype)
+
     # set up spectrogram
     logger.debug('Setting up a Q-scan spectrogram of {}'.format(primary))
-    hoft = get_data(primary, start=gps-34, end=gps+34,
-                    frametype=args.primary_frametype,
-                    verbose='Reading primary channel:'.rjust(30))
     hoft = highpass(hoft, f_low=thresh).resample(256)
     qspecgram = hoft.q_transform(qrange=(4, 150), frange=(0, 60), gps=gps,
                                  fres=0.1, outseg=(gpsstart, gpsend), **ASD_KW)
     qspecgram.name = primary
 
     # process channels
-    channels = [':'.join([ifo, c]) for c in MOTION_CHANNELS]
-    data = get_data(
-        channels, start=gpsstart, end=gpsend, frametype=args.aux_frametype,
-        verbose='Reading auxiliary sensors:'.rjust(30))
     count = 0  # running count of plots written
     for channel in channels:
         logger.info(' -- Processing {} -- '.format(channel))
@@ -202,7 +223,7 @@ def main(args=None):
             motion = data[channel].detrend().resample(128)
         except KeyError:
             logger.warning('Skipping {}'.format(channel))
-            pass
+            continue
         # project scattering frequencies
         fringe = get_fringe_frequency(motion, multiplier=1)
         ind = fringe.argmax()
