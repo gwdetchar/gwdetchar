@@ -39,8 +39,9 @@ IFO = 'L1'
 
 # -- test data
 
-# The unit test below captures all use cases by simulating (1) a missing optic
-# channel, and (2) a scattering fringe in h(t) and only one optic.
+# The unit test below captures all use cases by simulating
+#     (1) a missing optic channel, and
+#     (2) a scattering fringe in h(t) predicted by only one optic.
 
 DURATION = 68
 FREQ = 1 / 10
