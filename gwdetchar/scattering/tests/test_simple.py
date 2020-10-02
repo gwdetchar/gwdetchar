@@ -90,7 +90,7 @@ def test_main(data, caplog, tmpdir):
     simple.main(args)
     assert 1 == caplog.text.count(
         "Skipping {}:SUS-BS_M1_DAMP_L_IN1_DQ".format(IFO))
-    assert len(simple.MOTION_CHANNELS) - 2) == caplog.text.count(
+    assert len(simple.MOTION_CHANNELS) - 2 == caplog.text.count(
         "No significant evidence of scattering found")
     assert 1 == caplog.text.count(
         "Plotting spectra and projected fringe frequencies")

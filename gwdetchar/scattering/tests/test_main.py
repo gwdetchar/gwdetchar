@@ -23,7 +23,6 @@ import os
 import numpy
 import shutil
 
-from numpy.testing import assert_equal
 from unittest import mock
 
 from gwpy.segments import (
@@ -83,15 +82,15 @@ AUX = TimeSeriesDict({
             numpy.random.normal(loc=1, scale=1e-3, size=SCATTER.size),
             sample_rate=SAMPLE,
             name=':'.join([IFO, chan]),
-        ).crop(4, DURATION - 4)
-    for chan in OSEMS[1::]},
+        ).crop(4, DURATION - 4) for chan in OSEMS[1::]
+    },
     **{
         ':'.join([IFO, chan]): TimeSeries(
             numpy.random.normal(loc=1, scale=1.5, size=SCATTER.size),
             sample_rate=SAMPLE,
             name=':'.join([IFO, chan]),
-        ).inject(SCATTER).crop(4, DURATION - 4)
-    for chan in scattering_cli.TRANSMON_CHANNELS},
+        ).inject(SCATTER).crop(
+            4, DURATION - 4) for chan in scattering_cli.TRANSMON_CHANNELS},
 })
 
 PHASE = PHASE[4 * SAMPLE:-4 * SAMPLE]
