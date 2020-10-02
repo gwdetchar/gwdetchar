@@ -213,9 +213,10 @@ def create_parser():
         '--omega-scans',
         type=int,
         metavar='NSCAN',
-        help='generate a workflow of omega scans for active '
+        default=0,
+        help='generate a workflow of Omega scans for active '
              'scattering, this will launch automatically to '
-             'condor, default: None',
+             'condor, default: 0 (no Omega scans)',
     )
     parser.add_argument(
         '-v',
@@ -256,6 +257,7 @@ def main(args=None):
     args.optic = args.optic or list(OPTIC_MOTION_CHANNELS.keys())
 
     # go to working directory
+    indir = os.getcwd()
     if not os.path.isdir(args.output_dir):
         os.makedirs(args.output_dir)
     os.chdir(args.output_dir)
@@ -276,20 +278,24 @@ def main(args=None):
 
     # get segments
     if args.state_flag is not None:
-        state = DataQualityFlag.query(args.state_flag, int(args.gpsstart),
-                                      int(args.gpsend),
-                                      url=const.DEFAULT_SEGMENT_SERVER)
+        state = DataQualityFlag.query(
+            args.state_flag, int(args.gpsstart), int(args.gpsend),
+            url=const.DEFAULT_SEGMENT_SERVER,
+        ).coalesce()
+        statea = []
         padding = args.segment_start_pad + args.segment_end_pad
         for i, seg in enumerate(state.active):
             if abs(seg) > padding:
-                state.active[i] = type(seg)(
-                    seg[0]+args.segment_start_pad, seg[1]-args.segment_end_pad)
+                statea.append(Segment(
+                    seg[0] + args.segment_start_pad,
+                    seg[1] - args.segment_end_pad,
+                ))
             else:
                 logger.debug(
                     "Segment length {} shorter than padding length {}, "
-                    "skipping segment {}-{}".format(abs(seg), padding, *seg))
-        state.coalesce()
-        statea = state.active
+                    "skipping segment {}-{}".format(abs(seg), padding, *seg),
+                )
+        statea = SegmentList(statea)
         livetime = float(abs(statea))
         logger.debug("Downloaded %d segments for %s [%.2fs livetime]"
                      % (len(statea), args.state_flag, livetime))
@@ -853,6 +859,9 @@ def main(args=None):
     # write HTML
     htmlio.close_page(page, 'index.html')
     logger.info("-- index.html written, all done --")
+
+    # return to original directory
+    os.chdir(indir)
 
 
 # -- run from command-line ----------------------------------------------------
