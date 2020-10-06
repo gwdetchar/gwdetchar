@@ -33,7 +33,7 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 IND = 8
 OUTLIER_IN = numpy.random.normal(loc=0, scale=1, size=1024)
-OUTLIER_IN[IND] = 100
+OUTLIER_IN[IND] = -100
 OUTLIER_TS = TimeSeries(OUTLIER_IN, sample_rate=1024, unit='Mpc',
                         name='X1:TEST_RANGE')
 
@@ -51,9 +51,17 @@ TSDICT = TimeSeriesDict({
 
 # -- unit tests ---------------------------------------------------------------
 
-def test_find_outliers():
+def test_find_outliers_s():
     # find expected outliers
     outliers = core.find_outliers(OUTLIER_TS)
+    assert isinstance(outliers, numpy.ndarray)
+    nptest.assert_array_equal(outliers, numpy.array([IND]))
+
+
+def test_find_outliers_pf():
+    # find expected outliers
+    # The bottom 0.0009765625 percentile of a 1024 length TimeSeries should be a single data point
+    outliers = core.find_outliers(OUTLIER_TS, L=0.0009765625, S='pf')
     assert isinstance(outliers, numpy.ndarray)
     nptest.assert_array_equal(outliers, numpy.array([IND]))
 

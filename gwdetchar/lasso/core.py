@@ -33,7 +33,7 @@ __credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
 
 # -- utilities ----------------------------------------------------------------
 
-def find_outliers(ts, N=5):
+def find_outliers(ts, L=5, S='s'):
     """Find outliers within a `TimeSeries`
 
     Parameters
@@ -41,19 +41,32 @@ def find_outliers(ts, N=5):
     ts : `~gwpy.timeseries.TimeSeries`
         data to find outliers within
 
-    N : `float`, optional
-        number of standard deviations to consider an outlier, default: 5
+    L : `float`, optional
+        if S is given as 's': number of standard deviations to consider an outlier, default: 5
+        if S is given as 'p': percentile range limit, anything below is an outlier, default: 5
+    S : `String`, optional
+        if S is given as 's': outliers will be identified using standard deviation method
+        if S is given as 'pf': outliers will be identified using percentile range method
 
     Returns
     -------
     out : `ndarray`
         array indices of the input where outliers occur
     """
-    ts = ts.value  # strip out Quantity extras
-    return numpy.nonzero(abs(ts - ts.mean()) > N*ts.std())[0]
+    if S == 'pf':
+        ts = ts.value # strip out Quantity extras
+        quantile = numpy.quantile(ts, L)
+        outliers = []
+        for i, x in enumerate(ts):
+            if x < quantile:
+                outliers.append(i)
+        return outliers
+    else:
+        ts = ts.value  # strip out Quantity extras
+        return numpy.nonzero(abs(ts - ts.mean()) > L*ts.std())[0]
 
 
-def remove_outliers(ts, N=5):
+def remove_outliers(ts, L=5, S='s'):
     """Find and remove outliers within a `TimeSeries`
 
     Parameters
@@ -61,33 +74,50 @@ def remove_outliers(ts, N=5):
     ts : `~gwpy.timeseries.TimeSeries`
         data to find outliers within
 
-    N : `float`, optional
-        number of standard deviations to consider an outlier, default: 5
-
+    L : `float`, optional
+        if S is given as 's': number of standard deviations to consider an outlier, default: 5
+        if S is given as 'p': percentile range limit, anything below is an outlier, default: 5
+    S : `String`, optional
+        if S is given as 's': outliers will be identified using standard deviation method
+        if S is given as 'pf': outliers will be identified using percentile range method
+        
     Notes
     -----
     This action is done in-place, with no `return` statement.
     """
-    outliers = find_outliers(ts, N=N)
-    c = 1
-    while outliers.any():
-        print("-- Pass %d: removing %d outliers in %s"
-              % (c, outliers.size, ts.name))
+    if S == 'pf':
+        outliers = find_outliers(ts, L=L, S='pf')
+        print("There are %d outliers in this data" % len(outliers))
         unit = ts.unit
-        cache = outliers
         mask = numpy.ones(ts.size, dtype=bool)
         mask[outliers] = False
-        spline = UnivariateSpline(ts.times.value[mask], ts.value[mask],
-                                  s=0, k=3)
+        spline = UnivariateSpline(ts.times.value[mask], ts.value[mask], s=0, k=3)
         ts[outliers] = spline(ts.times.value[outliers]) * unit
-        outliers = find_outliers(ts, N=N)
-        print("   Completed %d removal passes" % c)
-        if numpy.array_equal(outliers, cache):
-            print("   Outliers did not change, breaking recursion")
-            break
-        print("   %d outliers remain" % len(outliers))
-        c += 1
-
+        if outliers[-1] == (len(ts) - 1):
+            ts = ts[:-1]
+        if outliers[0] == 0:
+            ts = ts[1:]
+        print('Outlier removal complete')
+    else:
+        outliers = find_outliers(ts, L=L, S='s')
+        c = 1
+        while outliers.any():
+            print("-- Pass %d: removing %d outliers in %s"
+                  % (c, outliers.size, ts.name))
+            unit = ts.unit
+            cache = outliers
+            mask = numpy.ones(ts.size, dtype=bool)
+            mask[outliers] = False
+            spline = UnivariateSpline(ts.times.value[mask], ts.value[mask],
+                                      s=0, k=3)
+            ts[outliers] = spline(ts.times.value[outliers]) * unit
+            outliers = find_outliers(ts, L=L, S='s')
+            print("   Completed %d removal passes" % c)
+            if numpy.array_equal(outliers, cache):
+                print("   Outliers did not change, breaking recursion")
+                break
+            print("   %d outliers remain" % len(outliers))
+            c += 1
 
 def fit(data, target, alpha=None):
     """Fit some data to the target using a Lasso model
