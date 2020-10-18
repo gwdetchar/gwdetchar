@@ -33,7 +33,7 @@ __credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
 
 # -- utilities ----------------------------------------------------------------
 
-def find_outliers(ts, L=5, S='s'):
+def find_outliers(ts, L=5, method='s'):
     """Find outliers within a `TimeSeries`
 
     Parameters
@@ -43,7 +43,7 @@ def find_outliers(ts, L=5, S='s'):
 
     L : `float`, optional
         if S is given as 's': number of standard deviations to consider an outlier, default: 5
-        if S is given as 'p': percentile range limit, anything below is an outlier, default: 5
+        if S is given as 'pf': percentile range limit, anything below is an outlier, default: 5
     S : `String`, optional
         if S is given as 's': outliers will be identified using standard deviation method
         if S is given as 'pf': outliers will be identified using percentile range method
@@ -53,20 +53,20 @@ def find_outliers(ts, L=5, S='s'):
     out : `ndarray`
         array indices of the input where outliers occur
     """
-    if S == 'pf':
+    if method == 'pf':
         ts = ts.value # strip out Quantity extras
         quantile = numpy.quantile(ts, L)
         outliers = []
         for i, x in enumerate(ts):
             if x < quantile:
                 outliers.append(i)
-        return outliers
+        return numpy.array(outliers)
     else:
         ts = ts.value  # strip out Quantity extras
         return numpy.nonzero(abs(ts - ts.mean()) > L*ts.std())[0]
 
 
-def remove_outliers(ts, L=5, S='s'):
+def remove_outliers(ts, L=5, method='s'):
     """Find and remove outliers within a `TimeSeries`
 
     Parameters
@@ -76,7 +76,7 @@ def remove_outliers(ts, L=5, S='s'):
 
     L : `float`, optional
         if S is given as 's': number of standard deviations to consider an outlier, default: 5
-        if S is given as 'p': percentile range limit, anything below is an outlier, default: 5
+        if S is given as 'pf': percentile range limit, anything below is an outlier, default: 5
     S : `String`, optional
         if S is given as 's': outliers will be identified using standard deviation method
         if S is given as 'pf': outliers will be identified using percentile range method
@@ -85,8 +85,8 @@ def remove_outliers(ts, L=5, S='s'):
     -----
     This action is done in-place, with no `return` statement.
     """
-    if S == 'pf':
-        outliers = find_outliers(ts, L=L, S='pf')
+    if method == 'pf':
+        outliers = find_outliers(ts, L=L, method='pf')
         print("There are %d outliers in this data" % len(outliers))
         unit = ts.unit
         mask = numpy.ones(ts.size, dtype=bool)
@@ -99,7 +99,7 @@ def remove_outliers(ts, L=5, S='s'):
             ts = ts[1:]
         print('Outlier removal complete')
     else:
-        outliers = find_outliers(ts, L=L, S='s')
+        outliers = find_outliers(ts, L=L, method='s')
         c = 1
         while outliers.any():
             print("-- Pass %d: removing %d outliers in %s"
@@ -111,7 +111,7 @@ def remove_outliers(ts, L=5, S='s'):
             spline = UnivariateSpline(ts.times.value[mask], ts.value[mask],
                                       s=0, k=3)
             ts[outliers] = spline(ts.times.value[outliers]) * unit
-            outliers = find_outliers(ts, L=L, S='s')
+            outliers = find_outliers(ts, L=L, method='s')
             print("   Completed %d removal passes" % c)
             if numpy.array_equal(outliers, cache):
                 print("   Outliers did not change, breaking recursion")
