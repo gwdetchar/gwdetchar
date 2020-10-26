@@ -59,9 +59,9 @@ TSDICT = TimeSeriesDict({
 
 # -- unit tests ---------------------------------------------------------------
 
-def test_find_outliers_s():
+def test_find_outliers():
     # test for standard deviation outlier finding
-    # find expected outliers
+    # find expected outliers using standard deviation method
     outliers = core.find_outliers(OUTLIER_TS)
     assert isinstance(outliers, numpy.ndarray)
     nptest.assert_array_equal(outliers, numpy.array([IND]))
@@ -69,13 +69,13 @@ def test_find_outliers_s():
 
 def test_find_outliers_pf():
     # test for percentile outlier finding
-    # find expected outliers
-    outliers = core.find_outliers(OUTLIER_TS_PF, L=0.01, method='pf')
+    # find expected outliers using percentile range method
+    outliers = core.find_outliers(OUTLIER_TS_PF, N=0.01, method='pf')
     assert isinstance(outliers, numpy.ndarray)
     nptest.assert_array_equal(outliers, numpy.array([IND]))
 
 
-def test_remove_outliers_s():
+def test_remove_outliers():
     # strip off outliers
     core.remove_outliers(OUTLIER_TS)
     assert OUTLIER_TS[IND] - OUTLIER_TS.mean() <= 5 * OUTLIER_TS.std()
@@ -83,8 +83,8 @@ def test_remove_outliers_s():
     
 def test_remove_outliers_pf():
     # Strip off outliers
-    core.remove_outliers(OUTLIER_TS_PF, L=0.01, method='pf')
-    outliers = core.find_outliers(OUTLIER_TS_PF, L=0.01, method='pf')
+    core.remove_outliers(OUTLIER_TS_PF, N=0.01, method='pf')
+    outliers = core.find_outliers(OUTLIER_TS_PF, N=0.01, method='pf')
     assert isinstance(outliers, numpy.ndarray)
     nptest.assert_array_equal(outliers, numpy.array([IND2]))
     

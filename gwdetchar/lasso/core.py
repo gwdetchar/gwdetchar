@@ -33,7 +33,7 @@ __credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
 
 # -- utilities ----------------------------------------------------------------
 
-def find_outliers(ts, L=5, method='s'):
+def find_outliers(ts, N=5, method='s'):
     """Find outliers within a `TimeSeries`
 
     Parameters
@@ -41,12 +41,12 @@ def find_outliers(ts, L=5, method='s'):
     ts : `~gwpy.timeseries.TimeSeries`
         data to find outliers within
 
-    L : `float`, optional
-        if S is given as 's': number of standard deviations to consider an outlier, default: 5
-        if S is given as 'pf': percentile range limit, anything below is an outlier, default: 5
+    N : `float`, optional
+        if `method='s'`: number of standard deviations to consider an outlier, default: 5
+        if `method='pf'`: percentile range limit, anything below is an outlier, default: 5
     S : `String`, optional
-        if S is given as 's': outliers will be identified using standard deviation method
-        if S is given as 'pf': outliers will be identified using percentile range method
+        if `method='s'`: outliers will be identified using standard deviation method
+        if `method='pf'`: outliers will be identified using percentile range method
 
     Returns
     -------
@@ -75,11 +75,11 @@ def remove_outliers(ts, L=5, method='s'):
         data to find outliers within
 
     L : `float`, optional
-        if S is given as 's': number of standard deviations to consider an outlier, default: 5
-        if S is given as 'pf': percentile range limit, anything below is an outlier, default: 5
+        if `method='s'`: number of standard deviations to consider an outlier, default: 5
+        if `method='pf'`: percentile range limit, anything below is an outlier, default: 5
     S : `String`, optional
-        if S is given as 's': outliers will be identified using standard deviation method
-        if S is given as 'pf': outliers will be identified using percentile range method
+        if `method='s'`: outliers will be identified using standard deviation method
+        if `method='pf'`: outliers will be identified using percentile range method
         
     Notes
     -----

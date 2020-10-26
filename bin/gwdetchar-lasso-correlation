@@ -85,7 +85,7 @@ parser.add_argument('-p', '--primary-channel',
 parser.add_argument('-P', '--primary-frametype', default=None,
                     help='frametype for --primary-channel, default: guess '
                          'by channel name')
-parser.add_argument('-O', '--remove-outliers-s', type=float, default=None,
+parser.add_argument('-O', '--remove-outliers', type=float, default=None,
                     help='Std. dev. limit for removing outliers')
 parser.add_argument('-R', '--remove-outliers-pf', type=float, default=None,
                     help='Percent limit for removing outliers')
@@ -198,9 +198,9 @@ else:
                          verbose='Reading:'.rjust(30),
                          nproc=args.nproc).crop(start, end)
 
-if args.remove_outliers_s:
-    logger.debug("-- Removing outliers above %f sigma" % args.remove_outliers_s)
-    gwlasso.remove_outliers(primaryts, args.remove_outliers_s)
+if args.remove_outliers:
+    logger.debug("-- Removing outliers above %f sigma" % args.remove_outliers)
+    gwlasso.remove_outliers(primaryts, args.remove_outliers)
 elif args.remove_outliers_pf:
     logger.debug("-- Removing outliers in the bottom %f percent of data" % args.remove_outliers_pf)
     gwlasso.remove_outliers(primaryts, args.remove_outliers_pf, method='pf')
