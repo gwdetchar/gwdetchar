@@ -55,7 +55,7 @@ def find_outliers(ts, N=5, method='s'):
     """
     if method == 'pf':
         ts = ts.value # strip out Quantity extras
-        quantile = numpy.quantile(ts, L)
+        quantile = numpy.quantile(ts, N)
         outliers = []
         for i, x in enumerate(ts):
             if x < quantile:
@@ -63,10 +63,10 @@ def find_outliers(ts, N=5, method='s'):
         return numpy.array(outliers)
     else:
         ts = ts.value  # strip out Quantity extras
-        return numpy.nonzero(abs(ts - ts.mean()) > L*ts.std())[0]
+        return numpy.nonzero(abs(ts - ts.mean()) > N*ts.std())[0]
 
 
-def remove_outliers(ts, L=5, method='s'):
+def remove_outliers(ts, N=5, method='s'):
     """Find and remove outliers within a `TimeSeries`
 
     Parameters
@@ -74,7 +74,7 @@ def remove_outliers(ts, L=5, method='s'):
     ts : `~gwpy.timeseries.TimeSeries`
         data to find outliers within
 
-    L : `float`, optional
+    N : `float`, optional
         if `method='s'`: number of standard deviations to consider an outlier, default: 5
         if `method='pf'`: percentile range limit, anything below is an outlier, default: 5
     S : `String`, optional
@@ -86,7 +86,7 @@ def remove_outliers(ts, L=5, method='s'):
     This action is done in-place, with no `return` statement.
     """
     if method == 'pf':
-        outliers = find_outliers(ts, L=L, method='pf')
+        outliers = find_outliers(ts, N=N, method='pf')
         print("There are %d outliers in this data" % len(outliers))
         unit = ts.unit
         mask = numpy.ones(ts.size, dtype=bool)
@@ -99,7 +99,7 @@ def remove_outliers(ts, L=5, method='s'):
             ts = ts[1:]
         print('Outlier removal complete')
     else:
-        outliers = find_outliers(ts, L=L, method='s')
+        outliers = find_outliers(ts, N=N, method='s')
         c = 1
         while outliers.any():
             print("-- Pass %d: removing %d outliers in %s"
@@ -111,7 +111,7 @@ def remove_outliers(ts, L=5, method='s'):
             spline = UnivariateSpline(ts.times.value[mask], ts.value[mask],
                                       s=0, k=3)
             ts[outliers] = spline(ts.times.value[outliers]) * unit
-            outliers = find_outliers(ts, L=L, method='s')
+            outliers = find_outliers(ts, N=N, method='s')
             print("   Completed %d removal passes" % c)
             if numpy.array_equal(outliers, cache):
                 print("   Outliers did not change, breaking recursion")
