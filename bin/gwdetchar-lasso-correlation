@@ -202,7 +202,8 @@ if args.remove_outliers:
     logger.debug("-- Removing outliers above %f sigma" % args.remove_outliers)
     gwlasso.remove_outliers(primaryts, args.remove_outliers)
 elif args.remove_outliers_pf:
-    logger.debug("-- Removing outliers in the bottom %f percent of data" % args.remove_outliers_pf)
+    logger.debug("-- Removing outliers in the bottom {} percent "
+                 "of data".format(args.remove_outliers_pf))
     gwlasso.remove_outliers(primaryts, args.remove_outliers_pf, method='pf')
     start = int(primaryts.span()[0])
     end = int(primaryts.span()[1])
