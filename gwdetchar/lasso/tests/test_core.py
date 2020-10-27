@@ -42,8 +42,7 @@ OUTLIER_IN_PF = numpy.random.normal(loc=0, scale=1, size=100)
 OUTLIER_IN_PF[IND] = -100
 OUTLIER_IN_PF[IND2] = -75
 OUTLIER_TS_PF = TimeSeries(OUTLIER_IN_PF, sample_rate=100, unit='Mpc',
-                        name='X1:TEST_RANGE')
-
+                           name='X1:TEST_RANGE')
 
 TARGET = numpy.array([-1, 0, 1])
 
@@ -80,14 +79,14 @@ def test_remove_outliers():
     core.remove_outliers(OUTLIER_TS)
     assert OUTLIER_TS[IND] - OUTLIER_TS.mean() <= 5 * OUTLIER_TS.std()
 
-    
+
 def test_remove_outliers_pf():
     # Strip off outliers
     core.remove_outliers(OUTLIER_TS_PF, N=0.01, method='pf')
     outliers = core.find_outliers(OUTLIER_TS_PF, N=0.01, method='pf')
     assert isinstance(outliers, numpy.ndarray)
     nptest.assert_array_equal(outliers, numpy.array([IND2]))
-    
+
 
 def test_fit():
     # adapted from unit tests for sklearn.linear_model

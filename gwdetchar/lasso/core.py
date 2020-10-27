@@ -42,11 +42,12 @@ def find_outliers(ts, N=5, method='s'):
         data to find outliers within
 
     N : `float`, optional
-        if `method='s'`: number of standard deviations to consider an outlier, default: 5
-        if `method='pf'`: percentile range limit, anything below is an outlier, default: 5
+        if `method='s'`: number of standard deviations to consider an outlier
+        if `method='pf'`: percentile range limit to consider an outlier
+        default value for both methods:
     S : `String`, optional
-        if `method='s'`: outliers will be identified using standard deviation method
-        if `method='pf'`: outliers will be identified using percentile range method
+        if `method='s'`: outliers identified using standard deviation method
+        if `method='pf'`: outliers identified using percentile range method
 
     Returns
     -------
@@ -54,7 +55,7 @@ def find_outliers(ts, N=5, method='s'):
         array indices of the input where outliers occur
     """
     if method == 'pf':
-        ts = ts.value # strip out Quantity extras
+        ts = ts.value  # strip out Quantity extras
         quantile = numpy.quantile(ts, N)
         outliers = []
         for i, x in enumerate(ts):
@@ -75,12 +76,13 @@ def remove_outliers(ts, N=5, method='s'):
         data to find outliers within
 
     N : `float`, optional
-        if `method='s'`: number of standard deviations to consider an outlier, default: 5
-        if `method='pf'`: percentile range limit, anything below is an outlier, default: 5
+        if `method='s'`: number of standard deviations to consider an outlier
+        if `method='pf'`: percentile range limit to consider an outlier
+        default value for both methods: 5
     S : `String`, optional
-        if `method='s'`: outliers will be identified using standard deviation method
-        if `method='pf'`: outliers will be identified using percentile range method
-        
+        if `method='s'`: outliers identified using standard deviation method
+        if `method='pf'`: outliers identified using percentile range method
+
     Notes
     -----
     This action is done in-place, with no `return` statement.
@@ -91,7 +93,8 @@ def remove_outliers(ts, N=5, method='s'):
         unit = ts.unit
         mask = numpy.ones(ts.size, dtype=bool)
         mask[outliers] = False
-        spline = UnivariateSpline(ts.times.value[mask], ts.value[mask], s=0, k=3)
+        spline = UnivariateSpline(ts.times.value[mask],
+                                  ts.value[mask], s=0, k=3)
         ts[outliers] = spline(ts.times.value[outliers]) * unit
         if outliers[-1] == (len(ts) - 1):
             ts = ts[:-1]
@@ -118,6 +121,7 @@ def remove_outliers(ts, N=5, method='s'):
                 break
             print("   %d outliers remain" % len(outliers))
             c += 1
+
 
 def fit(data, target, alpha=None):
     """Fit some data to the target using a Lasso model
