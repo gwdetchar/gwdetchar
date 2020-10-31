@@ -87,6 +87,8 @@ parser.add_argument('-P', '--primary-frametype', default=None,
                          'by channel name')
 parser.add_argument('-O', '--remove-outliers', type=float, default=None,
                     help='Std. dev. limit for removing outliers')
+parser.add_argument('-R', '--remove-outliers-pf', type=float, default=None,
+                    help='Percent limit for removing outliers')
 parser.add_argument('-t', '--threshold', type=float, default=0.0001,
                     help='threshold for making a plot')
 
@@ -199,6 +201,12 @@ else:
 if args.remove_outliers:
     logger.debug("-- Removing outliers above %f sigma" % args.remove_outliers)
     gwlasso.remove_outliers(primaryts, args.remove_outliers)
+elif args.remove_outliers_pf:
+    logger.debug("-- Removing outliers in the bottom {} percent "
+                 "of data".format(args.remove_outliers_pf))
+    gwlasso.remove_outliers(primaryts, args.remove_outliers_pf, method='pf')
+    start = int(primaryts.span()[0])
+    end = int(primaryts.span()[1])
 
 primary_mean = numpy.mean(primaryts.value)
 primary_std = numpy.std(primaryts.value)
