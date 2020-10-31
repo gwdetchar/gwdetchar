@@ -45,7 +45,7 @@ def find_outliers(ts, N=5, method='s'):
         if `method='s'`: number of standard deviations to consider an outlier
         if `method='pf'`: percentile range limit to consider an outlier
         default for both methods: 5
-    method : `String`, optional
+    method : `str`, optional
         outlier identification method to be used, must be `'s'` (standard
         deviation method) or `'pf'` (percentil range method)
         default: `'s'`
@@ -80,7 +80,7 @@ def remove_outliers(ts, N=5, method='s'):
         if `method='s'`: number of standard deviations to consider an outlier
         if `method='pf'`: percentile range limit to consider an outlier
         default for both methods: 5
-    method : `String`, optional
+    method : `str`, optional
         outlier identification method to be used, must be `'s'` (standard
         deviation method) or `'pf'` (percentil range method)
         default: `'s'`
