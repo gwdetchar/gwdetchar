@@ -83,7 +83,7 @@ parser.add_argument('-p', '--primary-channel',
 parser.add_argument('-P', '--primary-frametype', default=None,
                     help='frametype for --primary-channel, default: guess '
                          'by channel name')
-parser.add_argument( '--primary-cache', default=None,
+parser.add_argument('--primary-cache', default=None,
                     help='cache file for --primary-channel, default: None')
 parser.add_argument('-O', '--remove-outliers', type=float, default=None,
                     help='Std. dev. limit for removing outliers')
