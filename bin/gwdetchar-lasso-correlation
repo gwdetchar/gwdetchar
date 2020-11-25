@@ -153,7 +153,7 @@ if args.band_pass:
     logger.info("-- Loading primary channel data")
     bandts = get_data(
         primary, start-pad, end+pad, verbose='Reading primary:'.rjust(30),
-        frametype=args.primary_frametype, source=args.primary_cache, 
+        frametype=args.primary_frametype, source=args.primary_cache,
         nproc=args.nproc)
     if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
         raise ValueError("bandpass frequency is out of range for this "
