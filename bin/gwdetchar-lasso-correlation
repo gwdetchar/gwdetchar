@@ -196,7 +196,8 @@ else:
     # load primary channel data
     logger.info("-- Loading primary channel data")
     primaryts = get_data(primary, start, end, frametype=args.primary_frametype,
-                         source=args.primary_cache, verbose='Reading:'.rjust(30),
+                         source=args.primary_cache,
+                         verbose='Reading:'.rjust(30),
                          nproc=args.nproc).crop(start, end)
 
 if args.remove_outliers:
