@@ -125,7 +125,7 @@ logger.info('{} Lasso correlations {}-{}'.format(args.ifo, start, end))
 # get primary channel frametype
 primary = args.primary_channel.format(ifo=args.ifo)
 range_is_primary = 'EFFECTIVE_RANGE_MPC' in args.primary_channel
-if args.primary_cache is not None: 
+if args.primary_cache is not None:
     logger.info("Using custom primary cache file")
 elif args.primary_frametype is None:
     try:
