@@ -18,6 +18,8 @@ matrix:
       env: PYTHON_VERSION="3.7"
     - name: "conda:3.8"
       env: PYTHON_VERSION="3.8"
+    - name: "conda:3.9"
+      env: PYTHON_VERSION="3.9"
 
 before_install:
   - curl -LO https://raw.githubusercontent.com/gwpy/gwpy/master/ci/parse-conda-requirements.py
