@@ -494,10 +494,10 @@ def main(args=None):
         axes['segments'] = plot.add_subplot(
             414, projection='segments', sharex=axes['position'])
         plot.subplots_adjust(bottom=.07, top=.95)
-        histdata = dict((i, numpy.ndarray((0,))) for
-                        i in FREQUENCY_MULTIPLIERS)
-        linecolor = None
         fringecolors = [None] * len(FREQUENCY_MULTIPLIERS)
+        histdata = dict((x, numpy.ndarray((0,))) for
+                        x in FREQUENCY_MULTIPLIERS)
+        linecolor = None
         # loop over state segments and find scattering fringes
         for j, seg in enumerate(statea):
             logger.debug("Processing segment [%d .. %d)" % seg)
@@ -513,7 +513,8 @@ def main(args=None):
                     fm, color=fringecolors[k],
                     label=(j == 0 and r'$f\times%d$' % m or None))[0]
                 fringecolors[k] = line.get_color()
-                histdata[m].resize((histdata[m].size + fm.size,))
+                histdata[m] = numpy.resize(
+                    histdata[m], (histdata[m].size + fm.size,))
                 histdata[m][-fm.size:] = fm.value
             # get segments and plot
             scatter = get_segments(
