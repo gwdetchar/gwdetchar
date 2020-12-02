@@ -20,6 +20,7 @@
 """
 
 import os
+import glob
 import numpy
 import shutil
 
@@ -43,11 +44,11 @@ IFO = 'H1'
 
 # -- test data
 
-# The unit test below captures all use cases by simulating
-#     (1) a missing optic channel, and
+# The unit test below captures use cases by simulating
+#     (1) empty livetime from requested segments, and
 #     (2) a scattering fringe in h(t) predicted by only one optic.
 
-DURATION = 3608
+DURATION = 608
 FREQ = 1 / 10
 SAMPLE = 4096
 
@@ -68,11 +69,6 @@ SCATTER = TimeSeries(
      * numpy.cos(2 * numpy.pi * PHASE)),
     sample_rate=SAMPLE,
 ).highpass(10)
-
-HOFT = TimeSeries(
-    numpy.random.normal(loc=1, scale=1.5, size=SCATTER.size),
-    sample_rate=SAMPLE,
-).inject(SCATTER)
 
 OSEMS = [chan for group in scattering_cli.OPTIC_MOTION_CHANNELS.values()
          for chan in group]
@@ -118,10 +114,55 @@ def test_main_no_livetime(flag, caplog, tmpdir):
     scattering_cli.main(args)
     assert ("Segment length 25 shorter than padding length 60.0, skipping "
             "segment 0-25" in caplog.text)
-    assert ("Downloaded 0 segments for H1:DCH-TEST_FLAG:1 [0.00s livetime]"
-            in caplog.text)
+    assert "Downloaded 0 segments for H1:DCH-TEST_FLAG:1" in caplog.text
     assert "No events found during active scattering segments" in caplog.text
+    assert not os.path.exists(os.path.join(outdir, 'scans'))
     with open(os.path.join(outdir, "index.html"), 'r') as f:
         assert "No active analysis segments were found" in f.read()
+    # clean up
+    shutil.rmtree(outdir, ignore_errors=True)
+
+
+@mock.patch(
+    'gwtrigfind.find_trigger_files',
+    return_value=[],
+)
+@mock.patch(
+    'gwdetchar.scattering.__main__.get_data',
+    return_value=AUX,
+)
+def test_main(cache, data, caplog, tmpdir, recwarn):
+    outdir = str(tmpdir)
+    args = [  # command-line arguments
+        '-i', IFO,
+        '4', str(DURATION - 4),
+        '--multiplier-for-threshold', '1',
+        '--output-dir', outdir,
+        '--verbose',
+    ]
+    # test command-line tool
+    scattering_cli.main(args)
+    hdf = "{0}-SCATTERING_SEGMENTS_15_HZ-4-{1}.h5".format(IFO, DURATION - 8)
+    assert "Processing %.2f s of livetime" % (DURATION - 8) in caplog.text
+    assert "Searching for scatter based on OSEM velocity" in caplog.text
+    assert ("Searching for scatter based on band-limited RMS of transmons"
+            in caplog.text)
+    assert "Writing a summary CSV record" in caplog.text
+    assert ("The following 0 triggers fell within active scattering segments:"
+            in caplog.text)
+    assert "{0} written".format(hdf) in caplog.text
+    assert "-- index.html written, all done --" in caplog.text
+    for channel in AUX.keys():
+        assert "-- Processing {0} --".format(channel) in caplog.text
+        assert "Completed channel {0}".format(channel) in caplog.text
+    # test output data products
+    assert glob.glob(os.path.join(outdir, '*.png'))
+    assert len(glob.glob(os.path.join(outdir, '*.csv'))) == 1
+    assert len(glob.glob(os.path.join(outdir, '*.html'))) == 1
+    assert os.path.exists(os.path.join(outdir, hdf))
+    assert not os.path.exists(os.path.join(outdir, 'scans'))
+    # reject warnings due to no Omicron triggers
+    recwarn.pop(RuntimeWarning)
+    recwarn.pop(UserWarning)
     # clean up
     shutil.rmtree(outdir, ignore_errors=True)

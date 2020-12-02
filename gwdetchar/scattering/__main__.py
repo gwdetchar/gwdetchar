@@ -46,10 +46,8 @@ from gwpy.segments import (
 from gwpy.table import EventTable
 from gwpy.table.filters import in_segmentlist
 
-from .. import (
-    cli,
-    const,
-)
+from .. import cli
+from ..const import DEFAULT_SEGMENT_SERVER
 from ..io import html as htmlio
 from ..io.datafind import get_data
 from ..omega import batch
@@ -199,7 +197,7 @@ def create_parser():
     )
     cli.add_frametype_option(
         parser,
-        default='%s_R' % const.IFO,
+        default='{IFO}_R',
     )
     parser.add_argument(
         '-o',
@@ -280,7 +278,7 @@ def main(args=None):
     if args.state_flag is not None:
         state = DataQualityFlag.query(
             args.state_flag, int(args.gpsstart), int(args.gpsend),
-            url=const.DEFAULT_SEGMENT_SERVER,
+            url=DEFAULT_SEGMENT_SERVER,
         ).coalesce()
         statea = []
         padding = args.segment_start_pad + args.segment_end_pad
@@ -296,11 +294,12 @@ def main(args=None):
                     "skipping segment {}-{}".format(abs(seg), padding, *seg),
                 )
         statea = SegmentList(statea)
-        livetime = float(abs(statea))
-        logger.debug("Downloaded %d segments for %s [%.2fs livetime]"
-                     % (len(statea), args.state_flag, livetime))
+        logger.debug("Downloaded %d segments for %s"
+                     % (len(statea), args.state_flag))
     else:
         statea = SegmentList([span])
+    livetime = float(abs(statea))
+    logger.debug("Processing %.2f s of livetime" % livetime)
 
     # -- load h(t) --------------------
 
@@ -450,7 +449,8 @@ def main(args=None):
             str(seg),
         ) if args.verbose else False
         alldata.append(
-            get_data(allchannels, seg[0], seg[1], frametype=args.frametype,
+            get_data(allchannels, seg[0], seg[1],
+                     frametype=args.frametype.format(IFO=args.ifo),
                      verbose=msg, nproc=args.nproc).resample(128))
     try:  # ensure that only available channels are analyzed
         osems = list(
