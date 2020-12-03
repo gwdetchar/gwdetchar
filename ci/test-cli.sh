@@ -39,6 +39,7 @@ modules=(
     gwdetchar.omega
     gwdetchar.omega.batch
     gwdetchar.scattering
+    gwdetchar.scattering.simple
 )
 for MODULE in "${modules[@]}"; do
     # execute --help with coverage

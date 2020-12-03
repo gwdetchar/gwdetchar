@@ -82,7 +82,7 @@ def main(args=None):
     """Run the command-line Nagios status generator
     """
     parser = create_parser()
-    args = parser.parse_args(args)
+    args = parser.parse_args(args=args)
 
     # write nagios file
     write_status(
