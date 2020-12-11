@@ -20,7 +20,9 @@
 """Check whether state records have changed between two reference times
 """
 
+import os
 import re
+import sys
 
 import numpy
 
@@ -32,12 +34,14 @@ from . import cli
 from .io.datafind import get_data
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
-__credits__ = 'Andrew Lundgren <andrew.lundgren@ligo.org>, ' \
-              'Joshua Smith <joshua.smith@ligo.org>, ' \
-              'Duncan Macleod <duncan.macleod@ligo.org>'
+__credits__ = ('Andrew Lundgren <andrew.lundgren@ligo.org>, '
+               'Joshua Smith <joshua.smith@ligo.org>, '
+               'Duncan Macleod <duncan.macleod@ligo.org>')
 
 # set up logger
-LOGGER = cli.logger(name='gwdetchar.conlog')
+PROG = ('python -m gwdetchar.conlog' if sys.argv[0].endswith('.py')
+        else os.path.basename(sys.argv[0]))
+LOGGER = cli.logger(name=PROG.split('python -m ').pop())
 
 
 # -- utilities ----------------------------------------------------------------
@@ -105,7 +109,10 @@ def create_parser():
     """Create a command-line parser for this entry point
     """
     # initialize argument parser
-    parser = cli.create_parser(description=__doc__)
+    parser = cli.create_parser(
+        prog=PROG,
+        description=__doc__,
+    )
 
     # set arguments from the cli module
     cli.add_gps_start_stop_arguments(parser)

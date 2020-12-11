@@ -20,13 +20,16 @@
 """
 
 import os
+import sys
 
 from .. import cli
 from .core import write_status
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
-logger = cli.logger('gwdetchar.nagios')
+PROG = ('python -m gwdetchar.nagios' if sys.argv[0].endswith('.py')
+        else os.path.basename(sys.argv[0]))
+LOGGER = cli.logger(name=PROG.split('python -m ').pop())
 
 
 # -- parse command-line -------------------------------------------------------
@@ -35,7 +38,10 @@ def create_parser():
     """Create a command-line parser for this entry point
     """
     # initialize argument parser
-    parser = cli.create_parser(description=__doc__)
+    parser = cli.create_parser(
+        prog=PROG,
+        description=__doc__,
+    )
 
     # required arguments
     parser.add_argument(
@@ -94,7 +100,7 @@ def main(args=None):
     )
 
     # log output file path
-    logger.info('Status written to {}'.format(
+    LOGGER.info('Status written to {}'.format(
         os.path.abspath(args.output_file)))
 
 

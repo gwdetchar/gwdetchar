@@ -19,32 +19,28 @@
 """Utilties for HTML output
 """
 
+import datetime
 import json
 import os
-import sys
-import datetime
 import subprocess
-from io import StringIO
-from pytz import reference
-from getpass import getuser
-from operator import itemgetter
-from urllib.parse import urlparse
+import sys
+
 from collections import OrderedDict
+from getpass import getuser
+from io import StringIO
+from operator import itemgetter
+from pathlib import Path
+from pytz import reference
 from shutil import copyfile
-try:
-    from pathlib2 import Path
-except ImportError:  # python >= 3.6
-    # NOTE: we do it this was around because pathlib exists for py35,
-    #       but doesn't work very well
-    from pathlib import Path
+from urllib.parse import urlparse
 
 from inspect import (getmodule, stack)
 
 from MarkupPy import markup
 
 from pygments import highlight
-from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
+from pygments.lexers import get_lexer_by_name
 
 from gwpy.time import from_gps
 
@@ -664,7 +660,7 @@ def get_command_line(language='bash', about=True):
     page = markup.page()
     if about:
         page.p('This page was generated with the following command-line call:')
-    if sys.argv[0].endswith('__main__.py'):
+    if sys.argv[0].endswith('.py'):
         module = getmodule(stack()[1][0]).__name__
         cmdline = '$ python -m {0} {1}'.format(module, ' '.join(sys.argv[1:]))
     else:

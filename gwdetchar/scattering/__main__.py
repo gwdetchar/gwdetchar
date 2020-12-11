@@ -23,13 +23,14 @@ This tool identifies broad time segments over which evidence for scattering is
 strong. To compare projected fringes against spectrogram measurements for a
 specific, narrow time range, please use the `simple` command-line module:
 
-`python -m gwdetchar.scattering.simple --help`
+python -m gwdetchar.scattering.simple --help
 """
 
 import numpy
 import os.path
 import random
 import re
+import sys
 import warnings
 
 from io import StringIO
@@ -68,11 +69,15 @@ use('Agg')
 
 # backend-dependent imports
 from gwpy.plot import Plot  # noqa: E402
-from gwdetchar.plot import texify  # noqa: E402
+from ..plot import texify  # noqa: E402
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \
               'Alex Urban <alexander.urban@ligo.org>'
+
+# set program name
+PROG = ('python -m gwdetchar.scattering' if sys.argv[0].endswith('.py')
+        else os.path.basename(sys.argv[0]))
 
 # rcParams settings
 rcParams.update({
@@ -93,7 +98,10 @@ def create_parser():
     """Create a command-line parser for this entry point
     """
     # initialize argument parser
-    parser = cli.create_parser(description=__doc__)
+    parser = cli.create_parser(
+        prog=PROG,
+        description=__doc__,
+    )
 
     # required arguments
     cli.add_gps_start_stop_arguments(parser)
@@ -241,7 +249,7 @@ def main(args=None):
 
     # set up logger
     logger = cli.logger(
-        name='gwdetchar.scattering',
+        name=PROG.split('python -m ').pop(),
         level='DEBUG' if args.verbose else 'INFO',
     )
 
@@ -842,8 +850,10 @@ def main(args=None):
             'The following event times correspond to significant Omicron '
             'triggers that occur during the scattering segments found above. '
             'To compare these against fringe frequency projections, please '
-            'use the scattering module:',
-            markup.oneliner.pre('$ python -m gwdetchar.scattering --help'),
+            'use the "simple scattering" module:',
+            markup.oneliner.pre(
+                '$ python -m gwdetchar.scattering.simple --help',
+            ),
         )
         page.add(htmlio.alert(msg, context=args.ifo.lower()))
         page.add(htmlio.scaffold_omega_scans(

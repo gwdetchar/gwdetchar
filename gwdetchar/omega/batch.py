@@ -21,10 +21,10 @@
 
 import os
 import subprocess
+import sys
 
 from getpass import getuser
 from pycondor import (Dagman, Job)
-from sys import executable
 
 from .. import (cli, condor)
 
@@ -54,6 +54,10 @@ ACCOUNTING_GROUP_USER = os.getenv(
     '_CONDOR_ACCOUNTING_USER',
     getuser(),
 )
+
+# set program name
+PROG = ('python -m gwdetchar.omega.batch' if sys.argv[0].endswith('.py')
+        else os.path.basename(sys.argv[0]))
 
 
 # -- utilities ----------------------------------------------------------------
@@ -176,15 +180,15 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
     dagman = Dagman(name=tag, submit=subdir)
     job = Job(
         dag=dagman,
-        name='gwdetchar-omega',
-        executable=executable,
+        name='gwdetchar.omega',
+        executable=sys.executable,
         universe=universe,
         submit=subdir,
         error=logdir,
         output=logdir,
         getenv=True,
         request_memory=4096 if universe != "local" else None,
-        extra_lines=condor_commands
+        extra_lines=condor_commands,
     )
     # make a node in the workflow for each event time
     for t in times:
@@ -214,7 +218,10 @@ def create_parser():
     """Create a command-line parser for this entry point
     """
     # initialize argument parser
-    parser = cli.create_parser(description=CLI_DOCSTRING)
+    parser = cli.create_parser(
+        prog=PROG,
+        description=CLI_DOCSTRING,
+    )
     pargs = parser.add_argument_group('Omega scan options')
     cargs = parser.add_argument_group('Condor options')
 
