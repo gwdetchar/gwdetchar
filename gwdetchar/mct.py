@@ -38,7 +38,7 @@ __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 # set up logger
-PROG = ('python -m gwdetchar.overflow.mct' if sys.argv[0].endswith('.py')
+PROG = ('python -m gwdetchar.mct' if sys.argv[0].endswith('.py')
         else os.path.basename(sys.argv[0]))
 LOGGER = cli.logger(name=PROG.split('python -m ').pop())
 
