@@ -257,7 +257,7 @@ def main(args=None):
     # get critical arguments
     ifo = args.ifo or 'Network'
     gps = numpy.around(float(args.gpstime), 2)
-    LOGGER.info("{} Omega Scan {}".format(ifo, gps))
+    LOGGER.info("{0} Omega Scan {1}".format(ifo, gps))
 
     # parse configuration files
     args.config_file = _parse_configuration(
@@ -392,7 +392,8 @@ def main(args=None):
     # -- finalize HTML ----------------
 
     # write HTML page and finish
-    LOGGER.debug('Finalizing HTML at {}/index.html'.format(outdir))
+    LOGGER.debug('Finalizing HTML at {}'.format(
+        os.path.join(outdir, 'index.html')))
     _finalize_html(analyzed, ifo, gps, htmlv)
     LOGGER.info("-- index.html written, all done --")
 

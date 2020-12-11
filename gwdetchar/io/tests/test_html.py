@@ -75,13 +75,13 @@ ABOUT = """<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%; margin: 0;"><span></span>$ gwdetchar-scattering -i X1
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>$ gwdetchar-scattering -i X1
 </pre></div>
 
 <p>The install path used was <code>{}</code>.</p>
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%; margin: 0;"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
 <span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
 </pre></div>
 
@@ -93,7 +93,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%; margin: 0;"><span></span>$ gwdetchar-scattering -i X1
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>$ gwdetchar-scattering -i X1
 </pre></div>
 
 <p>The install path used was <code>{}</code>.</p>
@@ -106,7 +106,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 </div>
 <div id="file0" class="collapse" data-parent="#accordion">
 <div class="card-body">
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%; margin: 0;"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
 <span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
 </pre></div>
 
@@ -352,29 +352,21 @@ def test_about_this_page(package_list, tmpdir):
     shutil.rmtree(outdir, ignore_errors=True)
 
 
-def test_get_command_line():
-    testargs = ['/opt/bin/gwdetchar-conlog', '-i', 'X1']
+@pytest.mark.parametrize(
+    'testargs',
+    (['/opt/bin/gwdetchar-conlog', '-i', 'X1'],
+     ['__main__.py', '--html-only'])
+)
+def test_get_command_line(testargs):
     with mock.patch.object(sys, 'argv', testargs):
-        cmdline = html.get_command_line()
-        assert parse_html(cmdline) == parse_html(
-            '<p>This page was generated with the following command-line call:'
-            '</p>\n<div class="highlight" style="background: #f8f8f8">'
-            '<pre style="line-height: 125%; margin: 0;"><span></span>$ '
-            'gwdetchar-conlog -i X1\n</pre></div>\n\n<p>The install path used '
-            'was <code>{}</code>.</p>'.format(sys.prefix))
-
-
-def test_get_command_line_module():
-    testargs = ['__main__.py', '--html-only']
-    with mock.patch.object(sys, 'argv', testargs):
-        cmdline = html.get_command_line()
-        assert parse_html(cmdline) == parse_html(
-            '<p>This page was generated with the following command-line call:'
-            '</p>\n<div class="highlight" style="background: #f8f8f8">'
-            '<pre style="line-height: 125%; margin: 0;"><span></span>$ '
-            'python -m gwdetchar.io.tests.test_html\n</pre></div>\n\n'
-            '<p>The install path used was <code>{}</code>.</p>'.format(
-                sys.prefix))
+        cmdline = str(html.get_command_line())
+        try:
+            assert 'gwdetchar-conlog -i X1' in cmdline
+        except AssertionError:
+            assert 'python -m gwdetchar.io.tests.test_html' in cmdline
+            assert not ('--html-only' in cmdline)
+        assert 'The install path used was <code>{}</code>'.format(
+            sys.prefix) in cmdline
 
 
 @pytest.mark.parametrize('args, kwargs, result', [

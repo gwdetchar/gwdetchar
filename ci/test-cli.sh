@@ -13,11 +13,11 @@ modules=(
     gwdetchar.conlog
     gwdetchar.lasso
     gwdetchar.lasso.old
+    gwdetchar.mct
     gwdetchar.nagios
     gwdetchar.omega
     gwdetchar.omega.batch
     gwdetchar.overflow
-    gwdetchar.overflow.mct
     gwdetchar.saturation
     gwdetchar.scattering
     gwdetchar.scattering.simple
