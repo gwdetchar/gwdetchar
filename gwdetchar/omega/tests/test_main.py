@@ -19,6 +19,7 @@
 """Tests for the `gwdetchar.omega` command-line interface
 """
 
+import logging
 import os
 import numpy
 import pytest
@@ -180,6 +181,9 @@ NETWORK_DATA = TimeSeriesDict({
     ).zpk([], [0], 1).inject(SIGNAL),
 })
 
+# re-enable verbose logging
+logging.getLogger("gwdetchar.omega.__main__").setLevel(logging.DEBUG)
+
 
 # -- utils --------------------------------------------------------------------
 
@@ -199,7 +203,6 @@ def _get_inputs(workdir, config, data):
 # -- cli tests ----------------------------------------------------------------
 
 def test_main_single_ifo(caplog, tmpdir):
-    caplog.set_level(10)
     outdir = str(tmpdir)
     ini_source = _get_inputs(outdir, K1_CONFIG, K1_DATA)
     args = [
@@ -233,7 +236,6 @@ def test_main_single_ifo(caplog, tmpdir):
 
 
 def test_main_multi_ifo(caplog, tmpdir):
-    caplog.set_level(10)
     outdir = str(tmpdir)
     ini_source = _get_inputs(outdir, NETWORK_CONFIG, NETWORK_DATA)
     args = [
@@ -263,7 +265,6 @@ def test_main_multi_ifo(caplog, tmpdir):
 @mock.patch('gwpy.segments.DataQualityFlag.query',
             return_value=TEST_FLAG)
 def test_main_inactive_segments(segserver, caplog):
-    caplog.set_level(10)
     outdir = 'null-test'
     # write input data products to current working directory
     # this is done to test Omega scans' relative path construction
