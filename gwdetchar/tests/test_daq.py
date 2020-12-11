@@ -19,15 +19,11 @@
 """Tests for :mod:`gwdetchar.daq`
 """
 
-try:
-    from unittest import mock
-except ImportError:
-    import mock
-
+import numpy
 import pytest
 
-import numpy
 from numpy.testing import assert_array_equal
+from unittest import mock
 
 from gwpy.timeseries import TimeSeries
 from gwpy.segments import (Segment, SegmentList)

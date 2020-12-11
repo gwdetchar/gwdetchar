@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with gwdetchar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for :mod:`gwdetchar.saturation`
+"""Tests for :mod:`gwdetchar.saturation.core`
 """
 
 import pytest
@@ -30,7 +30,7 @@ from gwpy.segments import (Segment, SegmentList, DataQualityFlag)
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.testing.utils import assert_segmentlist_equal
 
-from .. import saturation
+from .. import core
 
 # global test objects
 
@@ -56,32 +56,32 @@ TSDICT = TimeSeriesDict({
 # -- unit tests ---------------------------------------------------------------
 
 def test_find_saturations():
-    sats = saturation.find_saturations(DATA, limit=5., segments=False)
+    sats = core.find_saturations(DATA, limit=5., segments=False)
     assert_array_equal(sats, SATURATIONS)
-    segs = saturation.find_saturations(DATA, limit=5.*DATA.unit, segments=True)
+    segs = core.find_saturations(DATA, limit=5.*DATA.unit, segments=True)
     assert_segmentlist_equal(segs.active, SEGMENTS)
 
 
 def test_find_saturations_wrapper():
-    segs = saturation._find_saturations((DATA, 5.))
+    segs = core._find_saturations((DATA, 5.))
     assert_segmentlist_equal(segs.active, SEGMENTS)
     assert segs.name == DATA.name[:-7]
 
 
 def test_grouper():
     in_ = range(100)
-    grouped = list(saturation.grouper(in_, 5))
+    grouped = list(core.grouper(in_, 5))
     expected = [tuple(range(i, i+5)) for i in range(0, 100, 5)]
     assert_array_equal(grouped, expected)
 
 
 def test_find_limit_channels():
-    limens, swstats = saturation.find_limit_channels(CHANNELS)
+    limens, swstats = core.find_limit_channels(CHANNELS)
     assert len(limens) == len(swstats)
     assert_array_equal(limens, ['X1:TEST'])
     assert_array_equal(swstats, ['X1:TEST'])
 
-    limens2, swstats2 = saturation.find_limit_channels(CHANNELS, skip='TEST')
+    limens2, swstats2 = core.find_limit_channels(CHANNELS, skip='TEST')
     assert not limens2
     assert not swstats2
 
@@ -96,16 +96,16 @@ def test_is_saturated(tsdfetch, remove):
     tsdfetch.return_value = TSDICT
     remove.return_value = ['X1:TEST_LIMIT']
 
-    saturated = saturation.is_saturated('X1:TEST', cache, start=0, end=8)
+    saturated = core.is_saturated('X1:TEST', cache, start=0, end=8)
     assert isinstance(saturated, DataQualityFlag)
     assert_segmentlist_equal(saturated.active, SEGMENTS)
 
-    saturated2 = saturation.is_saturated(
+    saturated2 = core.is_saturated(
         ['X1:TEST_LIMIT'], cache, start=0, end=8)
     assert isinstance(saturated2, list)
     assert_segmentlist_equal(saturated2[0].active, saturated.active)
 
     with pytest.raises(ValueError) as exc:
-        saturation.is_saturated(
+        core.is_saturated(
             'X1:TEST', cache, start=0, end=8, indicator='blah')
     assert str(exc.value).startswith("Don't know how to determine")

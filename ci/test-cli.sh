@@ -6,38 +6,19 @@
 
 FAILED=()
 
-echo "---- Testing scripts in /bin/ ----"
-
-# loop over all bin/ scripts
-for EXE in bin/*; do
-    # get file-name as PATH executable
-    EXENAME=$(basename ${EXE})
-    EXEPATH=$(which ${EXENAME})
-    if [ "$?" -ne 0 ]; then
-        FAILED+=(${EXENAME_})
-        continue
-    fi
-
-    # execute --help with coverage
-    echo ""
-    echo "$ ${EXENAME} --help"
-    python -m coverage run --append --source=gwdetchar ${EXEPATH} --help;
-    if [ "$?" -ne 0 ]; then
-        FAILED+=("${EXENAME}")
-        continue
-    fi
-done
-
-echo ""
-echo ""
 echo "---- Testing python -m modules ----"
 
 # loop over python modules
 modules=(
     gwdetchar.conlog
+    gwdetchar.lasso
+    gwdetchar.lasso.old
     gwdetchar.nagios
     gwdetchar.omega
     gwdetchar.omega.batch
+    gwdetchar.overflow
+    gwdetchar.overflow.mct
+    gwdetchar.saturation
     gwdetchar.scattering
     gwdetchar.scattering.simple
 )
@@ -52,10 +33,10 @@ for MODULE in "${modules[@]}"; do
 done
 
 if [ ${#FAILED[@]} -ne 0 ]; then
-    echo "---- The following scripts failed: ----"
+    echo "---- The following modules failed: ----"
     for failure in "${FAILED[@]}"; do
         echo ${failure}
     done
     exit 1
 fi
-echo "---- All scripts passed ----"
+echo "---- All modules passed ----"

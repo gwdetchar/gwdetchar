@@ -29,7 +29,7 @@ from astropy.units import Quantity
 from gwpy.io.cache import file_segment
 from gwpy.timeseries import StateTimeSeries
 
-from .io.datafind import get_data
+from ..io.datafind import get_data
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Dan Hoak <daniel.hoak@ligo.org>' \

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 # Copyright (C) LIGO Scientific Collaboration (2019)
 #
@@ -20,15 +19,14 @@
 """Check whether state records have changed between two reference times
 """
 
+import gwdatafind
+import numpy
 import os
 import re
 import sys
 
-import numpy
-
-import gwdatafind
-from gwpy.table import Table
 from gwpy.io import gwf as io_gwf
+from gwpy.table import EventTable
 
 from . import cli
 from .io.datafind import get_data
@@ -228,9 +226,9 @@ def main(args=None):
 
     # record output
     LOGGER.debug('Analysis complete')
-    table = Table([changes, value1, value2, diff],
-                  names=('channel', 'initial_value',
-                         'final_value', 'difference'))
+    table = EventTable([changes, value1, value2, diff],
+                       names=('channel', 'initial_value',
+                              'final_value', 'difference'))
 
     # log output
     LOGGER.info('The following {0} channels record a state '

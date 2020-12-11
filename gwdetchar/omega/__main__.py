@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 # Copyright (C) LIGO Scientific Collaboration (2015-)
 #

@@ -19,14 +19,10 @@
 """Tests of :mod:`gwdetchar.cds`
 """
 
-from io import BytesIO
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
-
 import pytest
+
+from io import BytesIO
+from unittest import mock
 
 from .. import cds
 
@@ -108,7 +104,10 @@ def test_get_adc_channel(mockr):
 
 
 @mock_request(ADCLIST_CONTENT)
-@mock.patch('gwdetchar.cds.model_name_from_dcuid', return_value='x1model1')
+@mock.patch(
+    'gwdetchar.cds.model_name_from_dcuid',
+    return_value='x1model1',
+)
 def test_get_real_channel(mockr, mockadc):
     assert cds.get_real_channel('X1:TEST-1_ADC_OVERFLOW_ACC_0_0') == 'A'
     assert cds.get_real_channel('X1:TEST-1_ADC_OVERFLOW_ACC_0_1') == 'B'
