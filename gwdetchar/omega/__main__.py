@@ -49,7 +49,8 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 # set up logger
 PROG = ('python -m gwdetchar.omega' if sys.argv[0].endswith('.py')
         else os.path.basename(sys.argv[0]))
-LOGGER = cli.logger(name=PROG.split('python -m ').pop())
+LOGGER = cli.logger(name=PROG.split('python -m ').pop(),
+                    level='DEBUG')
 
 
 # -- utilities ----------------------------------------------------------------

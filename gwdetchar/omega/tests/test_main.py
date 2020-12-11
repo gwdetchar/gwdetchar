@@ -284,7 +284,7 @@ def test_main_inactive_segments(segserver, caplog):
     shutil.rmtree(outdir, ignore_errors=True)
 
 
-def test_main_no_config_files():
+def test_main_invalid_config_files():
     ini_source = '/does/not/exist.ini'
     args = [
         str(GPS),
