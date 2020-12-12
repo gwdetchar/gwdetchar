@@ -35,6 +35,7 @@ def test_logger():
     logger = cli.logger()
     assert isinstance(logger, logging.Logger)
     assert logger.name == 'gwdetchar.cli'
+    assert logger.level == logging.DEBUG
 
 
 @pytest.fixture

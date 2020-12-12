@@ -39,4 +39,5 @@ if [ ${#FAILED[@]} -ne 0 ]; then
     done
     exit 1
 fi
+echo ""
 echo "---- All modules passed ----"
