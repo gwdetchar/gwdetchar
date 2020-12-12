@@ -26,10 +26,11 @@ created comparing the fringes to a high-resolution Q-scan spectrogram.
 To identify broader time segments when scattering is likely in the first
 place, please use the main command-line module:
 
-`python -m gwdetchar.scattering --help`
+python -m gwdetchar.scattering --help
 """
 
 import os
+import sys
 
 from gwpy.time import to_gps
 
@@ -64,7 +65,9 @@ ASD_KW = {
 MOTION_CHANNELS = [channel for key in OPTIC_MOTION_CHANNELS.keys()
                    for channel in OPTIC_MOTION_CHANNELS[key]]
 
-logger = cli.logger('gwdetchar.scattering.simple')
+PROG = ('python -m gwdetchar.scattering.simple' if sys.argv[0].endswith('.py')
+        else os.path.basename(sys.argv[0]))
+LOGGER = cli.logger(name=PROG.split('python -m ').pop())
 
 
 # -- utilities ----------------------------------------------------------------
@@ -96,7 +99,10 @@ def create_parser():
     """Create a command-line parser for this entry point
     """
     # initialize argument parser
-    parser = cli.create_parser(description=__doc__)
+    parser = cli.create_parser(
+        prog=PROG,
+        description=__doc__,
+    )
 
     # required arguments
     parser.add_argument(
@@ -202,14 +208,14 @@ def main(args=None):
         args.primary_frametype = args.primary_frametype.format(IFO=ifo)
     if '{IFO}' in args.aux_frametype:
         args.aux_frametype = args.aux_frametype.format(IFO=ifo)
-    logger.info('{0} Scattering: {1}'.format(ifo, gps))
+    LOGGER.info('{0} Scattering: {1}'.format(ifo, gps))
 
     # retrieve data
     (hoft, data) = _discover_data(primary, channels, gpsstart, gpsend,
                                   args.primary_frametype, args.aux_frametype)
 
     # set up spectrogram
-    logger.debug('Setting up a Q-scan spectrogram of {}'.format(primary))
+    LOGGER.debug('Setting up a Q-scan spectrogram of {}'.format(primary))
     hoft = highpass(hoft, f_low=thresh).resample(256)
     qspecgram = hoft.q_transform(qrange=(4, 150), frange=(0, 60), gps=gps,
                                  fres=0.1, outseg=(gpsstart, gpsend), **ASD_KW)
@@ -218,21 +224,21 @@ def main(args=None):
     # process channels
     count = 0  # running count of plots written
     for channel in channels:
-        logger.info(' -- Processing {} -- '.format(channel))
+        LOGGER.info(' -- Processing {} -- '.format(channel))
         try:
             motion = data[channel].detrend().resample(128)
         except KeyError:
-            logger.warning('Skipping {}'.format(channel))
+            LOGGER.warning('Skipping {}'.format(channel))
             continue
         # project scattering frequencies
         fringe = get_fringe_frequency(motion, multiplier=1)
         ind = fringe.argmax()
         fmax = fringe.value[ind]
         tmax = fringe.times.value[ind]
-        logger.debug('Maximum scatter frequency {0:.2f} Hz at GPS second '
+        LOGGER.debug('Maximum scatter frequency {0:.2f} Hz at GPS second '
                      '{1:.2f}'.format(fmax, tmax))
         if harmonic * fmax < thresh:
-            logger.warning('No significant evidence of scattering '
+            LOGGER.warning('No significant evidence of scattering '
                            'found in {}'.format(channel))
             continue
         # plot spectrogram and fringe frequency
@@ -242,16 +248,16 @@ def main(args=None):
                 channel.replace('-', '_').replace(':', '-', 1),
                 gps, args.duration)
         )
-        logger.debug('Plotting spectra and projected fringe frequencies')
+        LOGGER.debug('Plotting spectra and projected fringe frequencies')
         plot.spectral_comparison(
             gps, qspecgram, fringe, output.format('comparison'), thresh=thresh,
             multipliers=multipliers, colormap=args.colormap)
         plot.spectral_overlay(
             gps, qspecgram, fringe, output.format('overlay'),
             multipliers=multipliers)
-        logger.info(' -- Channel complete -- ')
+        LOGGER.info(' -- Channel complete -- ')
         count += 1  # increment counter
-    logger.info('{0:g} chanels plotted in {1}'.format(count, args.output_dir))
+    LOGGER.info('{0:g} chanels plotted in {1}'.format(count, args.output_dir))
 
 
 # -- run from command-line ----------------------------------------------------

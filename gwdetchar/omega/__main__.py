@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 # Copyright (C) LIGO Scientific Collaboration (2015-)
 #
@@ -48,7 +47,9 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 # set up logger
-LOGGER = cli.logger(name='gwdetchar.omega')
+PROG = ('python -m gwdetchar.omega' if sys.argv[0].endswith('.py')
+        else os.path.basename(sys.argv[0]))
+LOGGER = cli.logger(name=PROG.split('python -m ').pop())
 
 
 # -- utilities ----------------------------------------------------------------
@@ -161,7 +162,10 @@ def create_parser():
     """Create a command-line parser for this entry point
     """
     # initialize argument parser
-    parser = cli.create_parser(description=__doc__)
+    parser = cli.create_parser(
+        prog=PROG,
+        description=__doc__,
+    )
 
     # required argument
     parser.add_argument(
@@ -250,10 +254,13 @@ def main(args=None):
     parser = create_parser()
     args = parser.parse_args(args=args)
 
+    # enforce logging level
+    LOGGER.setLevel('DEBUG')
+
     # get critical arguments
     ifo = args.ifo or 'Network'
     gps = numpy.around(float(args.gpstime), 2)
-    LOGGER.info("{} Omega Scan {}".format(ifo, gps))
+    LOGGER.info("{0} Omega Scan {1}".format(ifo, gps))
 
     # parse configuration files
     args.config_file = _parse_configuration(
@@ -282,6 +289,7 @@ def main(args=None):
     htmlv = {
         'title': '{} Qscan | {}'.format(ifo, gps),
         'config': args.config_file,
+        'prog': PROG,
         'refresh': True,
     }
 
@@ -388,7 +396,8 @@ def main(args=None):
     # -- finalize HTML ----------------
 
     # write HTML page and finish
-    LOGGER.debug('Finalizing HTML at {}/index.html'.format(outdir))
+    LOGGER.debug('Finalizing HTML at {}'.format(
+        os.path.join(outdir, 'index.html')))
     _finalize_html(analyzed, ifo, gps, htmlv)
     LOGGER.info("-- index.html written, all done --")
 

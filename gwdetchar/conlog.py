@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 # Copyright (C) LIGO Scientific Collaboration (2019)
 #
@@ -20,24 +19,27 @@
 """Check whether state records have changed between two reference times
 """
 
-import re
-
-import numpy
-
 import gwdatafind
-from gwpy.table import Table
+import numpy
+import os
+import re
+import sys
+
 from gwpy.io import gwf as io_gwf
+from gwpy.table import EventTable
 
 from . import cli
 from .io.datafind import get_data
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
-__credits__ = 'Andrew Lundgren <andrew.lundgren@ligo.org>, ' \
-              'Joshua Smith <joshua.smith@ligo.org>, ' \
-              'Duncan Macleod <duncan.macleod@ligo.org>'
+__credits__ = ('Andrew Lundgren <andrew.lundgren@ligo.org>, '
+               'Joshua Smith <joshua.smith@ligo.org>, '
+               'Duncan Macleod <duncan.macleod@ligo.org>')
 
 # set up logger
-LOGGER = cli.logger(name='gwdetchar.conlog')
+PROG = ('python -m gwdetchar.conlog' if sys.argv[0].endswith('.py')
+        else os.path.basename(sys.argv[0]))
+LOGGER = cli.logger(name=PROG.split('python -m ').pop())
 
 
 # -- utilities ----------------------------------------------------------------
@@ -105,7 +107,10 @@ def create_parser():
     """Create a command-line parser for this entry point
     """
     # initialize argument parser
-    parser = cli.create_parser(description=__doc__)
+    parser = cli.create_parser(
+        prog=PROG,
+        description=__doc__,
+    )
 
     # set arguments from the cli module
     cli.add_gps_start_stop_arguments(parser)
@@ -221,9 +226,9 @@ def main(args=None):
 
     # record output
     LOGGER.debug('Analysis complete')
-    table = Table([changes, value1, value2, diff],
-                  names=('channel', 'initial_value',
-                         'final_value', 'difference'))
+    table = EventTable([changes, value1, value2, diff],
+                       names=('channel', 'initial_value',
+                              'final_value', 'difference'))
 
     # log output
     LOGGER.info('The following {0} channels record a state '

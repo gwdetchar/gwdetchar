@@ -198,7 +198,7 @@ def _get_inputs(workdir, config, data):
 
 # -- cli tests ----------------------------------------------------------------
 
-def test_main_single_ifo(tmpdir, caplog):
+def test_main_single_ifo(caplog, tmpdir):
     outdir = str(tmpdir)
     ini_source = _get_inputs(outdir, K1_CONFIG, K1_DATA)
     args = [
@@ -231,7 +231,7 @@ def test_main_single_ifo(tmpdir, caplog):
     shutil.rmtree(outdir, ignore_errors=True)
 
 
-def test_main_multi_ifo(tmpdir, caplog):
+def test_main_multi_ifo(caplog, tmpdir):
     outdir = str(tmpdir)
     ini_source = _get_inputs(outdir, NETWORK_CONFIG, NETWORK_DATA)
     args = [
@@ -284,7 +284,7 @@ def test_main_inactive_segments(segserver, caplog):
     shutil.rmtree(outdir, ignore_errors=True)
 
 
-def test_main_no_config_files():
+def test_main_invalid_config_files():
     ini_source = '/does/not/exist.ini'
     args = [
         str(GPS),

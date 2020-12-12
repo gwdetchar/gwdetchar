@@ -19,32 +19,26 @@
 """Utilties for HTML output
 """
 
+import datetime
 import json
 import os
-import sys
-import datetime
 import subprocess
-from io import StringIO
-from pytz import reference
-from getpass import getuser
-from operator import itemgetter
-from urllib.parse import urlparse
-from collections import OrderedDict
-from shutil import copyfile
-try:
-    from pathlib2 import Path
-except ImportError:  # python >= 3.6
-    # NOTE: we do it this was around because pathlib exists for py35,
-    #       but doesn't work very well
-    from pathlib import Path
+import sys
 
-from inspect import (getmodule, stack)
+from collections import OrderedDict
+from getpass import getuser
+from io import StringIO
+from operator import itemgetter
+from pathlib import Path
+from pytz import reference
+from shutil import copyfile
+from urllib.parse import urlparse
 
 from MarkupPy import markup
 
 from pygments import highlight
-from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
+from pygments.lexers import get_lexer_by_name
 
 from gwpy.time import from_gps
 
@@ -566,7 +560,7 @@ def get_brand(ifo, name, gps, about=None):
     return ((brand, page()), class_)
 
 
-def about_this_page(config, packagelist=True):
+def about_this_page(config, packagelist=True, prog=None):
     """Write a blurb documenting how a page was generated, including the
     command-line arguments and configuration files used
 
@@ -580,6 +574,10 @@ def about_this_page(config, packagelist=True):
         boolean switch to include (`True`) or exclude (`False`) a
         comprehensive list of system packages
 
+    prog : `str`, optional
+        name of the program which produced this page, defaults to
+        the script run on the command-line
+
     Returns
     -------
     page : :class:`~MarkupPy.markup.page`
@@ -589,7 +587,7 @@ def about_this_page(config, packagelist=True):
     page.div(class_='row')
     page.div(class_='col-md-12')
     page.h2('On the command-line')
-    page.add(get_command_line())
+    page.add(get_command_line(prog=prog))
     # render config file(s)
     page.h2('Configuration files')
     page.p('The following INI-format configuration file(s) were passed '
@@ -648,7 +646,7 @@ def render_code(code, language):
     return highlight(code, lexer, FORMATTER)
 
 
-def get_command_line(language='bash', about=True):
+def get_command_line(language='bash', about=True, prog=None):
     """Render the command-line invocation used to generate a page
 
     Parameters
@@ -656,20 +654,24 @@ def get_command_line(language='bash', about=True):
     language : `str`, optional
         type of environment the code is run in, default: `'bash'`
 
+    about : `bool`, optional
+        whether this markup is for an 'about' page, default: `True`
+
+    prog : `str`, optional
+        name of the program which produced this page, defaults to
+        the script run on the command-line
+
     Returns
     -------
     page : `~MarkupPy.markup.page`
         fully rendered command-line arguments
     """
+    prog = prog or os.path.basename(sys.argv[0])
     page = markup.page()
     if about:
         page.p('This page was generated with the following command-line call:')
-    if sys.argv[0].endswith('__main__.py'):
-        module = getmodule(stack()[1][0]).__name__
-        cmdline = '$ python -m {0} {1}'.format(module, ' '.join(sys.argv[1:]))
-    else:
-        script = os.path.basename(sys.argv[0])
-        cmdline = ' '.join(['$', script, ' '.join(sys.argv[1:])])
+    args = ' '.join(sys.argv[1:])
+    cmdline = ' '.join(['$', prog, args])
     page.add(render_code(cmdline.replace(' --html-only', ''), language))
     if about:
         page.p('The install path used was <code>{}</code>.'.format(sys.prefix))
