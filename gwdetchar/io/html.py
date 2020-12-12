@@ -34,8 +34,6 @@ from pytz import reference
 from shutil import copyfile
 from urllib.parse import urlparse
 
-from inspect import (getmodule, stack)
-
 from MarkupPy import markup
 
 from pygments import highlight
