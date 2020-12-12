@@ -19,7 +19,6 @@
 """Tests for the `gwdetchar.omega` command-line interface
 """
 
-import logging
 import os
 import numpy
 import pytest
@@ -180,9 +179,6 @@ NETWORK_DATA = TimeSeriesDict({
         epoch=0,
     ).zpk([], [0], 1).inject(SIGNAL),
 })
-
-# re-enable verbose logging
-logging.getLogger("gwdetchar.omega.__main__").setLevel(logging.DEBUG)
 
 
 # -- utils --------------------------------------------------------------------

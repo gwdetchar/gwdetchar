@@ -50,7 +50,6 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 PROG = ('python -m gwdetchar.omega' if sys.argv[0].endswith('.py')
         else os.path.basename(sys.argv[0]))
 LOGGER = cli.logger(name=PROG.split('python -m ').pop())
-print(LOGGER.level)
 
 
 # -- utilities ----------------------------------------------------------------
@@ -254,7 +253,9 @@ def main(args=None):
     """
     parser = create_parser()
     args = parser.parse_args(args=args)
-    print(LOGGER.level)
+
+    # enforce logging level
+    LOGGER.setLevel('DEBUG')
 
     # get critical arguments
     ifo = args.ifo or 'Network'
