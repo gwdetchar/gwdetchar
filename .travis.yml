@@ -31,6 +31,7 @@ before_install:
   - travis_retry conda update --quiet --yes conda
   # Useful for debugging any issues with conda
   - conda info --all
+  - conda list
 
 install:
   # create a conda environment
@@ -40,8 +41,6 @@ install:
   - travis_retry conda install --quiet --yes --update-all --name gwdetcharci --file conda-reqs.txt
   # clean up
   - rm -f conda-reqs.txt parse-conda-requirements.py
-  # install this version
-  - python -m pip install .
 
 script:
   - python -m flake8 .
