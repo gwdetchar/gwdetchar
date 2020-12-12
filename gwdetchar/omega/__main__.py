@@ -289,6 +289,7 @@ def main(args=None):
     htmlv = {
         'title': '{} Qscan | {}'.format(ifo, gps),
         'config': args.config_file,
+        'prog': PROG,
         'refresh': True,
     }
 

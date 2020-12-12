@@ -130,11 +130,12 @@ def wrap_html(func):
         else:
             iargs = initargs.copy()
             aboutdir = os.path.join(outdir, 'about')
+            prog = kwargs.pop('prog', None)
             if iargs['base'] == os.path.curdir:
                 iargs['base'] = os.path.pardir
             iargs['toc'] = toc
-            about = write_about_page(ifo, gpstime, config, outdir=aboutdir,
-                                     **iargs)
+            about = write_about_page(
+                ifo, gpstime, config, prog=prog, outdir=aboutdir, **iargs)
             if os.path.basename(about) == 'index.html':
                 about = about[:-10]
         # open page
@@ -592,7 +593,7 @@ def write_null_page(reason, context='info'):
 
 
 @wrap_html
-def write_about_page(configfiles):
+def write_about_page(configfiles, prog=None):
     """Write a page explaining how a Qscan analysis was completed
 
     Parameters
@@ -606,6 +607,10 @@ def write_about_page(configfiles):
     configfiles : `list` of `str`
         list of paths of the configuration files to embed
 
+    prog : `str`, optional
+        name of the program which produced this page, defaults to
+        the script run on the command-line
+
     outdir : `str`, optional
         the output directory for the HTML
 
@@ -615,8 +620,7 @@ def write_about_page(configfiles):
         the path of the HTML written for this analysis
     """
     # set up page
-    if len(configfiles) == 1:
-        page = htmlio.about_this_page(configfiles[0])
-    else:
-        page = htmlio.about_this_page(configfiles)
-    return page
+    return htmlio.about_this_page(
+        configfiles[0] if len(configfiles) == 1 else configfiles,
+        prog=prog,
+    )

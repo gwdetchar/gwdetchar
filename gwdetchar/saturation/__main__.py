@@ -303,7 +303,7 @@ def main(args=None):
         page.div.close()  # col-md-9 col-sm-12
         page.div.close()  # row
         page.h5('Command-line:')
-        page.add(htmlio.get_command_line(about=False))
+        page.add(htmlio.get_command_line(about=False, prog=PROG))
         # -- segments
         page.h2('Segments', class_='mt-4', id_='segments')
         msg = ("This analysis searched {0} filter bank readback channels for "

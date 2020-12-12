@@ -404,7 +404,7 @@ def main(args=None):
 
     # command-line
     page.h5('Command-line:')
-    page.add(htmlio.get_command_line(about=False))
+    page.add(htmlio.get_command_line(about=False, prog=PROG))
 
     # section header
     page.h2('Segments', class_='mt-4', id_='segments')

@@ -751,7 +751,7 @@ def main(args=None):
 
     # -- command-line
     page.h5('Command-line:')
-    page.add(htmlio.get_command_line(about=False))
+    page.add(htmlio.get_command_line(about=False, prog=PROG))
 
     if args.band_pass:
         page.h2('Primary channel spectra', class_='mt-4', id_='spectra')

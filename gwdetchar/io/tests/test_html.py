@@ -340,7 +340,8 @@ def test_about_this_page(package_list, tmpdir):
     config_file = os.path.join(outdir, 'test.ini')
     with open(config_file, 'w') as fobj:
         fobj.write(TEST_CONFIGURATION)
-    testargs = ['/opt/bin/gwdetchar-scattering', '-i', 'X1']
+    testargs = ['/opt/bin/gwdetchar-scattering',
+                '-i', 'X1']
     with mock.patch.object(sys, 'argv', testargs):
         # test with a single config file
         about = html.about_this_page(config_file)
@@ -352,19 +353,14 @@ def test_about_this_page(package_list, tmpdir):
     shutil.rmtree(outdir, ignore_errors=True)
 
 
-@pytest.mark.parametrize(
-    'testargs',
-    (['/opt/bin/gwdetchar-conlog', '-i', 'X1'],
-     ['__main__.py', '--html-only'])
-)
-def test_get_command_line(testargs):
+def test_get_command_line():
+    testargs = ['/opt/bin/gwdetchar-conlog',
+                '--html-only',
+                '-i', 'X1']
     with mock.patch.object(sys, 'argv', testargs):
         cmdline = str(html.get_command_line())
-        try:
-            assert 'gwdetchar-conlog -i X1' in cmdline
-        except AssertionError:
-            assert 'python -m gwdetchar.io.tests.test_html' in cmdline
-            assert not ('--html-only' in cmdline)
+        assert 'gwdetchar-conlog -i X1' in cmdline
+        assert not ('--html-only' in cmdline)
         assert 'The install path used was <code>{}</code>'.format(
             sys.prefix) in cmdline
 
