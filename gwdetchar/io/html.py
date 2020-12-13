@@ -106,21 +106,21 @@ OBSERVATORY_MAP = {
 # -- HTML URLs
 
 FONT_AWESOME_CSS = ('https://cdnjs.cloudflare.com/ajax/libs/'
-                    'font-awesome/5.11.2/css/fontawesome.min.css')
+                    'font-awesome/5.15.1/css/fontawesome.min.css')
 FONT_AWESOME_SOLID_CSS = ('https://cdnjs.cloudflare.com/ajax/libs/'
-                          'font-awesome/5.11.2/css/solid.min.css')
+                          'font-awesome/5.15.1/css/solid.min.css')
 
-JQUERY_JS = 'https://code.jquery.com/jquery-3.4.1.min.js'
+JQUERY_JS = 'https://code.jquery.com/jquery-3.5.1.min.js'
 JQUERY_LAZY_JS = ('https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/'
-                  '1.7.10/jquery.lazy.min.js')
-BOOTSTRAP_JS = ('https://stackpath.bootstrapcdn.com/bootstrap/'
-                '4.4.1/js/bootstrap.bundle.min.js')
+                  '1.7.11/jquery.lazy.min.js')
+BOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/'
+                'dist/js/bootstrap.bundle.min.js')
 FANCYBOX_JS = ('https://cdnjs.cloudflare.com/ajax/libs/'
                'fancybox/3.5.7/jquery.fancybox.min.js')
 
-GWBOOTSTRAP_CSS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.1/'
+GWBOOTSTRAP_CSS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.1/'
                    'lib/gwbootstrap.min.css')
-GWBOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.1/'
+GWBOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.1/'
                   'lib/gwbootstrap.min.js')
 
 CSS_FILES = [
