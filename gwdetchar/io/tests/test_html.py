@@ -47,6 +47,13 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 VERSION = get_versions()['version']
 COMMIT = get_versions()['full-revisionid']
 
+STYLESHEETS = '\n'.join([
+    '<link href="{}" rel="stylesheet" media="all" />'.format(css)
+    for css in html.CSS_FILES])
+SCRIPTS = '\n'.join([
+    '<script src="{}" type="text/javascript"></script>'.format(js)
+    for js in html.JS_FILES])
+
 NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <html lang="en">
 <head>
@@ -54,19 +61,13 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport" />
 <base href="{base}" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" media="all" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" media="all" />
-<link href="https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.1/lib/gwbootstrap.min.css" rel="stylesheet" media="all" />
-<script src="https://code.jquery.com/jquery-3.4.1.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.10/jquery.lazy.min.js" type="text/javascript"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js" type="text/javascript"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" type="text/javascript"></script>
-<script src="https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.1/lib/gwbootstrap.min.js" type="text/javascript"></script>
+%s
+%s
 </head>
 <body>
 <div class="container">
 </body>
-</html>"""  # noqa: E501
+</html>""" % (STYLESHEETS, SCRIPTS)
 
 TEST_CONFIGURATION = """[section]
 key = value"""
@@ -227,27 +228,10 @@ def test_fancy_plot():
 def test_finalize_static_urls(tmpdir):
     base = str(tmpdir)
     static = os.path.join(base, 'static')
-    css, js = html.finalize_static_urls(
+    (css, js) = html.finalize_static_urls(
         static, base, html.CSS_FILES, html.JS_FILES)
-    assert css == [
-        'https://cdnjs.cloudflare.com/ajax/libs/'
-            'font-awesome/5.11.2/css/fontawesome.min.css',  # noqa: E131
-        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/'
-            '5.11.2/css/solid.min.css',  # noqa: E131
-        'https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.1/'
-            'lib/gwbootstrap.min.css',  # noqa E131
-    ]
-    assert js == [
-        'https://code.jquery.com/jquery-3.4.1.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.10/'
-            'jquery.lazy.min.js',  # noqa: E131
-        'https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/'
-            'bootstrap.bundle.min.js',  # noqa: E131
-        'https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/'
-            'jquery.fancybox.min.js',  # noqa E131
-        'https://cdn.jsdelivr.net/npm/gwbootstrap@1.2.1/'
-            'lib/gwbootstrap.min.js',  # noqa E131
-    ]
+    assert set(css) == set(html.CSS_FILES)
+    assert set(js) == set(html.JS_FILES)
     shutil.rmtree(str(tmpdir), ignore_errors=True)
 
 
