@@ -644,7 +644,7 @@ def main(args=None):
                 cluster = sorted(cluster, key=lambda x: abs(x[2]),
                                  reverse=True)
                 clustertab = Table(data=list(zip(*cluster))[2:4],
-                                   names=('Channel', 'Pearson Coefficient'))
+                                   names=('Pearson Coefficient', 'Channel'))
                 plot7_list = '%s_CLUSTER_LIST-%s.csv' % (
                     re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
                     gpsstub)
