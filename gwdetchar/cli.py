@@ -73,6 +73,7 @@ def logger(name=__name__, level='DEBUG'):
     coloredlogs.install(
         level=level, logger=logger, stream=sys.stdout, fmt=FMT,
         datefmt=DATEFMT, level_styles=LEVEL_STYLES, field_styles=FIELD_STYLES)
+    logger.setLevel(level)
     return logger
 
 
