@@ -64,6 +64,209 @@ PROG = ('python -m gwdetchar.lasso' if sys.argv[0].endswith('.py')
 LOGGER = cli.logger(name=PROG.split('python -m ').pop())
 
 
+# -- utilities ----------------------------------------------------------------
+
+def _descaler(iterable, *coef):
+    """Linear de-scaling of a data array
+    """
+    return (
+        [((x * primary_std * coef[0]) + primary_mean) for x in iterable]
+        if coef else [((x * primary_std) + primary_mean) for x in iterable]
+    )
+
+
+def _generate_cluster(input_):
+    """Generate cluster data for use below
+    """
+    if USETEX:
+        gwplot.configure_mpl_tex()
+    currentchan = input_[1][0]
+    currentts = input_[1][5]
+    current = input_[0]
+    p7 = (.135, .15, .95, .9)
+    plot7 = None
+    plot7_list = None
+
+    if current < len(nonzerodata):
+        cluster = []
+        for i, otheritem in enumerate(list(auxdata.items())):
+            chan_, ts_ = otheritem
+            if chan_ != currentchan:
+                pcorr = numpy.corrcoef(currentts.value, ts_.value)[0, 1]
+                if abs(pcorr) >= cluster_threshold:
+                    stub = re_delim.sub('_', chan_).replace('_', '-', 1)
+                    cluster.append([i, ts_, pcorr, chan_, stub])
+
+        if cluster:
+            # write cluster table to file
+            cluster = sorted(cluster, key=lambda x: abs(x[2]),
+                             reverse=True)
+            clustertab = Table(data=list(zip(*cluster))[2:4],
+                               names=('Pearson Coefficient', 'Channel'))
+            plot7_list = '%s_CLUSTER_LIST-%s.csv' % (
+                re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
+                gpsstub)
+            clustertab.write(plot7_list, format='csv', overwrite=True)
+
+            ncluster = min(len(cluster), max_correlated_channels)
+            colors2 = [cmap(i) for i in numpy.linspace(0, 1, ncluster+1)]
+
+            # plot
+            fig = Plot(figsize=(12, 4))
+            fig.subplots_adjust(*p7)
+            ax = fig.gca(xscale='auto-gps')
+            ax.plot(
+                times, scale(currentts.value)*numpy.sign(input_[1][1]),
+                label=texify(currentchan), linewidth=line_size_aux,
+                color=colors[0])
+
+            for i in range(0, ncluster):
+                this = cluster[i]
+                ax.plot(
+                    times,
+                    scale(this[1].value) * numpy.sign(input_[1][1]) *
+                    numpy.sign(this[2]),
+                    color=colors2[i+1],
+                    linewidth=line_size_aux,
+                    label=('{0}, r = {1:.2}'.format(
+                        texify(cluster[i][3]), cluster[i][2])),
+                )
+
+            ax.margins(x=0)
+            ax.set_ylabel('Scaled amplitude [arbitrary units]')
+            ax.set_title('Highly Correlated Channels')
+            ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
+            plot7 = gwplot.save_figure(fig, '%s_CLUSTER-%s.png' % (
+                re_delim.sub('_', str(currentchan))
+                        .replace('_', '-', 1),
+                gpsstub), bbox_inches='tight')
+
+    with counter.get_lock():
+        counter.value += 1
+        pc = 100 * counter.value / len(nonzerodata)
+        LOGGER.info("Completed [%d/%d] %3d%% %-50s"
+                    % (counter.value, len(nonzerodata), pc,
+                       '(%s)' % str(currentchan)))
+        sys.stdout.flush()
+    return (plot7, plot7_list)
+
+
+def _process_channel(input_):
+    """Handle individual channels for multiprocessing
+    """
+    if USETEX:
+        gwplot.configure_mpl_tex()
+    p4 = (.1, .1, .9, .95)
+    chan = input_[1][0]
+    ts = input_[1][1]
+    lassocoef = nonzerocoef[chan]
+    zeroed = lassocoef == 0
+
+    if zeroed:
+        plot4 = None
+        plot5 = None
+        plot6 = None
+        pcorr = None
+    else:
+        plot4 = None
+        plot5 = None
+        plot6 = None
+        if trend_type == 'minute':
+            pcorr = numpy.corrcoef(ts.value, primaryts.value)[0, 1]
+        else:
+            pcorr = 0.0
+        if abs(lassocoef) < threshold:
+            with counter.get_lock():
+                counter.value += 1
+            pc = 100 * counter.value / len(nonzerodata)
+            LOGGER.info("Completed [%d/%d] %3d%% %-50s"
+                        % (counter.value, len(nonzerodata), pc,
+                           '(%s)' % str(chan)))
+            sys.stdout.flush()
+            return (chan, lassocoef, plot4, plot5, plot6, ts)
+
+        # create time series subplots
+        fig = Plot(figsize=(12, 8))
+        fig.subplots_adjust(*p4)
+        ax1 = fig.add_subplot(2, 1, 1, xscale='auto-gps', epoch=start)
+        ax1.plot(primaryts, label=texify(primary), color='black',
+                 linewidth=line_size_primary)
+        ax1.set_xlabel(None)
+        ax2 = fig.add_subplot(2, 1, 2, sharex=ax1, xlim=xlim)
+        ax2.plot(ts, label=texify(chan), linewidth=line_size_aux)
+        if range_is_primary:
+            ax1.set_ylabel('Sensitive range [Mpc]')
+        else:
+            ax1.set_ylabel('Primary channel units')
+        ax2.set_ylabel('Channel units')
+        for ax in fig.axes:
+            ax.legend(loc='best')
+        channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
+        plot4 = gwplot.save_figure(
+            fig, '%s_TRENDS-%s.png' % (channelstub, gpsstub),
+            bbox_inches='tight')
+
+        # create scaled, sign-corrected, and overlayed timeseries
+        tsscaled = scale(ts.value)
+        if lassocoef < 0:
+            tsscaled = numpy.negative(tsscaled)
+        fig = Plot(figsize=(12, 4))
+        fig.subplots_adjust(*p1)
+        ax = fig.gca(xscale='auto-gps', epoch=start, xlim=xlim)
+        ax.plot(times, _descaler(target), label=texify(primary),
+                color='black', linewidth=line_size_primary)
+        ax.plot(times, _descaler(tsscaled), label=texify(chan),
+                linewidth=line_size_aux)
+        if range_is_primary:
+            ax.set_ylabel('Sensitive range [Mpc]')
+        else:
+            ax.set_ylabel('Primary Channel Units')
+        ax.legend(loc='best')
+        plot5 = gwplot.save_figure(
+            fig, '%s_COMPARISON-%s.png' % (channelstub, gpsstub),
+            bbox_inches='tight')
+
+        # scatter plot
+        tsCopy = ts.value.reshape(-1, 1)
+        primarytsCopy = primaryts.value.reshape(-1, 1)
+        primaryReg = linear_model.LinearRegression()
+        primaryReg.fit(tsCopy, primarytsCopy)
+        primaryFit = primaryReg.predict(tsCopy)
+        fig = Plot(figsize=(12, 4))
+        fig.subplots_adjust(*p1)
+        ax = fig.gca()
+        ax.set_xlabel(texify(chan) + ' [Channel units]')
+        if range_is_primary:
+            ax.set_ylabel('Sensitive range [Mpc]')
+        else:
+            ax.set_ylabel('Primary channel units')
+        y_min = min(primaryts.value)
+        y_max = max(primaryts.value)
+        y_range = y_max - y_min
+        ax.set_ylim(y_min - (y_range * 0.1), y_max + (y_range * 0.1))
+        ax.text(.9, .1, 'r = ' + str('{0:.2}'.format(pcorr)),
+                verticalalignment='bottom', horizontalalignment='right',
+                transform=ax.transAxes, color='black', size=20,
+                bbox=dict(boxstyle='square', facecolor='white', alpha=.75,
+                          edgecolor='black'))
+        ax.scatter(ts.value, primaryts.value, color='red')
+        ax.plot(ts.value, primaryFit, color='black')
+        ax.autoscale_view(tight=False, scalex=True, scaley=True)
+        plot6 = gwplot.save_figure(
+            fig, '%s_SCATTER-%s.png' % (channelstub, gpsstub),
+            bbox_inches='tight')
+
+    # increment counter and print status
+    with counter.get_lock():
+        counter.value += 1
+        pc = 100 * counter.value / len(nonzerodata)
+        LOGGER.info("Completed [%d/%d] %3d%% %-50s"
+                    % (counter.value, len(nonzerodata), pc,
+                       '(%s)' % str(chan)))
+        sys.stdout.flush()
+    return (chan, lassocoef, plot4, plot5, plot6, ts)
+
+
 # -- parse command line -------------------------------------------------------
 
 def create_parser():
@@ -215,6 +418,14 @@ def create_parser():
 def main(args=None):
     """Run the lasso command-line interface
     """
+    # declare global variables
+    # this is needed for multiprocessing utilities
+    global auxdata, cluster_threshold, cmap, colors, counter, gpsstub
+    global line_size_aux, line_size_primary, max_correlated_channels
+    global nonzerocoef, nonzerodata, p1, primary, primary_mean, primary_std
+    global primaryts, range_is_primary, re_delim, start, target, times
+    global threshold, trend_type, xlim
+
     parser = create_parser()
     args = parser.parse_args(args=args)
 
@@ -222,6 +433,13 @@ def main(args=None):
     start = int(args.gpsstart)
     end = int(args.gpsend)
     pad = args.filter_padding
+
+    # set pertinent global variables
+    cluster_threshold = args.cluster_coefficient
+    line_size_aux = args.line_size_aux
+    line_size_primary = args.line_size_primary
+    threshold = args.threshold
+    trend_type = args.trend_type
 
     # let's go
     LOGGER.info('{} Lasso correlations {}-{}'.format(args.ifo, start, end))
@@ -267,7 +485,7 @@ def main(args=None):
 
         # get darm BLRMS
         LOGGER.debug("-- Filtering data")
-        if args.trend_type == 'minute':
+        if trend_type == 'minute':
             stride = 60
         else:
             stride = 1
@@ -320,13 +538,6 @@ def main(args=None):
     primary_mean = numpy.mean(primaryts.value)
     primary_std = numpy.std(primaryts.value)
 
-    def descaler(iterable, *coef):
-        if coef:
-            return [((x * primary_std * coef[0]) + primary_mean)
-                    for x in iterable]
-        else:
-            return [((x * primary_std) + primary_mean) for x in iterable]
-
     # get aux data
     LOGGER.info("-- Loading auxiliary channel data")
     if args.channel_file is None:
@@ -339,7 +550,7 @@ def main(args=None):
     nchan = len(channels)
     LOGGER.debug("Identified %d channels" % nchan)
 
-    if args.trend_type == 'minute':
+    if trend_type == 'minute':
         frametype = '%s_M' % args.ifo  # for minute trends
     else:
         frametype = '%s_T' % args.ifo  # for second trends
@@ -394,7 +605,7 @@ def main(args=None):
 
     # print results
     LOGGER.info('Found {} channels with |Lasso coefficient| >= {}:\n\n'.format(
-                len(results), args.threshold))
+                len(results), threshold))
     print(results)
     print('\n\n')
 
@@ -427,10 +638,10 @@ def main(args=None):
     plot = Plot(figsize=(12, 4))
     plot.subplots_adjust(*p1)
     ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
-    ax.plot(times, descaler(target), label=texify(primary),
-            color='black', linewidth=args.line_size_primary)
-    ax.plot(times, descaler(modelFit), label='Lasso model',
-            linewidth=args.line_size_aux)
+    ax.plot(times, _descaler(target), label=texify(primary),
+            color='black', linewidth=line_size_primary)
+    ax.plot(times, _descaler(modelFit), label='Lasso model',
+            linewidth=line_size_aux)
     if range_is_primary:
         ax.set_ylabel('Sensitive range [Mpc]')
         ax.set_title('Lasso Model of Range')
@@ -446,8 +657,8 @@ def main(args=None):
     plot = Plot(figsize=(12, 4))
     plot.subplots_adjust(*p1)
     ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
-    ax.plot(times, descaler(target), label=texify(primary),
-            color='black', linewidth=args.line_size_primary)
+    ax.plot(times, _descaler(target), label=texify(primary),
+            color='black', linewidth=line_size_primary)
     summed = 0
     for i, name in enumerate(results['Channel']):
         summed += scale(nonzerodata[name].value) * nonzerocoef[name]
@@ -455,8 +666,8 @@ def main(args=None):
             label = 'Channels 1-{0}'.format(i+1)
         else:
             label = 'Channel 1'
-        ax.plot(times, descaler(summed), label=label, color=colors[i],
-                linewidth=args.line_size_aux)
+        ax.plot(times, _descaler(summed), label=label, color=colors[i],
+                linewidth=line_size_aux)
     if range_is_primary:
         ax.set_ylabel('Sensitive range [Mpc]')
     else:
@@ -471,16 +682,16 @@ def main(args=None):
     plot = Plot(figsize=(12, 4))
     plot.subplots_adjust(*p1)
     ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
-    ax.plot(times, descaler(target), label=texify(primary),
-            color='black', linewidth=args.line_size_primary)
+    ax.plot(times, _descaler(target), label=texify(primary),
+            color='black', linewidth=line_size_primary)
     for i, name in enumerate(results['Channel']):
-        this = descaler(scale(nonzerodata[name].value) * nonzerocoef[name])
+        this = _descaler(scale(nonzerodata[name].value) * nonzerocoef[name])
         if i:
             label = 'Channels 1-{0}'.format(i+1)
         else:
             label = 'Channel 1'
         ax.plot(times, this, label=texify(name), color=colors[i],
-                linewidth=args.line_size_aux)
+                linewidth=line_size_aux)
     if range_is_primary:
         ax.set_ylabel('Sensitive range [Mpc]')
     else:
@@ -495,207 +706,20 @@ def main(args=None):
 
     LOGGER.info("-- Processing channels")
     counter = multiprocessing.Value('i', 0)
-    p4 = (.1, .1, .9, .95)  # global plot defaults for plot4, timeseries plots
-
-    def process_channel(input_,):
-        if USETEX:
-            gwplot.configure_mpl_tex()
-        chan = input_[1][0]
-        ts = input_[1][1]
-        lassocoef = nonzerocoef[chan]
-        zeroed = lassocoef == 0
-
-        if zeroed:
-            plot4 = None
-            plot5 = None
-            plot6 = None
-            pcorr = None
-        else:
-            plot4 = None
-            plot5 = None
-            plot6 = None
-            if args.trend_type == 'minute':
-                pcorr = numpy.corrcoef(ts.value, primaryts.value)[0, 1]
-            else:
-                pcorr = 0.0
-            if abs(lassocoef) < args.threshold:
-                with counter.get_lock():
-                    counter.value += 1
-                pc = 100 * counter.value / len(nonzerodata)
-                LOGGER.info("Completed [%d/%d] %3d%% %-50s"
-                            % (counter.value, len(nonzerodata), pc,
-                               '(%s)' % str(chan)))
-                sys.stdout.flush()
-                return chan, lassocoef, plot4, plot5, plot6, ts
-
-            # create time series subplots
-            fig = Plot(figsize=(12, 8))
-            fig.subplots_adjust(*p4)
-            ax1 = fig.add_subplot(2, 1, 1, xscale='auto-gps', epoch=start)
-            ax1.plot(primaryts, label=texify(primary), color='black',
-                     linewidth=args.line_size_primary)
-            ax1.set_xlabel(None)
-            ax2 = fig.add_subplot(2, 1, 2, sharex=ax1, xlim=xlim)
-            ax2.plot(ts, label=texify(chan), linewidth=args.line_size_aux)
-            if range_is_primary:
-                ax1.set_ylabel('Sensitive range [Mpc]')
-            else:
-                ax1.set_ylabel('Primary channel units')
-            ax2.set_ylabel('Channel units')
-            for ax in fig.axes:
-                ax.legend(loc='best')
-            channelstub = re_delim.sub('_', str(chan)).replace('_', '-', 1)
-            plot4 = gwplot.save_figure(
-                fig, '%s_TRENDS-%s.png' % (channelstub, gpsstub),
-                bbox_inches='tight')
-
-            # create scaled, sign-corrected, and overlayed timeseries
-            tsscaled = scale(ts.value)
-            if lassocoef < 0:
-                tsscaled = numpy.negative(tsscaled)
-            fig = Plot(figsize=(12, 4))
-            fig.subplots_adjust(*p1)
-            ax = fig.gca(xscale='auto-gps', epoch=start, xlim=xlim)
-            ax.plot(times, descaler(target), label=texify(primary),
-                    color='black', linewidth=args.line_size_primary)
-            ax.plot(times, descaler(tsscaled), label=texify(chan),
-                    linewidth=args.line_size_aux)
-            if range_is_primary:
-                ax.set_ylabel('Sensitive range [Mpc]')
-            else:
-                ax.set_ylabel('Primary Channel Units')
-            ax.legend(loc='best')
-            plot5 = gwplot.save_figure(
-                fig, '%s_COMPARISON-%s.png' % (channelstub, gpsstub),
-                bbox_inches='tight')
-
-            # scatter plot
-            tsCopy = ts.value.reshape(-1, 1)
-            primarytsCopy = primaryts.value.reshape(-1, 1)
-            primaryReg = linear_model.LinearRegression()
-            primaryReg.fit(tsCopy, primarytsCopy)
-            primaryFit = primaryReg.predict(tsCopy)
-            fig = Plot(figsize=(12, 4))
-            fig.subplots_adjust(*p1)
-            ax = fig.gca()
-            ax.set_xlabel(texify(chan) + ' [Channel units]')
-            if range_is_primary:
-                ax.set_ylabel('Sensitive range [Mpc]')
-            else:
-                ax.set_ylabel('Primary channel units')
-            y_min = min(primaryts.value)
-            y_max = max(primaryts.value)
-            y_range = y_max - y_min
-            ax.set_ylim(y_min - (y_range * 0.1), y_max + (y_range * 0.1))
-            ax.text(.9, .1, 'r = ' + str('{0:.2}'.format(pcorr)),
-                    verticalalignment='bottom', horizontalalignment='right',
-                    transform=ax.transAxes, color='black', size=20,
-                    bbox=dict(boxstyle='square', facecolor='white', alpha=.75,
-                              edgecolor='black'))
-            ax.scatter(ts.value, primaryts.value, color='red')
-            ax.plot(ts.value, primaryFit, color='black')
-            ax.autoscale_view(tight=False, scalex=True, scaley=True)
-            plot6 = gwplot.save_figure(
-                fig, '%s_SCATTER-%s.png' % (channelstub, gpsstub),
-                bbox_inches='tight')
-
-        # increment counter and print status
-        with counter.get_lock():
-            counter.value += 1
-            pc = 100 * counter.value / len(nonzerodata)
-            LOGGER.info("Completed [%d/%d] %3d%% %-50s"
-                        % (counter.value, len(nonzerodata), pc,
-                           '(%s)' % str(chan)))
-            sys.stdout.flush()
-        return chan, lassocoef, plot4, plot5, plot6, ts
 
     # process channels
     pool = multiprocessing.Pool(nprocplot)
-    results = pool.map(process_channel, enumerate(list(nonzerodata.items())))
+    results = pool.map(_process_channel, enumerate(list(nonzerodata.items())))
     results = sorted(results, key=lambda x: abs(x[1]), reverse=True)
 
     #  generate clustered time series plots
     counter = multiprocessing.Value('i', 0)
-    p7 = (.135, .15, .95, .9)  # global plot defaults for plot7, clusters
     max_correlated_channels = 20
-
-    def generate_cluster(input_,):
-        if USETEX:
-            gwplot.configure_mpl_tex()
-        currentchan = input_[1][0]
-        currentts = input_[1][5]
-        current = input_[0]
-        cluster_threshold = args.cluster_coefficient
-        plot7 = None
-        plot7_list = None
-
-        if current < len(nonzerodata):
-            cluster = []
-            for i, otheritem in enumerate(list(auxdata.items())):
-                chan_, ts_ = otheritem
-                if chan_ != currentchan:
-                    pcorr = numpy.corrcoef(currentts.value, ts_.value)[0, 1]
-                    if abs(pcorr) >= cluster_threshold:
-                        stub = re_delim.sub('_', chan_).replace('_', '-', 1)
-                        cluster.append([i, ts_, pcorr, chan_, stub])
-
-            if cluster:
-                # write cluster table to file
-                cluster = sorted(cluster, key=lambda x: abs(x[2]),
-                                 reverse=True)
-                clustertab = Table(data=list(zip(*cluster))[2:4],
-                                   names=('Pearson Coefficient', 'Channel'))
-                plot7_list = '%s_CLUSTER_LIST-%s.csv' % (
-                    re_delim.sub('_', str(currentchan)).replace('_', '-', 1),
-                    gpsstub)
-                clustertab.write(plot7_list, format='csv', overwrite=True)
-
-                ncluster = min(len(cluster), max_correlated_channels)
-                colors2 = [cmap(i) for i in numpy.linspace(0, 1, ncluster+1)]
-
-                # plot
-                fig = Plot(figsize=(12, 4))
-                fig.subplots_adjust(*p7)
-                ax = fig.gca(xscale='auto-gps')
-                ax.plot(
-                    times, scale(currentts.value)*numpy.sign(input_[1][1]),
-                    label=texify(currentchan), linewidth=args.line_size_aux,
-                    color=colors[0])
-
-                for i in range(0, ncluster):
-                    this = cluster[i]
-                    ax.plot(
-                        times,
-                        scale(this[1].value) * numpy.sign(input_[1][1]) *
-                        numpy.sign(this[2]),
-                        color=colors2[i+1],
-                        linewidth=args.line_size_aux,
-                        label=('{0}, r = {1:.2}'.format(
-                            texify(cluster[i][3]), cluster[i][2])),
-                    )
-
-                ax.margins(x=0)
-                ax.set_ylabel('Scaled amplitude [arbitrary units]')
-                ax.set_title('Highly Correlated Channels')
-                ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5))
-                plot7 = gwplot.save_figure(fig, '%s_CLUSTER-%s.png' % (
-                    re_delim.sub('_', str(currentchan))
-                            .replace('_', '-', 1),
-                    gpsstub), bbox_inches='tight')
-
-        with counter.get_lock():
-            counter.value += 1
-            pc = 100 * counter.value / len(nonzerodata)
-            LOGGER.info("Completed [%d/%d] %3d%% %-50s"
-                        % (counter.value, len(nonzerodata), pc,
-                           '(%s)' % str(currentchan)))
-            sys.stdout.flush()
-        return plot7, plot7_list
 
     if args.no_cluster is False:
         LOGGER.info("-- Generating clusters")
         pool = multiprocessing.Pool(nprocplot)
-        clusters = pool.map(generate_cluster, enumerate(results))
+        clusters = pool.map(_generate_cluster, enumerate(results))
 
     channelsfile = '%s-CHANNELS-%s.csv' % (args.ifo, gpsstub)
     numpy.savetxt(channelsfile, channels, delimiter=',', fmt='%s')
@@ -724,7 +748,7 @@ def main(args=None):
         ('Primary cache file', markup.oneliner.code(
             args.primary_cache) or '-'),
         ('Outlier threshold', '%s sigma' % args.remove_outliers),
-        ('Lasso coefficient threshold', str(args.threshold)),
+        ('Lasso coefficient threshold', str(threshold)),
         ('Cluster coefficient threshold', str(args.cluster_coefficient)),
         ('Non-zero coefficients', str(numpy.count_nonzero(model.coef_))),
         ('&alpha; (model)', '%.4f' % model.alpha)]
@@ -819,13 +843,13 @@ def main(args=None):
         # set container color/context based on lasso coefficient
         if lassocoef == 0:
             break
-        elif abs(lassocoef) < args.threshold:
+        elif abs(lassocoef) < threshold:
             h = '%s [lasso coefficient = %.4f] (Below threshold)' % (
                 ch, lassocoef)
         else:
             h = '%s [lasso coefficient = %.4f]' % (ch, lassocoef)
         if ((lassocoef is None) or (lassocoef == 0)
-                or (abs(lassocoef) < args.threshold)):
+                or (abs(lassocoef) < threshold)):
             card = 'card border-light mb-1 shadow-sm'
             card_header = 'card-header bg-light'
         elif abs(lassocoef) >= .5:
@@ -851,9 +875,9 @@ def main(args=None):
         if lassocoef is None:
             page.p('The amplitude data for this channel is flat (does not '
                    'change) within the chosen time period.')
-        elif abs(lassocoef) < args.threshold:
+        elif abs(lassocoef) < threshold:
             page.p('Lasso coefficient below the threshold of %g.'
-                   % (args.threshold))
+                   % (threshold))
         else:
             for image in [plot4, plot5, plot6]:
                 img = htmlio.FancyPlot(image)
