@@ -21,7 +21,7 @@
 How to write a configuration file
 #################################
 
-`gwdetchar-omega` can be used to process an arbitrary list of channels,
+:mod:`gwdetchar.omega` can be used to process an arbitrary list of channels,
 including primary gravitational wave strain channels and auxiliary sensors,
 with arbitrary units and sample rates. Channels can be organized in contextual
 blocks using an INI-formatted configuration file that must be passed at
@@ -155,6 +155,27 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 # -- define parser ------------------------------------------------------------
 
 class OmegaConfigParser(configparser.ConfigParser):
+    """Custom configuration parser for :mod:`gwdetchar.omega`
+
+    Parameters
+    ----------
+    ifo : `str`, optional
+        prefix of the interferometer to use, defaults to `None`
+
+    defaults : `dict`, optional
+        dictionary of default values to pass to the parser, default: ``{}``
+
+    **kwargs : `dict`, optional
+        additional keyword arguments to pass to `ConfigParser`
+
+    Methods
+    -------
+    read:
+        parse a list of INI-format configuration files
+    get_channel_blocks:
+        retrieve an ordered dictionary of contextual channel blocks, as
+        organized in the source configuration
+    """
     def __init__(self, ifo=None, defaults=dict(), **kwargs):
         if ifo is not None:
             defaults.setdefault('IFO', ifo)
@@ -169,7 +190,12 @@ class OmegaConfigParser(configparser.ConfigParser):
     read.__doc__ = configparser.ConfigParser.read.__doc__
 
     def get_channel_blocks(self):
-        # retrieve an ordered dictionary of contextual channel blocks
+        """Retrieve an ordered dictionary of channel blocks
+
+        These blocks are organized contextually by the user, since they are
+        read in and preserved from the source configuration.
+        """
+        # retrieve an ordered dictionary of channel blocks
         if sys.version_info >= (3, 7):  # python 3.7+
             return {s: OmegaChannelList(s, **self[s]) for s in self.sections()}
         else:

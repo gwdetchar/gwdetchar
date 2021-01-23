@@ -12,17 +12,19 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
-import os
 import glob
+import os
 import sphinx_bootstrap_theme
+import sys
 
 from gwdetchar import __version__ as gwdetchar_version
+
+IGNORE_PATTERNS = ["GWHTMLParser", "OmegaChannel", "test"]
 
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.0'
+#needs_sphinx = '3.0'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -52,7 +54,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'GWDetChar'
-copyright = u'2015, Alex Urban and Duncan Macleod'
+copyright = u'2021, Alex Urban and Duncan Macleod'
 author = 'Alex Urban, Duncan Macleod'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -256,8 +258,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'GWDetChar', u'GWDetChar Documentation',
-   u'Alex Urban and Duncan Macleod', 'GWDetChar', 'One line description of project.',
-   'Miscellaneous'),
+   u'Alex Urban and Duncan Macleod', 'GWDetChar',
+   'One line description of project.', 'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
@@ -275,14 +277,12 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'python': ('http://docs.python.org/', None),
-    'numpy': ('http://docs.scipy.org/doc/numpy/', None),
-    'scipy': ('http://docs.scipy.org/doc/scipy/reference/', None),
-    'matplotlib': ('http://matplotlib.sourceforge.net/', None),
-    'astropy': ('http://docs.astropy.org/en/stable/', None),
-    'gwpy': ('http://gwpy.github.io/docs/stable/', None),
-    'hveto': ('http://hveto.readthedocs.io/en/stable', None),
-    'gwsumm': ('http://gwsumm.readthedocs.io/en/stable', None),
+    'python': ('https://docs.python.org/3/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
+    'matplotlib': ('https://matplotlib.org/', None),
+    'astropy': ('https://docs.astropy.org/en/stable/', None),
+    'gwpy': ('https://gwpy.github.io/docs/stable/', None),
 }
 
 # -- autosummary
@@ -309,6 +309,12 @@ def run_apidoc(_):
     apidoc_main([module, '--separate', '--force', '--output-dir', apidir])
 
 
+# -- skip test-related members ------------------------------------------------
+
+def autodoc_skip_member_handler(app, what, name, obj, skip, options):
+    return any([pattern in name for pattern in IGNORE_PATTERNS])
+
+
 # -- add static files----------------------------------------------------------
 
 def setup_static_content(app):
@@ -329,4 +335,5 @@ def setup_static_content(app):
 
 def setup(app):
     setup_static_content(app)
+    app.connect('autodoc-skip-member', autodoc_skip_member_handler)
     app.connect('builder-inited', run_apidoc)

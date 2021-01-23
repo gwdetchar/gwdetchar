@@ -152,9 +152,9 @@ def get_blrms(series, flow=4.0, fhigh=10.0, stride=1, whiten=True,
 
     See Also
     --------
-    ~gwpy.timeseries.TimeSeries.whiten
+    gwpy.timeseries.TimeSeries.whiten
         for the underlying whitening scheme
-    ~gwpy.timeseries.TimeSeries.rms
+    gwpy.timeseries.TimeSeries.rms
         for the underlying root-mean-square (RMS) estimation method
     """
     if whiten:

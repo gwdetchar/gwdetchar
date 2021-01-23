@@ -175,7 +175,7 @@ def toggle_link(plottype, channel, pranges):
     channel : `OmegaChannel`
         the channel object corresponding to the plots shown
 
-    pranges : `list` of `int`s
+    pranges : `list` of `int`
         a list of ranges for the time axis of each plot
 
     Returns

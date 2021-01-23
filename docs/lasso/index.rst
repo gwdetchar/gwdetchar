@@ -6,7 +6,7 @@ The least absolute shrinkage and selection operator (LASSO) is a regression tech
 
 .. currentmodule:: gwdetchar.lasso
 
-The :mod:`gwdetchar.lasso` module provides the following functions:
+The core :mod:`gwdetchar.lasso` module provides the following functions:
 
 .. autosummary::
 
@@ -33,9 +33,9 @@ Command-line utility
    This utility requires authentication with `LIGO.ORG` credentials for archived frame data access.
 
 ---------------------------
-gwdetchar-lasso-correlation
+gwdetchar.lasso
 ---------------------------
 
-The `gwdetchar-lasso-correlation` tool searches for long, slow correlations between one channel identified as a primary (typically gravitational-wave strain) and several other (typically thousands of) auxiliary channels. For a full explanation of the available command-line arguments and options, you can run
+The :mod:`gwdetchar.lasso` command-line interface searches for long, slow correlations between one channel identified as a primary (typically gravitational-wave strain) and several other (typically thousands of) auxiliary channels. For a full explanation of the available command-line arguments and options, you can run
 
-.. command-output:: gwdetchar-lasso-correlation --help
+.. command-output:: python -m gwdetchar.lasso --help

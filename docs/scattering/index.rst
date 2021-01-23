@@ -34,35 +34,35 @@ GWDetChar provides two command-line utilities for optical scattering; one is des
    These utilities require authentication with `LIGO.ORG` credentials for archived frame data access.
 
 --------------------
-gwdetchar-scattering
+gwdetchar.scattering
 --------------------
 
-The `gwdetchar-scattering` tool searches over a standard list of OSEM measurements within a user-specified time range for evidence of optical scattering. The simplest usage is as follows:
+The :mod:`gwdetchar.scattering` command-line interface searches over a standard list of OSEM measurements within a user-specified time range for evidence of optical scattering. The simplest usage is as follows:
 
 .. code-block:: bash
 
-   gwdetchar-scattering -i <interferometer> <gps-start-time> <gps-end-time>
+   python -m gwdetchar.scattering -i <interferometer> <gps-start-time> <gps-end-time>
 
 For example,
 
 .. code-block:: bash
 
-   gwdetchar-scattering -i H1 1126259442 1126259502
-
-For a full explanation of the available command-line arguments and options, you can run
-
-.. command-output:: gwdetchar-scattering --help
-
---------------------
-gwdetchar.scattering
---------------------
-
-The :mod:`gwdetchar.scattering` can also be run as a command-line module to compare fringe frequency projections against gravitational-wave strain at a specific time. The simplest usage is similar to `gwdetchar-scattering`, but with only a single time:
-
-.. code-block:: bash
-
-   python -m gwdetchar.scattering -i <interferometer> <gps-time>
+   python -m gwdetchar.scattering -i H1 1126259442 1126259502
 
 For a full explanation of the available command-line arguments and options, you can run
 
 .. command-output:: python -m gwdetchar.scattering --help
+
+---------------------------
+gwdetchar.scattering.simple
+---------------------------
+
+The :mod:`gwdetchar.scattering.simple` can also be run as a command-line module to compare fringe frequency projections against gravitational-wave strain at a specific time. The simplest usage is similar to :mod:`gwdetchar.scattering`, but with only a single time:
+
+.. code-block:: bash
+
+   python -m gwdetchar.scattering.simple -i <interferometer> <gps-time>
+
+For a full explanation of the available command-line arguments and options, you can run
+
+.. command-output:: python -m gwdetchar.scattering.simple --help
