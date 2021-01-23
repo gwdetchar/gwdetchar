@@ -417,6 +417,7 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
     -------
     page : :class:`~MarkupPy.markup.page`
         HTML element with the following grammar:
+
         .. code:: html
 
            <a>text</a>

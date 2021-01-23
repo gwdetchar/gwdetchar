@@ -35,50 +35,50 @@ GWDetChar provides two command-line utilities for running omega scans, taking ca
 
 .. note::
 
-   For users working on any of the LIGO Data Grid (LDG) computer clusters, a standard set of configuration files are maintained and discoverable by default with `gwdetchar-omega`. For information about how to write custom configuration files, see the :mod:`gwdetchar.omega.config` module.
+   For users working on any of the LIGO Data Grid (LDG) computer clusters, a standard set of configuration files are maintained and discoverable by default with `gwdetchar.omega`. For information about how to write custom configuration files, see the :mod:`gwdetchar.omega.config` module.
 
 ---------------
-gwdetchar-omega
+gwdetchar.omega
 ---------------
 
-The `gwdetchar-omega` tool is a Q-transform utility for generating omega scans. The simplest usage is as follows:
+The :mod:`gwdetchar.omega` command-line interface is a Q-transform utility for generating omega scans. The simplest usage is as follows:
 
 .. code-block:: bash
 
-   gwdetchar-omega -i <interferometer> <gps-time>
+   python -m gwdetchar.omega -i <interferometer> <gps-time>
 
 For example,
 
 .. code-block:: bash
 
-   gwdetchar-omega -i L1 1126259461.5
+   python -m gwdetchar.omega -i L1 1126259461.5
 
 For a full explanation of the available command-line arguments and options, you can run
 
-.. command-output:: gwdetchar-omega --help
+.. command-output:: python -m gwdetchar.omega --help
 
 ---------------------
-gwdetchar-omega-batch
+gwdetchar.omega.batch
 ---------------------
 
-`gwdetchar-omega-batch` is a wrapper around `gwdetchar-omega` to build a workflow for executing multiple omega scans easily. This tool will generate a `Condor <https://research.cs.wisc.edu/htcondor/>`_ workflow (a Directed Acyclic Graph, or DAG) to process multiple times either in parallel or in series.
-The simplest usage is much the same as for `gwdetchar-omega`, but with multiple times:
+To enable batch processing, :mod:`gwdetchar.omega.batch` is a wrapper around :mod:`gwdetchar.omega` that builds a workflow for executing multiple omega scans at once. This tool will generate a `Condor <https://research.cs.wisc.edu/htcondor/>`_ workflow (a Directed Acyclic Graph, or DAG) to process multiple event times either in parallel or in series.
+The simplest usage is much the same as for :mod:`gwdetchar.omega`, but with multiple times:
 
 .. code-block:: bash
 
-   gwdetchar-omega-batch -i <interferometer> <gps-time-1> <gps-time-2> <gps-time-3> ...
+   python -m gwdetchar.omega.batch -i <interferometer> <gps-time-1> <gps-time-2> <gps-time-3> ...
 
 Alternatively, you can pass all of the times in a single file:
 
 .. code-block:: bash
 
-   gwdetchar-omega-batch -i L1 mytimes.txt
+   python -m gwdetchar.omega.batch -i L1 mytimes.txt
 
 where `mytimes.txt` should contain a single column of GPS times.
 
-For a full explanation of the available command-line arguments and options, you can run
+For a full explanation of the available command-line interface and options, you can run
 
-.. command-output:: gwdetchar-omega-batch --help
+.. command-output:: python -m gwdetchar.omega.batch --help
 
 
 .. _Q-transform: https://gwpy.github.io/docs/stable/examples/timeseries/qscan.html

@@ -140,10 +140,10 @@ def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
         default: no resampling
 
     f_low : `float`, optional
-        lower cutoff frequency (Hz) of the filter, default: `None`
+        lower cutoff frequency (Hz) of the filter, default: ``None``
 
     **kwargs : `dict`, optional
-        additional arguments to `omega.highpass`
+        additional arguments to :func:`highpass`
 
     Returns
     -------
@@ -152,9 +152,9 @@ def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
 
     hpxoft : `~gwpy.timeseries.TimeSeries`
         high-passed version of the input data (returned only if `f_low` is
-        not `None`)
+        not ``None``)
 
-    xoft : ``~gwpy.timeseries.TimeSeries`
+    xoft : `~gwpy.timeseries.TimeSeries`
         original (possibly resampled) version of the input data
     """
     if resample:
