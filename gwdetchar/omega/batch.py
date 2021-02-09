@@ -180,7 +180,7 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
     dagman = Dagman(name=tag, submit=subdir)
     job = Job(
         dag=dagman,
-        name='gwdetchar.omega',
+        name='gwdetchar-omega',
         executable=sys.executable,
         universe=universe,
         submit=subdir,
