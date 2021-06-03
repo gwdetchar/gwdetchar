@@ -21,6 +21,9 @@ import os
 import re
 import sys
 
+# added import
+from gwpy.timeseries import TimeSeries
+
 import numpy
 
 from MarkupPy import markup
@@ -320,7 +323,7 @@ def create_parser():
         '-p',
         '--primary-channel',
         default='{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean',
-        help='name of primary channel to use or filepath to primary timeseries .gwf file',
+        help='name of primary channel to use or filepath to primary timeseries .gwf file with channel name separated by space',
     )
     parser.add_argument(
         '-P',
@@ -413,21 +416,21 @@ def create_parser():
     # return the argument parser
     return parser
 
-def get_primary_ts(prim_target, start, end, band_pass)
-"""Given a primary channel name or file path, start and end time, returns primary timeseries"""
-    if 'gwf' in str(prim_target):
-        return TimeSeries.read(prim_target, start=start, end=end)
+def get_primary_ts(filepath, channel, start, end, frametype, cache, nproc, band_pass=False):
+    """Given a primary channel name or file path, start and end time, returns primary timeseries"""
+    if filepath is not None:
+        return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc)
     else:
         if band_pass:
             return get_data(
-                prim_target, start, end, verbose='Reading primary:'.rjust(30),
-                frametype=args.primary_frametype, source=args.primary_cache,
-                nproc=args.nproc)
+                channel, start, end, verbose='Reading primary:'.rjust(30),
+                frametype=frametype, source=cache,
+                nproc=nproc)
         else:
             return get_data(
-                primary, start, end, frametype=args.primary_frametype,
-                source=args.primary_cache, verbose='Reading:'.rjust(30),
-                nproc=args.nproc).crop(start, end)
+                channel, start, end, frametype=frametype,
+                source=cache, verbose='Reading:'.rjust(30),
+                nproc=nproc).crop(start, end)
 
 
 # -- main code block ----------------------------------------------------------
@@ -439,7 +442,7 @@ def main(args=None):
     # this is needed for multiprocessing utilities
     global auxdata, cluster_threshold, cmap, colors, counter, gpsstub
     global line_size_aux, line_size_primary, max_correlated_channels
-    global nonzerocoef, nonzerodata, p1, primary, primary_mean, primary_std
+    global nonzerocoef, nonzerodata, p1, primary_channel, primary_filepath, primary_mean, primary_std
     global primaryts, range_is_primary, re_delim, start, target, times
     global threshold, trend_type, xlim
 
@@ -462,14 +465,19 @@ def main(args=None):
     LOGGER.info('{} Lasso correlations {}-{}'.format(args.ifo, start, end))
 
     # get primary channel frametype
-    primary = args.primary_channel.format(ifo=args.ifo)
-    range_is_primary = 'EFFECTIVE_RANGE_MPC' in args.primary_channel
+    if '.gwf' in args.primary_channel:
+        primary_channel = args.primary_channel.split('~')[1].format(ifo=args.ifo)
+        primary_filepath = args.primary_channel.split('~')[0]
+    else:
+        primary_channel = args.primary_channel.format(ifo=args.ifo)
+        primary_filepath = None
+    range_is_primary = 'EFFECTIVE_RANGE_MPC' in primary_channel
     if args.primary_cache is not None:
         LOGGER.info("Using custom primary cache file")
     elif args.primary_frametype is None:
         try:
             args.primary_frametype = DEFAULT_FRAMETYPE[
-                args.primary_channel.split(':')[1]].format(ifo=args.ifo)
+                primary_channel.split(':')[1]].format(ifo=args.ifo)
         except KeyError as exc:
             raise type(exc)("Could not determine primary channel's frametype, "
                             "please specify with --primary-frametype")
@@ -495,7 +503,9 @@ def main(args=None):
 #             primary, start-pad, end+pad, verbose='Reading primary:'.rjust(30),
 #             frametype=args.primary_frametype, source=args.primary_cache,
 #             nproc=args.nproc)
-        bandts = get_primary_ts(primary, start=start-pad, end=end+pad, band_pass=True)
+        bandts = get_primary_ts(filepath=primary_filepath, channel=primary_channel, 
+                                start=start-pad, end=end+pad, frametype=args.primary_frametype, 
+                                cache=args.primary_cache, nproc=args.nproc, band_pass=True)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
             raise ValueError(
                 "bandpass frequency is out of range for this "
@@ -529,7 +539,7 @@ def main(args=None):
         darmbl_asd = darmbl.asd(4, 2, method='median')
 
         spectrum_plots = gwplot.make_spectrum_plots(
-            start, end, flower, fupper, args.primary_channel,
+            start, end, flower, fupper, primary_channel,
             bandts_asd, darmbl_asd)
         spectrum_plot_zoomed_out = spectrum_plots[0]
         spectrum_plot_zoomed_in = spectrum_plots[1]
@@ -542,7 +552,9 @@ def main(args=None):
 #             primary, start, end, frametype=args.primary_frametype,
 #             source=args.primary_cache, verbose='Reading:'.rjust(30),
 #             nproc=args.nproc).crop(start, end)
-        primaryts = get_primary_ts(primary, start, end, band_pass=False)
+        primaryts = get_primary_ts(filepath=primary_filepath, channel=primary_channel, 
+                                   start=start, end=end, frametype=args.primary_frametype, 
+                                   cache=args.primary_cache, nproc=args.nproc, band_pass=False)
 
     if args.remove_outliers:
         LOGGER.debug(
