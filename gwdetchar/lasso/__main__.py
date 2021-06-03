@@ -35,9 +35,10 @@ from pandas import set_option
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
-from .. import (cli, lasso as gwlasso)
-from ..io.datafind import get_data
-from ..io import html as htmlio
+# changed relative paths - change back before merge
+from gwdetchar import (cli, lasso as gwlasso)
+from gwdetchar.io.datafind import get_data
+from gwdetchar.io import html as htmlio
 
 from matplotlib import (use, rcParams)
 use('Agg')
