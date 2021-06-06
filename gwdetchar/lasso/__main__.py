@@ -323,7 +323,14 @@ def create_parser():
         '-p',
         '--primary-channel',
         default='{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean',
-        help='name of primary channel to use or filepath to primary timeseries .gwf file with channel name separated by space',
+        help='name of primary channel to use',
+    )
+    # primary channel filepath argument
+    parser.add_argument(
+        '-pf',
+        '--primary-file',
+        default=None,
+        help='filepath of custom primary channel'
     )
     parser.add_argument(
         '-P',
@@ -419,8 +426,10 @@ def create_parser():
 def get_primary_ts(filepath, channel, start, end, frametype, cache, nproc, band_pass=False):
     """Given a primary channel name or file path, start and end time, returns primary timeseries"""
     if filepath is not None:
+        LOGGER.info('Reading primary channel file')
         return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc)
     else:
+        LOGGER.info('Querying primary channel')
         if band_pass:
             return get_data(
                 channel, start, end, verbose='Reading primary:'.rjust(30),
@@ -442,7 +451,7 @@ def main(args=None):
     # this is needed for multiprocessing utilities
     global auxdata, cluster_threshold, cmap, colors, counter, gpsstub
     global line_size_aux, line_size_primary, max_correlated_channels
-    global nonzerocoef, nonzerodata, p1, primary_channel, primary_filepath, primary_mean, primary_std
+    global nonzerocoef, nonzerodata, p1, primary, primary_filepath, primary_mean, primary_std
     global primaryts, range_is_primary, re_delim, start, target, times
     global threshold, trend_type, xlim
 
@@ -465,19 +474,15 @@ def main(args=None):
     LOGGER.info('{} Lasso correlations {}-{}'.format(args.ifo, start, end))
 
     # get primary channel frametype
-    if '.gwf' in args.primary_channel:
-        primary_channel = args.primary_channel.split('~')[1].format(ifo=args.ifo)
-        primary_filepath = args.primary_channel.split('~')[0]
-    else:
-        primary_channel = args.primary_channel.format(ifo=args.ifo)
-        primary_filepath = None
-    range_is_primary = 'EFFECTIVE_RANGE_MPC' in primary_channel
+    primary = args.primary_channel.format(ifo=args.ifo)
+    primary_filepath = args.primary_file
+    range_is_primary = 'EFFECTIVE_RANGE_MPC' in args.primary_channel
     if args.primary_cache is not None:
         LOGGER.info("Using custom primary cache file")
     elif args.primary_frametype is None:
         try:
             args.primary_frametype = DEFAULT_FRAMETYPE[
-                primary_channel.split(':')[1]].format(ifo=args.ifo)
+                primary.split(':')[1]].format(ifo=args.ifo)
         except KeyError as exc:
             raise type(exc)("Could not determine primary channel's frametype, "
                             "please specify with --primary-frametype")
@@ -503,7 +508,7 @@ def main(args=None):
 #             primary, start-pad, end+pad, verbose='Reading primary:'.rjust(30),
 #             frametype=args.primary_frametype, source=args.primary_cache,
 #             nproc=args.nproc)
-        bandts = get_primary_ts(filepath=primary_filepath, channel=primary_channel, 
+        bandts = get_primary_ts(filepath=primary_filepath, channel=primary, 
                                 start=start-pad, end=end+pad, frametype=args.primary_frametype, 
                                 cache=args.primary_cache, nproc=args.nproc, band_pass=True)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
@@ -539,7 +544,7 @@ def main(args=None):
         darmbl_asd = darmbl.asd(4, 2, method='median')
 
         spectrum_plots = gwplot.make_spectrum_plots(
-            start, end, flower, fupper, primary_channel,
+            start, end, flower, fupper, primary,
             bandts_asd, darmbl_asd)
         spectrum_plot_zoomed_out = spectrum_plots[0]
         spectrum_plot_zoomed_in = spectrum_plots[1]
@@ -552,7 +557,7 @@ def main(args=None):
 #             primary, start, end, frametype=args.primary_frametype,
 #             source=args.primary_cache, verbose='Reading:'.rjust(30),
 #             nproc=args.nproc).crop(start, end)
-        primaryts = get_primary_ts(filepath=primary_filepath, channel=primary_channel, 
+        primaryts = get_primary_ts(filepath=primary_filepath, channel=primary, 
                                    start=start, end=end, frametype=args.primary_frametype, 
                                    cache=args.primary_cache, nproc=args.nproc, band_pass=False)
 
