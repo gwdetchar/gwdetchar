@@ -330,7 +330,7 @@ def create_parser():
         '-pf',
         '--primary-file',
         default=None,
-        help='filepath of custom primary channel'
+        help='filepath of custom primary channel if using custom channel'
     )
     parser.add_argument(
         '-P',
@@ -427,7 +427,10 @@ def get_primary_ts(filepath, channel, start, end, frametype, cache, nproc, band_
     """Given a primary channel name or file path, start and end time, returns primary timeseries"""
     if filepath is not None:
         LOGGER.info('Reading primary channel file')
-        return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc)
+        if band_pass:
+            return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc).crop(start, end)
+        else:
+            return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc)
     else:
         LOGGER.info('Querying primary channel')
         if band_pass:
@@ -451,7 +454,7 @@ def main(args=None):
     # this is needed for multiprocessing utilities
     global auxdata, cluster_threshold, cmap, colors, counter, gpsstub
     global line_size_aux, line_size_primary, max_correlated_channels
-    global nonzerocoef, nonzerodata, p1, primary, primary_filepath, primary_mean, primary_std
+    global nonzerocoef, nonzerodata, p1, primary, primary_mean, primary_std
     global primaryts, range_is_primary, re_delim, start, target, times
     global threshold, trend_type, xlim
 
@@ -475,7 +478,6 @@ def main(args=None):
 
     # get primary channel frametype
     primary = args.primary_channel.format(ifo=args.ifo)
-    primary_filepath = args.primary_file
     range_is_primary = 'EFFECTIVE_RANGE_MPC' in args.primary_channel
     if args.primary_cache is not None:
         LOGGER.info("Using custom primary cache file")
@@ -503,12 +505,7 @@ def main(args=None):
             flower, fupper = None
 
         LOGGER.info("-- Loading primary channel data")
-        # original method to get primary channel data
-#         bandts = get_data(
-#             primary, start-pad, end+pad, verbose='Reading primary:'.rjust(30),
-#             frametype=args.primary_frametype, source=args.primary_cache,
-#             nproc=args.nproc)
-        bandts = get_primary_ts(filepath=primary_filepath, channel=primary, 
+        bandts = get_primary_ts(filepath=args.primary_file, channel=primary, 
                                 start=start-pad, end=end+pad, frametype=args.primary_frametype, 
                                 cache=args.primary_cache, nproc=args.nproc, band_pass=True)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
@@ -552,12 +549,7 @@ def main(args=None):
     else:
         # load primary channel data
         LOGGER.info("-- Loading primary channel data")
-        # original method to get primaryts
-#         primaryts = get_data(
-#             primary, start, end, frametype=args.primary_frametype,
-#             source=args.primary_cache, verbose='Reading:'.rjust(30),
-#             nproc=args.nproc).crop(start, end)
-        primaryts = get_primary_ts(filepath=primary_filepath, channel=primary, 
+        primaryts = get_primary_ts(filepath=args.primary_file, channel=primary, 
                                    start=start, end=end, frametype=args.primary_frametype, 
                                    cache=args.primary_cache, nproc=args.nproc, band_pass=False)
 
