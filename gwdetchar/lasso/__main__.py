@@ -42,6 +42,9 @@ from gwpy.io import nds2 as io_nds2
 from gwdetchar import (cli, lasso as gwlasso)
 from gwdetchar.io.datafind import get_data
 from gwdetchar.io import html as htmlio
+# from .. import cli, lasso as gwlasso
+# from ..io.datafind import get_data
+# from ..io import html as htmlio
 
 from matplotlib import (use, rcParams)
 use('Agg')
@@ -423,27 +426,6 @@ def create_parser():
     # return the argument parser
     return parser
 
-def get_primary_ts(filepath, channel, start, end, frametype, cache, nproc, band_pass=False):
-    """Given a primary channel name or file path, start and end time, returns primary timeseries"""
-    if filepath is not None:
-        LOGGER.info('Reading primary channel file')
-        if band_pass:
-            return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc).crop(start, end)
-        else:
-            return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc)
-    else:
-        LOGGER.info('Querying primary channel')
-        if band_pass:
-            return get_data(
-                channel, start, end, verbose='Reading primary:'.rjust(30),
-                frametype=frametype, source=cache,
-                nproc=nproc)
-        else:
-            return get_data(
-                channel, start, end, frametype=frametype,
-                source=cache, verbose='Reading:'.rjust(30),
-                nproc=nproc).crop(start, end)
-
 
 # -- main code block ----------------------------------------------------------
 
@@ -457,7 +439,7 @@ def main(args=None):
     global nonzerocoef, nonzerodata, p1, primary, primary_mean, primary_std
     global primaryts, range_is_primary, re_delim, start, target, times
     global threshold, trend_type, xlim
-
+    
     parser = create_parser()
     args = parser.parse_args(args=args)
 
@@ -505,7 +487,7 @@ def main(args=None):
             flower, fupper = None
 
         LOGGER.info("-- Loading primary channel data")
-        bandts = get_primary_ts(filepath=args.primary_file, channel=primary, 
+        bandts = gwlasso.core.get_primary_ts(filepath=args.primary_file, channel=primary, 
                                 start=start-pad, end=end+pad, frametype=args.primary_frametype, 
                                 cache=args.primary_cache, nproc=args.nproc, band_pass=True)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
@@ -549,7 +531,7 @@ def main(args=None):
     else:
         # load primary channel data
         LOGGER.info("-- Loading primary channel data")
-        primaryts = get_primary_ts(filepath=args.primary_file, channel=primary, 
+        primaryts = gwlasso.core.get_primary_ts(filepath=args.primary_file, channel=primary, 
                                    start=start, end=end, frametype=args.primary_frametype, 
                                    cache=args.primary_cache, nproc=args.nproc, band_pass=False)
 
