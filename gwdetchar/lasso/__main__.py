@@ -39,12 +39,12 @@ from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
 # changed relative paths - change back before merge
-# from gwdetchar import (cli, lasso as gwlasso)
-# from gwdetchar.io.datafind import get_data
-# from gwdetchar.io import html as htmlio
-from .. import (cli, lasso as gwlasso)
-from ..io.datafind import get_data
-from ..io import html as htmlio
+from gwdetchar import (cli, lasso as gwlasso)
+from gwdetchar.io.datafind import get_data
+from gwdetchar.io import html as htmlio
+# from .. import (cli, lasso as gwlasso)
+# from ..io.datafind import get_data
+# from ..io import html as htmlio
 
 from matplotlib import (use, rcParams)
 use('Agg')
@@ -274,7 +274,7 @@ def _process_channel(input_):
     return (chan, lassocoef, plot4, plot5, plot6, ts)
 
 
-def get_primary_ts(filepath, channel, start, end, frametype, cache=None, nproc=1, band_pass=False):
+def get_primary_ts(channel, start, end, filepath=None, frametype=None, cache=None, nproc=1, band_pass=False):
     """Retrieve primary channel timeseries by either reading a .gwf file or querying
     """
     if filepath is not None:
