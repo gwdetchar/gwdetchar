@@ -38,7 +38,7 @@ from pandas import set_option
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
-# changed relative paths - change back before merge
+# changed relative paths - change back before full merge
 from gwdetchar import (cli, lasso as gwlasso)
 from gwdetchar.io.datafind import get_data
 from gwdetchar.io import html as htmlio
