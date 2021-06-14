@@ -33,66 +33,6 @@ __credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
 
 # -- utilities ----------------------------------------------------------------
 
-def get_primary_ts(filepath, channel, start, end, frametype, cache=None, nproc=1, band_pass=False):
-    """Retrieve primary channel timeseries by either reading a .gwf file or querying
-
-    Parameters
-    ----------
-    filepath : `str`
-        filepath of .gwf file if using custom timeseries
-        required if loading custom timeseries file
-        default: None
-
-    channel : `str`
-        name of primary channel
-        default: '{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean'
-        
-    start, end : 'float'
-        start and end times for primary channel timeseries in gps time
-        no default
-    
-    frametype: 'str'
-        frametype of primary channel
-        no default
-    
-    cache: 'str'
-        cache file for primary channel
-        default: None
-    
-    nproc: 'int'
-        number of processes to use when reading data
-        default: 1
-    
-    bandpass: 'boolean'
-        boolean determining whether the timeseries returned will undergo a bandpass
-        and therefore not be cropped
-        default=False
-        
-    Returns
-    -------
-    out : `TimeSeries`
-        primary channel TimeSeries object
-    """
-    if filepath is not None:
-        LOGGER.info('Reading primary channel file')
-        if band_pass:
-            return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc)
-        else:
-            return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc).crop(start, end)
-    else:
-        LOGGER.info('Querying primary channel')
-        if band_pass:
-            return get_data(
-                channel, start, end, verbose='Reading primary:'.rjust(30),
-                frametype=frametype, source=cache,
-                nproc=nproc)
-        else:
-            return get_data(
-                channel, start, end, frametype=frametype,
-                source=cache, verbose='Reading:'.rjust(30),
-                nproc=nproc).crop(start, end)
-        
-
 def find_outliers(ts, N=5, method='s'):
     """Find outliers within a `TimeSeries`
 

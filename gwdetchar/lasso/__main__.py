@@ -39,12 +39,12 @@ from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
 # changed relative paths - change back before merge
-from gwdetchar import (cli, lasso as gwlasso)
-from gwdetchar.io.datafind import get_data
-from gwdetchar.io import html as htmlio
-# from .. import cli, lasso as gwlasso
-# from ..io.datafind import get_data
-# from ..io import html as htmlio
+# from gwdetchar import (cli, lasso as gwlasso)
+# from gwdetchar.io.datafind import get_data
+# from gwdetchar.io import html as htmlio
+from .. import (cli, lasso as gwlasso)
+from ..io.datafind import get_data
+from ..io import html as htmlio
 
 from matplotlib import (use, rcParams)
 use('Agg')
@@ -274,6 +274,29 @@ def _process_channel(input_):
     return (chan, lassocoef, plot4, plot5, plot6, ts)
 
 
+def get_primary_ts(filepath, channel, start, end, frametype, cache=None, nproc=1, band_pass=False):
+    """Retrieve primary channel timeseries by either reading a .gwf file or querying
+    """
+    if filepath is not None:
+        LOGGER.info('Reading primary channel file')
+        if band_pass:
+            return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc)
+        else:
+            return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc).crop(start, end)
+    else:
+        LOGGER.info('Querying primary channel')
+        if band_pass:
+            return get_data(
+                channel, start, end, verbose='Reading primary:'.rjust(30),
+                frametype=frametype, source=cache,
+                nproc=nproc)
+        else:
+            return get_data(
+                channel, start, end, frametype=frametype,
+                source=cache, verbose='Reading:'.rjust(30),
+                nproc=nproc).crop(start, end)
+        
+        
 # -- parse command line -------------------------------------------------------
 
 def create_parser():
@@ -333,7 +356,7 @@ def create_parser():
         '-pf',
         '--primary-file',
         default=None,
-        help='filepath of custom primary channel if using custom channel'
+        help='filepath of .gwf custom primary channel if using custom channel'
     )
     parser.add_argument(
         '-P',
@@ -487,7 +510,7 @@ def main(args=None):
             flower, fupper = None
 
         LOGGER.info("-- Loading primary channel data")
-        bandts = gwlasso.core.get_primary_ts(filepath=args.primary_file, channel=primary, 
+        bandts = get_primary_ts(filepath=args.primary_file, channel=primary, 
                                 start=start-pad, end=end+pad, frametype=args.primary_frametype, 
                                 cache=args.primary_cache, nproc=args.nproc, band_pass=True)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
@@ -531,7 +554,7 @@ def main(args=None):
     else:
         # load primary channel data
         LOGGER.info("-- Loading primary channel data")
-        primaryts = gwlasso.core.get_primary_ts(filepath=args.primary_file, channel=primary, 
+        primaryts = get_primary_ts(filepath=args.primary_file, channel=primary, 
                                    start=start, end=end, frametype=args.primary_frametype, 
                                    cache=args.primary_cache, nproc=args.nproc, band_pass=False)
 
