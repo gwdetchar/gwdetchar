@@ -24,7 +24,6 @@ test_channel = 'L1:DMT-SNSW_EFFECTIVE_RANGE_MPC.mean'
 test_frametype = 'SenseMonitor_CAL_L1_M'
 test_start = 1264983618
 test_end = test_start+7200
-# expected_ts_in = np.random.random(120)
 expected_ts = datafind.get_data(test_channel, test_start, test_end, frametype=test_frametype)
 expected_ts.write(temp, format='gwf')
 
