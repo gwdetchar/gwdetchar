@@ -274,27 +274,15 @@ def _process_channel(input_):
     return (chan, lassocoef, plot4, plot5, plot6, ts)
 
 
-def get_primary_ts(channel, start, end, filepath=None, frametype=None, cache=None, nproc=1, band_pass=False):
+def get_primary_ts(channel, start, end, filepath=None, frametype=None, cache=None, nproc=1):
     """Retrieve primary channel timeseries by either reading a .gwf file or querying
     """
     if filepath is not None:
         LOGGER.info('Reading primary channel file')
-        if band_pass:
-            return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc)
-        else:
-            return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc).crop(start, end)
+        return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc)
     else:
         LOGGER.info('Querying primary channel')
-        if band_pass:
-            return get_data(
-                channel, start, end, verbose='Reading primary:'.rjust(30),
-                frametype=frametype, source=cache,
-                nproc=nproc)
-        else:
-            return get_data(
-                channel, start, end, frametype=frametype,
-                source=cache, verbose='Reading:'.rjust(30),
-                nproc=nproc).crop(start, end)
+        return get_data(channel, start, end, verbose='Reading primary:'.rjust(30), frametype=frametype, source=cache, nproc=nproc)
         
         
 # -- parse command line -------------------------------------------------------
@@ -512,7 +500,7 @@ def main(args=None):
         LOGGER.info("-- Loading primary channel data")
         bandts = get_primary_ts(filepath=args.primary_file, channel=primary, 
                                 start=start-pad, end=end+pad, frametype=args.primary_frametype, 
-                                cache=args.primary_cache, nproc=args.nproc, band_pass=True)
+                                cache=args.primary_cache, nproc=args.nproc)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
             raise ValueError(
                 "bandpass frequency is out of range for this "
@@ -556,7 +544,7 @@ def main(args=None):
         LOGGER.info("-- Loading primary channel data")
         primaryts = get_primary_ts(filepath=args.primary_file, channel=primary, 
                                    start=start, end=end, frametype=args.primary_frametype, 
-                                   cache=args.primary_cache, nproc=args.nproc, band_pass=False)
+                                   cache=args.primary_cache, nproc=args.nproc).crop(start, end)
 
     if args.remove_outliers:
         LOGGER.debug(
