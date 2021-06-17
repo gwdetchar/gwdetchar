@@ -310,6 +310,8 @@ def run_apidoc(_):
     module = SPHINX_DIR.parent / "gwdetchar"
     exclude = [
         module / "conftest.py",
+        module / "tests",
+        module / "**" / "tests",
     ]
     apidoc_main([str(module)] + list(map(str, exclude)) + [
         '--separate',
