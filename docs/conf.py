@@ -329,15 +329,17 @@ def autodoc_skip_member_handler(app, what, name, obj, skip, options):
 def setup_static_content(app):
     # configure stylesheets
     for sdir in html_static_path:
+        staticdir = SPHINX_DIR / sdir
+
         # add stylesheets
-        cssdir = os.path.join(sdir, 'css')
-        for cssf in glob.glob(os.path.join(cssdir, '*.css')):
-            app.add_stylesheet(cssf.split(os.path.sep, 1)[1])
+        cssdir = staticdir / "css"
+        for cssf in cssdir.glob("*.css"):
+            app.add_css_file(str(cssf.relative_to(staticdir).as_posix()))
 
         # add custom javascript
-        jsdir = os.path.join(sdir, 'js')
-        for jsf in glob.glob(os.path.join(jsdir, '*.js')):
-            app.add_javascript(jsf.split(os.path.sep, 1)[1])
+        jsdir = staticdir / "js"
+        for jsf in jsdir.glob("*.js"):
+            app.add_js_file(str(jsf.relative_to(staticdir).as_posix()))
 
 
 # -- setup --------------------------------------------------------------------
