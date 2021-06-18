@@ -21,7 +21,6 @@ import os
 import re
 import sys
 
-# added import
 from gwpy.timeseries import TimeSeries
 
 import numpy
@@ -38,13 +37,9 @@ from pandas import set_option
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
-# changed relative paths - change back before full merge
-from gwdetchar import (cli, lasso as gwlasso)
-from gwdetchar.io.datafind import get_data
-from gwdetchar.io import html as htmlio
-# from .. import (cli, lasso as gwlasso)
-# from ..io.datafind import get_data
-# from ..io import html as htmlio
+from .. import (cli, lasso as gwlasso)
+from ..io.datafind import get_data
+from ..io import html as htmlio
 
 from matplotlib import (use, rcParams)
 use('Agg')
