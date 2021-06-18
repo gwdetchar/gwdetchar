@@ -1,11 +1,8 @@
 """Tests for gwdetchar.lasso.__main__
 """
 
-# relative import - change before full merge
-# from .. import __main__ as lasso
-import gwdetchar.lasso.__main__ as lasso
-# import ....io.datafind as datafind
-import gwdetchar.io.datafind as datafind
+from .. import __main__ as lasso
+import ....io.datafind as datafind
 
 from numpy import testing as nptest
 
