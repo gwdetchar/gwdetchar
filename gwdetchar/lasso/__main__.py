@@ -364,7 +364,7 @@ def create_parser():
         '--remove-outliers-pf',
         type=float,
         default=None,
-        help='Percent limit for removing outliers',
+        help='Percent limit for removing outliers between 0 and 1',
     )
     parser.add_argument(
         '-t',
@@ -448,6 +448,11 @@ def main(args=None):
     
     parser = create_parser()
     args = parser.parse_args(args=args)
+    
+    # check for correct input
+    if args.remove_outliers_pf:
+        if args.remove_outliers_pf >= 1 or args.remove_outliers_pf <= 0:
+            raise ValueError('Percent outlier limit must be between 0 and 1')
 
     # get run params
     start = int(args.gpsstart)
@@ -547,7 +552,7 @@ def main(args=None):
         gwlasso.remove_outliers(primaryts, args.remove_outliers)
     elif args.remove_outliers_pf:
         LOGGER.debug("-- Removing outliers in the bottom {} percent "
-                     "of data".format(args.remove_outliers_pf))
+                     "of data".format(args.remove_outliers_pf*100))
         gwlasso.remove_outliers(
             primaryts, args.remove_outliers_pf, method='pf')
         start = int(primaryts.span()[0])
