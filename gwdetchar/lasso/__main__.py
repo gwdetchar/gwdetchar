@@ -364,7 +364,7 @@ def create_parser():
         '--remove-outliers-pf',
         type=float,
         default=None,
-        help='Percent limit for removing outliers between 0 and 1',
+        help='Fractional limit for removing outliers between 0 and 1',
     )
     parser.add_argument(
         '-t',
@@ -445,7 +445,6 @@ def main(args=None):
     global nonzerocoef, nonzerodata, p1, primary, primary_mean, primary_std
     global primaryts, range_is_primary, re_delim, start, target, times
     global threshold, trend_type, xlim
-    
     parser = create_parser()
     args = parser.parse_args(args=args)
     
