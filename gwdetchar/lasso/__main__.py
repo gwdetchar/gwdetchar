@@ -562,8 +562,8 @@ def main(args=None):
                      "of data".format(args.remove_outliers_pf*100))
         gwlasso.remove_outliers(
             primaryts, args.remove_outliers_pf, method='pf')
-        start = int(primaryts.span()[0])
-        end = int(primaryts.span()[1])
+        start = int(primaryts.span[0])
+        end = int(primaryts.span[1])
 
     primary_mean = numpy.mean(primaryts.value)
     primary_std = numpy.std(primaryts.value)
