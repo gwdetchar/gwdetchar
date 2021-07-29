@@ -269,17 +269,22 @@ def _process_channel(input_):
     return (chan, lassocoef, plot4, plot5, plot6, ts)
 
 
-def get_primary_ts(channel, start, end, filepath=None, frametype=None, cache=None, nproc=1):
-    """Retrieve primary channel timeseries by either reading a .gwf file or querying
+def get_primary_ts(channel, start, end, filepath=None,
+                   frametype=None, cache=None, nproc=1):
+    """Retrieve primary channel timeseries
+    by either reading a .gwf file or querying
     """
     if filepath is not None:
         LOGGER.info('Reading primary channel file')
-        return TimeSeries.read(filepath, channel=channel, start=start, end=end, format='gwf', nproc=nproc)
+        return TimeSeries.read(filepath, channel=channel, start=start, end=end,
+                               format='gwf', nproc=nproc)
     else:
         LOGGER.info('Querying primary channel')
-        return get_data(channel, start, end, verbose='Reading primary:'.rjust(30), frametype=frametype, source=cache, nproc=nproc)
-        
-        
+        return get_data(channel, start, end,
+                        verbose='Reading primary:'.rjust(30),
+                        frametype=frametype, source=cache, nproc=nproc)
+
+
 # -- parse command line -------------------------------------------------------
 
 def create_parser():
@@ -447,7 +452,7 @@ def main(args=None):
     global threshold, trend_type, xlim
     parser = create_parser()
     args = parser.parse_args(args=args)
-    
+
     # check for correct input
     if args.remove_outliers_pf:
         if args.remove_outliers_pf >= 1 or args.remove_outliers_pf <= 0:
@@ -497,8 +502,9 @@ def main(args=None):
             flower, fupper = None
 
         LOGGER.info("-- Loading primary channel data")
-        bandts = get_primary_ts(filepath=args.primary_file, channel=primary, 
-                                start=start-pad, end=end+pad, frametype=args.primary_frametype, 
+        bandts = get_primary_ts(filepath=args.primary_file, channel=primary,
+                                start=start-pad, end=end+pad,
+                                frametype=args.primary_frametype,
                                 cache=args.primary_cache, nproc=args.nproc)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
             raise ValueError(
@@ -541,9 +547,11 @@ def main(args=None):
     else:
         # load primary channel data
         LOGGER.info("-- Loading primary channel data")
-        primaryts = get_primary_ts(filepath=args.primary_file, channel=primary, 
-                                   start=start, end=end, frametype=args.primary_frametype, 
-                                   cache=args.primary_cache, nproc=args.nproc).crop(start, end)
+        primaryts = get_primary_ts(filepath=args.primary_file, channel=primary,
+                                   start=start, end=end,
+                                   frametype=args.primary_frametype,
+                                   cache=args.primary_cache,
+                                   nproc=args.nproc).crop(start, end)
 
     if args.remove_outliers:
         LOGGER.debug(
