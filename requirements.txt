@@ -4,6 +4,7 @@ beautifulsoup4
 gwdatafind
 gwpy >= 2.0.0
 gwtrigfind
+lalsuite
 lscsoft-glue >= 2.0.0
 lxml
 MarkupPy >=1.14
