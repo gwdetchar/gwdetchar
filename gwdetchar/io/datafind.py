@@ -29,6 +29,7 @@ import gwdatafind
 from ..const import DEFAULT_SEGMENT_SERVER
 
 from gwpy.io import gwf as io_gwf
+from gwpy.io import datafind as io_datafind
 from gwpy.segments import (Segment, DataQualityFlag)
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 
@@ -192,7 +193,7 @@ def get_data(channel, start, end, frametype=None, source=None,
         try:  # locate frame files
             ifo = re.search('[A-Z]1', frametype).group(0)
             obs = ifo[0]
-            source = gwdatafind.find_urls(obs, frametype, start, end)
+            source = io_datafind.find_urls(obs, frametype, start, end)
         except AttributeError:
             raise AttributeError(
                 'Could not determine observatory from frametype')
