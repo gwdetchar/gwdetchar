@@ -1210,7 +1210,7 @@ def write_footer(about=None, link=None, issues=None, external=None):
         page.a(markup.oneliner.i('', class_='fas fa-external-link-alt'),
                href=external, title="View this page's external source")
     page.a(markup.oneliner.i('', class_='fas fa-heartbeat'),
-           href='https://attackofthecute.com/random.php',
+           href='https://apod.nasa.gov/apod/astropix.html',
            title='Take a break from science', target='_blank')
     page.div.close()  # col-sm-3 icon-bar
     # print timestamp
