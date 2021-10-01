@@ -24,8 +24,6 @@ import warnings
 from urllib.error import HTTPError
 from json.decoder import JSONDecodeError
 
-import gwdatafind
-
 from ..const import DEFAULT_SEGMENT_SERVER
 
 from gwpy.io import gwf as io_gwf
