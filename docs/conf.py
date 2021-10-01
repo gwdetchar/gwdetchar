@@ -16,10 +16,13 @@ import glob
 import os
 import sphinx_bootstrap_theme
 import sys
+from pathlib import Path
 
 from gwdetchar import __version__ as gwdetchar_version
 
 IGNORE_PATTERNS = ["GWHTMLParser", "OmegaChannel", "test"]
+
+SPHINX_DIR = Path(__file__).parent.absolute()
 
 # -- General configuration ------------------------------------------------
 
@@ -303,10 +306,18 @@ def run_apidoc(_):
     """Call sphinx-apidoc
     """
     from sphinx.ext.apidoc import main as apidoc_main
-    curdir = os.path.abspath(os.path.dirname(__file__))
-    apidir = os.path.join(curdir, 'api')
-    module = os.path.join(curdir, os.path.pardir, 'gwdetchar')
-    apidoc_main([module, '--separate', '--force', '--output-dir', apidir])
+    apidir = SPHINX_DIR / "api"
+    module = SPHINX_DIR.parent / "gwdetchar"
+    exclude = [
+        module / "conftest.py",
+        module / "tests",
+        module / "**" / "tests",
+    ]
+    apidoc_main([str(module)] + list(map(str, exclude)) + [
+        '--separate',
+        '--force',
+        '--output-dir', str(apidir),
+    ])
 
 
 # -- skip test-related members ------------------------------------------------
@@ -320,15 +331,17 @@ def autodoc_skip_member_handler(app, what, name, obj, skip, options):
 def setup_static_content(app):
     # configure stylesheets
     for sdir in html_static_path:
+        staticdir = SPHINX_DIR / sdir
+
         # add stylesheets
-        cssdir = os.path.join(sdir, 'css')
-        for cssf in glob.glob(os.path.join(cssdir, '*.css')):
-            app.add_stylesheet(cssf.split(os.path.sep, 1)[1])
+        cssdir = staticdir / "css"
+        for cssf in cssdir.glob("*.css"):
+            app.add_css_file(str(cssf.relative_to(staticdir).as_posix()))
 
         # add custom javascript
-        jsdir = os.path.join(sdir, 'js')
-        for jsf in glob.glob(os.path.join(jsdir, '*.js')):
-            app.add_javascript(jsf.split(os.path.sep, 1)[1])
+        jsdir = staticdir / "js"
+        for jsf in jsdir.glob("*.js"):
+            app.add_js_file(str(jsf.relative_to(staticdir).as_posix()))
 
 
 # -- setup --------------------------------------------------------------------

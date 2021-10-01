@@ -39,6 +39,8 @@ def configure_mpl_tex():
     import matplotlib
     matplotlib.use('agg')
 
+    from matplotlib import texmanager
+
     mpldir = tempfile.mkdtemp()
     atexit.register(shutil.rmtree, mpldir)
     umask = os.umask(0)
@@ -47,10 +49,10 @@ def configure_mpl_tex():
     os.environ['HOME'] = mpldir
     os.environ['MPLCONFIGDIR'] = mpldir
 
-    class TexManager(matplotlib.texmanager.TexManager):
+    class TexManager(texmanager.TexManager):
         texcache = os.path.join(mpldir, 'tex.cache')
 
-    matplotlib.texmanager.TexManager = TexManager
+    texmanager.TexManager = TexManager
     matplotlib.rcParams['ps.useafm'] = True
     matplotlib.rcParams['pdf.use14corefonts'] = True
     matplotlib.rcParams['text.usetex'] = True
