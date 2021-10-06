@@ -1,7 +1,6 @@
 """Tests for gwdetchar.lasso.__main__
 """
-
-import tempfile
+import pytest
 
 import numpy as np
 
@@ -15,27 +14,38 @@ __author__ = 'Michael Lowry <michaeljohn.lowry@ligo.org>'
 
 # global test objects
 
-# volatile temp file to write expected timeseries to
-TEMP = tempfile.NamedTemporaryFile()
 TEST_CHANNEL = 'L1:DMT-SNSW_EFFECTIVE_RANGE_MPC.mean'
 TEST_START = 0
 TEST_END = TEST_START+1000
-TEST_ARRAY = np.linspace(TEST_START, TEST_END, num=TEST_END-TEST_START)
-expected_ts = TimeSeries(TEST_ARRAY, t0=TEST_START, dt=1, channel=TEST_CHANNEL)
-expected_ts.write(TEMP, format='gwf')
+
+
+# # -- pytest fixtures -------------------------------------------------------------
+@pytest.fixture
+def expected_ts():
+    # construct random data to read
+    data = np.linspace(TEST_START, TEST_END, num=TEST_END-TEST_START)
+    return TimeSeries(data, t0=TEST_START, dt=1, channel=TEST_CHANNEL)
+
+
+@pytest.fixture
+def expected_ts_file(expected_ts, tmp_path):
+    # write data to file and return that file
+    outfile = tmp_path / "data.gwf"
+    expected_ts.write(outfile, format='gwf')
+    return outfile
 
 
 # # -- unit tests -------------------------------------------------------------
-
-def test_read():
+def test_read(expected_ts, expected_ts_file):
     # test reading primary TimeSeries file
-    # try finally for closing temp file
-    try:
-        actual_ts = lasso.get_primary_ts(filepath=TEMP, channel=TEST_CHANNEL,
-                                         start=TEST_START, end=TEST_END,
-                                         cache=None, nproc=1)
-    finally:
-        TEMP.close
+    print(expected_ts_file)
+    actual_ts = lasso.get_primary_ts(
+        filepath=expected_ts_file,
+        channel=TEST_CHANNEL,                             
+        start=TEST_START,
+        end=TEST_END,
+        cache=None,
+        nproc=1)
     assert actual_ts.t0 == expected_ts.t0
     assert actual_ts.times[-1] == expected_ts.times[-1]
     assert actual_ts.sample_rate == expected_ts.sample_rate
