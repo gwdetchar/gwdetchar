@@ -19,7 +19,7 @@ TEST_START = 0
 TEST_END = TEST_START+1000
 
 
-# # -- pytest fixtures -------------------------------------------------------------
+# # -- pytest fixtures -------------------------------------------------------
 @pytest.fixture
 def expected_ts():
     # construct random data to read
@@ -41,7 +41,7 @@ def test_read(expected_ts, expected_ts_file):
     print(expected_ts_file)
     actual_ts = lasso.get_primary_ts(
         filepath=expected_ts_file,
-        channel=TEST_CHANNEL,                             
+        channel=TEST_CHANNEL,
         start=TEST_START,
         end=TEST_END,
         cache=None,
@@ -50,5 +50,7 @@ def test_read(expected_ts, expected_ts_file):
     assert actual_ts.times[-1] == expected_ts.times[-1]
     assert actual_ts.sample_rate == expected_ts.sample_rate
     assert actual_ts.dx == expected_ts.dx
-    np.testing.assert_array_equal(actual_ts.value, expected_ts.value,
-                                  err_msg='read in data array does not match')
+    np.testing.assert_array_equal(
+        actual_ts.value,
+        expected_ts.value,
+        err_msg='read in data array does not match')
