@@ -11,12 +11,13 @@ from gwpy.timeseries import TimeSeries
 from .. import __main__ as lasso
 
 
-__author__ = 'Michael Lowry <michaeljohn.lowry@ligo.org>'
+__author__ = "Michael Lowry <michaeljohn.lowry@ligo.org>"
 
 
 # global test objects
 
-TEST_CHANNEL = 'test_channel'
+TEST_CHANNEL = "test_channel"
+TEST_FILE = "data.gwf"
 TEST_START = 0
 TEST_END = TEST_START+1000
 
@@ -32,10 +33,11 @@ def expected_ts():
 @pytest.fixture
 def expected_ts_file(expected_ts, tmp_path):
     # write data to file and return that file
-    outfile = tmp_path / "data.gwf"
+#     outfile = tmp_path / "data.gwf"
 #     outfile = "data.gwf"
-    expected_ts.write(outfile, format='gwf')
-    return outfile
+#     expected_ts.write(outfile, format='gwf')
+#     return outfile
+    return TEST_FILE
 
 
 # # -- unit tests -------------------------------------------------------------
