@@ -49,9 +49,10 @@ def test_read(expected_ts, expected_ts_file):
             end=TEST_END,
             cache=None,
             nproc=1)
-    except exception:
-        print("Cannot read file!")
-        print(subprocess.call(["FrChannels", expected_ts_file]))
+    except Exception as e:
+        print("Cannot read file!: " + e)
+        print(subprocess.call(["FrChannels",
+                               expected_ts_file]))
     assert actual_ts.t0 == expected_ts.t0
     assert actual_ts.times[-1] == expected_ts.times[-1]
     assert actual_ts.sample_rate == expected_ts.sample_rate
