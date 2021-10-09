@@ -2,8 +2,6 @@
 """
 import pytest
 
-import subprocess
-
 import numpy as np
 
 from gwpy.timeseries import TimeSeries
@@ -53,8 +51,6 @@ def test_read(expected_ts, expected_ts_file):
             nproc=1)
     except Exception as e:
         print(e)
-        print(subprocess.call(["FrChannels",
-                               expected_ts_file]))
     assert actual_ts.t0 == expected_ts.t0
     assert actual_ts.times[-1] == expected_ts.times[-1]
     assert actual_ts.sample_rate == expected_ts.sample_rate
