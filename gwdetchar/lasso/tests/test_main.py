@@ -2,6 +2,8 @@
 """
 import pytest
 
+import subprocess
+
 import numpy as np
 
 from gwpy.timeseries import TimeSeries
@@ -14,7 +16,7 @@ __author__ = 'Michael Lowry <michaeljohn.lowry@ligo.org>'
 
 # global test objects
 
-TEST_CHANNEL = 'L1:DMT-SNSW_EFFECTIVE_RANGE_MPC.mean'
+TEST_CHANNEL = 'test_channel'
 TEST_START = 0
 TEST_END = TEST_START+1000
 
@@ -31,6 +33,7 @@ def expected_ts():
 def expected_ts_file(expected_ts, tmp_path):
     # write data to file and return that file
     outfile = tmp_path / "data.gwf"
+#     outfile = "data.gwf"
     expected_ts.write(outfile, format='gwf')
     return outfile
 
@@ -38,14 +41,17 @@ def expected_ts_file(expected_ts, tmp_path):
 # # -- unit tests -------------------------------------------------------------
 def test_read(expected_ts, expected_ts_file):
     # test reading primary TimeSeries file
-    print(expected_ts_file)
-    actual_ts = lasso.get_primary_ts(
-        filepath=expected_ts_file,
-        channel=TEST_CHANNEL,
-        start=TEST_START,
-        end=TEST_END,
-        cache=None,
-        nproc=1)
+    try:
+        actual_ts = lasso.get_primary_ts(
+            filepath=expected_ts_file,
+            channel=TEST_CHANNEL,
+            start=TEST_START,
+            end=TEST_END,
+            cache=None,
+            nproc=1)
+    except exception:
+        print("Cannot read file!")
+        print(subprocess.call(["FrChannels", expected_ts_file]))
     assert actual_ts.t0 == expected_ts.t0
     assert actual_ts.times[-1] == expected_ts.times[-1]
     assert actual_ts.sample_rate == expected_ts.sample_rate
