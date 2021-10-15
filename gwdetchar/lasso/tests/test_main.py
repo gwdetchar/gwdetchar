@@ -15,7 +15,7 @@ __author__ = "Michael Lowry <michaeljohn.lowry@ligo.org>"
 # global test objects
 
 TEST_CHANNEL = "test_channel"
-TEST_FILE = "data.gwf"
+TEST_FILE = "gwdetchar/lasso/tests/data.gwf"
 TEST_START = 0
 TEST_END = TEST_START+1000
 
@@ -31,26 +31,21 @@ def expected_ts():
 @pytest.fixture
 def expected_ts_file(expected_ts, tmp_path):
     # write data to file and return that file
-#     outfile = tmp_path / "data.gwf"
-#     outfile = "data.gwf"
-#     expected_ts.write(outfile, format='gwf')
-#     return outfile
-    return TEST_FILE
+    outfile = tmp_path / "data.gwf"
+    expected_ts.write(outfile, format='gwf')
+    return outfile
 
 
 # # -- unit tests -------------------------------------------------------------
 def test_read(expected_ts, expected_ts_file):
     # test reading primary TimeSeries file
-    try:
-        actual_ts = lasso.get_primary_ts(
-            filepath=expected_ts_file,
-            channel=TEST_CHANNEL,
-            start=TEST_START,
-            end=TEST_END,
-            cache=None,
-            nproc=1)
-    except Exception as e:
-        print(e)
+    actual_ts = lasso.get_primary_ts(
+        filepath=expected_ts_file,
+        channel=TEST_CHANNEL,
+        start=TEST_START,
+        end=TEST_END,
+        cache=None,
+        nproc=1)
     assert actual_ts.t0 == expected_ts.t0
     assert actual_ts.times[-1] == expected_ts.times[-1]
     assert actual_ts.sample_rate == expected_ts.sample_rate
