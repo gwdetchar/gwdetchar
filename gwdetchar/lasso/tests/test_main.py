@@ -15,7 +15,6 @@ __author__ = "Michael Lowry <michaeljohn.lowry@ligo.org>"
 # global test objects
 
 TEST_CHANNEL = "test_channel"
-TEST_FILE = "gwdetchar/lasso/tests/data.gwf"
 TEST_START = 0
 TEST_END = TEST_START+1000
 
@@ -25,7 +24,8 @@ TEST_END = TEST_START+1000
 def expected_ts():
     # construct random data to read
     data = np.linspace(TEST_START, TEST_END, num=TEST_END-TEST_START)
-    return TimeSeries(data, t0=TEST_START, dt=1, channel=TEST_CHANNEL)
+    return TimeSeries(data, t0=TEST_START, dt=1, channel=TEST_CHANNEL,
+                      name=TEST_CHANNEL)
 
 
 @pytest.fixture
