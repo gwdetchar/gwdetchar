@@ -21,6 +21,8 @@ import os
 import re
 import sys
 
+from gwpy.timeseries import TimeSeries
+
 import numpy
 
 from MarkupPy import markup
@@ -267,6 +269,22 @@ def _process_channel(input_):
     return (chan, lassocoef, plot4, plot5, plot6, ts)
 
 
+def get_primary_ts(channel, start, end, filepath=None,
+                   frametype=None, cache=None, nproc=1):
+    """Retrieve primary channel timeseries
+    by either reading a .gwf file or querying
+    """
+    if filepath is not None:
+        LOGGER.info('Reading primary channel file')
+        return TimeSeries.read(filepath, channel=channel, start=start, end=end,
+                               format='gwf', nproc=nproc)
+    else:
+        LOGGER.info('Querying primary channel')
+        return get_data(channel, start, end,
+                        verbose='Reading primary:'.rjust(30),
+                        frametype=frametype, source=cache, nproc=nproc)
+
+
 # -- parse command line -------------------------------------------------------
 
 def create_parser():
@@ -321,6 +339,13 @@ def create_parser():
         default='{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean',
         help='name of primary channel to use',
     )
+    # primary channel filepath argument
+    parser.add_argument(
+        '-pf',
+        '--primary-file',
+        default=None,
+        help='filepath of .gwf custom primary channel if using custom channel'
+    )
     parser.add_argument(
         '-P',
         '--primary-frametype',
@@ -344,7 +369,7 @@ def create_parser():
         '--remove-outliers-pf',
         type=float,
         default=None,
-        help='Percent limit for removing outliers',
+        help='Fractional limit for removing outliers between 0 and 1',
     )
     parser.add_argument(
         '-t',
@@ -425,9 +450,13 @@ def main(args=None):
     global nonzerocoef, nonzerodata, p1, primary, primary_mean, primary_std
     global primaryts, range_is_primary, re_delim, start, target, times
     global threshold, trend_type, xlim
-
     parser = create_parser()
     args = parser.parse_args(args=args)
+
+    # check for correct input
+    if args.remove_outliers_pf:
+        if args.remove_outliers_pf >= 1 or args.remove_outliers_pf <= 0:
+            raise ValueError('Percent outlier limit must be between 0 and 1')
 
     # get run params
     start = int(args.gpsstart)
@@ -452,7 +481,7 @@ def main(args=None):
     elif args.primary_frametype is None:
         try:
             args.primary_frametype = DEFAULT_FRAMETYPE[
-                args.primary_channel.split(':')[1]].format(ifo=args.ifo)
+                primary.split(':')[1]].format(ifo=args.ifo)
         except KeyError as exc:
             raise type(exc)("Could not determine primary channel's frametype, "
                             "please specify with --primary-frametype")
@@ -473,10 +502,10 @@ def main(args=None):
             flower, fupper = None
 
         LOGGER.info("-- Loading primary channel data")
-        bandts = get_data(
-            primary, start-pad, end+pad, verbose='Reading primary:'.rjust(30),
-            frametype=args.primary_frametype, source=args.primary_cache,
-            nproc=args.nproc)
+        bandts = get_primary_ts(filepath=args.primary_file, channel=primary,
+                                start=start-pad, end=end+pad,
+                                frametype=args.primary_frametype,
+                                cache=args.primary_cache, nproc=args.nproc)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
             raise ValueError(
                 "bandpass frequency is out of range for this "
@@ -510,7 +539,7 @@ def main(args=None):
         darmbl_asd = darmbl.asd(4, 2, method='median')
 
         spectrum_plots = gwplot.make_spectrum_plots(
-            start, end, flower, fupper, args.primary_channel,
+            start, end, flower, fupper, primary,
             bandts_asd, darmbl_asd)
         spectrum_plot_zoomed_out = spectrum_plots[0]
         spectrum_plot_zoomed_in = spectrum_plots[1]
@@ -518,10 +547,11 @@ def main(args=None):
     else:
         # load primary channel data
         LOGGER.info("-- Loading primary channel data")
-        primaryts = get_data(
-            primary, start, end, frametype=args.primary_frametype,
-            source=args.primary_cache, verbose='Reading:'.rjust(30),
-            nproc=args.nproc).crop(start, end)
+        primaryts = get_primary_ts(filepath=args.primary_file, channel=primary,
+                                   start=start, end=end,
+                                   frametype=args.primary_frametype,
+                                   cache=args.primary_cache,
+                                   nproc=args.nproc).crop(start, end)
 
     if args.remove_outliers:
         LOGGER.debug(
@@ -529,11 +559,11 @@ def main(args=None):
         gwlasso.remove_outliers(primaryts, args.remove_outliers)
     elif args.remove_outliers_pf:
         LOGGER.debug("-- Removing outliers in the bottom {} percent "
-                     "of data".format(args.remove_outliers_pf))
+                     "of data".format(args.remove_outliers_pf*100))
         gwlasso.remove_outliers(
             primaryts, args.remove_outliers_pf, method='pf')
-        start = int(primaryts.span()[0])
-        end = int(primaryts.span()[1])
+        start = int(primaryts.span[0])
+        end = int(primaryts.span[1])
 
     primary_mean = numpy.mean(primaryts.value)
     primary_std = numpy.std(primaryts.value)
