@@ -57,8 +57,8 @@ proposing additions/changes.
    :target: https://choosealicense.com/licenses/gpl-3.0/
 .. |Supported Python versions| image:: https://img.shields.io/pypi/pyversions/gwdetchar.svg
    :target: https://pypi.org/project/gwdetchar/
-.. |Build Status| image:: https://github.com/gwpy/gwosc/actions/workflows/build.yml/badge.svg
-   :target: https://github.com/gwpy/gwosc/actions/workflows/build.yml
+.. |Build Status| image:: https://github.com/gwdetchar/gwdetchar/actions/workflows/build.yml/badge.svg
+   :target: https://github.com/gwdetchar/gwdetchar/actions/workflows/build.yml
 .. |Coverage Status| image:: https://codecov.io/gh/gwdetchar/gwdetchar/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/gwdetchar/gwdetchar
 .. |Documentation Status| image:: https://readthedocs.org/projects/gwdetchar/badge/?version=latest

@@ -20,8 +20,45 @@
 """
 
 import os
+from unittest import mock
 
 import pytest
+
+
+def fake_package_list():
+    """Fake return for `gwdetchar.io.html.package_list`
+
+    The real :func:`package_list` takes a while and doesn't add
+    anything to any of the tests, so we should fake it almost all
+    of the time.
+    """
+    return [
+        {
+            "name": "package1",
+            "version": "1.0.0",
+            "build_string": "0",
+            "channel": "conda-forge",
+        },
+        {
+            "name": "package2",
+            "version": "2.0.0",
+            "build_string": "1",
+            "channel": "conda-forge",
+        },
+    ]
+
+
+@pytest.fixture(autouse=True)
+def mock_package_list(request):
+    """Automatically mock out `gwdetchar.io.html.package_list` in all tests
+    """
+    # don't apply the mock to functions that test `package_list` itself
+    if "package_list" in request.node.name:
+        yield
+        return
+    # mock everything else
+    with mock.patch("gwdetchar.io.html.package_list", fake_package_list):
+        yield
 
 
 # -- pytest fixture overrides -------------------------------------------------

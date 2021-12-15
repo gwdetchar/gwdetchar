@@ -44,7 +44,7 @@ NOISE = TimeSeries(
 FRINGE = TimeSeries(
     numpy.cos(TWOPI * TIMES), sample_rate=16384, epoch=-32)
 DATA = NOISE.inject(FRINGE)
-QSPECGRAM = DATA.q_transform(logf=True)
+QSPECGRAM = DATA.q_transform(logf=True, method="median")
 
 
 # -- make sure plots run end-to-end -------------------------------------------

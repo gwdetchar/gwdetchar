@@ -127,7 +127,7 @@ HTML_FOOTER = """<footer class="footer">
 <a href="https://github.com/gwdetchar/gwdetchar/issues" title="Open an issue ticket" target="_blank"><i class="fas fa-ticket-alt"></i></a>
 <a href="about" title="How was this page generated?"><i class="fas fa-info-circle"></i></a>
 <a href="external" title="View this page&quot;s external source"><i class="fas fa-external-link-alt"></i></a>
-<a href="https://attackofthecute.com/random.php" title="Take a break from science" target="_blank"><i class="fas fa-heartbeat"></i></a>
+<a href="https://apod.nasa.gov/apod/astropix.html" title="Take a break from science" target="_blank"><i class="fas fa-heartbeat"></i></a>
 </div>
 <div class="col-sm-6">
 <p>Created by {user} at {date}</p>
