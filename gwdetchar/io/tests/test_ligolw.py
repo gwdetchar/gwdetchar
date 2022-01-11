@@ -27,14 +27,14 @@ from numpy.testing import (assert_array_equal, assert_allclose)
 from gwpy.segments import (Segment, SegmentList)
 from gwpy.testing.utils import assert_segmentlist_equal
 
-lsctables = pytest.importorskip("glue.ligolw.lsctables")
+lsctables = pytest.importorskip("ligo.lw.lsctables")
 ligolw = pytest.importorskip("gwdetchar.io.ligolw")
 
 
 def test_new_table():
     tab = ligolw.new_table('sngl_burst')
     assert isinstance(tab, lsctables.SnglBurstTable)
-    assert sorted(tab.columnnames) == sorted(
+    assert sorted(tab.columnnamesreal) == sorted(
         lsctables.SnglBurstTable.validcolumns.keys())
 
     cols = ['peak_time', 'peak_time_ns', 'snr']
@@ -63,7 +63,7 @@ def test_segments_from_sngl_burst():
 
 
 def test_table_to_document():
-    from glue.ligolw.ligolw import Document
+    from ligo.lw.ligolw import Document
     tab = ligolw.new_table('sngl_burst')
     xmldoc = ligolw.table_to_document(tab)
     assert isinstance(xmldoc, Document)
