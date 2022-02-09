@@ -20,11 +20,8 @@ submodules:
 python:
    version: 3.7
    install:
-      - requirements: docs/requirements.txt
       - requirements: requirements.txt
-      - method: setuptools
-        path: .
       - method: pip
         path: .
         extra_requirements:
-           - docs
+           - doc

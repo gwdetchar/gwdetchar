@@ -19,11 +19,12 @@
 """Command-line interface utilities for `gwdetchar`
 """
 
-import sys
 import argparse
 import coloredlogs
-import logging
 import datetime
+import logging
+import sys
+
 from pytz import reference
 
 from gwpy.time import to_gps
@@ -72,12 +73,17 @@ def logger(name=__name__, level='DEBUG'):
     coloredlogs.install(
         level=level, logger=logger, stream=sys.stdout, fmt=FMT,
         datefmt=DATEFMT, level_styles=LEVEL_STYLES, field_styles=FIELD_STYLES)
+    logger.setLevel(level)
     return logger
 
 
 def create_parser(**kwargs):
     """Create a new `argparse.ArgumentParser`
     """
+    kwargs.setdefault(
+        'formatter_class',
+        argparse.RawDescriptionHelpFormatter,
+    )
     version = kwargs.pop('version', __version__)
     parser = argparse.ArgumentParser(**kwargs)
     if version is not None:
@@ -86,10 +92,8 @@ def create_parser(**kwargs):
 
 
 def add_version_option(parser, version=None):
-    if version is None:
-        version = __version__
     return parser.add_argument('-V', '--version', action='version',
-                               version=version)
+                               version=(version or __version__))
 
 
 def add_ifo_option(parser, ifo=const.IFO, required=None):
@@ -111,7 +115,7 @@ def add_gps_start_stop_arguments(parser, type=to_gps, **kwargs):
     b = parser.add_argument('gpsend', type=to_gps,
                             help='GPS end time or datetime of analysis',
                             **kwargs)
-    return a, b
+    return (a, b)
 
 
 def add_gps_start_stop_options(parser, type=to_gps, **kwargs):
@@ -123,7 +127,7 @@ def add_gps_start_stop_options(parser, type=to_gps, **kwargs):
     b = parser.add_argument('-e', '--gps-end-time', type=to_gps,
                             help='GPS end time or datetime of analysis',
                             **kwargs)
-    return a, b
+    return (a, b)
 
 
 def add_frametype_option(parser, **kwargs):

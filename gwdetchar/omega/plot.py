@@ -55,7 +55,7 @@ def _format_time_axis(ax, gps, span):
     ax.grid(True, axis='x', which='major')
 
 
-def _format_frequency_axis(ax):
+def _format_frequency_axis(ax, yscale='log'):
     """Format the frequency axis of an omega scan plot
 
     Parameters
@@ -64,7 +64,7 @@ def _format_frequency_axis(ax):
         the `Axis` object to format
     """
     ax.grid(True, axis='y', which='both')
-    ax.set_yscale('log')
+    ax.set_yscale(yscale)
     ax.set_ylabel('Frequency [Hz]')
 
 
@@ -144,7 +144,8 @@ def timeseries_plot(data, gps, span, channel, output, ylabel=None,
 
 
 def spectral_plot(data, gps, span, channel, output, colormap='viridis',
-                  clim=None, nx=1400, norm='linear', figsize=(12, 6)):
+                  clim=None, nx=1400, yscale='log', norm='linear',
+                  figsize=(12, 6)):
     """Custom plot for a GWPy spectrogram or Q-gram
 
     Parameters
@@ -169,6 +170,9 @@ def spectral_plot(data, gps, span, channel, output, colormap='viridis',
 
     clim : `tuple` or `None`
         limits of the color axis, default: autoscale with log scaling
+
+    yscale : `str`
+        scaling of the frequency axis, default: log
 
     norm : `str`
         scaling of the color axis, only used if `clim` is given,
@@ -196,7 +200,7 @@ def spectral_plot(data, gps, span, channel, output, colormap='viridis',
     # set axis properties
     ax = plot.gca()
     _format_time_axis(ax, gps=gps, span=span)
-    _format_frequency_axis(ax)
+    _format_frequency_axis(ax, yscale=yscale)
     # set colorbar properties
     _format_color_axis(ax, colormap=colormap, clim=clim, norm=norm)
     # set title
@@ -207,7 +211,7 @@ def spectral_plot(data, gps, span, channel, output, colormap='viridis',
     plot.close()
 
 
-def write_qscan_plots(gps, channel, series, colormap='viridis'):
+def write_qscan_plots(gps, channel, series, fscale='log', colormap='viridis'):
     """Custom plot utility for a full omega scan
 
     Parameters
@@ -220,6 +224,9 @@ def write_qscan_plots(gps, channel, series, colormap='viridis'):
 
     series : `tuple`
         a collection of `TimeSeries`, `Spectrogram`, and `QGram` objects
+
+    fscale : `str`
+        scaling of the frequency axis, default: log
 
     colormap : `str`, optional
         matplotlib colormap to use, default: viridis
@@ -238,14 +245,14 @@ def write_qscan_plots(gps, channel, series, colormap='viridis'):
         # plot whitened qscan
         spectral_plot(
             qspec, gps, span, channel.name, str(png1), clim=(0, 25),
-            colormap=colormap)
+            yscale=fscale, colormap=colormap)
         # plot autoscaled, whitened qscan
         spectral_plot(qspec, gps, span, channel.name, str(png2),
-                      colormap=colormap)
+                      yscale=fscale, colormap=colormap)
         # plot raw qscan
         spectral_plot(
             rqspec, gps, span, channel.name, str(png3), clim=(0, 25),
-            colormap=colormap)
+            yscale=fscale, colormap=colormap)
         # plot raw timeseries
         timeseries_plot(xoft, gps, span, channel.name, str(png4),
                         ylabel='Amplitude')
@@ -259,13 +266,13 @@ def write_qscan_plots(gps, channel, series, colormap='viridis'):
         rtable = rqgram.table(snrthresh=channel.snrthresh)
         spectral_plot(
             rtable, gps, span, channel.name, str(png7), clim=(0, 25),
-            colormap=colormap)
+            yscale=fscale, colormap=colormap)
         # plot whitened eventgram
         table = qgram.table(snrthresh=channel.snrthresh)
         spectral_plot(
             table, gps, span, channel.name, str(png8), clim=(0, 25),
-            colormap=colormap)
+            yscale=fscale, colormap=colormap)
         # plot autoscaled whitened eventgram
         spectral_plot(table, gps, span, channel.name, str(png9),
-                      colormap=colormap)
+                      yscale=fscale, colormap=colormap)
     return

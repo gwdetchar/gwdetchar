@@ -35,6 +35,7 @@ def test_logger():
     logger = cli.logger()
     assert isinstance(logger, logging.Logger)
     assert logger.name == 'gwdetchar.cli'
+    assert logger.level == logging.DEBUG
 
 
 @pytest.fixture
@@ -104,5 +105,5 @@ def test_add_frame_type_name(parser):
 
 def test_add_nproc_option(parser):
     cli.add_nproc_option(parser)
-    assert parser.parse_args([]).nproc is 8
-    assert parser.parse_args(['-j', '2']).nproc is 2
+    assert parser.parse_args([]).nproc == 8
+    assert parser.parse_args(['-j', '2']).nproc == 2

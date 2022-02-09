@@ -50,7 +50,7 @@ def _format_spectrogram(ax, qspecgram, colormap='viridis'):
     """
     ax.imshow(qspecgram)
     ax.colorbar(cmap=colormap, norm='linear', clim=(0, 25),
-                 label='Normalized energy')
+                label='Normalized energy')
     # format frequency axis
     ax.set_yscale('linear')
     ax.set_ylabel('Frequency [Hz]')
@@ -142,7 +142,7 @@ def spectral_overlay(gps, qspecgram, fringe, output,
         fringe.name, qspecgram.name))
     _format_spectrogram(ax, qspecgram, colormap='binary')
     # overlay fringe frequencies
-    _format_timeseries(ax, gps, fringe, multipliers=multipliers,               
+    _format_timeseries(ax, gps, fringe, multipliers=multipliers,
                        linewidth=1.5)
     ax.set_ylim([qspecgram.f0.to('Hz').value,
                  qspecgram.frequencies.max().to('Hz').value])

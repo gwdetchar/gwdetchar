@@ -21,15 +21,15 @@
 
 import re
 from itertools import zip_longest
+from multiprocessing import (cpu_count, Pool)
 
 import numpy
 from astropy.units import Quantity
-from multiprocessing import (cpu_count, Pool)
 
 from gwpy.io.cache import file_segment
 from gwpy.timeseries import StateTimeSeries
 
-from .io.datafind import get_data
+from ..io.datafind import get_data
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Dan Hoak <daniel.hoak@ligo.org>' \
@@ -211,9 +211,8 @@ def is_saturated(channel, cache, start=None, end=None, indicator='LIMEN',
     dataiter = ((data['%s_OUTPUT' % c], data['%s_LIMIT' % c])
                 for c in activechans)
     if nproc > 1:
-        pool = Pool(processes=nproc)
-        saturations = list(pool.map(_find_saturations, dataiter))
-        pool.close()
+        with Pool(processes=nproc) as pool:
+            saturations = list(pool.map(_find_saturations, dataiter))
     else:
         saturations = list(map(_find_saturations, dataiter))
 

@@ -27,4 +27,11 @@ __credits__ = 'Alex Urban <alexander.urban@ligo.org>'
 # -- imports ------------------------------------------------------------------
 
 # import pyomega utils
-from .core import *
+from .core import (
+    highpass,
+    whiten,
+    conditioner,
+    primary,
+    cross_correlate,
+    scan,
+)

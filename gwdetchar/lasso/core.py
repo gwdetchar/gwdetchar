@@ -33,7 +33,7 @@ __credits__ = 'Alex Macedo, Jeff Bidler, Oli Patane, Marissa Walker, ' \
 
 # -- utilities ----------------------------------------------------------------
 
-def find_outliers(ts, N=5):
+def find_outliers(ts, N=5, method='s'):
     """Find outliers within a `TimeSeries`
 
     Parameters
@@ -42,18 +42,33 @@ def find_outliers(ts, N=5):
         data to find outliers within
 
     N : `float`, optional
-        number of standard deviations to consider an outlier, default: 5
+        if `method='s'`: number of standard deviations to consider an outlier
+        if `method='pf'`: percentile range limit to consider an outlier
+        default for both methods: 5
+    method : `str`, optional
+        outlier identification method to be used, must be `'s'` (standard
+        deviation method) or `'pf'` (percentil range method)
+        default: `'s'`
 
     Returns
     -------
     out : `ndarray`
         array indices of the input where outliers occur
     """
-    ts = ts.value  # strip out Quantity extras
-    return numpy.nonzero(abs(ts - ts.mean()) > N*ts.std())[0]
+    if method == 'pf':
+        ts = ts.value  # strip out Quantity extras
+        quantile = numpy.quantile(ts, N)
+        outliers = []
+        for i, x in enumerate(ts):
+            if x < quantile:
+                outliers.append(i)
+        return numpy.array(outliers)
+    else:
+        ts = ts.value  # strip out Quantity extras
+        return numpy.nonzero(abs(ts - ts.mean()) > N*ts.std())[0]
 
 
-def remove_outliers(ts, N=5):
+def remove_outliers(ts, N=5, method='s'):
     """Find and remove outliers within a `TimeSeries`
 
     Parameters
@@ -62,31 +77,52 @@ def remove_outliers(ts, N=5):
         data to find outliers within
 
     N : `float`, optional
-        number of standard deviations to consider an outlier, default: 5
+        if `method='s'`: number of standard deviations to consider an outlier
+        if `method='pf'`: percentile range limit to consider an outlier
+        default for both methods: 5
+    method : `str`, optional
+        outlier identification method to be used, must be `'s'` (standard
+        deviation method) or `'pf'` (percentil range method)
+        default: `'s'`
 
     Notes
     -----
     This action is done in-place, with no `return` statement.
     """
-    outliers = find_outliers(ts, N=N)
-    c = 1
-    while outliers.any():
-        print("-- Pass %d: removing %d outliers in %s"
-              % (c, outliers.size, ts.name))
+    if method == 'pf':
+        outliers = find_outliers(ts, N=N, method='pf')
+        print("There are %d outliers in this data" % len(outliers))
         unit = ts.unit
-        cache = outliers
         mask = numpy.ones(ts.size, dtype=bool)
         mask[outliers] = False
-        spline = UnivariateSpline(ts.times.value[mask], ts.value[mask],
-                                  s=0, k=3)
+        spline = UnivariateSpline(ts.times.value[mask],
+                                  ts.value[mask], s=0, k=3)
         ts[outliers] = spline(ts.times.value[outliers]) * unit
-        outliers = find_outliers(ts, N=N)
-        print("   Completed %d removal passes" % c)
-        if numpy.array_equal(outliers, cache):
-            print("   Outliers did not change, breaking recursion")
-            break
-        print("   %d outliers remain" % len(outliers))
-        c += 1
+        if outliers[-1] == (len(ts) - 1):
+            ts = ts[:-1]
+        if outliers[0] == 0:
+            ts = ts[1:]
+        print('Outlier removal complete')
+    else:
+        outliers = find_outliers(ts, N=N, method='s')
+        c = 1
+        while outliers.any():
+            print("-- Pass %d: removing %d outliers in %s"
+                  % (c, outliers.size, ts.name))
+            unit = ts.unit
+            cache = outliers
+            mask = numpy.ones(ts.size, dtype=bool)
+            mask[outliers] = False
+            spline = UnivariateSpline(ts.times.value[mask], ts.value[mask],
+                                      s=0, k=3)
+            ts[outliers] = spline(ts.times.value[outliers]) * unit
+            outliers = find_outliers(ts, N=N, method='s')
+            print("   Completed %d removal passes" % c)
+            if numpy.array_equal(outliers, cache):
+                print("   Outliers did not change, breaking recursion")
+                break
+            print("   %d outliers remain" % len(outliers))
+            c += 1
 
 
 def fit(data, target, alpha=None):

@@ -32,10 +32,17 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 # global test objects
 
 IND = 8
+IND2 = 25
 OUTLIER_IN = numpy.random.normal(loc=0, scale=1, size=1024)
 OUTLIER_IN[IND] = 100
 OUTLIER_TS = TimeSeries(OUTLIER_IN, sample_rate=1024, unit='Mpc',
                         name='X1:TEST_RANGE')
+
+OUTLIER_IN_PF = numpy.random.normal(loc=0, scale=1, size=100)
+OUTLIER_IN_PF[IND] = -100
+OUTLIER_IN_PF[IND2] = -75
+OUTLIER_TS_PF = TimeSeries(OUTLIER_IN_PF, sample_rate=100, unit='Mpc',
+                           name='X1:TEST_RANGE')
 
 TARGET = numpy.array([-1, 0, 1])
 
@@ -52,8 +59,17 @@ TSDICT = TimeSeriesDict({
 # -- unit tests ---------------------------------------------------------------
 
 def test_find_outliers():
-    # find expected outliers
+    # test for standard deviation outlier finding
+    # find expected outliers using standard deviation method
     outliers = core.find_outliers(OUTLIER_TS)
+    assert isinstance(outliers, numpy.ndarray)
+    nptest.assert_array_equal(outliers, numpy.array([IND]))
+
+
+def test_find_outliers_pf():
+    # test for percentile outlier finding
+    # find expected outliers using percentile range method
+    outliers = core.find_outliers(OUTLIER_TS_PF, N=0.01, method='pf')
     assert isinstance(outliers, numpy.ndarray)
     nptest.assert_array_equal(outliers, numpy.array([IND]))
 
@@ -62,6 +78,14 @@ def test_remove_outliers():
     # strip off outliers
     core.remove_outliers(OUTLIER_TS)
     assert OUTLIER_TS[IND] - OUTLIER_TS.mean() <= 5 * OUTLIER_TS.std()
+
+
+def test_remove_outliers_pf():
+    # Strip off outliers
+    core.remove_outliers(OUTLIER_TS_PF, N=0.01, method='pf')
+    outliers = core.find_outliers(OUTLIER_TS_PF, N=0.01, method='pf')
+    assert isinstance(outliers, numpy.ndarray)
+    nptest.assert_array_equal(outliers, numpy.array([IND2]))
 
 
 def test_fit():

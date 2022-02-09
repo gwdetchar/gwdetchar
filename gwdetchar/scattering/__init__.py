@@ -25,7 +25,14 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>' \
               'Andrew Lundgren <andrew.lundgren>@ligo.org>'
 
 # import scattering utils
-from .core import *
+from .core import (
+    OPTIC_MOTION_CHANNELS,
+    TRANSMON_CHANNELS,
+    FREQUENCY_MULTIPLIERS,
+    get_fringe_frequency,
+    get_blrms,
+    get_segments,
+)
 
 # global figure captions
 SCATTER_CAPTION = 'Evidence for scattering in {CHANNEL}. Top: longitudinal ' \

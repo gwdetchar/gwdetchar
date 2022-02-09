@@ -24,7 +24,8 @@ import pytest
 import numpy
 from numpy import testing as nptest
 
-from gwpy.testing.compat import mock
+from unittest import mock
+
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 from gwpy.segments import (Segment, DataQualityFlag)
 
@@ -92,7 +93,7 @@ def test_get_data_dict_from_NDS(tsdget):
     nptest.assert_array_equal(data['X1:TEST-STRAIN'].value, HOFT.value)
 
 
-@mock.patch('gwdatafind.find_urls')
+@mock.patch('gwpy.io.datafind.find_urls')
 @mock.patch('gwpy.timeseries.TimeSeries.read')
 def test_get_data_from_cache(tsget, find_data):
     # set return values
@@ -113,7 +114,7 @@ def test_get_data_from_cache(tsget, find_data):
     nptest.assert_array_equal(data.value, HOFT.crop(start, end).value)
 
 
-@mock.patch('gwdatafind.find_urls')
+@mock.patch('gwpy.io.datafind.find_urls')
 @mock.patch('gwdetchar.io.datafind.remove_missing_channels')
 @mock.patch('gwpy.timeseries.TimeSeriesDict.read')
 def test_get_data_dict_from_cache(tsdget, remove, find_data):

@@ -20,13 +20,13 @@
 """
 
 import os
+import pytest
 import shutil
 import numpy.testing as nptest
 
 from getpass import getuser
 from pycondor import Dagman
-
-from gwpy.testing.compat import mock
+from unittest import mock
 
 from .. import batch
 
@@ -36,6 +36,7 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 FLAGS = [
     '--ifo', 'X1',
+    '--frequency-scaling', 'log',
     '--colormap', 'viridis',
     '--nproc', '8',
     '--far-threshold', '3.171e-08',
@@ -69,25 +70,47 @@ def test_get_condor_arguments():
     nptest.assert_array_equal(condorcmds, CONDORCMDS)
 
 
-@mock.patch('pycondor.Dagman.submit_dag')
+@mock.patch('pycondor.Dagman.submit_dag', return_value=None)
 def test_generate_dag(dag, tmpdir, capsys):
     outdir = str(tmpdir)
     times = [1187008882]
-    dag.return_value = 1
     # test without submit
     dagman = batch.generate_dag(
         times, flags=FLAGS, outdir=outdir, condor_commands=CONDORCMDS)
     assert isinstance(dagman, Dagman)
-    assert os.path.exists(os.path.join(outdir, 'condor'))
-    assert os.path.exists(os.path.join(outdir, 'logs'))
-    captured = capsys.readouterr()
-    assert captured.out.startswith('The directory')
-    assert 'Submit to condor via' in captured.out
+    assert os.listdir(os.path.join(outdir, 'condor'))
+    assert os.path.isdir(os.path.join(outdir, 'logs'))
+    (out, err) = capsys.readouterr()
+    assert not err
+    assert out.startswith('The directory')
+    assert 'Submit to condor via' in out
     # test with submit
     dagman = batch.generate_dag(
         times, flags=FLAGS, submit=True, outdir=outdir,
         condor_commands=CONDORCMDS)
-    captured = capsys.readouterr()
-    assert 'condor_q' in captured.out
+    (out, err) = capsys.readouterr()
+    assert not err
+    assert 'condor_q' in out
+    # clean up
+    shutil.rmtree(outdir, ignore_errors=True)
+
+
+# -- cli tests ----------------------------------------------------------------
+
+@pytest.mark.parametrize('args', (
+    ['1126259462.4', '--ifo', 'H1'],
+    ['1128678900.4', '1135136350.6', '--submit', '--ifo', 'L1'],
+    ['event-times.txt', '--submit', '--monitor', '--ifo', 'Network'],
+))
+@mock.patch('numpy.loadtxt', return_value=[
+    1167559936.6, 1180922494.5, 1185389807.3])
+@mock.patch('pycondor.Dagman.submit_dag', return_value=None)
+@mock.patch('subprocess.check_call', return_value=None)
+def test_main(subp, dag, loadtxt, args, tmpdir):
+    outdir = str(tmpdir)
+    batch.main(args + ['--output-dir', outdir])
+    # test output
+    assert os.listdir(os.path.join(outdir, 'condor'))
+    assert os.path.isdir(os.path.join(outdir, 'logs'))
     # clean up
     shutil.rmtree(outdir, ignore_errors=True)

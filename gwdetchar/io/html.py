@@ -19,33 +19,26 @@
 """Utilties for HTML output
 """
 
+import datetime
 import json
 import os
-import sys
-import datetime
 import subprocess
-from io import StringIO
-from pytz import reference
-from getpass import getuser
-from operator import itemgetter
-from urllib.parse import urlparse
-from collections import OrderedDict
-from shutil import copyfile
-try:
-    from pathlib2 import Path
-except ImportError:  # python >= 3.6
-    # NOTE: we do it this was around because pathlib exists for py35,
-    #       but doesn't work very well
-    from pathlib import Path
+import sys
 
-from inspect import (getmodule, stack)
-from pkg_resources import resource_filename
+from collections import OrderedDict
+from getpass import getuser
+from io import StringIO
+from operator import itemgetter
+from pathlib import Path
+from pytz import reference
+from shutil import copyfile
+from urllib.parse import urlparse
 
 from MarkupPy import markup
 
 from pygments import highlight
-from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
+from pygments.lexers import get_lexer_by_name
 
 from gwpy.time import from_gps
 
@@ -55,27 +48,17 @@ from .._version import get_versions
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credit__ = 'Alex Urban <alexander.urban@ligo.org>'
 
-# -- navigation toggle
-
-NAVBAR_TOGGLE = """<button class="navbar-toggle" data-toggle="collapse" type="button" data-target=".navbar-collapse">
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-</button>"""  # noqa: E501
-
 # -- give context for ifo names
 
 OBSERVATORY_MAP = {
     'G1': {
         'name': 'GEO',
-        'context': 'default',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day')])
     },
     'H1': {
         'name': 'LIGO Hanford',
-        'context': 'danger',
         'links': OrderedDict([
             ('LHO Summary Pages', 'https://ldas-jobs.ligo-wa.caltech.edu/'
                                   '~detchar/summary/day'),
@@ -83,14 +66,12 @@ OBSERVATORY_MAP = {
     },
     'I1': {
         'name': 'LIGO India',
-        'context': 'success',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day')])
     },
     'K1': {
         'name': 'KAGRA',
-        'context': 'warning',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day'),
@@ -98,7 +79,6 @@ OBSERVATORY_MAP = {
     },
     'L1': {
         'name': 'LIGO Livingston',
-        'context': 'info',
         'links': OrderedDict([
             ('LLO Summary Pages', 'https://ldas-jobs.ligo-la.caltech.edu/'
                                   '~detchar/summary/day'),
@@ -106,7 +86,6 @@ OBSERVATORY_MAP = {
     },
     'V1': {
         'name': 'Virgo',
-        'context': 'default',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day/'),
@@ -114,7 +93,6 @@ OBSERVATORY_MAP = {
     },
     'Network': {
         'name': 'Multi-IFO',
-        'context': 'default',
         'links': OrderedDict([
             ('Network Summary Pages', 'https://ldas-jobs.ligo.caltech.edu/'
                                       '~detchar/summary/day'),
@@ -127,45 +105,37 @@ OBSERVATORY_MAP = {
 
 # -- HTML URLs
 
-JQUERY_JS = "https://code.jquery.com/jquery-3.4.1.min.js"
+FONT_AWESOME_CSS = ('https://cdnjs.cloudflare.com/ajax/libs/'
+                    'font-awesome/5.15.1/css/fontawesome.min.css')
+FONT_AWESOME_SOLID_CSS = ('https://cdnjs.cloudflare.com/ajax/libs/'
+                          'font-awesome/5.15.1/css/solid.min.css')
 
-_BOOTSTRAP_CDN = "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1"
-BOOTSTRAP_CSS = "{}/css/bootstrap.min.css".format(_BOOTSTRAP_CDN)
-BOOTSTRAP_JS = "{}/js/bootstrap.min.js".format(_BOOTSTRAP_CDN)
+JQUERY_JS = 'https://code.jquery.com/jquery-3.5.1.min.js'
+JQUERY_LAZY_JS = ('https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/'
+                  '1.7.11/jquery.lazy.min.js')
+BOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/'
+                'dist/js/bootstrap.bundle.min.js')
+FANCYBOX_JS = ('https://cdnjs.cloudflare.com/ajax/libs/'
+               'fancybox/3.5.7/jquery.fancybox.min.js')
 
-_FANCYBOX_CDN = "https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7"
-FANCYBOX_CSS = "{0}/jquery.fancybox.min.css".format(_FANCYBOX_CDN)
-FANCYBOX_JS = "{0}/jquery.fancybox.min.js".format(_FANCYBOX_CDN)
-
-GOOGLE_FONT_CSS = ("https://fonts.googleapis.com/css?"
-                   "family=Roboto:400,500%7CRoboto+Mono")
-
-BOOTSTRAP_LIGO_CSS = resource_filename(
-    'gwdetchar',
-    '_static/bootstrap-ligo.min.css')
-BOOTSTRAP_LIGO_JS = resource_filename(
-    'gwdetchar',
-    '_static/bootstrap-ligo.min.js')
-
-GWDETCHAR_CSS = resource_filename(
-    'gwdetchar',
-    '_static/gwdetchar.min.css')
-GWDETCHAR_JS = resource_filename(
-    'gwdetchar',
-    '_static/gwdetchar.min.js')
+GWBOOTSTRAP_CSS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.1/'
+                   'lib/gwbootstrap.min.css')
+GWBOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.1/'
+                  'lib/gwbootstrap.min.js')
 
 CSS_FILES = [
-    BOOTSTRAP_CSS,
-    FANCYBOX_CSS,
-    GOOGLE_FONT_CSS,
-    BOOTSTRAP_LIGO_CSS,
-    GWDETCHAR_CSS]
+    FONT_AWESOME_CSS,
+    FONT_AWESOME_SOLID_CSS,
+    GWBOOTSTRAP_CSS,
+]
+
 JS_FILES = [
     JQUERY_JS,
+    JQUERY_LAZY_JS,
     BOOTSTRAP_JS,
     FANCYBOX_JS,
-    BOOTSTRAP_LIGO_JS,
-    GWDETCHAR_JS]
+    GWBOOTSTRAP_JS,
+]
 
 FORMATTER = HtmlFormatter(noclasses=True)
 
@@ -196,6 +166,15 @@ class FancyPlot(object):
 
 
 # -- HTML construction --------------------------------------------------------
+
+def _get_card_header(context):
+    """Return the correct bootstrap-4 card-header class for the given context
+    """
+    if context == 'light':
+        return 'card-header bg-light'
+    else:
+        return 'card-header text-white bg-%s' % context
+
 
 def finalize_static_urls(static, base, cssfiles, jsfiles):
     """Finalise the necessary CSS and javascript files as URLS.
@@ -312,7 +291,7 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     page._full = True
     # link files
     for f in css:
-        page.link(href=f, rel='stylesheet', type='text/css', media='all')
+        page.link(href=f, rel='stylesheet', media='all')
     for f in script:
         page.script('', src=f, type='text/javascript')
     # add other attributes
@@ -323,15 +302,17 @@ def new_bootstrap_page(base=os.path.curdir, path=os.path.curdir, lang='en',
     # open body and container
     page.body()
     if topbtn:
-        page.button('&#8679;', title='Return to top', class_='btn-float',
-                    id_='top-btn', onclick='$("#top-btn").scrollView();')
+        glyph = markup.oneliner.i('', class_='fas fa-arrow-up')
+        page.button(glyph, title='Return to top',
+                    class_='btn-float shadow', id_='top-btn')
     if navbar is not None:
         page.add(navbar)
     page.div(class_='container')
     return page
 
 
-def navbar(links, class_='navbar navbar-fixed-top', brand=None, collapse=True):
+def navbar(links, class_='navbar navbar-expand-md fixed-top shadow-sm',
+           brand=None, collapse=True):
     """Construct a navigation bar in bootstrap format
 
     Parameters
@@ -343,9 +324,9 @@ def navbar(links, class_='navbar navbar-fixed-top', brand=None, collapse=True):
         the navbar
 
     class_ : `str`, optional
-        navbar object class, default: `'navbar navbar-fixed-top'`
+        navbar object class, default: `'navbar navbar-expand-md fixed-top'`
 
-    brand : `str` or `~MarkupPy.markup.page`, optional
+    brand : `str`, `~MarkupPy.markup.page`, or `list`, optional
         branding for the navigation bar, default: None
 
     collapse : `bool`, optional
@@ -356,58 +337,65 @@ def navbar(links, class_='navbar navbar-fixed-top', brand=None, collapse=True):
     page : :class:`~MarkupPy.markup.page`
         navbar HTML `page` object
     """
+    if isinstance(brand, (tuple, list)):
+        brand, help_ = brand
+    else:
+        help_ = None
+
     # page setup
     page = markup.page()
-    page.twotags.extend((
-        "footer",
-        "header",
-        "nav",
-    ))
-    markup.element('header', parent=page)(class_=class_)
-    page.div(class_="container")
+    page.twotags.append('nav')
+    page.nav(class_=class_)
+    page.div(class_='container-fluid')
 
-    # ---- non-collapable part (<div class="navbar-header">) ----
-
-    page.div(class_="navbar-header")
-    # add collapsed menu toggle
-    if collapse:
-        page.add(NAVBAR_TOGGLE)
     # add branding (generic non-collapsed content)
-    if brand:
+    if brand is not None:
         page.add(str(brand))
-    page.div.close()  # navbar-header
-    if collapse:
-        page.nav(class_="collapse navbar-collapse")
-    else:
-        page.nav()
 
-    # ---- collapsable part (<nav>) ----
+    # begin navbar proper
+    if collapse:
+        page.button(
+            class_='navbar-toggler navbar-toggler-right', type_='button',
+            **{'data-toggle': 'collapse', 'data-target': '.navbar-collapse'})
+        page.span('', class_='navbar-toggler-icon')
+        page.button.close()
+        page.div(class_='collapse navbar-collapse justify-content-between')
+    else:
+        page.div()
+
+    # ---- collapsable part (<div>) ----
 
     if links:
-        page.ul(class_='nav navbar-nav')
+        page.ul(class_='nav navbar-nav mr-auto')
         for i, link in enumerate(links):
             if (isinstance(link, (list, tuple)) and
                     isinstance(link[1], str)):
-                page.li()
                 text, link = link
-                page.a(text, href=link)
+                page.li(class_='nav-item')
+                page.a(text, href=link, class_='nav-link')
             elif (isinstance(link, (list, tuple)) and
                   isinstance(link[1], (list, tuple))):
-                page.li(class_='dropdown')
+                page.li(class_='nav-item dropdown')
                 page.add(dropdown(*link))
+            elif isinstance(link, str) and not link.startswith('<'):
+                page.li(class_='nav-item navbar-text')
+                page.add(link)
             else:
-                page.li()
+                page.li(class_='nav-item')
                 page.add(str(link))
             page.li.close()
-        page.ul.close()
+        page.ul.close()  # nav navbar-nav mr-auto
 
+        if help_ is not None:
+            page.add(str(help_))
+
+    page.div.close()  # collapse navbar-collapse
+    page.div.close()  # container-fluid
     page.nav.close()
-    page.div.close()
-    markup.element('header', parent=page).close()
     return page()
 
 
-def dropdown(text, links, active=None, class_='dropdown-toggle'):
+def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
     """Construct a dropdown menu in bootstrap format
 
     Parameters
@@ -429,6 +417,7 @@ def dropdown(text, links, active=None, class_='dropdown-toggle'):
     -------
     page : :class:`~MarkupPy.markup.page`
         HTML element with the following grammar:
+
         .. code:: html
 
            <a>text</a>
@@ -437,36 +426,47 @@ def dropdown(text, links, active=None, class_='dropdown-toggle'):
                <li>link</li>
            </ul>
     """
+    def has_columns(items_):
+        return (isinstance(items_, (tuple, list)) and len(items_)
+                and isinstance(items_[1], (tuple, list)))
+
+    def has_open_row(page_):
+        tags = page_.content
+        divs = [t for t in tags if ('<div' in t)]
+        cldivs = [t for t in tags if ('</div' in t)]
+        return len(cldivs) != len(divs) - 1
+
     page = markup.page()
-    # dropdown header
-    page.a(href='#', class_=class_, **{'data-toggle': 'dropdown'})
-    page.add(text)
-    page.b('', class_='caret')
-    page.a.close()
+    page.a(text, href='#', class_=class_, role='button',
+           **{'data-toggle': 'dropdown'})
 
     # work out columns
-    ngroup = sum([isinstance(x, (tuple, list)) and len(x) and
-                 isinstance(x[1], (tuple, list)) for x in links])
-    if ngroup < 1:
-        column = ''
-    else:
-        ncol = min(ngroup, 4)
-        column = 'col-xs-12 col-sm-%d' % (12 // ncol)
+    ngroup = sum([has_columns(x) for x in links])
+    ncol = min(ngroup, 4) or 1
+    page.div(class_='dropdown-menu dropdown-%d-col shadow' % ncol)
 
     # dropdown elements
-    if column:
-        page.ul(class_='dropdown-menu dropdown-%d-col row' % ncol)
-    else:
-        page.ul(class_='dropdown-menu')
     for i, link in enumerate(links):
+        # handle active links
         if isinstance(active, int) and i == active:
             active_ = True
         elif isinstance(active, (list, tuple)) and i == active[0]:
             active_ = active[1]
         else:
             active_ = False
-        dropdown_link(page, link, active=active_, class_=column)
-    page.ul.close()
+        # handle multi-column
+        if has_columns(link):
+            if not has_open_row(page):
+                page.div(class_='row')
+            dropdown_link(page, link, active=active_,
+                          class_='col-sm-12 col-md-%d' % (12 // ncol))
+        else:
+            dropdown_link(page, link, active=active_)
+
+    # close and return
+    if has_open_row(page):
+        page.div.close()  # row
+    page.div.close()  # dropdown-menu
     return page()
 
 
@@ -488,25 +488,22 @@ def dropdown_link(page, link, active=False, class_=''):
     class_ : `str`, optional
         object class of the link, default: `''`
     """
-    if link is None:
-        page.li(class_='divider')
-    elif active is True:
-        page.li(class_='active')
-    else:
-        page.li()
-    if isinstance(link, (tuple, list)):
+    if link in [None, '']:
+        page.div('', class_='dropdown-divider')
+    elif isinstance(link, (tuple, list)):
         if isinstance(link[1], (tuple, list)):
-            page.ul(class_=class_ + ' list-unstyled')
-            page.li(link[0], class_='dropdown-header')
+            page.div(class_=class_)
+            page.h6(link[0], class_='dropdown-header')
             for j, link2 in enumerate(link[1]):
                 dropdown_link(page, link2,
                               active=(type(active) is int and active == j))
-            page.ul.close()
+            page.div.close()
         else:
-            page.a(link[0], href=link[1])
+            page.a(link[0], href=link[1],
+                   class_=('dropdown-item active' if active is True
+                           else 'dropdown-item'))
     elif link is not None:
         page.add(str(link))
-    page.li.close()
 
 
 def get_brand(ifo, name, gps, about=None):
@@ -534,37 +531,37 @@ def get_brand(ifo, name, gps, about=None):
     class_ : `str`
         object class of the navbar
     """
+    # navbar brand
+    brand = markup.oneliner.div(
+        ' '.join([ifo, name]),
+        class_='navbar-brand border border-white rounded',
+    )
+    # IFO links
     page = markup.page()
-    page.div(ifo, class_='navbar-brand')
-    page.div(name, class_='navbar-brand')
-    page.div(class_='btn-group pull-right ifo-links')
-    page.a(class_='navbar-brand dropdown-toggle', href='#',
-           **{'data-toggle': 'dropdown'})
-    page.add('Links')
-    page.b('', class_='caret')
-    page.a.close()
-    page.ul(class_='dropdown-menu')
+    page.ul(class_='nav navbar-nav')
+    page.li(class_='nav-item dropdown')
+    page.a('Links', class_='nav-link dropdown-toggle',
+           href='#', role='button', **{'data-toggle': 'dropdown'})
+    page.div(class_='dropdown-menu dropdown-menu-right shadow')
     if about is not None:
-        page.li('Internal', class_='dropdown-header')
-        page.li()
-        page.a('About this page', href=about)
-        page.li.close()
-        page.li('', class_='divider')
-    page.li('External', class_='dropdown-header')
+        page.h6('Internal', class_='dropdown-header')
+        page.a('About this page', href=about, class_='dropdown-item')
+        page.div('', class_='dropdown-divider')
+    page.h6('External', class_='dropdown-header')
     for name, url in OBSERVATORY_MAP[ifo]['links'].items():
         if 'Summary' in name:
             day = from_gps(gps).strftime(r"%Y%m%d")
             url = '/'.join([url, day])
-        page.li()
-        page.a(name, href=url, target='_blank')
-        page.li.close()
-    page.ul.close()
-    page.div.close()  # btn-group pull-right
-    class_ = 'navbar navbar-fixed-top navbar-{}'.format(ifo.lower())
-    return (page(), class_)
+        page.a(name, href=url, class_='dropdown-item', target='_blank')
+    page.div.close()  # dropdown-menu
+    page.li.close()  # nav-link dropdown-toggle
+    page.ul.close()  # nav navbar-nav
+    class_ = ('navbar fixed-top navbar-expand-md navbar-{} '
+              'shadow-sm').format(ifo.lower())
+    return ((brand, page()), class_)
 
 
-def about_this_page(config, packagelist=True):
+def about_this_page(config, packagelist=True, prog=None):
     """Write a blurb documenting how a page was generated, including the
     command-line arguments and configuration files used
 
@@ -578,6 +575,10 @@ def about_this_page(config, packagelist=True):
         boolean switch to include (`True`) or exclude (`False`) a
         comprehensive list of system packages
 
+    prog : `str`, optional
+        name of the program which produced this page, defaults to
+        the script run on the command-line
+
     Returns
     -------
     page : :class:`~MarkupPy.markup.page`
@@ -587,7 +588,7 @@ def about_this_page(config, packagelist=True):
     page.div(class_='row')
     page.div(class_='col-md-12')
     page.h2('On the command-line')
-    page.add(get_command_line())
+    page.add(get_command_line(prog=prog))
     # render config file(s)
     page.h2('Configuration files')
     page.p('The following INI-format configuration file(s) were passed '
@@ -597,29 +598,32 @@ def about_this_page(config, packagelist=True):
             contents = fobj.read()
         page.add(render_code(contents, 'ini'))
     elif isinstance(config, list):
-        page.div(class_='panel-group', id="accordion")
+        page.div(id_='accordion')
         for i, cpfile in enumerate(config):
-            page.div(class_='panel panel-default')
-            page.a(href='#file%d' % i, **{'data-toggle': 'collapse',
-                                          'data-parent': '#accordion'})
-            page.div(class_='panel-heading')
-            page.h4(os.path.basename(cpfile), class_='panel-title')
-            page.div.close()
-            page.a.close()
-            page.div(id_='file%d' % i, class_='panel-collapse collapse')
-            page.div(class_='panel-body')
+            page.div(class_='card mb-1 shadow-sm')
+            page.div(class_='card-header')
+            page.a(
+                os.path.basename(cpfile),
+                class_='collapsed card-link cis-link',
+                href='#file%d' % i,
+                **{'data-toggle': 'collapse'}
+            )
+            page.div.close()  # card-header
+            page.div(id_='file%d' % i, class_='collapse',
+                     **{'data-parent': '#accordion'})
+            page.div(class_='card-body')
             with open(cpfile, 'r') as fobj:
                 contents = fobj.read()
             page.add(render_code(contents, 'ini'))
-            page.div.close()
-            page.div.close()
-            page.div.close()
-        page.div.close()
+            page.div.close()  # card-body
+            page.div.close()  # collapse
+            page.div.close()  # card
+        page.div.close()  # accordion
     # render package list
     if packagelist:
         page.add(package_table())
-    page.div.close()
-    page.div.close()
+    page.div.close()  # col-md-12
+    page.div.close()  # row
     return page()
 
 
@@ -643,28 +647,32 @@ def render_code(code, language):
     return highlight(code, lexer, FORMATTER)
 
 
-def get_command_line(language='bash', about=True):
-    """Render the command line invocation used to generate a page
+def get_command_line(language='bash', about=True, prog=None):
+    """Render the command-line invocation used to generate a page
 
     Parameters
     ----------
     language : `str`, optional
         type of environment the code is run in, default: `'bash'`
 
+    about : `bool`, optional
+        whether this markup is for an 'about' page, default: `True`
+
+    prog : `str`, optional
+        name of the program which produced this page, defaults to
+        the script run on the command-line
+
     Returns
     -------
     page : `~MarkupPy.markup.page`
         fully rendered command-line arguments
     """
+    prog = prog or os.path.basename(sys.argv[0])
     page = markup.page()
     if about:
         page.p('This page was generated with the following command-line call:')
-    if sys.argv[0].endswith('__main__.py'):
-        module = getmodule(stack()[1][0]).__name__
-        cmdline = '$ python -m {0} {1}'.format(module, ' '.join(sys.argv[1:]))
-    else:
-        script = os.path.basename(sys.argv[0])
-        cmdline = ' '.join(['$', script, ' '.join(sys.argv[1:])])
+    args = ' '.join(sys.argv[1:])
+    cmdline = ' '.join(['$', prog, args])
     page.add(render_code(cmdline.replace(' --html-only', ''), language))
     if about:
         page.p('The install path used was <code>{}</code>.'.format(sys.prefix))
@@ -714,15 +722,14 @@ def cis_link(channel, **params):
     """
     kwargs = {
         'title': "CIS entry for %s" % channel,
-        'style': "font-family: Monaco, \"Courier New\", monospace; "
-                 "color: black;",
+        'class_': 'cis-link',
     }
     kwargs.update(params)
     return html_link("https://cis.ligo.org/channel/byname/%s" % channel,
                      channel, **kwargs)
 
 
-def fancybox_img(img, linkparams=dict(), **params):
+def fancybox_img(img, linkparams=dict(), lazy=False, **params):
     """Return the markup to embed an <img> in HTML
 
     Parameters
@@ -731,8 +738,11 @@ def fancybox_img(img, linkparams=dict(), **params):
         a `FancyPlot` object containing the path of the image to embed
         and its caption to be displayed
 
-    linkparams : `dict`
+    linkparams : `dict`, optional
         the HTML attributes for the ``<a>`` tag
+
+    lazy : `bool`, optional
+        whether to lazy-load the image, default: False
 
     **params
         the HTML attributes for the ``<img>`` tag
@@ -747,6 +757,8 @@ def fancybox_img(img, linkparams=dict(), **params):
         'title': img.caption,
         'class_': 'fancybox',
         'target': '_blank',
+        'data-caption': img.caption,
+        'data-fancybox': 'gallery',
         'data-fancybox-group': 'images',
     }
     aparams.update(linkparams)
@@ -755,21 +767,19 @@ def fancybox_img(img, linkparams=dict(), **params):
     channel = '%s-%s' % tuple(substrings[:2])
     duration = substrings[-1].split('.')[0]
     page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
+    src_attr = lazy and 'data-src' or 'src'
     imgparams = {
         'alt': os.path.basename(img),
-        'class_': 'img-responsive',
+        'class_': lazy and 'img-fluid w-100 lazy' or 'img-fluid w-100',
+        src_attr: img.replace('.svg', '.png'),
     }
-    if img.endswith('.svg') and os.path.isfile(img.replace('.svg', '.png')):
-        imgparams['src'] = img.replace('.svg', '.png')
-    else:
-        imgparams['src'] = img
     imgparams.update(params)
     page.img(id_='img_%s_%s' % (channel, duration), **imgparams)
     page.a.close()
     return page()
 
 
-def scaffold_plots(plots, nperrow=3):
+def scaffold_plots(plots, nperrow=3, lazy=True):
     """Embed a `list` of images in a bootstrap scaffold
 
     Parameters
@@ -779,6 +789,9 @@ def scaffold_plots(plots, nperrow=3):
 
     nperrow : `int`
         the number of images to place in a row (on a desktop screen)
+
+    lazy : `bool`, optional
+        whether to lazy-load images, default: True
 
     Returns
     -------
@@ -790,9 +803,9 @@ def scaffold_plots(plots, nperrow=3):
     # scaffold plots
     for i, p in enumerate(plots):
         if i % nperrow == 0:
-            page.div(class_='row')
+            page.div(class_='row scaffold')
         page.div(class_='col-sm-%d' % x)
-        page.add(fancybox_img(p))
+        page.add(fancybox_img(p, lazy=lazy))
         page.div.close()  # col
         if i % nperrow == nperrow - 1:
             page.div.close()  # row
@@ -802,8 +815,8 @@ def scaffold_plots(plots, nperrow=3):
 
 
 def download_btn(content, label='Download summary',
-                 btndiv='btn-group pull-right desktop-only',
-                 btnclass='btn btn-default dropdown-toggle'):
+                 btndiv='dropdown float-right d-none d-lg-block',
+                 btnclass='btn btn-outline-secondary dropdown-toggle'):
     """Toggle download options with a Bootstrap button
 
     Parameters
@@ -819,11 +832,11 @@ def download_btn(content, label='Download summary',
 
     btndiv : `str`, optional
         class name of the enclosing ``<div>``,
-        default: ``btn-group desktop-only``
+        default: ``dropdown float-right d-none d-lg-block``
 
     btnclass : `str`, optional
         class name of the Bootstrap button object,
-        default: ``btn btn-default dropdown-toggle``
+        default: ``btn btn-secondary dropdown-toggle``
 
     Returns
     -------
@@ -832,28 +845,26 @@ def download_btn(content, label='Download summary',
     """
     page = markup.page()
     page.div(class_=btndiv)
-    page.button(type='button', class_=btnclass,
-                **{'data-toggle': 'dropdown'})
-    page.add('%s <span class="caret"></span>' % label)
-    page.button.close()
-    page.ul(class_='dropdown-menu', role='menu',
-            **{'aria-labelledby': 'summary_table_download'})
+    page.button(label, type='button', class_=btnclass,
+                **{'data-toggle': 'dropdown',
+                   'aria-expanded': 'false',
+                   'aria-haspopup': 'true'})
+    page.div(class_='dropdown-menu dropdown-menu-right shadow')
     for item in content:
         if len(item) == 2:
             text, href = item
             download = href
         else:
             text, href, download = item
-        page.li(markup.oneliner.a(text, href=href, download=download))
-    page.ul.close()
-    page.div.close()  # btn-group
+        page.a(text, href=href, download=download,
+               class_='dropdown-item')
+    page.div.close()  # dropdown-menu
+    page.div.close()  # btndiv
     return page()
 
 
 def parameter_table(content=[], start=None, end=None, flag=None,
-                    section='Parameters', id_='parameters',
-                    tableclass=('table table-condensed table-hover '
-                                'table-responsive table-bordered')):
+                    id_='parameters', tableclass='table table-sm table-hover'):
     """Render an informative section with run parameters in HTML
 
     Parameters
@@ -896,22 +907,18 @@ def parameter_table(content=[], start=None, end=None, flag=None,
         ('System prefix', markup.oneliner.code(sys.prefix))]
     # initialize page
     page = markup.page()
-    if section is not None:
-        page.h2(section, id_=id_)
     page.table(class_=tableclass)
     # table body
     page.tbody()
     for row in content:
         col1, col2 = row
         page.tr()
-        page.td(markup.oneliner.strong(col1))
+        page.th(col1, scope='row')
         page.td(col2)
         page.tr.close()
     page.tbody.close()
     # close table and write command-line
     page.table.close()
-    page.p(markup.oneliner.strong('Command-line:'))
-    page.add(get_command_line(about=False))
     return page()
 
 
@@ -937,17 +944,20 @@ def alert(text, context='info', dismiss=True):
         the rendered dialog box object
     """
     page = markup.page()
-    text = (text,) if isinstance(text, str) else text
-    class_ = ('alert alert-{} alert-dismissable'.format(context) if
-              dismiss else 'alert alert-{}'.format(context))
+    class_ = ('alert alert-%s alert-dismissible fade show text-justify '
+              'shadow-sm' % context if dismiss else
+              'alert alert-%s text-justify shadow-sm' % context)
     page.div(class_=class_)
     if dismiss:  # add close button
-        page.button(type="button", class_="close", **{'data-dismiss': "alert"})
+        page.button(type_="button", class_="close",
+                    **{'data-dismiss': 'alert', 'aria-label': 'Close'})
         page.span('&times;', **{'aria-hidden': "true"})
-        page.span('Close', class_="sr-only")
         page.button.close()
-    for msg in text:
-        page.p(msg)
+    if isinstance(text, (list, tuple)):
+        for msg in text:
+            page.p(str(msg))
+    else:
+        page.add(str(text))
     page.div.close()
     return page()
 
@@ -976,8 +986,7 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
     table : `~MarkupPy.markup.page`
         a formatted HTML page object containing the `<table>`
     """
-    class_.setdefault('table',
-                      'table table-hover table-condensed table-responsive')
+    class_.setdefault('table', 'table table-sm table-hover')
     # unwrap class declarations (so we don't get empty class attributes)
     kwargs = {}
     for tag in ['table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption']:
@@ -1011,9 +1020,8 @@ def table(headers, data, caption=None, separator='', id=None, **class_):
     # add export button
     if id:
         page.button(
-            'Export to CSV', class_='btn btn-default btn-table',
-            onclick="exportTableToCSV('{name}.csv', '{name}')".format(
-                name=id))
+            'Export to CSV', class_='btn btn-outline-secondary btn-table mt-2',
+            **{'data-table-id': id, 'data-filename': '%s.csv' % id})
     return page()
 
 
@@ -1055,19 +1063,20 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     Returns
     -------
     page : `~MarkupPy.markup.page`
-        fully rendered HTML with a panel object for the flag
+        fully rendered HTML with a card object for the flag
     """
     page = markup.page()
-    page.div(class_='panel panel-%s' % context)
-    page.div(class_='panel-heading')
+    page.div(class_='card border-%s mb-1 shadow-sm' % context)
+    page.div(class_=_get_card_header(context))
     title = title or flag.name
-    page.a(title, class_="panel-title", href='#flag%s' % id,
-           **{'data-toggle': 'collapse', 'data-parent': '#%s' % parent})
-    page.div.close()
-    page.div(id_='flag%s' % id, class_='panel-collapse collapse')
-    page.div(class_='panel-body')
+    page.a(title, class_='collapsed card-link cis-link', href='#flag%s' % id,
+           **{'data-toggle': 'collapse'})
+    page.div.close()  # card-header
+    page.div(id_='flag%s' % id, class_='collapse',
+             **{'data-parent': '#' + parent})
+    page.div(class_='card-body')
     # render segment plot
-    if plotdir is not None and plot_func is not None:
+    if (plotdir is not None) and (plot_func is not None):
         flagr = flag.name.replace('-', '_').replace(':', '-', 1)
         png = os.path.join(
             plotdir, '%s-%d-%d.png' % (flagr, span[0], abs(span)))
@@ -1078,19 +1087,19 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
         img = FancyPlot(
             img=png, caption='Known (small) and active (large) analysis '
                              'segments for {}'.format(title))
-        page.add(fancybox_img(img))
+        page.add(scaffold_plots([img], nperrow=1, lazy=False))
     # write segments
     segs = StringIO()
     try:
         flag.active.write(segs, format='segwizard',
                           coltype=type(flag.active[0][0]))
     except IndexError:
-        page.p("No segments were found.")
+        page.p('No segments were found.')
     else:
         page.pre(segs.getvalue())
-    page.div.close()
-    page.div.close()
-    page.div.close()
+    page.div.close()  # card-body
+    page.div.close()  # collapse
+    page.div.close()  # card
     return page()
 
 
@@ -1117,22 +1126,21 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
     page : `~MarkupPy.markup.page`
         rendered scaffold of omega scan plots
     """
+    ifo = channel[:2].lower()
     page = markup.page()
-    page.div(class_='panel well panel-default')
-    page.div(class_='panel-heading clearfix')
-    page.h3(cis_link(channel), class_='panel-title')
-    page.div.close()  # panel-heading
+    page.div(class_='card card-%s' % ifo)
+    page.div(class_='card-header pb-0')
+    page.h5(cis_link(channel), class_='card-title')
+    page.div.close()  # card-header
+    page.div(class_='card-body')
     page.ul(class_='list-group')
     for t in times:
         page.li(class_='list-group-item')
         page.div(class_='container')
         page.div(class_='row')
-        page.div(class_='pull-right')
-        page.a("[full scan]",
-               href='{}/{}'.format(scandir, t),
-               class_='text-dark')
-        page.div.close()  # pull-right
-        page.h4(t)
+        page.h6()
+        page.a(t, href='{0}/{1}'.format(scandir, t), class_='text-dark')
+        page.h6.close()
         page.div.close()  # row
         chanstr = channel.replace('-', '_').replace(':', '-')
         plots = [
@@ -1144,11 +1152,12 @@ def scaffold_omega_scans(times, channel, plot_durations=[1, 4, 16],
         page.div.close()  # container
         page.li.close()  # list-group-item
     page.ul.close()  # list-group
-    page.div.close()  # panel
+    page.div.close()  # card-body
+    page.div.close()  # card
     return page()
 
 
-def write_footer(about=None, link=None, issues=None, content=None):
+def write_footer(about=None, link=None, issues=None, external=None):
     """Write a <footer> for a bootstrap page
 
     Parameters
@@ -1156,14 +1165,15 @@ def write_footer(about=None, link=None, issues=None, content=None):
     about : `str`, optional
         path of about page to link
 
-    link : `str`, optional
-        HTML link to software name and version
+    link : `None` or `tuple`, optional
+        tuple of package name, HTML link to source code, and host name
+        (e.g. GitHub)
 
     issues : `str`, optional
         HTML link to issue report page
 
-    content : `str` or `~MarkupPy.markup.page`, optional
-        additional footer content
+    external : `str`, optional
+        additional footer link to an external page
 
     Returns
     -------
@@ -1174,34 +1184,42 @@ def write_footer(about=None, link=None, issues=None, content=None):
     page.twotags.append('footer')
     markup.element('footer', case=page.case, parent=page)(class_='footer')
     page.div(class_='container')
-    # write user/time for analysis
     if link is None:
         version = get_versions()['version']
         commit = get_versions()['full-revisionid']
-        url = 'https://github.com/gwdetchar/gwdetchar/tree/{}'.format(commit)
-        link = markup.oneliner.a('View gwdetchar-{} on GitHub'.format(version),
-                                 href=url, target='_blank')
-    if issues is None:
-        report = 'https://github.com/gwdetchar/gwdetchar/issues'
-        issues = markup.oneliner.a('Report an issue', href=report,
-                                   target='_blank')
+        package = 'gwdetchar-%s' % version
+        source = 'https://github.com/gwdetchar/gwdetchar/tree/%s' % commit
+        host = 'GitHub'
+    elif isinstance(link, (tuple, list)):
+        package, source, host = link
+    else:
+        raise ValueError("'link' argument must be either None or a tuple of "
+                         "package name, URL, and host name")
+    # format various links
     page.div(class_='row')
-    page.div(class_='col-md-12')
+    page.div(class_='col-sm-3 icon-bar')
+    page.a(markup.oneliner.i('', class_='fas fa-code'), href=source,
+           title='View {0} on {1}'.format(package, host), target='_blank')
+    page.a(markup.oneliner.i('', class_='fas fa-ticket-alt'),
+           href=issues or 'https://github.com/gwdetchar/gwdetchar/issues',
+           title='Open an issue ticket', target='_blank')
+    if about is not None:
+        page.a(markup.oneliner.i('', class_='fas fa-info-circle'),
+               href=about, title='How was this page generated?')
+    if external is not None:
+        page.a(markup.oneliner.i('', class_='fas fa-external-link-alt'),
+               href=external, title="View this page's external source")
+    page.a(markup.oneliner.i('', class_='fas fa-heartbeat'),
+           href='https://apod.nasa.gov/apod/astropix.html',
+           title='Take a break from science', target='_blank')
+    page.div.close()  # col-sm-3 icon-bar
+    # print timestamp
+    page.div(class_='col-sm-6')
     now = datetime.datetime.now()
     tz = reference.LocalTimezone().tzname(now)
     date = now.strftime('%H:%M {} on %d %B %Y'.format(tz))
-    page.p('This page was created by {user} at {date}.'.format(
-        user=getuser(), date=date))
-    page.p('{link} | {issues}'.format(link=link, issues=issues))
-    # link to 'about'
-    if about is not None:
-        page.a('How was this page generated?', href=about)
-    # extra content
-    if isinstance(content, markup.page):
-        page.add(str(content))
-    elif content is not None:
-        page.p(str(content))
-    page.div.close()  # col-md-12
+    page.p('Created by {0} at {1}'.format(getuser(), date))
+    page.div.close()  # col-sm-6
     page.div.close()  # row
     page.div.close()  # container
     markup.element('footer', case=page.case, parent=page).close()
@@ -1267,7 +1285,7 @@ def package_list():
 
 def package_table(
         h2="Environment",
-        class_="table table-hover table-condensed table-responsive",
+        class_='table table-sm table-hover table-responsive',
         caption="Table of packages installed in the production environment",
         id_="package-table",
 ):
@@ -1295,7 +1313,7 @@ def package_table(
     # create page and write <table>
     page = markup.page(separator="")
     if h2 is not None:
-        page.h2(h2)
+        page.h2(h2, class_='mt-4')
     headers = [head.title() for head in cols]
     data = [[pkg[col.lower()] for col in cols]
             for pkg in sorted(pkgs, key=itemgetter("name"))]

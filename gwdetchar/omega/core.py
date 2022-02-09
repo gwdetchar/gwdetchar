@@ -140,10 +140,10 @@ def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
         default: no resampling
 
     f_low : `float`, optional
-        lower cutoff frequency (Hz) of the filter, default: `None`
+        lower cutoff frequency (Hz) of the filter, default: ``None``
 
     **kwargs : `dict`, optional
-        additional arguments to `omega.highpass`
+        additional arguments to :func:`highpass`
 
     Returns
     -------
@@ -152,9 +152,9 @@ def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
 
     hpxoft : `~gwpy.timeseries.TimeSeries`
         high-passed version of the input data (returned only if `f_low` is
-        not `None`)
+        not ``None``)
 
-    xoft : ``~gwpy.timeseries.TimeSeries`
+    xoft : `~gwpy.timeseries.TimeSeries`
         original (possibly resampled) version of the input data
     """
     if resample:
@@ -236,7 +236,7 @@ def cross_correlate(xoft, hoft):
 
 
 def scan(gps, channel, xoft, fftlength, resample=None, fthresh=1e-10,
-         search=0.5, nt=1400, nf=700, **kwargs):
+         search=0.5, nt=1400, nf=700, logf=True, **kwargs):
     """Scan a channel for evidence of transients
 
     Parameters
@@ -270,8 +270,12 @@ def scan(gps, channel, xoft, fftlength, resample=None, fthresh=1e-10,
         default: 1400
 
     nf : `int`, optional
-        number of points on the (log-sampled) frequency axis of the
-        interpolated `Spectrogram`, default: 700
+        number of points on the frequency axis of the interpolated
+        `Spectrogram`, default: 700
+
+    logf : `bool`, optional
+        boolean switch to enable (`True`) or disable (`False`) use of
+        log-sampled frequencies in the output `Spectrogram`, default: `True`
 
     **kwargs : `dict`, optional
         additional arguments to `omega.conditioner`
@@ -302,10 +306,22 @@ def scan(gps, channel, xoft, fftlength, resample=None, fthresh=1e-10,
         frange=qgram.plane.frange, search=search)
     # compute interpolated spectrograms
     tres = min(channel.pranges) / nt
+    fres = nf if logf else (
+        channel.frange[1] - channel.frange[0]) / nf
     outseg = Segment(
-        gps - max(channel.pranges)/2, gps + max(channel.pranges)/2)
-    qspec = qgram.interpolate(tres=tres, fres=nf, logf=True,
-                              outseg=outseg)
-    rqspec = rqgram.interpolate(tres=tres, fres=nf, logf=True,
-                                outseg=outseg)
+        gps - max(channel.pranges)/2,
+        gps + max(channel.pranges)/2,
+    )
+    qspec = qgram.interpolate(
+        tres=tres,
+        fres=fres,
+        logf=logf,
+        outseg=outseg,
+    )
+    rqspec = rqgram.interpolate(
+        tres=tres,
+        fres=fres,
+        logf=logf,
+        outseg=outseg,
+    )
     return (xoft, hpxoft, wxoft, qgram, rqgram, qspec, rqspec)

@@ -23,22 +23,22 @@ Command-line utility
 
    This utility requires authentication with `LIGO.ORG` credentials for archived frame data access.
 
-------------------------------
-gwdetchar-software-saturations
-------------------------------
+--------------------
+gwdetchar.saturation
+--------------------
 
-The `gwdetchar-software-saturations` tool searches (typically several thousand) channels corresponding to control system filter banks, looking for times during which the `OUTPUT` channels match or exceed the `LIMIT` value set in control software. The simplest usage is as follows:
+The :mod:`gwdetchar.saturation` command-line interface searches (typically several thousand) channels corresponding to control system filter banks, looking for times during which the `OUTPUT` channels match or exceed the `LIMIT` value set in control software. The simplest usage is as follows:
 
 .. code-block:: bash
 
-   gwdetchar-software-saturations -i <interferometer> <gps-start-time> <gps-end-time>
+   python -m gwdetchar.saturation -i <interferometer> <gps-start-time> <gps-end-time>
 
 For example,
 
 .. code-block:: bash
 
-   gwdetchar-software-saturations -i L1 1126259442 1126259502
+   python -m gwdetchar.saturation -i L1 1126259442 1126259502
 
 For a full explanation of the available command-line arguments and options, you can run
 
-.. command-output:: gwdetchar-software-saturations --help
+.. command-output:: python -m gwdetchar.saturation --help

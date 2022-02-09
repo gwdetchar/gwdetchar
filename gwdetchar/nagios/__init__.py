@@ -19,6 +19,8 @@
 """Utilities for providing status updates to Nagios
 """
 
-from .core import *
+from .core import (
+    write_status,
+)
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'

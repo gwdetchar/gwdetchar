@@ -17,9 +17,9 @@ Command-line utility
    This utility requires authentication with `LIGO.ORG` credentials for archived frame data access.
 
 ----------------
-gwdetchar-conlog
+gwdetchar.conlog
 ----------------
 
 For a full explanation of the available command-line arguments and options, you can run
 
-.. command-output:: gwdetchar-conlog --help
+.. command-output:: python -m gwdetchar.conlog --help

@@ -34,14 +34,14 @@ Contributing
 ------------
 
 All code should follow the Python Style Guide outlined in `PEP 0008`_;
-users can use the `pep8`_ package to check their code for style issues
+users can use the `flake8`_ package to check their code for style issues
 before submitting.
 
 See `the contributions guide`_ for the recommended procedure for
 proposing additions/changes.
 
 .. _PEP 0008: https://www.python.org/dev/peps/pep-0008/
-.. _pep8: https://pypi.python.org/pypi/pep8
+.. _flake8: http://flake8.pycqa.org
 .. _the contributions guide: https://github.com/gwdetchar/gwdetchar/blob/master/CONTRIBUTING.md
 .. _conda: https://conda.io
 .. _pip: https://pip.pypa.io/en/stable/
@@ -57,8 +57,8 @@ proposing additions/changes.
    :target: https://choosealicense.com/licenses/gpl-3.0/
 .. |Supported Python versions| image:: https://img.shields.io/pypi/pyversions/gwdetchar.svg
    :target: https://pypi.org/project/gwdetchar/
-.. |Build Status| image:: https://travis-ci.org/gwdetchar/gwdetchar.svg?branch=master
-   :target: https://travis-ci.org/gwdetchar/gwdetchar
+.. |Build Status| image:: https://github.com/gwdetchar/gwdetchar/actions/workflows/build.yml/badge.svg
+   :target: https://github.com/gwdetchar/gwdetchar/actions/workflows/build.yml
 .. |Coverage Status| image:: https://codecov.io/gh/gwdetchar/gwdetchar/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/gwdetchar/gwdetchar
 .. |Documentation Status| image:: https://readthedocs.org/projects/gwdetchar/badge/?version=latest
