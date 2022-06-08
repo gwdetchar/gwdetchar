@@ -777,7 +777,7 @@ def main(args=None):
             args.primary_frametype) or '-'),
         ('Primary cache file', markup.oneliner.code(
             args.primary_cache) or '-'),
-        ('Outlier threshold', '%s sigma' % args.remove_outliers),
+        ('Outlier threshold', '%s' % args.remove_outliers),
         ('Lasso coefficient threshold', str(threshold)),
         ('Cluster coefficient threshold', str(args.cluster_coefficient)),
         ('Non-zero coefficients', str(numpy.count_nonzero(model.coef_))),
