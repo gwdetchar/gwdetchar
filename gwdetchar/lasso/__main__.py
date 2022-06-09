@@ -771,13 +771,21 @@ def main(args=None):
     page.h1(title, class_='pb-2 mt-3 mb-2 border-bottom')
 
     # -- summary table
+    
+outlierremove = [
+       (if remove_outliers:
+            '%s sigma' % args.remove_outliers
+        elif remove_outliers_pf:
+            '%s percent' % args.remove_outliers_pf
+        else:
+           'none')]
     content = [
         ('Primary channel', markup.oneliner.code(primary)),
         ('Primary frametype', markup.oneliner.code(
             args.primary_frametype) or '-'),
         ('Primary cache file', markup.oneliner.code(
             args.primary_cache) or '-'),
-        ('Outlier threshold', '%s' % args.remove_outliers),
+        ('Outlier threshold', outlierremove),
         ('Lasso coefficient threshold', str(threshold)),
         ('Cluster coefficient threshold', str(args.cluster_coefficient)),
         ('Non-zero coefficients', str(numpy.count_nonzero(model.coef_))),
@@ -828,7 +836,7 @@ def main(args=None):
     page.div(class_='card card-%s card-body shadow-sm' % args.ifo.lower())
     page.div(class_='row')
     page.div(class_='col-md-8 offset-md-2', id_='results-table')
-    page.p('Below are the top {} mean minute-trend channels, ranked by '
+    page.p('Below are the top {} mean '%s' % args.trend_type -trend channels, ranked by '
            'Lasso correlation with the primary.'.format(df.shape[0]))
     page.add(df.to_html(
         classes=('table', 'table-sm', 'table-hover'),
