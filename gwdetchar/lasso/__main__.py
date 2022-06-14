@@ -772,13 +772,14 @@ def main(args=None):
 
     # -- summary table
     
-outlierremove = [
-       (if remove_outliers:
-            '%s sigma' % args.remove_outliers
-        elif remove_outliers_pf:
-            '%s percent' % args.remove_outliers_pf
-        else:
-           'none')]
+    if args.remove_outliers:
+        outlierremove = '%s sigma' % args.remove_outliers
+    elif args.remove_outliers_pf:
+        percentoutlier = args.remove_outliers_pf * 100
+        outlierremove = '%s percent' % percentoutlier
+    else:
+        outlierremove = 'None'
+        
     content = [
         ('Primary channel', markup.oneliner.code(primary)),
         ('Primary frametype', markup.oneliner.code(
