@@ -837,8 +837,8 @@ def main(args=None):
     page.div(class_='card card-%s card-body shadow-sm' % args.ifo.lower())
     page.div(class_='row')
     page.div(class_='col-md-8 offset-md-2', id_='results-table')
-    page.p('Below are the top {} mean '%s' % args.trend_type -trend channels, ranked by '
-           'Lasso correlation with the primary.'.format(df.shape[0]))
+    page.p('Below are the top {} mean %s-trend channels, ranked by '
+           'Lasso correlation with the primary.'.format(df.shape[0]) % args.trend_type)
     page.add(df.to_html(
         classes=('table', 'table-sm', 'table-hover'),
         formatters={
