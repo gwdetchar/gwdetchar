@@ -274,8 +274,9 @@ def _process_channel(input_):
 
 def get_primary_ts(channel, start, end, active_segs,
                    filepath=None, frametype=None,
-                   outlier_rem=.05, cache=None, nproc=1):
-    """Retrieve primary channel timeseries
+                   cache=None, nproc=1):
+    """
+    Retrieve primary channel timeseries
     by either reading a .gwf file or querying
     """
     if filepath is not None:
@@ -287,11 +288,14 @@ def get_primary_ts(channel, start, end, active_segs,
         LOGGER.info('Querying primary channel')
         # need option to change outlier removal type
         return primary_stitch(channel, primary_frametype,
-                              active_segs, cache, outlier_rem,
-                              nproc)
+                              active_segs, cache, nproc)
 
 
 def get_active_segs(start, end, ifo):
+    """
+    Get active flag segments for the ifo
+    - used for getting primary & aux channel data
+    """
     usable_flag = f"{ifo}:DMT-ANALYSIS_READY:1"
     active_times = DataQualityFlag.query(usable_flag, start, end).active
     active_times = [span for span in active_times if span[1] - span[0] > 60]
@@ -300,7 +304,11 @@ def get_active_segs(start, end, ifo):
 
 
 def primary_stitch(primary_channel, primary_frametype,
-                   active_segs, cache, outlier_rem, nproc):
+                   active_segs, cache, nproc):
+    """
+    Get primary channel data for active flag segments, 
+    then add them into one TimeSeries
+    """
     primary_values = []
     print('----Fetch primary channel data----')
     for segment in active_segs:
@@ -309,11 +317,37 @@ def primary_stitch(primary_channel, primary_frametype,
                                     frametype=primary_frametype,
                                     source=cache,
                                     nproc=nproc).crop(segment.start, segment.end)
-        seg_primary_data = gwlasso.remove_outliers(TimeSeries(seg_primary_data),
-                                                   outlier_arg, method='pf')
-        primary_values.extend(seg_primary_data.value)
+        primary_values.extend(seg_primary_data)
     print('----Primary channel data finished----')
     return TimeSeries(primary_values)
+
+
+def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
+    """
+    Get aux channel data for active flag segments
+    and stitch into single TimeSeries -
+    for each channel, have a single TimeSeries of
+    all data over the segments
+    """
+    auxdata = {}
+    for segment in active_segs:
+        print('----Fetch auxiliary channel data----')
+        seg_aux_data = get_data(channel_list, segment.start + 60,
+                                segment.end - 60, verbose='Reading:'.rjust(30),
+                                frametype=aux_frametype, nproc=nproc).crop(segment.start,
+                                                                           segment.end)
+        print('Fetched')
+        # k=channel name, v=timeseries
+        for k, v in seg_aux_data.items():
+            if k in auxdata:
+                auxdata[k].extend(v.value)
+            else:
+                auxdata[k] = []
+                auxdata[k].extend(v.value)
+    print('----Auxiliary channel data finished----')
+    for k, v in auxdata.items():
+        auxdata[k] = TimeSeries(v)
+    return auxdata
 
 
 # -- parse command line -------------------------------------------------------
@@ -539,7 +573,6 @@ def main(args=None):
                                 end=end+pad, active_segs=active_segs,
                                 filepath=args.primary_file,
                                 frametype=args.primary_frametype,
-                                outlier_rem=args.remove_outliers_pf,
                                 cache=args.primary_cache, nproc=args.nproc)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
             raise ValueError(
@@ -586,7 +619,6 @@ def main(args=None):
                                    end=end+pad, active_segs=active_segs,
                                    filepath=args.primary_file,
                                    frametype=args.primary_frametype,
-                                   outlier_rem=args.remove_outliers_pf,
                                    cache=args.primary_cache,
                                    nproc=args.nproc).crop(start, end)
 
@@ -623,9 +655,7 @@ def main(args=None):
         frametype = '%s_T' % args.ifo  # for second trends
 
     # read aux channels
-    auxdata = get_data(
-        channels, start, end, verbose='Reading:'.rjust(30),
-        frametype=frametype, nproc=args.nproc, pad=0).crop(start, end)
+    auxdata = aux_stitch(channels, frametype, active_segs, nproc=args.nproc)
 
     # -- removes flat data to be re-introdused later
 
