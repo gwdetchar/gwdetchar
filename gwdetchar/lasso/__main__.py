@@ -23,6 +23,9 @@ import sys
 
 from gwpy.timeseries import TimeSeries
 
+from gwpy.segments import DataQualityFlag
+from gwpy.segments import Segment
+
 import numpy
 
 from MarkupPy import markup
@@ -269,20 +272,48 @@ def _process_channel(input_):
     return (chan, lassocoef, plot4, plot5, plot6, ts)
 
 
-def get_primary_ts(channel, start, end, filepath=None,
-                   frametype=None, cache=None, nproc=1):
+def get_primary_ts(channel, start, end, active_segs,
+                   filepath=None, frametype=None,
+                   outlier_rem=.05, cache=None, nproc=1):
     """Retrieve primary channel timeseries
     by either reading a .gwf file or querying
     """
     if filepath is not None:
         LOGGER.info('Reading primary channel file')
-        return TimeSeries.read(filepath, channel=channel, start=start, end=end,
+        return TimeSeries.read(filepath, channel=channel,
+                               start=start, end=end,
                                format='gwf', nproc=nproc)
     else:
         LOGGER.info('Querying primary channel')
-        return get_data(channel, start, end,
-                        verbose='Reading primary:'.rjust(30),
-                        frametype=frametype, source=cache, nproc=nproc)
+        # need option to change outlier removal type
+        return primary_stitch(channel, primary_frametype,
+                              active_segs, cache, outlier_rem,
+                              nproc)
+
+
+def get_active_segs(start, end, ifo):
+    usable_flag = f"{ifo}:DMT-ANALYSIS_READY:1"
+    active_times = DataQualityFlag.query(usable_flag, start, end).active
+    active_times = [span for span in active_times if span[1] - span[0] > 60]
+    print("The active times identified are:\n", active_times)
+    return active_times
+
+
+def primary_stitch(primary_channel, primary_frametype,
+                   active_segs, cache, outlier_rem, nproc):
+    primary_values = []
+    print('----Fetch primary channel data----')
+    for segment in active_segs:
+        seg_primary_data = get_data(primary_channel, segment.start, segment.end,
+                                    verbose='Reading primary:'.rjust(30),
+                                    frametype=primary_frametype,
+                                    source=cache,
+                                    nproc=nproc).crop(segment.start, segment.end)
+        seg_primary_data = gwlasso.remove_outliers(TimeSeries(seg_primary_data),
+                                                   outlier_arg, method='pf')
+        primary_values.extend(seg_primary_data.value)
+    print('----Primary channel data finished----')
+    return TimeSeries(primary_values)
 
 
 # -- parse command line -------------------------------------------------------
@@ -339,7 +370,6 @@ def create_parser():
         default='{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean',
         help='name of primary channel to use',
     )
-    # primary channel filepath argument
     parser.add_argument(
         '-pf',
         '--primary-file',
@@ -494,6 +524,9 @@ def main(args=None):
     # multiprocessing for plots
     nprocplot = (args.nproc_plot or args.nproc) if USETEX else 1
 
+    # get active segments for primary and aux stitching
+    active_segs = get_active_segs(start, end, args.ifo)
+
     # bandpass primary
     if args.band_pass:
         try:
@@ -502,9 +535,11 @@ def main(args=None):
             flower, fupper = None
 
         LOGGER.info("-- Loading primary channel data")
-        bandts = get_primary_ts(filepath=args.primary_file, channel=primary,
-                                start=start-pad, end=end+pad,
+        bandts = get_primary_ts(channel=primary, start=start-pad,
+                                end=end+pad, active_segs=active_segs,
+                                filepath=args.primary_file,
                                 frametype=args.primary_frametype,
+                                outlier_rem=args.remove_outliers_pf,
                                 cache=args.primary_cache, nproc=args.nproc)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
             raise ValueError(
@@ -547,9 +582,11 @@ def main(args=None):
     else:
         # load primary channel data
         LOGGER.info("-- Loading primary channel data")
-        primaryts = get_primary_ts(filepath=args.primary_file, channel=primary,
-                                   start=start, end=end,
+        primaryts = get_primary_ts(channel=primary, start=start-pad,
+                                   end=end+pad, active_segs=active_segs,
+                                   filepath=args.primary_file,
                                    frametype=args.primary_frametype,
+                                   outlier_rem=args.remove_outliers_pf,
                                    cache=args.primary_cache,
                                    nproc=args.nproc).crop(start, end)
 
