@@ -299,9 +299,14 @@ def get_active_segs(start, end, ifo):
     usable_flag = f"{ifo}:DMT-ANALYSIS_READY:1"
     active_times = DataQualityFlag.query(usable_flag, start, end).active
     active_times = [span for span in active_times if span[1] - span[0] > 180]
-    # list segs for debug msg
-    log_times = [f"({span[0]}, {span[1]})" for span in active_times]
-    LOGGER.debug("The active times identified are:\n", log_times)
+    # list segs for logger msg
+    seg_table = Table(data=([span[0] for span in active_times],
+                          [span[1] for span in active_times]),
+                   names=('Start', 'End'))
+    LOGGER.debug(f"Identified {len(active_times)} active "
+                "segments longer than 180s:\n\n")
+    print(seg_table)
+    print("\n\n")
     return active_times
 
 
@@ -312,16 +317,19 @@ def primary_stitch(primary_channel, primary_frametype,
     then add them into one TimeSeries
     """
     primary_values = []
+    cur = 1
     for segment in active_segs:
-        LOGGER.debug(f'Fetching segment ({segment.start}, {segment.end})')
+        LOGGER.info(f'Fetching segment [{cur}/{len(active_segs)}] '
+                    f'({segment.start}, {segment.end})')
         seg_primary_data = get_data(primary_channel, segment.start, segment.end,
                                     verbose='Reading primary:'.rjust(30),
                                     frametype=primary_frametype,
                                     source=cache,
                                     nproc=nproc).crop(segment.start, segment.end)
-        primary_values.extend(seg_primary_data)
+        primary_values.extend(seg_primary_data.value)
+        cur += 1
     LOGGER.debug('----Primary channel data finished----')
-    return TimeSeries(primary_values)
+    return TimeSeries(primary_values, t0=active_segs[0][0])
 
 
 def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
@@ -332,8 +340,10 @@ def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
     all data over the segments
     """
     auxdata = {}
+    cur = 1
     for segment in active_segs:
-        LOGGER.debug(f'Fetching segment ({segment.start}, {segment.end})')
+        LOGGER.info(f'Fetching segment [{cur}/{len(active_segs)}] '
+                    f'({segment.start}, {segment.end})')
         seg_aux_data = get_data(channel_list, segment.start,
                                 segment.end, verbose='Reading:'.rjust(30),
                                 frametype=aux_frametype, nproc=nproc).crop(segment.start,
@@ -345,6 +355,7 @@ def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
             else:
                 auxdata[k] = []
                 auxdata[k].extend(v.value)
+        cur += 1
     LOGGER.debug('----Auxiliary channel data finished----')
     for k, v in auxdata.items():
         auxdata[k] = TimeSeries(v)
@@ -617,12 +628,12 @@ def main(args=None):
     else:
         # load primary channel data
         LOGGER.info("-- Loading primary channel data")
-        primaryts = get_primary_ts(channel=primary, start=start-pad,
-                                   end=end+pad, active_segs=active_segs,
+        primaryts = get_primary_ts(channel=primary, start=start,
+                                   end=end, active_segs=active_segs,
                                    filepath=args.primary_file,
                                    frametype=args.primary_frametype,
                                    cache=args.primary_cache,
-                                   nproc=args.nproc).crop(start, end)
+                                   nproc=args.nproc)
 
     if args.remove_outliers:
         LOGGER.debug(
