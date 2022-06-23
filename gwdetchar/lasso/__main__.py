@@ -283,7 +283,9 @@ def get_primary_ts(channel, start, end, active_segs,
         LOGGER.info('Using custom TimeSeries file')
         return TimeSeries.read(filepath, channel=channel,
                                start=start, end=end,
-                               format='gwf', nproc=nproc)
+                               format='gwf',
+                               verbose='Reading primary:'.rjust(30),
+                               nproc=nproc)
     else:
         return primary_stitch(channel, frametype,
                               active_segs, cache, nproc)
@@ -297,7 +299,9 @@ def get_active_segs(start, end, ifo):
     usable_flag = f"{ifo}:DMT-ANALYSIS_READY:1"
     active_times = DataQualityFlag.query(usable_flag, start, end).active
     active_times = [span for span in active_times if span[1] - span[0] > 180]
-    LOGGER.debug("The active times identified are:\n", active_times)
+    # list segs for debug msg
+    log_times = [f"({span[0]}, {span[1]})" for span in active_times]
+    LOGGER.debug("The active times identified are:\n", log_times)
     return active_times
 
 
@@ -330,8 +334,8 @@ def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
     auxdata = {}
     for segment in active_segs:
         LOGGER.debug(f'Fetching segment ({segment.start}, {segment.end})')
-        seg_aux_data = get_data(channel_list, segment.start + 60,
-                                segment.end - 60, verbose='Reading:'.rjust(30),
+        seg_aux_data = get_data(channel_list, segment.start,
+                                segment.end, verbose='Reading:'.rjust(30),
                                 frametype=aux_frametype, nproc=nproc).crop(segment.start,
                                                                            segment.end)
         # k=channel name, v=timeseries
@@ -539,7 +543,8 @@ def main(args=None):
     range_is_primary = 'EFFECTIVE_RANGE_MPC' in args.primary_channel
     if args.primary_cache is not None:
         LOGGER.info("Using custom primary cache file")
-    elif args.primary_frametype is None:
+    # not reading primary channel from file
+    elif args.primary_frametype is None and args.primary_file is None:
         try:
             args.primary_frametype = DEFAULT_FRAMETYPE[
                 primary.split(':')[1]].format(ifo=args.ifo)
