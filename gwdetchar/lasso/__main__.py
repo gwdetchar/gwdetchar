@@ -280,14 +280,12 @@ def get_primary_ts(channel, start, end, active_segs,
     by either reading a .gwf file or querying
     """
     if filepath is not None:
-        LOGGER.info('Reading primary channel file')
+        LOGGER.info('Using custom TimeSeries file')
         return TimeSeries.read(filepath, channel=channel,
                                start=start, end=end,
                                format='gwf', nproc=nproc)
     else:
-        LOGGER.info('Querying primary channel')
-        # need option to change outlier removal type
-        return primary_stitch(channel, primary_frametype,
+        return primary_stitch(channel, frametype,
                               active_segs, cache, nproc)
 
 
@@ -298,8 +296,8 @@ def get_active_segs(start, end, ifo):
     """
     usable_flag = f"{ifo}:DMT-ANALYSIS_READY:1"
     active_times = DataQualityFlag.query(usable_flag, start, end).active
-    active_times = [span for span in active_times if span[1] - span[0] > 60]
-    print("The active times identified are:\n", active_times)
+    active_times = [span for span in active_times if span[1] - span[0] > 180]
+    LOGGER.debug("The active times identified are:\n", active_times)
     return active_times
 
 
@@ -310,15 +308,15 @@ def primary_stitch(primary_channel, primary_frametype,
     then add them into one TimeSeries
     """
     primary_values = []
-    print('----Fetch primary channel data----')
     for segment in active_segs:
+        LOGGER.debug(f'Fetching segment ({segment.start}, {segment.end})')
         seg_primary_data = get_data(primary_channel, segment.start, segment.end,
                                     verbose='Reading primary:'.rjust(30),
                                     frametype=primary_frametype,
                                     source=cache,
                                     nproc=nproc).crop(segment.start, segment.end)
         primary_values.extend(seg_primary_data)
-    print('----Primary channel data finished----')
+    LOGGER.debug('----Primary channel data finished----')
     return TimeSeries(primary_values)
 
 
@@ -331,12 +329,11 @@ def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
     """
     auxdata = {}
     for segment in active_segs:
-        print('----Fetch auxiliary channel data----')
+        LOGGER.debug(f'Fetching segment ({segment.start}, {segment.end})')
         seg_aux_data = get_data(channel_list, segment.start + 60,
                                 segment.end - 60, verbose='Reading:'.rjust(30),
                                 frametype=aux_frametype, nproc=nproc).crop(segment.start,
                                                                            segment.end)
-        print('Fetched')
         # k=channel name, v=timeseries
         for k, v in seg_aux_data.items():
             if k in auxdata:
@@ -344,7 +341,7 @@ def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
             else:
                 auxdata[k] = []
                 auxdata[k].extend(v.value)
-    print('----Auxiliary channel data finished----')
+    LOGGER.debug('----Auxiliary channel data finished----')
     for k, v in auxdata.items():
         auxdata[k] = TimeSeries(v)
     return auxdata
