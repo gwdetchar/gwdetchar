@@ -329,7 +329,10 @@ def primary_stitch(primary_channel, primary_frametype,
         primary_values.extend(seg_primary_data.value)
         cur += 1
     LOGGER.debug('----Primary channel data finished----')
-    return TimeSeries(primary_values, t0=active_segs[0][0])
+    new_start = float(active_segs[0].start)
+    new_end = new_start+60*len(primary_values)
+    times = numpy.linspace(new_start, new_end, len(primary_values))
+    return TimeSeries(primary_values, times=times)
 
 
 def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
@@ -357,8 +360,11 @@ def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
                 auxdata[k].extend(v.value)
         cur += 1
     LOGGER.debug('----Auxiliary channel data finished----')
+    new_start = float(active_segs[0].start)
     for k, v in auxdata.items():
-        auxdata[k] = TimeSeries(v)
+        new_end = new_start+60*len(v)
+        times = numpy.linspace(new_start, new_end, len(v))
+        auxdata[k] = TimeSeries(v, times=times)
     return auxdata
 
 
