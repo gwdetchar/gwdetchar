@@ -23,6 +23,9 @@ import sys
 
 from gwpy.timeseries import TimeSeries
 
+from gwpy.segments import DataQualityFlag
+from gwpy.segments import Segment
+
 import numpy
 
 from MarkupPy import markup
@@ -269,20 +272,107 @@ def _process_channel(input_):
     return (chan, lassocoef, plot4, plot5, plot6, ts)
 
 
-def get_primary_ts(channel, start, end, filepath=None,
-                   frametype=None, cache=None, nproc=1):
-    """Retrieve primary channel timeseries
+def get_primary_ts(channel, start, end, active_segs,
+                   filepath=None, frametype=None,
+                   cache=None, nproc=1):
+    """
+    Retrieve primary channel timeseries
     by either reading a .gwf file or querying
     """
     if filepath is not None:
-        LOGGER.info('Reading primary channel file')
-        return TimeSeries.read(filepath, channel=channel, start=start, end=end,
-                               format='gwf', nproc=nproc)
+        LOGGER.info('Using custom TimeSeries file')
+        return TimeSeries.read(filepath, channel=channel,
+                               start=start, end=end,
+                               format='gwf',
+                               verbose='Reading primary:'.rjust(30),
+                               nproc=nproc)
     else:
-        LOGGER.info('Querying primary channel')
-        return get_data(channel, start, end,
-                        verbose='Reading primary:'.rjust(30),
-                        frametype=frametype, source=cache, nproc=nproc)
+        return primary_stitch(channel, frametype,
+                              active_segs, cache, nproc)
+
+
+def get_active_segs(start, end, ifo):
+    """
+    Get active flag segments for the ifo
+    - used for getting primary & aux channel data
+    """
+    usable_flag = f"{ifo}:DMT-ANALYSIS_READY:1"
+    active_times = DataQualityFlag.query(usable_flag, start, end).active
+    active_times = [span for span in active_times if span[1] - span[0] > 180]
+    # list segs for logger msg
+    seg_table = Table(data=([span[0] for span in active_times],
+                          [span[1] for span in active_times]),
+                   names=('Start', 'End'))
+    LOGGER.debug(f"Identified {len(active_times)} active "
+                "segments longer than 180s:\n\n")
+    print(seg_table)
+    print("\n\n")
+    return active_times
+
+
+def primary_stitch(primary_channel, primary_frametype,
+                   active_segs, cache, nproc):
+    """
+    Get primary channel data for active flag segments, 
+    then add them into one TimeSeries
+    """
+    primary_values = []
+    cur = 1
+    for segment in active_segs:
+        LOGGER.info(f'Fetching segment [{cur}/{len(active_segs)}] '
+                    f'({segment.start}, {segment.end})')
+        seg_primary_data = get_data(primary_channel, segment.start, segment.end,
+                                    verbose='Reading primary:'.rjust(30),
+                                    frametype=primary_frametype,
+                                    source=cache,
+                                    nproc=nproc).crop(segment.start, segment.end)
+        primary_values.extend(seg_primary_data.value)
+        cur += 1
+    LOGGER.debug('----Primary channel data finished----')
+    new_start = float(active_segs[0].start)
+    if trend_type == "second":
+        new_end = new_start+len(primary_values)
+    else:
+        new_end = new_start+60*len(primary_values)
+    times = numpy.linspace(new_start, new_end, len(primary_values))
+    return TimeSeries(primary_values, times=times)
+
+
+def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
+    """
+    Get aux channel data for active flag segments
+    and stitch into single TimeSeries -
+    for each channel, have a single TimeSeries of
+    all data over the segments
+    """
+    auxdata = {}
+    cur = 1
+    for segment in active_segs:
+        LOGGER.info(f'Fetching segment [{cur}/{len(active_segs)}] '
+                    f'({segment.start}, {segment.end})')
+        seg_aux_data = get_data(channel_list, segment.start,
+                                segment.end, verbose='Reading:'.rjust(30),
+                                frametype=aux_frametype, nproc=nproc).crop(segment.start,
+                                                                           segment.end)
+        # k=channel name, v=timeseries
+        for k, v in seg_aux_data.items():
+            if k in auxdata:
+                auxdata[k].extend(v.value)
+            else:
+                auxdata[k] = []
+                auxdata[k].extend(v.value)
+        cur += 1
+    LOGGER.debug('----Auxiliary channel data finished----')
+    new_start = float(active_segs[0].start)
+    if trend_type == "second":
+        dt = 1
+    else:
+        dt = 60
+    for k, v in auxdata.items():
+        new_end = new_start+dt*len(v)
+        times = numpy.linspace(new_start, new_end, len(v))
+        auxdata[k] = TimeSeries(v, times=times)
+    return auxdata
 
 
 # -- parse command line -------------------------------------------------------
@@ -339,7 +429,6 @@ def create_parser():
         default='{ifo}:DMT-SNSH_EFFECTIVE_RANGE_MPC.mean',
         help='name of primary channel to use',
     )
-    # primary channel filepath argument
     parser.add_argument(
         '-pf',
         '--primary-file',
@@ -494,6 +583,9 @@ def main(args=None):
     # multiprocessing for plots
     nprocplot = (args.nproc_plot or args.nproc) if USETEX else 1
 
+    # get active segments for primary and aux stitching
+    active_segs = get_active_segs(start, end, args.ifo)
+
     # bandpass primary
     if args.band_pass:
         try:
@@ -502,8 +594,9 @@ def main(args=None):
             flower, fupper = None
 
         LOGGER.info("-- Loading primary channel data")
-        bandts = get_primary_ts(filepath=args.primary_file, channel=primary,
-                                start=start-pad, end=end+pad,
+        bandts = get_primary_ts(channel=primary, start=start-pad,
+                                end=end+pad, active_segs=active_segs,
+                                filepath=args.primary_file,
                                 frametype=args.primary_frametype,
                                 cache=args.primary_cache, nproc=args.nproc)
         if flower < 0 or fupper >= float((bandts.sample_rate/2.).value):
@@ -547,11 +640,12 @@ def main(args=None):
     else:
         # load primary channel data
         LOGGER.info("-- Loading primary channel data")
-        primaryts = get_primary_ts(filepath=args.primary_file, channel=primary,
-                                   start=start, end=end,
+        primaryts = get_primary_ts(channel=primary, start=start,
+                                   end=end, active_segs=active_segs,
+                                   filepath=args.primary_file,
                                    frametype=args.primary_frametype,
                                    cache=args.primary_cache,
-                                   nproc=args.nproc).crop(start, end)
+                                   nproc=args.nproc)
 
     if args.remove_outliers:
         LOGGER.debug(
@@ -586,9 +680,7 @@ def main(args=None):
         frametype = '%s_T' % args.ifo  # for second trends
 
     # read aux channels
-    auxdata = get_data(
-        channels, start, end, verbose='Reading:'.rjust(30),
-        frametype=frametype, nproc=args.nproc, pad=0).crop(start, end)
+    auxdata = aux_stitch(channels, frametype, active_segs, nproc=args.nproc)
 
     # -- removes flat data to be re-introdused later
 
