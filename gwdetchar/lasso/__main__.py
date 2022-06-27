@@ -330,7 +330,10 @@ def primary_stitch(primary_channel, primary_frametype,
         cur += 1
     LOGGER.debug('----Primary channel data finished----')
     new_start = float(active_segs[0].start)
-    new_end = new_start+60*len(primary_values)
+    if trend_type == "second":
+        new_end = new_start+len(primary_values)
+    else:
+        new_end = new_start+60*len(primary_values)
     times = numpy.linspace(new_start, new_end, len(primary_values))
     return TimeSeries(primary_values, times=times)
 
@@ -361,8 +364,12 @@ def aux_stitch(channel_list, aux_frametype, active_segs, nproc=1):
         cur += 1
     LOGGER.debug('----Auxiliary channel data finished----')
     new_start = float(active_segs[0].start)
+    if trend_type == "second":
+        dt = 1
+    else:
+        dt = 60
     for k, v in auxdata.items():
-        new_end = new_start+60*len(v)
+        new_end = new_start+dt*len(v)
         times = numpy.linspace(new_start, new_end, len(v))
         auxdata[k] = TimeSeries(v, times=times)
     return auxdata
@@ -857,22 +864,13 @@ def main(args=None):
     page.h1(title, class_='pb-2 mt-3 mb-2 border-bottom')
 
     # -- summary table
-    
-    if args.remove_outliers:
-        outlierremove = '%s sigma' % args.remove_outliers
-    elif args.remove_outliers_pf:
-        percentoutlier = args.remove_outliers_pf * 100
-        outlierremove = '%s percent' % percentoutlier
-    else:
-        outlierremove = 'None'
-        
     content = [
         ('Primary channel', markup.oneliner.code(primary)),
         ('Primary frametype', markup.oneliner.code(
             args.primary_frametype) or '-'),
         ('Primary cache file', markup.oneliner.code(
             args.primary_cache) or '-'),
-        ('Outlier threshold', outlierremove),
+        ('Outlier threshold', '%s sigma' % args.remove_outliers),
         ('Lasso coefficient threshold', str(threshold)),
         ('Cluster coefficient threshold', str(args.cluster_coefficient)),
         ('Non-zero coefficients', str(numpy.count_nonzero(model.coef_))),
@@ -923,8 +921,8 @@ def main(args=None):
     page.div(class_='card card-%s card-body shadow-sm' % args.ifo.lower())
     page.div(class_='row')
     page.div(class_='col-md-8 offset-md-2', id_='results-table')
-    page.p('Below are the top {} mean %s-trend channels, ranked by '
-           'Lasso correlation with the primary.'.format(df.shape[0]) % args.trend_type)
+    page.p('Below are the top {} mean minute-trend channels, ranked by '
+           'Lasso correlation with the primary.'.format(df.shape[0]))
     page.add(df.to_html(
         classes=('table', 'table-sm', 'table-hover'),
         formatters={
