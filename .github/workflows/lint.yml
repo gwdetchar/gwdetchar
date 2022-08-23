@@ -47,6 +47,5 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install "sphinx"
         python -m pip install "rstcheck"
-        ;
     - name: Lint with rstcheck
       run: rstcheck . --recursive
