@@ -27,9 +27,9 @@ import sys
 
 from getpass import getuser
 from MarkupPy import markup
+from pygments import __version__ as pygments_version
 from pytz import reference
 from unittest import mock
-from pygments import __version__ as pygments_version
 
 from gwpy.segments import (Segment, DataQualityFlag)
 
