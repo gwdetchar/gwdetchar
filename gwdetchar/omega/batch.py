@@ -188,6 +188,7 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
         output=logdir,
         getenv=True,
         request_memory=4096 if universe != "local" else None,
+        request_disk='1G' if universe != "local" else None,
         extra_lines=condor_commands,
     )
     # make a node in the workflow for each event time
