@@ -27,6 +27,7 @@ import sys
 
 from getpass import getuser
 from MarkupPy import markup
+from pygments import __version__ as pygments_version
 from pytz import reference
 from unittest import mock
 
@@ -72,32 +73,49 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 TEST_CONFIGURATION = """[section]
 key = value"""
 
-ABOUT = """<div class="row">
+if pygments_version >= "2.11.0":
+    pygments_output = (
+        '<span style="color: #bbbbbb"></span>\n'
+        '<span style="color: #687822">key</span>'
+        '<span style="color: #bbbbbb"> </span>'
+        '<span style="color: #666666">=</span>'
+        '<span style="color: #bbbbbb"> </span>'
+        '<span style="color: #BA2121">value</span>'
+        '<span style="color: #bbbbbb"></span>'
+    )
+else:
+    pygments_output = (
+        '\n'
+        '<span style="color: #7D9029">key</span> '
+        '<span style="color: #666666">=</span> '
+        '<span style="color: #BA2121">value</span>'
+    )
+
+ABOUT = f"""<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>$ gwdetchar-scattering -i X1
 </pre></div>
 
-<p>The install path used was <code>{}</code>.</p>
+<p>The install path used was <code>{sys.prefix}</code>.</p>
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
-<span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">[section]</span>{pygments_output}
 </pre></div>
 
 <h2 class="mt-4">Environment</h2><table class="table table-sm table-hover table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-outline-secondary btn-table mt-2" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
 </div>
-</div>""".format(sys.prefix)  # noqa: E501
+</div>"""  # noqa: E501
 
-ABOUT_WITH_CONFIG_LIST = """<div class="row">
+ABOUT_WITH_CONFIG_LIST = f"""<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>$ gwdetchar-scattering -i X1
 </pre></div>
 
-<p>The install path used was <code>{}</code>.</p>
+<p>The install path used was <code>{sys.prefix}</code>.</p>
 <h2>Configuration files</h2>
 <p>The following INI-format configuration file(s) were passed on the comand-line and are reproduced here in full:</p>
 <div id="accordion">
@@ -107,8 +125,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 </div>
 <div id="file0" class="collapse" data-parent="#accordion">
 <div class="card-body">
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">[section]</span>
-<span style="color: #7D9029">key</span> <span style="color: #666666">=</span> <span style="color: #BA2121">value</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span><span style="color: #008000; font-weight: bold">[section]</span>{pygments_output}
 </pre></div>
 
 </div>
@@ -117,7 +134,7 @@ ABOUT_WITH_CONFIG_LIST = """<div class="row">
 </div>
 <h2 class="mt-4">Environment</h2><table class="table table-sm table-hover table-responsive" id="package-table"><caption>Table of packages installed in the production environment</caption><thead><tr><th scope="col">Name</th><th scope="col">Version</th></tr></thead><tbody><tr><td>gwdetchar</td><td>1.2.3</td></tr><tr><td>gwpy</td><td>1.0.0</td></tr></tbody></table><button class="btn btn-outline-secondary btn-table mt-2" data-table-id="package-table" data-filename="package-table.csv">Export to CSV</button>
 </div>
-</div>""".format(sys.prefix)  # noqa: E501
+</div>"""  # noqa: E501
 
 HTML_FOOTER = """<footer class="footer">
 <div class="container">
