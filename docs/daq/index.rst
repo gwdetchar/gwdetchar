@@ -34,7 +34,7 @@ The :mod:`gwdetchar.overflow` command-line interface searches for overflows in a
 
 .. code-block:: bash
 
-   python -m gwdetchar.overflow -i <interferometer> <gps-start-time> <gps-end-time> <DCUIDs>
+   python -m gwdetchar.overflow -i `<interferometer>` `<gps-start-time>` `<gps-end-time>` `<DCUIDs>`
 
 For example,
 

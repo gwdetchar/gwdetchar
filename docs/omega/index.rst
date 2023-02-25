@@ -45,7 +45,7 @@ The :mod:`gwdetchar.omega` command-line interface is a Q-transform utility for g
 
 .. code-block:: bash
 
-   python -m gwdetchar.omega -i <interferometer> <gps-time>
+   python -m gwdetchar.omega -i `<interferometer>` `<gps-time>`
 
 For example,
 
@@ -66,7 +66,7 @@ The simplest usage is much the same as for :mod:`gwdetchar.omega`, but with mult
 
 .. code-block:: bash
 
-   python -m gwdetchar.omega.batch -i <interferometer> <gps-time-1> <gps-time-2> <gps-time-3> ...
+   python -m gwdetchar.omega.batch -i `<interferometer>` `<gps-time-1>` `<gps-time-2>` `<gps-time-3>` `...`
 
 Alternatively, you can pass all of the times in a single file:
 
