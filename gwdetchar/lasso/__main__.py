@@ -590,10 +590,13 @@ def main(args=None):
         channels, start, end, verbose='Reading:'.rjust(30),
         frametype=frametype, nproc=args.nproc, pad=0).crop(start, end)
 
+    # re-order aux channels to the same order as channel list
+    
+    [auxdata.move_to_end(key=ch) for ch in channels if ch]
+        
     # -- removes flat data to be re-introdused later
 
     LOGGER.info('-- Pre-processing auxiliary channel data')
-
     auxdata = gwlasso.remove_flat(auxdata)
     flatable = Table(data=(list(set(channels) - set(auxdata.keys())),),
                      names=('Channels',))
@@ -615,7 +618,7 @@ def main(args=None):
     # create model
     LOGGER.info('-- Fitting data to target')
     target = scale(primaryts.value)
-    model = gwlasso.fit(data, target, alpha=args.alpha)
+    model = gwlasso.fit(data, target, alpha=args.alpha, )
     LOGGER.info('Alpha: {}'.format(model.alpha))
 
     # restructure results for convenience
