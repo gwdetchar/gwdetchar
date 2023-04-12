@@ -290,7 +290,7 @@ def main(args=None):
                 corr2 = 0.0
                 corr2s = 0.0
             # if all corralations are below threshold it does not plot
-            if((abs(corr1) < args.threshold)
+            if ((abs(corr1) < args.threshold)
                and (abs(corr1s) < args.threshold)
                and (abs(corr2) < args.threshold)
                and (abs(corr2s) < args.threshold)):
@@ -522,13 +522,13 @@ def main(args=None):
             h = '%s [%s = %.2f]' % (ch, r_blrms, corr1)
         if (corr1 is None) or (corr1 == 0) or (plot1 is None):
             context = 'bg-light'
-        elif((numpy.absolute(corr1) >= .6) or (numpy.absolute(corr1s) >= .6)
-             or (numpy.absolute(corr2) >= .6)
-             or (numpy.absolute(corr2s) >= .6)):
+        elif ((numpy.absolute(corr1) >= .6) or (numpy.absolute(corr1s) >= .6)
+              or (numpy.absolute(corr2) >= .6)
+              or (numpy.absolute(corr2s) >= .6)):
             context = 'text-white bg-danger'
-        elif((numpy.absolute(corr1) >= .4) or (numpy.absolute(corr1s) >= .4)
-             or (numpy.absolute(corr2) >= .4)
-             or (numpy.absolute(corr2s) >= .4)):
+        elif ((numpy.absolute(corr1) >= .4) or (numpy.absolute(corr1s) >= .4)
+              or (numpy.absolute(corr2) >= .4)
+              or (numpy.absolute(corr2s) >= .4)):
             context = 'text-white bg-warning'
         else:
             context = 'text-white bg-info'
