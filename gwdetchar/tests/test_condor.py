@@ -19,7 +19,6 @@
 """Test suite for `gwdetchar.condor`
 """
 
-import json
 import os
 import tempfile
 
@@ -46,7 +45,7 @@ def test_accounting_epoch(gps, epoch):
 def tagfile():
     name = tempfile.mktemp()
     with open(name, 'w') as tmp:
-        json.dump({'groups': ['tag1', 'tag2', 'tag3']}, tmp)
+        tmp.write("* tag1 found\n* tag2 found\n* tag3 found\n")
     try:
         yield name
     finally:
