@@ -19,13 +19,12 @@
 """HTCondor utilities for `gwdetchar`
 """
 
-import json
 import re
 
 from . import const
 
 OBS_RUN_REGEX = re.compile('[OS][0-9]*', re.I)
-ACCOUNTING_GROUPS_FILE = '/etc/condor/accounting_groups.json'
+ACCOUNTING_GROUPS_FILE = '/etc/condor/accounting/valid_tags'
 
 
 def accounting_epoch(gpstime):
@@ -54,7 +53,7 @@ def is_valid(tag, path=ACCOUNTING_GROUPS_FILE):
     except EnvironmentError:
         valid = True  # failed to load condor tags, not important
     if not valid:
-        listtags = 'cat {0} | json_pp | less'.format(path)
+        listtags = f'cat {path}'
         raise ValueError("condor accounting tag {0!r} not recognised, to see "
                          "the list of valid groups, please run `{1}`".format(
                              tag, listtags))
@@ -80,5 +79,13 @@ def validate_accounting_tag(tag, path=ACCOUNTING_GROUPS_FILE):
 def load_accounting_tags(path=ACCOUNTING_GROUPS_FILE):
     """Load the list of known accounting tags
     """
+
+    # The file is lines like
+    # * <tag> <found>\n
     with open(path, 'r') as fobj:
-        return json.load(fobj)['groups']
+        lines = fobj.readlines()
+
+    for n, line in enumerate(lines):
+        lines[n] = line.split(' ')[1]
+
+    return lines
