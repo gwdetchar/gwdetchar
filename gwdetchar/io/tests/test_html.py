@@ -73,7 +73,17 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 TEST_CONFIGURATION = """[section]
 key = value"""
 
-if pygments_version >= "2.11.0":
+if pygments_version >= "2.14.0":
+    pygments_space_span = '<span style="color: #bbbbbb"> </span>'
+    pygments_output = (
+        '\n'
+        '<span style="color: #687822">key</span>'
+        f'{pygments_space_span}'
+        '<span style="color: #666666">=</span>'
+        f'{pygments_space_span}'
+        '<span style="color: #BA2121">value</span>'
+    )
+elif pygments_version >= "2.11.0":
     pygments_output = (
         '<span style="color: #bbbbbb"></span>\n'
         '<span style="color: #687822">key</span>'
@@ -83,6 +93,7 @@ if pygments_version >= "2.11.0":
         '<span style="color: #BA2121">value</span>'
         '<span style="color: #bbbbbb"></span>'
     )
+    pygments_space_span = ' '
 else:
     pygments_output = (
         '\n'
@@ -95,7 +106,7 @@ ABOUT = f"""<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>$ gwdetchar-scattering -i X1
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>${pygments_space_span}gwdetchar-scattering{pygments_space_span}-i{pygments_space_span}X1
 </pre></div>
 
 <p>The install path used was <code>{sys.prefix}</code>.</p>
@@ -112,7 +123,7 @@ ABOUT_WITH_CONFIG_LIST = f"""<div class="row">
 <div class="col-md-12">
 <h2>On the command-line</h2>
 <p>This page was generated with the following command-line call:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>$ gwdetchar-scattering -i X1
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>${pygments_space_span}gwdetchar-scattering{pygments_space_span}-i{pygments_space_span}X1
 </pre></div>
 
 <p>The install path used was <code>{sys.prefix}</code>.</p>
@@ -225,6 +236,12 @@ OMEGA_SCAFFOLD = """<div class="card card-x1">
 </ul>
 </div>
 </div>"""  # noqa: E501
+
+CMDLINE = f"""<p>This page was generated with the following command-line call:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%;"><span></span>${pygments_space_span}gwdetchar-conlog{pygments_space_span}-i{pygments_space_span}X1
+</pre></div>
+
+<p>The install path used was <code>{sys.prefix}.</p>"""  # noqa: E501
 
 
 # -- HTML unit tests ----------------------------------------------------------
@@ -360,7 +377,8 @@ def test_get_command_line():
                 '-i', 'X1']
     with mock.patch.object(sys, 'argv', testargs):
         cmdline = str(html.get_command_line())
-        assert 'gwdetchar-conlog -i X1' in cmdline
+        assert (f'gwdetchar-conlog{pygments_space_span}-i'
+                f'{pygments_space_span}X1') in cmdline
         assert not ('--html-only' in cmdline)
         assert 'The install path used was <code>{}</code>'.format(
             sys.prefix) in cmdline
