@@ -100,7 +100,7 @@ def test_fit():
 def test_find_alpha():
     # find the optimal alpha parameter
     alpha = core.find_alpha(DATA, TARGET)
-    assert alpha == 0.1
+    nptest.assert_almost_equal(alpha, 0.1)
 
 
 def test_remove_flat():
