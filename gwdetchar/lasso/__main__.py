@@ -640,7 +640,7 @@ def main(args=None):
     print('\n\n')
 
     # convert to pandas
-    set_option('max_colwidth', -1)
+    set_option('max_colwidth', None)
     df = results.to_pandas()
     df.index += 1
 
