@@ -27,6 +27,7 @@ from getpass import getuser
 from pycondor import (Dagman, Job)
 
 from .. import (cli, condor)
+from ..cli import NOW_GPS
 
 # authorship credits
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -114,7 +115,7 @@ def get_command_line_flags(ifo, fscale='log', colormap='viridis', nproc=8,
 
 def get_condor_arguments(accounting_group=ACCOUNTING_GROUP,
                          accounting_group_user=ACCOUNTING_GROUP_USER,
-                         timeout=0, extra_commands=[], gps=0):
+                         timeout=0, extra_commands=[], gps=NOW_GPS):
     """Get a list of arguments for Condor processing
     """
     # get reference epoch
@@ -125,8 +126,8 @@ def get_condor_arguments(accounting_group=ACCOUNTING_GROUP,
     condor.is_valid(accounting_group)
     # determine condor arguments
     condorcmds = [
-        "accounting_group = {}".format(accounting_group),
-        "accounting_group_user = {}".format(accounting_group_user),
+        f"accounting_group = {accounting_group}",
+        f"accounting_group_user = {accounting_group_user}",
     ]
     if timeout:
         condorcmds.append("periodic_remove = {}".format(

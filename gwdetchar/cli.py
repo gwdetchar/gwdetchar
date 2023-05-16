@@ -56,6 +56,7 @@ FIELD_STYLES = {
 
 NOW = datetime.datetime.now()
 TIMEZONE = reference.LocalTimezone().tzname(NOW)
+NOW_GPS = to_gps(NOW)
 
 DATEFMT = '%Y-%m-%d %H:%M:%S {}'.format(TIMEZONE)
 FMT = '%(name)s %(asctime)s %(levelname)+8s: %(message)s'
