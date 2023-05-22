@@ -34,7 +34,6 @@ from sklearn.preprocessing import scale
 from sklearn.preprocessing import *
 
 from pandas import set_option
-import pandas as pd
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
