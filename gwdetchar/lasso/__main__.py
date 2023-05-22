@@ -34,7 +34,7 @@ from sklearn.preprocessing import scale
 from sklearn.preprocessing import *
 
 from pandas import set_option
-
+import pandas as pd
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
@@ -617,7 +617,9 @@ def main(args=None):
     nafter = len(auxdata)
     LOGGER.debug('Removed {0} channels with bad data'.format(nbefore - nafter))
     LOGGER.debug('{0} channels remaining'.format(nafter))
-    data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
+    data = numpy.array([ts.value for ts in auxdata.values()]).T
+    scaler = StandardScaler()
+    data = scaler.fit_transform(data)
 
     # -- perform lasso regression -------------------
 
