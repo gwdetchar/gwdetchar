@@ -601,7 +601,6 @@ def main(args=None):
     # -- removes flat data to be re-introdused later
 
     LOGGER.info('-- Pre-processing auxiliary channel data')
-    
     auxdata = gwlasso.remove_flat(auxdata)
     flatable = Table(data=(list(set(channels) - set(auxdata.keys())),),
                      names=('Channels',))
