@@ -30,10 +30,9 @@ from MarkupPy import markup
 from astropy.table import Table
 
 from sklearn import linear_model
-from sklearn.preprocessing import scale
+from sklearn.preprocessing import StandardScaler, scale
 
 from pandas import set_option
-
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
@@ -116,7 +115,8 @@ def _generate_cluster(input_):
             # plot
             fig = Plot(figsize=(12, 4))
             fig.subplots_adjust(*p7)
-            ax = fig.gca(xscale='auto-gps')
+            ax = fig.gca()
+            ax.set_xscale('auto-gps')
             ax.plot(
                 times, scale(currentts.value)*numpy.sign(input_[1][1]),
                 label=texify(currentchan), linewidth=line_size_aux,
@@ -214,7 +214,10 @@ def _process_channel(input_):
             tsscaled = numpy.negative(tsscaled)
         fig = Plot(figsize=(12, 4))
         fig.subplots_adjust(*p1)
-        ax = fig.gca(xscale='auto-gps', epoch=start, xlim=xlim)
+        ax = fig.gca()
+        ax.set_xscale('auto-gps')
+        ax.set_epoch(start)
+        ax.set_xlim(xlim)
         ax.plot(times, _descaler(target), label=texify(primary),
                 color='black', linewidth=line_size_primary)
         ax.plot(times, _descaler(tsscaled), label=texify(chan),
@@ -590,10 +593,13 @@ def main(args=None):
         channels, start, end, verbose='Reading:'.rjust(30),
         frametype=frametype, nproc=args.nproc, pad=0).crop(start, end)
 
+    # re-order aux channels to the same order as channel list
+
+    [auxdata.move_to_end(key=ch) for ch in channels if ch]
+
     # -- removes flat data to be re-introdused later
 
     LOGGER.info('-- Pre-processing auxiliary channel data')
-
     auxdata = gwlasso.remove_flat(auxdata)
     flatable = Table(data=(list(set(channels) - set(auxdata.keys())),),
                      names=('Channels',))
@@ -608,7 +614,9 @@ def main(args=None):
     nafter = len(auxdata)
     LOGGER.debug('Removed {0} channels with bad data'.format(nbefore - nafter))
     LOGGER.debug('{0} channels remaining'.format(nafter))
-    data = numpy.array([scale(ts.value) for ts in auxdata.values()]).T
+    data = numpy.array([ts.value for ts in auxdata.values()]).T
+    scaler = StandardScaler()
+    data = scaler.fit_transform(data)
 
     # -- perform lasso regression -------------------
 
@@ -640,7 +648,7 @@ def main(args=None):
     print('\n\n')
 
     # convert to pandas
-    set_option('max_colwidth', -1)
+    set_option('max_colwidth', None)
     df = results.to_pandas()
     df.index += 1
 
@@ -667,7 +675,10 @@ def main(args=None):
 
     plot = Plot(figsize=(12, 4))
     plot.subplots_adjust(*p1)
-    ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
+    ax = plot.gca()
+    ax.set_xscale('auto-gps')
+    ax.set_epoch(start)
+    ax.set_xlim(xlim)
     ax.plot(times, _descaler(target), label=texify(primary),
             color='black', linewidth=line_size_primary)
     ax.plot(times, _descaler(modelFit), label='Lasso model',
@@ -686,7 +697,10 @@ def main(args=None):
     # summed contributions
     plot = Plot(figsize=(12, 4))
     plot.subplots_adjust(*p1)
-    ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
+    ax = plot.gca()
+    ax.set_xscale('auto-gps')
+    ax.set_epoch(start)
+    ax.set_xlim(xlim)
     ax.plot(times, _descaler(target), label=texify(primary),
             color='black', linewidth=line_size_primary)
     summed = 0
@@ -711,7 +725,10 @@ def main(args=None):
     # individual contributions
     plot = Plot(figsize=(12, 4))
     plot.subplots_adjust(*p1)
-    ax = plot.gca(xscale='auto-gps', epoch=start, xlim=xlim)
+    ax = plot.gca()
+    ax.set_xscale('auto-gps')
+    ax.set_epoch(start)
+    ax.set_xlim(xlim)
     ax.plot(times, _descaler(target), label=texify(primary),
             color='black', linewidth=line_size_primary)
     for i, name in enumerate(results['Channel']):
@@ -741,6 +758,7 @@ def main(args=None):
     pool = multiprocessing.Pool(nprocplot)
     results = pool.map(_process_channel, enumerate(list(nonzerodata.items())))
     results = sorted(results, key=lambda x: abs(x[1]), reverse=True)
+    pool.close()
 
     #  generate clustered time series plots
     counter = multiprocessing.Value('i', 0)
@@ -750,6 +768,7 @@ def main(args=None):
         LOGGER.info("-- Generating clusters")
         pool = multiprocessing.Pool(nprocplot)
         clusters = pool.map(_generate_cluster, enumerate(results))
+        pool.close()
 
     channelsfile = '%s-CHANNELS-%s.csv' % (args.ifo, gpsstub)
     numpy.savetxt(channelsfile, channels, delimiter=',', fmt='%s')
