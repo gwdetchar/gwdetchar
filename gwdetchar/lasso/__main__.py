@@ -594,9 +594,9 @@ def main(args=None):
         frametype=frametype, nproc=args.nproc, pad=0).crop(start, end)
 
     # re-order aux channels to the same order as channel list
-    
+
     [auxdata.move_to_end(key=ch) for ch in channels if ch]
-        
+
     # -- removes flat data to be re-introdused later
 
     LOGGER.info('-- Pre-processing auxiliary channel data')
