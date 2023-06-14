@@ -30,8 +30,7 @@ from MarkupPy import markup
 from astropy.table import Table
 
 from sklearn import linear_model
-from sklearn.preprocessing import scale
-from sklearn.preprocessing import *
+from sklearn.preprocessing import StandardScaler, scale
 
 from pandas import set_option
 from gwpy.detector import ChannelList
