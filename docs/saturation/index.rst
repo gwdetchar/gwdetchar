@@ -31,7 +31,7 @@ The :mod:`gwdetchar.saturation` command-line interface searches (typically sever
 
 .. code-block:: bash
 
-   python -m gwdetchar.saturation -i <interferometer> <gps-start-time> <gps-end-time>
+   python -m gwdetchar.saturation -i `<interferometer>` `<gps-start-time>` `<gps-end-time>`
 
 For example,
 

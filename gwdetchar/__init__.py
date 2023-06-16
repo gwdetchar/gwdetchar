@@ -23,9 +23,15 @@ This package extends the GWpy package for gravitational-wave
 data processing (https://gwpy.github.io).
 """
 
-from ._version import get_versions
+try:
+    from ._version import version as __version__
+except ModuleNotFoundError:
+    try:
+        import setuptools_scm
+        __version__ = setuptools_scm.get_version(fallback_version='?.?.?')
+    except (ModuleNotFoundError, TypeError, LookupError):
+        __version__ = '?.?.?'
 
-__version__ = get_versions()['version']
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
-
-del get_versions
+__credits__ = ('Alex Urban <alex.urban@ligo.org>, ',
+               'Evan Goetz <evan.goetz@ligo.org>')

@@ -1,3 +1,2 @@
 include README.rst LICENSE MANIFEST.in
-include versioneer.py setup.py
 include gwdetchar/_version.py

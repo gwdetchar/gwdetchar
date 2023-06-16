@@ -24,7 +24,6 @@ import shutil
 from io import StringIO
 
 from .. import (config, html)
-from ..._version import get_versions
 from ...utils import parse_html
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -32,9 +31,6 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
 # global test objects
-
-VERSION = get_versions()['version']
-COMMIT = get_versions()['full-revisionid']
 
 HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo} shadow-sm">
 <div class="container-fluid">
