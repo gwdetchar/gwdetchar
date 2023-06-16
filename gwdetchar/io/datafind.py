@@ -149,8 +149,8 @@ def get_data(channel, start, end, frametype=None, source=None,
         print verbose output about NDS progress, default: False
 
     **kwargs : `dict`, optional
-        additional keyword arguments to `~gwpy.timeseries.TimeSeries.read`
-        or `~gwpy.timeseries.TimeSeries.get`
+        additional keyword arguments to `~gwpy.timeseries.TimeSeries.read`,
+        `~gwpy.timeseries.TimeSeries.get`, or `~gwpy.io.datafind.find_urls`
 
     Returns
     -------
@@ -191,7 +191,9 @@ def get_data(channel, start, end, frametype=None, source=None,
         try:  # locate frame files
             ifo = re.search('[A-Z]1', frametype).group(0)
             obs = ifo[0]
-            source = io_datafind.find_urls(obs, frametype, start, end)
+            on_gaps = kwargs.get('on_gaps', 'error')
+            source = io_datafind.find_urls(obs, frametype, start, end,
+                                           on_gaps=on_gaps, **kwargs)
         except AttributeError:
             raise AttributeError(
                 'Could not determine observatory from frametype')
