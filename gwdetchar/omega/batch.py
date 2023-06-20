@@ -22,6 +22,7 @@
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 from getpass import getuser
 from pycondor import (Dagman, Job)
@@ -138,9 +139,18 @@ def get_condor_arguments(accounting_group=ACCOUNTING_GROUP,
     return condorcmds
 
 
-def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
-                 submit=False, outdir=os.getcwd(), universe='vanilla',
-                 condor_commands=get_condor_arguments()):
+def generate_dag(
+    times,
+    flags=[],
+    tag='gwdetchar-omega-batch',
+    submit=False,
+    outdir=os.getcwd(),
+    universe='vanilla',
+    request_cpus=1,
+    request_disk=1,  # GB
+    request_memory=4,  # GB
+    condor_commands=get_condor_arguments(),
+):
     """Construct a Directed Acyclic Graph (DAG) for a batch of omega scans
 
     Parameters
@@ -166,6 +176,15 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
     universe : `str`, optional
         condor universe to run in, default: `'vanilla'`
 
+    request_cpus : `int`, optional
+        number of CPUs to request for condor job
+
+    request_disk : `float`, optional
+        amount of disk (in gigabytes) to request for condor job
+
+    request_memory : `float`, optional
+        amount of memory (in gigabytes) to request for condor job
+
     condor_commands : `list` of `str`, optional
         list of condor settings to process with, defaults to the output of
         `get_condor_arguments`
@@ -175,26 +194,68 @@ def generate_dag(times, flags=[], tag='gwdetchar-omega-batch',
     dagman : `~pycondor.Dagman`
         the fully built DAG object
     """
-    logdir = os.path.join(outdir, 'logs')
-    subdir = os.path.join(outdir, 'condor')
+    outdir = Path(outdir)
+    initialdir = outdir
+    logdir = outdir / "logs"
+    subdir = outdir / "condor"
+
+    # set condor file transfer options
+    if universe == "local":
+        condor_file_transfer = []
+    else:
+        outdir = Path(".")
+        input_files = []
+        for i, flag in enumerate(map(Path, flags)):
+            if flag.is_file():
+                input_files.append(str(flag))
+                flags[i] = flag.name
+        condor_file_transfer = [
+            "should_transfer_files = yes",
+            "transfer_executable = false",
+            f"transfer_input_files = {','.join(input_files)}",
+            "transfer_output_files = $(GPSTIME)",
+            "when_to_transfer_output = ON_SUCCESS",
+            "success_exit_code = 0",
+        ]
+
+    # set environment
+    getenv = ", ".join([
+        "CONDA_EXE",  # for the HTML conda package list
+        # for data discovery
+        "GWDATAFIND_SERVER",
+        "NDSSERVER",
+    ])
+
     # create DAG and jobs
-    dagman = Dagman(name=tag, submit=subdir)
+    dagman = Dagman(name=tag, submit=str(subdir))
     job = Job(
         dag=dagman,
         name='gwdetchar-omega',
         executable=sys.executable,
         universe=universe,
-        submit=subdir,
-        error=logdir,
-        output=logdir,
-        getenv=True,
-        request_memory=4096 if universe != "local" else None,
-        extra_lines=condor_commands,
+        submit=str(subdir),
+        log=str(logdir),
+        error=str(logdir),
+        output=str(logdir),
+        getenv=getenv,
+        request_cpus=request_cpus,
+        request_disk=f"{request_disk} GB",
+        request_memory=f"{request_memory} GB",
+        extra_lines=condor_commands + [
+            f"initialdir = {initialdir}",
+        ] + condor_file_transfer,
     )
     # make a node in the workflow for each event time
     for t in times:
-        cmd = " ".join(["-m", "gwdetchar.omega", str(t)] + [
-            "--output-directory", os.path.join(outdir, str(t))] + flags)
+        cmd = " ".join([
+            "-m",
+            "gwdetchar.omega",
+            str(t),
+            "--output-directory",
+            str(outdir / str(t)),
+        ] + flags)
+        # hack the command to insert another argument into the dagman file
+        cmd += f'" GPSTIME="{t}'
         job.add_arg(cmd, name=str(t).replace(".", "_"))
     # write and submit the DAG
     dagman.build(fancyname=False)
@@ -403,6 +464,7 @@ def main(args=None):
         outdir=outdir,
         universe=args.universe,
         condor_commands=condorcmds,
+        request_cpus=args.nproc,
     )
 
     # monitor DAG progress
