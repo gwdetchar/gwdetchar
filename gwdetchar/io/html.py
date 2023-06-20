@@ -48,6 +48,8 @@ from .._version import __version__
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credit__ = 'Alex Urban <alexander.urban@ligo.org>'
 
+CONDA = os.getenv("CONDA_EXE", None) or "conda"
+
 # -- give context for ifo names
 
 OBSERVATORY_MAP = {
@@ -1265,7 +1267,7 @@ def package_list():
     prefix = sys.prefix
     if (Path(prefix) / "conda-meta").is_dir():
         raw = subprocess.check_output([
-            "conda",
+            CONDA,
             "list",
             "--prefix",
             prefix,
