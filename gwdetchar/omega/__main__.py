@@ -386,8 +386,7 @@ def main(args=None):
                 continue
 
             if channel.name not in data:
-                LOGGER.warning(
-                    ' -- No data found for {}, skipping channel'.format(channel.name))
+                # Channel must not have been found by get_data()
                 continue
 
             analyzed = _scan_channel(
