@@ -903,18 +903,18 @@ def main(args=None):
         # -- Generate a segment summary page
 
         # write html
-        trange = f'{seg[0]}-{seg[1]}'
-        title = f'{args.ifo} Lasso Correlation: {trange}'
+        title = f'{args.ifo} Lasso Correlation: {gpsblock}'
         if args.band_pass:
-            links = [trange] + [(s, '#%s' % s.lower()) for s in
-                                ['Parameters', 'Spectra', 'Model', 'Results']]
+            links = [gpsblock] + [(s, f'#{s.lower()}') for s in
+                                  ['Parameters', 'Spectra', 'Model',
+                                   'Results']]
         else:
-            links = [trange] + [(s, '#%s' % s.lower()) for s in
-                                ['Parameters', 'Model', 'Results']]
+            links = [gpsblock] + [(s, f'#{s.lower()}') for s in
+                                  ['Parameters', 'Model', 'Results']]
         (brand, class_) = htmlio.get_brand(args.ifo, 'Lasso', seg[0])
         navbar = htmlio.navbar(links, class_=class_, brand=brand)
         page = htmlio.new_bootstrap_page(
-            title=f'{args.ifo} Lasso | {trange}',
+            title=f'{args.ifo} Lasso | {gpsblock}',
             navbar=navbar)
         page.h1(title, class_='pb-2 mt-3 mb-2 border-bottom')
 
@@ -1180,7 +1180,7 @@ def main(args=None):
     sections = [[f'{i+1}: {gpsblocks[i]}', f'#{gpsblocks[i]}']
                 for i, seg in enumerate(gpsblocks)]
     date = tconvert(start)
-    links = ['-'.join([date.year, date.month, date.day]),
+    links = [date.strftime('%Y-%m-%d'),
              ['Summary', '#'],
              ['Segments', [['Analyses', sections]]]]
     (brand, class_) = htmlio.get_brand(args.ifo, 'Daily Lasso', start)
@@ -1233,14 +1233,14 @@ def main(args=None):
         page.add(htmlio.alert(
             f'No segments of length {args.segment_min_length/3600} hours or '
             f'longer were found in state <code>{state_flag}</code> on '
-            f'{date.year}-{date.month}-{date.day}',
+            f"{date.strftime('%Y-%m-%d')}",
             dismiss=False,
         ))
     else:
         page.add(htmlio.alert(
             f'A total of {len(segs)} segments were found in state '
-            f'<code>{state_flag}</code> on {date.year}-{date.month}-'
-            f'{date.day}, of which {len(lasso_segs)} are at least '
+            f"<code>{state_flag}</code> on {date.strftime('%Y-%m-%d')} "
+            f'of which {len(lasso_segs)} are at least '
             f'{args.segment_min_length/3600} hours long. These are '
             'summarized and linked below. The list of channels for each '
             'segment represents the largest contributors in modeling '
