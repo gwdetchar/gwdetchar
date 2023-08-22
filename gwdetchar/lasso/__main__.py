@@ -1206,7 +1206,7 @@ def main(args=None):
         '(2018)</a>.'.format(
             lasso_link, primary_nickname, paper_link),
         ))
-    page.add(htmlio.get_command_line())
+    page.add(htmlio.get_command_line(prog=PROG))
     page.div.close()  # page-header
 
     img = htmlio.FancyPlot(
