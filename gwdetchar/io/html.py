@@ -48,6 +48,8 @@ from .._version import __version__
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credit__ = 'Alex Urban <alexander.urban@ligo.org>'
 
+CONDA = os.getenv("CONDA_EXE", None) or "conda"
+
 # -- give context for ifo names
 
 OBSERVATORY_MAP = {
@@ -1264,18 +1266,23 @@ def package_list():
     """
     prefix = sys.prefix
     if (Path(prefix) / "conda-meta").is_dir():
-        raw = subprocess.check_output(
-            ["conda", "list",
-             "--prefix", prefix,
-             "--json"],
-        )
+        raw = subprocess.check_output([
+            CONDA,
+            "list",
+            "--prefix",
+            prefix,
+            "--json",
+        ])
     else:
-        raw = subprocess.check_output(
-            [sys.executable,
-             "-m", "pip",
-             "list", "installed",
-             "--format", "json"],
-        )
+        raw = subprocess.check_output([
+            sys.executable,
+            "-m",
+            "pip",
+            "list",
+            "installed",
+            "--format",
+            "json",
+        ])
     if isinstance(raw, bytes):
         raw = raw.decode('utf-8')
     return json.loads(raw)

@@ -545,6 +545,7 @@ def test_close_page(tmpdir):
     shutil.rmtree(target, ignore_errors=True)
 
 
+@mock.patch.object(html, "CONDA", "conda_exe")
 @mock.patch("{}.Path.is_dir".format(html.Path.__module__))
 @mock.patch("subprocess.check_output", return_value="{\"key\": 0}")
 @pytest.mark.parametrize("isdir, cmd", [
@@ -555,7 +556,7 @@ def test_close_page(tmpdir):
     ),
     pytest.param(
         True,
-        "conda list --prefix {} --json".format(sys.prefix),
+        "conda_exe list --prefix {} --json".format(sys.prefix),
         id="conda",
     ),
 ])
