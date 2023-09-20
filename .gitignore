@@ -40,7 +40,7 @@ pip-delete-this-directory.txt
 /docs/api/gwdetchar*
 
 # Version information
-/gwdetchar/version.py
+/gwdetchar/_version.py
 
 # OS/editor files
 *.swp

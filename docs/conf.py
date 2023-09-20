@@ -57,7 +57,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'GWDetChar'
-copyright = u'2021, Alex Urban and Duncan Macleod'
+copyright = u'2023, Alex Urban, Duncan Macleod'
 author = 'Alex Urban, Duncan Macleod'
 
 # The version info for the project you're documenting, acts as replacement for

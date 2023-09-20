@@ -19,35 +19,40 @@
 """Utilties for LIGO_LW XML I/O
 """
 
+from ligo.lw import (
+    ligolw,
+    table,
+)
 try:
-    from glue.ligolw import (ligolw, table, lsctables)
-except ImportError as exc:
-    exc.args = ("{!s}, please install lscsoft-glue to "
-                "handle LIGO_LW files".format(exc),)
+    from ligo.lw import lsctables
+except ModuleNotFoundError as exc:
+    exc.msg = (
+        f"{exc.msg}, please install python-lal / python3-lal / lalsuite "
+        "to handle LIGO_LW files"
+    )
+    exc.args = (exc.msg,)
     raise
 
 from gwpy.segments import (Segment, DataQualityFlag, DataQualityDict)
-
-LIGOTimeGPS = lsctables.LIGOTimeGPS
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
 def new_table(tab, *args, **kwargs):
-    """Create a new `~glue.ligolw.Table`
+    """Create a new `~ligo.lw.table.Table`
 
-    This is just a convenience wrapper around `~glue.ligolw.lsctables.New`
+    This is just a convenience wrapper around `~ligo.lw.lsctables.New`
 
     Parameters
     ----------
     tab : `type`, `str`
-        `~glue.ligolw.Table` subclass, or name of table to create
+        `~ligo.lw.table.Table` subclass, or name of table to create
     *args, **kwargs
-        other parameters are passed directly to `~glue.ligolw.lsctables.New`
+        other parameters are passed directly to `~ligo.lw.lsctables.New`
 
     Returns
     -------
-    table : `~glue.ligolw.Table`
+    table : `~ligo.lw.table.Table`
         a newly-created table with the relevant attributes and structure
     """
     if isinstance(tab, str):
@@ -66,7 +71,7 @@ def sngl_burst_from_times(times, **params):
     for t in times:
         row = RowType()
         row.event_id = get_next_id()
-        row.set_peak(LIGOTimeGPS(t))
+        row.peak = t
         for key, val in params.items():
             setattr(row, key, val)
         append(row)
@@ -77,14 +82,14 @@ def sngl_burst_from_segments(segs, **params):
     """Create a `SnglBurstTable from a `~ligo.segments.segmentlist`
     """
     table = new_table('sngl_burst', columns=params.keys())
-    next_id = table.next_id
+    get_next_id = table.get_next_id
     RowType = table.RowType
     append = table.append
     for seg in segs:
         row = RowType()
-        row.event_id = next_id()
-        row.set_period(seg)
-        row.set_peak(LIGOTimeGPS(seg[0] + abs(seg)/2.))
+        row.event_id = get_next_id()
+        row.peak = seg[0] + abs(seg) / 2.
+        row.period = seg
         for key, val in params.items():
             setattr(row, key, val)
         append(row)
@@ -100,7 +105,7 @@ def segments_from_sngl_burst(table, padding, known=None):
     """
     out = DataQualityDict()
     for row in table:
-        t = row.get_peak()
+        t = row.peak
         seg = Segment(t-padding, t+padding)
         try:
             out[row.channel].active.append(seg)

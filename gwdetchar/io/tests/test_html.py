@@ -34,7 +34,7 @@ from unittest import mock
 from gwpy.segments import (Segment, DataQualityFlag)
 
 from .. import html
-from ..._version import get_versions
+from ..._version import __version__ as gwdetchar_version
 from ...utils import parse_html
 
 from matplotlib import use
@@ -45,8 +45,7 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 # global test objects
 
-VERSION = get_versions()['version']
-COMMIT = get_versions()['full-revisionid']
+VERSION = gwdetchar_version
 
 STYLESHEETS = '\n'.join([
     '<link href="{}" rel="stylesheet" media="all" />'.format(css)
@@ -151,7 +150,7 @@ HTML_FOOTER = """<footer class="footer">
 <div class="container">
 <div class="row">
 <div class="col-sm-3 icon-bar">
-<a href="https://github.com/gwdetchar/gwdetchar/tree/%s" title="View gwdetchar-%s on GitHub" target="_blank"><i class="fas fa-code"></i></a>
+<a href="https://github.com/gwdetchar/gwdetchar" title="View gwdetchar-%s on GitHub" target="_blank"><i class="fas fa-code"></i></a>
 <a href="https://github.com/gwdetchar/gwdetchar/issues" title="Open an issue ticket" target="_blank"><i class="fas fa-ticket-alt"></i></a>
 <a href="about" title="How was this page generated?"><i class="fas fa-info-circle"></i></a>
 <a href="external" title="View this page&quot;s external source"><i class="fas fa-external-link-alt"></i></a>
@@ -162,7 +161,7 @@ HTML_FOOTER = """<footer class="footer">
 </div>
 </div>
 </div>
-</footer>""" % (COMMIT, VERSION)  # noqa: E501
+</footer>""" % (VERSION)  # noqa: E501
 
 HTML_CLOSE = """</div>
 %s
@@ -556,6 +555,7 @@ def test_close_page(tmpdir):
     shutil.rmtree(target, ignore_errors=True)
 
 
+@mock.patch.object(html, "CONDA", "conda_exe")
 @mock.patch("{}.Path.is_dir".format(html.Path.__module__))
 @mock.patch("subprocess.check_output", return_value="{\"key\": 0}")
 @pytest.mark.parametrize("isdir, cmd", [
@@ -566,7 +566,7 @@ def test_close_page(tmpdir):
     ),
     pytest.param(
         True,
-        "conda list --prefix {} --json".format(sys.prefix),
+        "conda_exe list --prefix {} --json".format(sys.prefix),
         id="conda",
     ),
 ])

@@ -385,6 +385,10 @@ def main(args=None):
                 html.write_qscan_page(ifo, gps, analyzed, **htmlv)
                 continue
 
+            if channel.name not in data:
+                # Channel must not have been found by get_data()
+                continue
+
             analyzed = _scan_channel(
                 channel, data[channel.name], analyzed, gps, block,
                 args.far_threshold, (args.frequency_scaling == 'log'),

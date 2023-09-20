@@ -41,7 +41,7 @@ The :mod:`gwdetchar.scattering` command-line interface searches over a standard 
 
 .. code-block:: bash
 
-   python -m gwdetchar.scattering -i <interferometer> <gps-start-time> <gps-end-time>
+   python -m gwdetchar.scattering -i `<interferometer>` `<gps-start-time>` `<gps-end-time>`
 
 For example,
 
@@ -61,7 +61,7 @@ The :mod:`gwdetchar.scattering.simple` can also be run as a command-line module 
 
 .. code-block:: bash
 
-   python -m gwdetchar.scattering.simple -i <interferometer> <gps-time>
+   python -m gwdetchar.scattering.simple -i `<interferometer>` `<gps-time>`
 
 For a full explanation of the available command-line arguments and options, you can run
 

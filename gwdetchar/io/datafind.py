@@ -149,8 +149,8 @@ def get_data(channel, start, end, frametype=None, source=None,
         print verbose output about NDS progress, default: False
 
     **kwargs : `dict`, optional
-        additional keyword arguments to `~gwpy.timeseries.TimeSeries.read`
-        or `~gwpy.timeseries.TimeSeries.get`
+        additional keyword arguments to `~gwpy.timeseries.TimeSeries.read`,
+        `~gwpy.timeseries.TimeSeries.get`, or `~gwpy.io.datafind.find_urls`
 
     Returns
     -------
@@ -187,11 +187,15 @@ def get_data(channel, start, end, frametype=None, source=None,
     else:
         series_class = TimeSeries
 
+    pad = kwargs.pop('pad', None)
+
     if frametype is not None:
         try:  # locate frame files
             ifo = re.search('[A-Z]1', frametype).group(0)
             obs = ifo[0]
-            source = io_datafind.find_urls(obs, frametype, start, end)
+            on_gaps = kwargs.get('on_gaps', 'error')
+            source = io_datafind.find_urls(obs, frametype, start, end,
+                                           on_gaps=on_gaps, **kwargs)
         except AttributeError:
             raise AttributeError(
                 'Could not determine observatory from frametype')
@@ -203,16 +207,16 @@ def get_data(channel, start, end, frametype=None, source=None,
     if source:  # read from frame files
         return series_class.read(
             source, channel, start=start, end=end, nproc=nproc,
-            verbose=verbose, **kwargs)
+            verbose=verbose, pad=pad, **kwargs)
 
     # read single channel from NDS
     if not isinstance(channel, (list, tuple)):
         return series_class.get(
-            channel, start, end, verbose=verbose, **kwargs)
+            channel, start, end, verbose=verbose, pad=pad, **kwargs)
 
     # if all else fails, process channels in groups of 60
     data = series_class()
     for group in [channel[i:i + 60] for i in range(0, len(channel), 60)]:
         data.append(series_class.get(
-            group, start, end, verbose=verbose, **kwargs))
+            group, start, end, verbose=verbose, pad=pad, **kwargs))
     return data

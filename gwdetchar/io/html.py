@@ -43,10 +43,12 @@ from pygments.lexers import get_lexer_by_name
 from gwpy.time import from_gps
 
 from ..plot import plot_segments
-from .._version import get_versions
+from .._version import __version__
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credit__ = 'Alex Urban <alexander.urban@ligo.org>'
+
+CONDA = os.getenv("CONDA_EXE", None) or "conda"
 
 # -- give context for ifo names
 
@@ -1185,10 +1187,8 @@ def write_footer(about=None, link=None, issues=None, external=None):
     markup.element('footer', case=page.case, parent=page)(class_='footer')
     page.div(class_='container')
     if link is None:
-        version = get_versions()['version']
-        commit = get_versions()['full-revisionid']
-        package = 'gwdetchar-%s' % version
-        source = 'https://github.com/gwdetchar/gwdetchar/tree/%s' % commit
+        package = f'gwdetchar-{__version__}'
+        source = 'https://github.com/gwdetchar/gwdetchar'
         host = 'GitHub'
     elif isinstance(link, (tuple, list)):
         package, source, host = link
@@ -1266,18 +1266,23 @@ def package_list():
     """
     prefix = sys.prefix
     if (Path(prefix) / "conda-meta").is_dir():
-        raw = subprocess.check_output(
-            ["conda", "list",
-             "--prefix", prefix,
-             "--json"],
-        )
+        raw = subprocess.check_output([
+            CONDA,
+            "list",
+            "--prefix",
+            prefix,
+            "--json",
+        ])
     else:
-        raw = subprocess.check_output(
-            [sys.executable,
-             "-m", "pip",
-             "list", "installed",
-             "--format", "json"],
-        )
+        raw = subprocess.check_output([
+            sys.executable,
+            "-m",
+            "pip",
+            "list",
+            "installed",
+            "--format",
+            "json",
+        ])
     if isinstance(raw, bytes):
         raw = raw.decode('utf-8')
     return json.loads(raw)

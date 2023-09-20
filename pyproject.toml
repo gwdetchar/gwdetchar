@@ -1,0 +1,135 @@
+[build-system]
+requires = [
+  "setuptools>=61",
+  "setuptools_scm[toml]>=3.4.3",
+  "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gwdetchar"
+description = "A python package for gravitational-wave detector characterisation"
+readme = "README.rst"
+requires-python = ">=3.9"
+authors = [
+  { name = "Alex Urban", email = "alex.urban@ligo.org" },
+  { name = "Duncan Macleod", email = "duncan.macleod@ligo.org" },
+]
+maintainers = [
+  { name = "Evan Goetz", email = "evan.goetz@ligo.org" },
+]
+license = { text = "GPL-3.0-or-later" }
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Astronomy",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+
+dependencies = [
+  "astropy >=3.0.0",
+  "beautifulsoup4",
+  "coloredlogs",
+  "gwdatafind",
+  "gwpy >=3.0.0",
+  "gwtrigfind",
+  "lalsuite",
+  "ligo-segments",
+  "lxml",
+  "MarkupPy >=1.14",
+  "matplotlib >=3.1.0,<=3.7.1",
+  "numpy >=1.16",
+  "pandas",
+  "pycondor",
+  "pygments >=2.7.3",
+  "python-ligo-lw",
+  "pytz",
+  "scikit-learn",
+  "scipy >=1.2.0",
+]
+
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = [
+  "flake8",
+  "pytest >=3.3.0",
+  "pytest-cov >=2.4.0",
+]
+doc = [
+  "numpydoc",
+  "sphinx",
+  "sphinx_bootstrap_theme",
+  "sphinxcontrib-programoutput",
+]
+
+[project.scripts]
+gwdetchar-conlog = "gwdetchar.conlog:main"
+gwdetchar-lasso-correlation = "gwdetchar.lasso.__main__:main"
+gwdetchar-mct = "gwdetchar.mct:main"
+gwdetchar-nagios = "gwdetchar.nagios.__main__:main"
+gwdetchar-omega = "gwdetchar.omega.__main__:main"
+gwdetchar-omega-batch = "gwdetchar.omega.batch:main"
+gwdetchar-overflow = "gwdetchar.overflow:main"
+gwdetchar-slow-correlation = "gwdetchar.lasso.old:main"
+gwdetchar-software-saturations = "gwdetchar.saturation.__main__:main"
+gwdetchar-scattering = "gwdetchar.scattering.__main__:main"
+gwdetchar-scattering-simple = "gwdetchar.scattering.simple:main"
+
+[project.urls]
+"Documentation" = "https://gwdetchar.readthedocs.io"
+"Source Code" = "https://github.com/gwdetchar/gwdetchar"
+"Bug Tracker" = "https://github.com/gwdetchar/gwdetchar/issues"
+"Discussion Forum" = "https://gwdetchar.slack.com"
+
+[tool.setuptools]
+license-files = [ "LICENSE" ]
+
+[tool.setuptools.packages.find]
+include = [ "gwdetchar*" ]
+
+[tool.setuptools_scm]
+write_to = "gwdetchar/_version.py"
+
+[tool.coverage.run]
+source = [ "gwdetchar" ]
+omit = [
+  # don't report coverage for _version.py
+  # (generated automatically by setuptools-scm)
+  "*/_version.py",
+  "gwdetchar/tests/*",
+  "gwdetchar/**/tests/*.py",
+  # omit scripts for now, will be done in a future PR
+  "gwdetchar/mct.py",
+  "gwdetchar/overflow.py",
+  "gwdetchar/lasso/__main__.py",
+  "gwdetchar/lasso/old.py",
+  "gwdetchar/saturation/__main__.py",
+]
+
+[tool.coverage.report]
+# print report with one decimal point
+precision = 1
+
+[tool.pytest.ini_options]
+addopts = "-r s"
+
+[tool.rstcheck]
+report_level = "SEVERE"
+ignore_languages = [
+  "bash",
+]
+ignore_directives = [
+  "autosummary",
+  "command-output",
+]
