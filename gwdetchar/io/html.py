@@ -766,9 +766,15 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
     aparams.update(linkparams)
     img = str(img)
     substrings = os.path.basename(img).split('-')
-    channel = '%s-%s' % tuple(substrings[:2])
-    duration = substrings[-1].split('.')[0]
-    page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
+    if len(substrings) == 4:
+        # this is the expected format, use channel and duration
+        channel = '%s-%s' % tuple(substrings[:2])
+        duration = substrings[-1].split('.')[0]
+        img_str = '%s_%s' % (channel, duration)
+    else:
+        # unexpected format, use entire image name
+        img_str = os.path.basename(img).split('.')[0]
+    page.a(href=img, id_='a_%s' % img_str, **aparams)
     src_attr = lazy and 'data-src' or 'src'
     imgparams = {
         'alt': os.path.basename(img),
@@ -776,7 +782,7 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
         src_attr: img.replace('.svg', '.png'),
     }
     imgparams.update(params)
-    page.img(id_='img_%s_%s' % (channel, duration), **imgparams)
+    page.img(id_='img_%s' % img_str, **imgparams)
     page.a.close()
     return page()
 
