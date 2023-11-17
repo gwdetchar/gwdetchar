@@ -543,7 +543,7 @@ def main(args=None):
     to_remove = ['.*\.n$', '.*.min$', '.*.max$', '.*.rms$']  # noqa: W605
     if range_is_primary:
         to_remove.extend([
-            'OAF-RANGE', 'SENSEMON', 'SENSMON',
+            'OAF*RANGE', 'SENSEMON', 'SENSMON',
             'CAL-CS_DARM', ':SUS-.*TM.*MODE[0-9]',
             'SQZ-DCPD_', 'CAL-CS_TDEP_*', 'PCAL*COHERENCE',
             'ASC-ADS*'])
