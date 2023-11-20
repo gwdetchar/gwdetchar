@@ -766,13 +766,17 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
     aparams.update(linkparams)
     img = str(img)
     substrings = os.path.basename(img).split('-')
-    if len(substrings) == 4:
-        # this is the expected format, use channel and duration
+    try:
+        # If is the expected format, use channel and duration
+        if substrings[0] not in OBSERVATORY_MAP.keys():
+            raise TypeError
         channel = f'{substrings[0]}-{substrings[1]}'
-        duration = substrings[-1].split('.')[0]
+        duration = int(substrings[-1].split('.')[0])
         img_str = f'{channel}_{duration}'
-    else:
-        # unexpected format, use entire image name
+    except:
+        # If unexpected format, use entire image name
+        # This only changes the label of the image in the html code
+        # and not the format of the page itself
         img_str = os.path.basename(img).split('.')[0]
     page.a(href=img, id_=f'a_{img_str}', **aparams)
     src_attr = lazy and 'data-src' or 'src'
