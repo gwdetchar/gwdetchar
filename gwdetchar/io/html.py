@@ -768,7 +768,9 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
     substrings = os.path.basename(img).split('-')
     try:
         # If is the expected format, use channel and duration
-        if substrings[0] not in OBSERVATORY_MAP.keys():
+        ifo_str = substrings[0]
+        if not (len(ifo_str) == 2 and ifo_str[0].isalpha() and 
+                ifo_str[1].isdigit()):
             raise TypeError
         channel = f'{substrings[0]}-{substrings[1]}'
         duration = int(substrings[-1].split('.')[0])
