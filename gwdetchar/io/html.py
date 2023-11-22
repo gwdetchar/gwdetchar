@@ -769,13 +769,15 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
     try:
         # If is the expected format, use channel and duration
         ifo_str = substrings[0]
-        if not (len(ifo_str) == 2 and ifo_str[0].isalpha() and 
+        if not (len(ifo_str) == 2 and ifo_str[0].isalpha() and
                 ifo_str[1].isdigit()):
             raise TypeError
+        duration = substrings[-1].split('.')[0]
+        if not duration.isdigit():
+            raise TypeError
         channel = f'{substrings[0]}-{substrings[1]}'
-        duration = int(substrings[-1].split('.')[0])
         img_str = f'{channel}_{duration}'
-    except:
+    except TypeError:
         # If unexpected format, use entire image name
         # This only changes the label of the image in the html code
         # and not the format of the page itself
