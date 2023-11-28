@@ -770,7 +770,7 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
         # If is the expected format, use channel and duration
         ifo_str = substrings[0]
         if not (len(ifo_str) == 2 and ifo_str[0].isalpha() and
-                ifo_str[-1].isdigit()):
+                ifo_str[1].isdigit()):
             raise TypeError
         duration = substrings[-1].split('.')[0]
         if not duration.isdigit():
