@@ -36,6 +36,7 @@ from pandas import set_option
 from gwpy.io.datafind import find_urls
 from gwpy.io.gwf import get_channel_names
 from gwpy.segments import (
+    Segment,
     SegmentList,
     DataQualityFlag,
 )
@@ -481,6 +482,12 @@ def create_parser():
         type=int,
         help='data-quality segments must be at least this many seconds'
     )
+    segm.add_argument(
+        '--intersect-data-segs',
+        action='store_true',
+        default=False,
+        help='intersect data quality segments with available data'
+    )
 
     # return the argument parser
     return parser
@@ -576,6 +583,39 @@ def main(args=None):
         if abs(seg) >= args.segment_min_length:
             padded_seg = seg.contract(args.segment_padding)
             lasso_segs.append(padded_seg)
+
+    # If requested, find data and check if available, then intersect with
+    # lasso_segs
+    if args.intersect_data_segs:
+        # First the primary channel frametype: make a list of segments
+        # that the data URLs cover. Join segments that are contiguous.
+        # Finally, take the intersection of the segments
+        data_segs = SegmentList([])
+        for i, seg in enumerate(lasso_segs):
+            cache = find_urls(args.ifo[0], args.primary_frametype,
+                              seg[0], seg[1])
+            for url in cache:
+                filedata = os.path.splitext(
+                    os.path.basename(url))[0].split('-')
+                filestart = int(filedata[-2])
+                fileend = filestart + int(filedata[-1])
+                data_segs.append(Segment(filestart, fileend))
+        data_segs.coalesce()
+        lasso_segs &= data_segs
+
+        # Same as above, but this time for the auxiliary frametype
+        data_segs = SegmentList([])
+        for i, seg in enumerate(lasso_segs):
+            cache = find_urls(args.ifo[0], aux_frametype,
+                              seg[0], seg[1])
+            for url in cache:
+                filedata = os.path.splitext(
+                    os.path.basename(url))[0].split('-')
+                filestart = int(filedata[-2])
+                fileend = filestart + int(filedata[-1])
+                data_segs.append(Segment(filestart, fileend))
+        data_segs.coalesce()
+        lasso_segs &= data_segs
 
     # Loop over lasso segments
     files = []
