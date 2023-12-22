@@ -261,15 +261,17 @@ def generate_dag(
     dagman.build(fancyname=False)
     print("Workflow generated for {} times".format(len(times)))
     if submit:
-        dagman.submit_dag(submit_options="-force")
+        dagman.submit_dag(
+            submit_options=f"-force -include_env {getenv.replace(' ', '')}")
         print(
             "Submitted to condor, check status via:\n\n"
-            "$ condor_q {}".format(getuser())
+            f"$ condor_q {getuser()}"
         )
     else:
         print(
             "Submit to condor via:\n\n"
-            "$ condor_submit_dag {0.submit_file}".format(dagman),
+            f"$ condor_submit_dag -include_env {getenv.replace(' ', '')} "
+            f"{dagman.submit_file}"
         )
     return dagman
 
