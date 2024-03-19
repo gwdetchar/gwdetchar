@@ -131,7 +131,7 @@ ABOUT_WITH_CONFIG_LIST = f"""<div class="row">
 <div id="accordion">
 <div class="card mb-1 shadow-sm">
 <div class="card-header">
-<a class="collapsed card-link cis-link" href="#file0" data-toggle="collapse">test.ini</a>
+<a class="collapsed card-link cis-link" href="#file0" data-bs-toggle="collapse">test.ini</a>
 </div>
 <div id="file0" class="collapse" data-parent="#accordion">
 <div class="card-body">
@@ -170,7 +170,7 @@ HTML_CLOSE = """</div>
 
 FLAG_CONTENT = """<div class="card border-warning mb-1 shadow-sm">
 <div class="card-header text-white bg-warning">
-<a class="collapsed card-link cis-link" href="#flag0" data-toggle="collapse">X1:TEST_FLAG</a>
+<a class="collapsed card-link cis-link" href="#flag0" data-bs-toggle="collapse">X1:TEST_FLAG</a>
 </div>
 <div id="flag0" class="collapse" data-parent="#accordion">
 <div class="card-body">{plots}
@@ -289,25 +289,25 @@ def test_dropdown():
     menu = html.dropdown('test', [])
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu '
+        'data-bs-toggle="dropdown">test</a>\n<div class="dropdown-menu '
         'dropdown-1-col shadow">\n</div>')
 
     menu = html.dropdown('test', ['test', '#'], active=0)
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu '
+        'data-bs-toggle="dropdown">test</a>\n<div class="dropdown-menu '
         'dropdown-1-col shadow">\ntest\n#\n</div>')
 
     menu = html.dropdown('test', ['test', '#'], active=[0, 1])
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown">test</a>\n<div class="dropdown-menu '
+        'data-bs-toggle="dropdown">test</a>\n<div class="dropdown-menu '
         'dropdown-1-col shadow">\ntest\n#\n</div>')
 
     menu = html.dropdown('<test />', ['test', '#'], active=[0, 1])
     assert parse_html(str(menu)) == parse_html(
         '<a href="#" class="nav-link dropdown-toggle" role="button" '
-        'data-toggle="dropdown"><test /></a>\n<div class="dropdown-menu '
+        'data-bs-toggle="dropdown"><test /></a>\n<div class="dropdown-menu '
         'dropdown-1-col shadow">\ntest\n#\n</div>')
 
 
@@ -334,7 +334,7 @@ def test_get_brand():
     assert parse_html(help_) == parse_html(
         '<ul class="nav navbar-nav">\n<li class="nav-item dropdown">\n'
         '<a class="nav-link dropdown-toggle" href="#" role="button" '
-        'data-toggle="dropdown">Links</a>\n<div class="dropdown-menu '
+        'data-bs-toggle="dropdown">Links</a>\n<div class="dropdown-menu '
         'dropdown-menu-right shadow">\n<h6 class="dropdown-header">Internal'
         '</h6>\n<a href="about" class="dropdown-item">About this page</a>\n'
         '<div class="dropdown-divider"></div>\n<h6 class="dropdown-header">'
@@ -444,7 +444,7 @@ def test_download_btn():
     assert parse_html(page) == parse_html(
         '<div class="dropdown float-right d-none d-lg-block">\n'
         '<button type="button" class="btn btn-outline-secondary '
-        'dropdown-toggle" data-toggle="dropdown" aria-expanded="false" '
+        'dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" '
         'aria-haspopup="true">Download summary</button>\n<div '
         'class="dropdown-menu dropdown-menu-right shadow">\n<a href="test" '
         'download="test" class="dropdown-item">test</a>\n</div>\n</div>')
