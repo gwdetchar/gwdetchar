@@ -296,7 +296,8 @@ def get_primary_ts(channel, start, end, filepath=None,
         LOGGER.info('Querying primary channel')
         return get_data(channel, start, end,
                         verbose='Reading primary:'.rjust(30),
-                        frametype=frametype, source=cache, nproc=nproc)
+                        frametype=frametype, source=cache, nproc=nproc,
+                        on_gaps='warn')
 
 
 # -- parse command line -------------------------------------------------------
@@ -649,7 +650,7 @@ def main(args=None):
                     f"Removing flat/bad channels in segment {gpsblock}")
                 data = get_data(aux_channels, int(seg[0]), int(seg[0]) + 600,
                                 frametype=aux_frametype, nproc=args.nproc,
-                                pad=0)
+                                pad=0, on_gaps='warn')
                 data = gwlasso.remove_flat(data)
                 data = gwlasso.remove_bad(data)
                 aux_channels = list(data.keys())
@@ -754,7 +755,8 @@ def main(args=None):
             verbose='Reading:'.rjust(30),
             frametype=aux_frametype,
             nproc=args.nproc,
-            pad=0)
+            pad=0,
+            on_gaps='warn')
 
         # re-order aux channels to the same order as channel list
 
@@ -1151,7 +1153,8 @@ def main(args=None):
     # frontend_channel = '%s:DMT-SNSW_EFFECTIVE_RANGE_MPC.mean' % ifo
 
     primary_ts = get_data(primary, start, end, pad=numpy.nan,
-                          frametype=args.primary_frametype)
+                          frametype=args.primary_frametype,
+                          on_gaps='warn')
 
     """gds_timeseries = get_data(
         gds_channel, gpsstart, gpsend, pad=numpy.nan,
