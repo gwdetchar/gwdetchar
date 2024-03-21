@@ -669,7 +669,7 @@ def main(args=None):
         page.div(class_='card border-%s mb-1 shadow-sm' % context)
         page.div(class_='card-header text-white bg-%s' % context)
         page.a(channel, class_='collapsed card-link cis-link',
-               href='#osem%s' % i, **{'data-toggle': 'collapse'})
+               href='#osem%s' % i, **{'data-bs-toggle': 'collapse'})
         page.div.close()  # card-header
         page.div(id_='osem%s' % i, class_='collapse',
                  **{'data-parent': '#osems-group'})

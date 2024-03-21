@@ -1086,7 +1086,7 @@ def main(args=None):
             # heading
             page.div(class_=card_header)
             page.a(h, class_='collapsed card-link cis-link',
-                   href=f'#channel{i}', **{'data-toggle': 'collapse'})
+                   href=f'#channel{i}', **{'data-bs-toggle': 'collapse'})
             page.div.close()  # card-header
             # body
             page.div(id_='channel%d' % i, class_='collapse',
