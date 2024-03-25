@@ -108,21 +108,21 @@ OBSERVATORY_MAP = {
 # -- HTML URLs
 
 FONT_AWESOME_CSS = ('https://cdnjs.cloudflare.com/ajax/libs/'
-                    'font-awesome/5.15.1/css/fontawesome.min.css')
+                    'font-awesome/6.5.1/css/fontawesome.min.css')
 FONT_AWESOME_SOLID_CSS = ('https://cdnjs.cloudflare.com/ajax/libs/'
-                          'font-awesome/5.15.1/css/solid.min.css')
+                          'font-awesome/6.5.1/css/solid.min.css')
 
-JQUERY_JS = 'https://code.jquery.com/jquery-3.5.1.min.js'
+JQUERY_JS = 'https://code.jquery.com/jquery-3.7.1.min.js'
 JQUERY_LAZY_JS = ('https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/'
                   '1.7.11/jquery.lazy.min.js')
-BOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/'
+BOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/bootstrap@5.5.3/'
                 'dist/js/bootstrap.bundle.min.js')
-FANCYBOX_JS = ('https://cdnjs.cloudflare.com/ajax/libs/'
-               'fancybox/3.5.7/jquery.fancybox.min.js')
+FANCYBOX_JS = ('https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/'
+               'dist/fancybox/fancybox.umd.js')
 
-GWBOOTSTRAP_CSS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.2/'
+GWBOOTSTRAP_CSS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.3/'
                    'lib/gwbootstrap.min.css')
-GWBOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.2/'
+GWBOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.3/'
                   'lib/gwbootstrap.min.js')
 
 CSS_FILES = [
@@ -358,7 +358,9 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top shadow-sm',
     if collapse:
         page.button(
             class_='navbar-toggler navbar-toggler-right', type_='button',
-            **{'data-toggle': 'collapse', 'data-target': '.navbar-collapse'})
+            **{'data-bs-toggle': 'collapse',
+               'data-target': '.navbar-collapse',
+               })
         page.span('', class_='navbar-toggler-icon')
         page.button.close()
         page.div(class_='collapse navbar-collapse justify-content-between')
@@ -440,7 +442,7 @@ def dropdown(text, links, active=None, class_='nav-link dropdown-toggle'):
 
     page = markup.page()
     page.a(text, href='#', class_=class_, role='button',
-           **{'data-toggle': 'dropdown'})
+           **{'data-bs-toggle': 'dropdown'})
 
     # work out columns
     ngroup = sum([has_columns(x) for x in links])
@@ -543,7 +545,7 @@ def get_brand(ifo, name, gps, about=None):
     page.ul(class_='nav navbar-nav')
     page.li(class_='nav-item dropdown')
     page.a('Links', class_='nav-link dropdown-toggle',
-           href='#', role='button', **{'data-toggle': 'dropdown'})
+           href='#', role='button', **{'data-bs-toggle': 'dropdown'})
     page.div(class_='dropdown-menu dropdown-menu-right shadow')
     if about is not None:
         page.h6('Internal', class_='dropdown-header')
@@ -608,7 +610,7 @@ def about_this_page(config, packagelist=True, prog=None):
                 os.path.basename(cpfile),
                 class_='collapsed card-link cis-link',
                 href='#file%d' % i,
-                **{'data-toggle': 'collapse'}
+                **{'data-bs-toggle': 'collapse'}
             )
             page.div.close()  # card-header
             page.div(id_='file%d' % i, class_='collapse',
@@ -766,9 +768,23 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
     aparams.update(linkparams)
     img = str(img)
     substrings = os.path.basename(img).split('-')
-    channel = '%s-%s' % tuple(substrings[:2])
-    duration = substrings[-1].split('.')[0]
-    page.a(href=img, id_='a_%s_%s' % (channel, duration), **aparams)
+    try:
+        # If is the expected format, use channel and duration
+        ifo_str = substrings[0]
+        if not (len(ifo_str) == 2 and ifo_str[0].isalpha() and
+                ifo_str[1].isdigit()):
+            raise TypeError
+        duration = substrings[-1].split('.')[0]
+        if not duration.isdigit():
+            raise TypeError
+        channel = f'{substrings[0]}-{substrings[1]}'
+        img_str = f'{channel}_{duration}'
+    except TypeError:
+        # If unexpected format, use entire image name
+        # This only changes the label of the image in the html code
+        # and not the format of the page itself
+        img_str = os.path.basename(img).split('.')[0]
+    page.a(href=img, id_=f'a_{img_str}', **aparams)
     src_attr = lazy and 'data-src' or 'src'
     imgparams = {
         'alt': os.path.basename(img),
@@ -776,7 +792,7 @@ def fancybox_img(img, linkparams=dict(), lazy=False, **params):
         src_attr: img.replace('.svg', '.png'),
     }
     imgparams.update(params)
-    page.img(id_='img_%s_%s' % (channel, duration), **imgparams)
+    page.img(id_=f'img_{img_str}', **imgparams)
     page.a.close()
     return page()
 
@@ -848,7 +864,7 @@ def download_btn(content, label='Download summary',
     page = markup.page()
     page.div(class_=btndiv)
     page.button(label, type='button', class_=btnclass,
-                **{'data-toggle': 'dropdown',
+                **{'data-bs-toggle': 'dropdown',
                    'aria-expanded': 'false',
                    'aria-haspopup': 'true'})
     page.div(class_='dropdown-menu dropdown-menu-right shadow')
@@ -1072,7 +1088,7 @@ def write_flag_html(flag, span=None, id=0, parent='accordion',
     page.div(class_=_get_card_header(context))
     title = title or flag.name
     page.a(title, class_='collapsed card-link cis-link', href='#flag%s' % id,
-           **{'data-toggle': 'collapse'})
+           **{'data-bs-toggle': 'collapse'})
     page.div.close()  # card-header
     page.div(id_='flag%s' % id, class_='collapse',
              **{'data-parent': '#' + parent})
