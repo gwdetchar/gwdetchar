@@ -252,7 +252,7 @@ def test_write_summary():
         '\n<button type="button" class="btn btn-l1 dropdown-toggle" '
         'data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">'
         'Download summary</button>\n<div class="dropdown-menu dropdown-menu-'
-        'right shadow">\n<a href="data/summary.txt" download="L1_0_summary.txt'
+        'end shadow">\n<a href="data/summary.txt" download="L1_0_summary.txt'
         '" class="dropdown-item">txt</a>\n<a href="data/summary.csv" download='
         '"L1_0_summary.csv" class="dropdown-item">csv</a>'
         '\n<a href="data/summary.tex" download="L1_0_summary.tex" '
