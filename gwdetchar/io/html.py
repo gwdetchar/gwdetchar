@@ -120,9 +120,9 @@ BOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/bootstrap@5.5.3/'
 FANCYBOX_JS = ('https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/'
                'dist/fancybox/fancybox.umd.js')
 
-GWBOOTSTRAP_CSS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.4/'
+GWBOOTSTRAP_CSS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.5/'
                    'lib/gwbootstrap.min.css')
-GWBOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.4/'
+GWBOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/gwbootstrap@1.3.5/'
                   'lib/gwbootstrap.min.js')
 
 CSS_FILES = [
