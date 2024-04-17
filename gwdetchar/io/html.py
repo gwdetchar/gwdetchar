@@ -115,7 +115,7 @@ FONT_AWESOME_SOLID_CSS = ('https://cdnjs.cloudflare.com/ajax/libs/'
 JQUERY_JS = 'https://code.jquery.com/jquery-3.7.1.min.js'
 JQUERY_LAZY_JS = ('https://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/'
                   '1.7.11/jquery.lazy.min.js')
-BOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/bootstrap@5.5.3/'
+BOOTSTRAP_JS = ('https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/'
                 'dist/js/bootstrap.bundle.min.js')
 FANCYBOX_JS = ('https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/'
                'dist/fancybox/fancybox.umd.js')
