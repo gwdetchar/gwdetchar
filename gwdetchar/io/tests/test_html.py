@@ -335,7 +335,7 @@ def test_get_brand():
         '<ul class="nav navbar-nav">\n<li class="nav-item dropdown">\n'
         '<a class="nav-link dropdown-toggle" href="#" role="button" '
         'data-bs-toggle="dropdown">Links</a>\n<div class="dropdown-menu '
-        'dropdown-menu-right shadow">\n<h6 class="dropdown-header">Internal'
+        'dropdown-menu-end shadow">\n<h6 class="dropdown-header">Internal'
         '</h6>\n<a href="about" class="dropdown-item">About this page</a>\n'
         '<div class="dropdown-divider"></div>\n<h6 class="dropdown-header">'
         'External</h6>\n<a href="https://ldas-jobs.ligo-wa.caltech.edu/'
@@ -446,7 +446,7 @@ def test_download_btn():
         '<button type="button" class="btn btn-outline-secondary '
         'dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" '
         'aria-haspopup="true">Download summary</button>\n<div '
-        'class="dropdown-menu dropdown-menu-right shadow">\n<a href="test" '
+        'class="dropdown-menu dropdown-menu-end shadow">\n<a href="test" '
         'download="test" class="dropdown-item">test</a>\n</div>\n</div>')
 
 
