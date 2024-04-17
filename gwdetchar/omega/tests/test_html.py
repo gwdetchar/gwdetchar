@@ -61,7 +61,7 @@ HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo} shad
 <ul class="nav navbar-nav">
 <li class="nav-item dropdown">
 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Links</a>
-<div class="dropdown-menu dropdown-menu-right shadow">
+<div class="dropdown-menu dropdown-menu-end shadow">
 <h6 class="dropdown-header">Internal</h6>
 <a href="about" class="dropdown-item">About this page</a>
 <div class="dropdown-divider"></div>

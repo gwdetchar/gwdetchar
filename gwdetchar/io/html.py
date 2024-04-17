@@ -546,7 +546,7 @@ def get_brand(ifo, name, gps, about=None):
     page.li(class_='nav-item dropdown')
     page.a('Links', class_='nav-link dropdown-toggle',
            href='#', role='button', **{'data-bs-toggle': 'dropdown'})
-    page.div(class_='dropdown-menu dropdown-menu-right shadow')
+    page.div(class_='dropdown-menu dropdown-menu-end shadow')
     if about is not None:
         page.h6('Internal', class_='dropdown-header')
         page.a('About this page', href=about, class_='dropdown-item')
@@ -867,7 +867,7 @@ def download_btn(content, label='Download summary',
                 **{'data-bs-toggle': 'dropdown',
                    'aria-expanded': 'false',
                    'aria-haspopup': 'true'})
-    page.div(class_='dropdown-menu dropdown-menu-right shadow')
+    page.div(class_='dropdown-menu dropdown-menu-end shadow')
     for item in content:
         if len(item) == 2:
             text, href = item
