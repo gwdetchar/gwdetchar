@@ -359,7 +359,7 @@ def navbar(links, class_='navbar navbar-expand-md fixed-top shadow-sm',
         page.button(
             class_='navbar-toggler navbar-toggler-right', type_='button',
             **{'data-bs-toggle': 'collapse',
-               'data-target': '.navbar-collapse',
+               'data-bs-target': '.navbar-collapse',
                })
         page.span('', class_='navbar-toggler-icon')
         page.button.close()
