@@ -43,12 +43,12 @@ jobs:
 
     steps:
     - name: Get source code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: Cache conda packages
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       env:
         # increment to reset cache
         CACHE_NUMBER: 0
@@ -58,7 +58,7 @@ jobs:
         restore-keys: ${{ runner.os }}-conda-${{ matrix.python-version }}-
 
     - name: Configure conda
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v3
       with:
         activate-environment: test
         miniforge-variant: Mambaforge
@@ -103,7 +103,7 @@ jobs:
 
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-conda-${{ matrix.os }}-${{ matrix.python-version }}
         path: pytest.xml
