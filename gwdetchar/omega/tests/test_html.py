@@ -35,7 +35,7 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo} shadow-sm">
 <div class="container-fluid">
 <div class="navbar-brand border border-white rounded">{IFO} &Omega;-scan</div>
-<button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-target=".navbar-collapse">
+<button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
 <span class="navbar-toggler-icon"></span>
 </button>
 <div class="collapse navbar-collapse justify-content-between">
