@@ -19,18 +19,28 @@
 """Utility methods
 """
 
-import re
-import sys
-from io import StringIO
 from functools import partial
 from html.parser import HTMLParser
-
+from io import StringIO
 import numpy
+import operator
+import re
+import sys
 
+from gwpy.segments import (DataQualityDict,
+                           DataQualityFlag,
+                           Segment,
+                           SegmentList,
+                           )
 from gwpy.table import EventTable
 
+re_flagdiv = re.compile(r"(&|!=|!|\|)")
+re_cchar = re.compile(r"[\W_]+")
+
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
-__credits__ = 'Alex Urban <alexander.urban@ligo.org>'
+__credits__ = ('Alex Urban <alexander.urban@ligo.org>',
+               'Evan Goetz <evan.goetz@ligo.org>',
+               )
 
 
 # -- class for HTML parsing ---------------------------------------------------
@@ -160,3 +170,90 @@ def table_from_times(times, names=("time", "frequency", "snr"),
     farr = numpy.ones_like(times) * frequency
     sarr = numpy.ones_like(times) * snr
     return EventTable([times, farr, sarr], names=names, **kwargs)
+
+
+def split_compound_flag(compound):
+    """Parse the configuration for this state.
+
+    Returns
+    -------
+    flags : `tuple`
+        a 2-tuple containing lists of flags defining required ON
+        and OFF segments respectively for this state
+    """
+    # find flags
+    divs = re_flagdiv.findall(compound)
+    keys = re_flagdiv.split(compound)
+    # load flags and vetoes
+    union = []
+    intersection = []
+    exclude = []
+    notequal = []
+    for i, key in enumerate(keys[::2]):
+        if not key:
+            continue
+        # get veto bit
+        if i != 0 and divs[i-1] == '!':
+            exclude.append(key)
+        elif i != 0 and divs[i-1] == '|':
+            union.append(key)
+        elif i != 0 and divs[i-1] == '!=':
+            notequal.append(key)
+        else:
+            intersection.append(key)
+    return union, intersection, exclude, notequal
+
+
+def get_states(states, names, gps_start_time, gps_end_time):
+    """ Get states and return a DataQualityDict """
+    flags = states.split(',')
+    names = names.split(',')
+    if 'all' in flags or 'All' in flags or 'ALL' in flags:
+        allstate = True
+        if 'all' in flags:
+            names.remove(names[flags.index('all')])
+            flags.remove('all')
+        elif 'All' in flags:
+            names.remove(names[flags.index('All')])
+            flags.remove('All')
+        else:
+            names.remove(names[flags.index('ALL')])
+            flags.remove('ALL')
+    allflags = set([f for cf in flags for f in
+                    re_flagdiv.split(str(cf))[::2] if f])
+
+    for idx, name in enumerate(names):
+        names[idx] = re_cchar.sub('_', name.lower())
+
+    start = gps_start_time
+    end = gps_end_time
+    span = SegmentList([Segment(start, end)])
+
+    dqdict = DataQualityDict()
+    for f, n in zip(flags, names):
+        dqdict[f] = DataQualityFlag(f, known=span, active=span,
+                                    description=n)
+    dqdict_all = DataQualityDict.query_dqsegdb(allflags, span)
+
+    for compound in flags:
+        union, intersection, exclude, notequal = split_compound_flag(
+            compound)
+        if len(f := (union + intersection)) == 1:
+            dqdict[compound].description = dqdict_all[f[0]].description
+            dqdict[compound].padding = (0, 0)
+        for flist, op in zip([exclude, intersection, union, notequal],
+                             [operator.sub, operator.and_, operator.or_,
+                              notequal]):
+            for f in flist:
+                segs = dqdict_all[f].copy()
+                segs = segs.coalesce()  # just in case
+                dqdict[compound] = op(dqdict[compound], segs)
+            dqdict[compound].known &= span
+            dqdict[compound].active &= span
+            dqdict[compound].coalesce()
+
+    if allstate:
+        dqdict['all'] = DataQualityFlag('all', known=span, active=span,
+                                        description='all')
+
+    return dqdict
