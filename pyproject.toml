@@ -41,7 +41,7 @@ dependencies = [
   "beautifulsoup4",
   "coloredlogs",
   "gwdatafind",
-  "gwpy >=3.0.9",
+  "gwpy >=3.0.10",
   "gwtrigfind",
   "lalsuite",
   "lxml",
