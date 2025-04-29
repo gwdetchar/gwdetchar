@@ -75,7 +75,6 @@ def get_adclist(ifo, model):
 
 
 def model_name_from_dcuid(ifo, dcuid):
-    global DCUID_MAP
     if ifo not in DCUID_MAP:
         DCUID_MAP[ifo] = get_dcuid_map(ifo)
     try:
@@ -86,7 +85,6 @@ def model_name_from_dcuid(ifo, dcuid):
 
 
 def dcuid_from_model_name(ifo, model):
-    global DCUID_MAP
     if ifo not in DCUID_MAP:
         DCUID_MAP[ifo] = get_dcuid_map(ifo)
     for dcuid, name in DCUID_MAP[ifo].items():
@@ -96,7 +94,6 @@ def dcuid_from_model_name(ifo, model):
 
 
 def get_adc_channel(ifo, model, card, slot):
-    global ADC_MAP
     ADC_MAP.setdefault(ifo, {})
     if model not in ADC_MAP[ifo]:
         ADC_MAP[ifo][model] = get_adclist(ifo, model)

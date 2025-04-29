@@ -547,7 +547,7 @@ def main(args=None):
         aux_frametype = f'{args.ifo}_T'  # for second trends
 
     # Remove channels regexp
-    to_remove = ['.*\.n$', '.*.min$', '.*.max$', '.*.rms$']  # noqa: W605
+    to_remove = [r'.*\.n$', '.*.min$', '.*.max$', '.*.rms$']
     if range_is_primary:
         to_remove.extend([
             'OAF.*RANGE', 'SENSEMON', 'SENSMON',
