@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-  "setuptools>=61",
+  "setuptools>=77.0.3",
   "setuptools_scm[toml]>=3.4.3",
   "wheel",
 ]
@@ -18,12 +18,12 @@ authors = [
 maintainers = [
   { name = "Evan Goetz", email = "evan.goetz@ligo.org" },
 ]
-license = { text = "GPL-3.0-or-later" }
+license = "GPL-3.0-or-later"
+license-files = [ "LICENSE" ]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
@@ -91,9 +91,6 @@ gwdetchar-scattering-simple = "gwdetchar.scattering.simple:main"
 "Source Code" = "https://github.com/gwdetchar/gwdetchar"
 "Bug Tracker" = "https://github.com/gwdetchar/gwdetchar/issues"
 "Discussion Forum" = "https://gwdetchar.slack.com"
-
-[tool.setuptools]
-license-files = [ "LICENSE" ]
 
 [tool.setuptools.packages.find]
 include = [ "gwdetchar*" ]
