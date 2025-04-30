@@ -46,7 +46,7 @@ dependencies = [
   "lalsuite",
   "lxml",
   "MarkupPy >=1.14",
-  "matplotlib >=3.9",
+  "matplotlib-base >=3.9",
   "numpy >=1.16",
   "pandas",
   "pycondor",
