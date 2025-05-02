@@ -44,6 +44,7 @@ dependencies = [
   "gwpy >=3.0.10",
   "gwtrigfind",
   "lalsuite",
+  "ligo-gracedb",
   "lxml",
   "MarkupPy >=1.14",
   "matplotlib >=3.9",
@@ -75,6 +76,7 @@ doc = [
 
 [project.scripts]
 gwdetchar-conlog = "gwdetchar.conlog:main"
+gwdetchar-gracedb = "gwdetchar.gracedb.__main__:main"
 gwdetchar-lasso-correlation = "gwdetchar.lasso.__main__:main"
 gwdetchar-mct = "gwdetchar.mct:main"
 gwdetchar-nagios = "gwdetchar.nagios.__main__:main"
