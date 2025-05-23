@@ -610,8 +610,9 @@ def main(args=None):
     # So far we're just warning if there are missing data segments, but we
     # don't want to silently proceed if there is a significant gap. We raise
     # an error if the gap is greater than 10 minutes = 600 seconds
-    if abs(segs) - abs(data_segs) > 600:
-        raise RuntimeError("Missing more than 600 s of frame data")
+    if abs(abs(segs) - abs(data_segs)) > 600:
+        raise RuntimeError(f"Difference in state segs = {abs(segs)} s "
+                           f"and data segs = {abs(data_segs)} s is > 600 s")
 
     # Loop over segments to create the "lasso segments", a perhaps slightly
     # reduced length of segments because of the segment_padding argument and
