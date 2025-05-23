@@ -33,6 +33,7 @@ from sklearn import linear_model
 from sklearn.preprocessing import StandardScaler, scale
 
 from pandas import set_option
+from gwdatafind.utils import file_segment
 from gwpy.io.datafind import find_urls
 from gwpy.io.gwf import get_channel_names
 from gwpy.segments import (
@@ -296,7 +297,8 @@ def get_primary_ts(channel, start, end, filepath=None,
         LOGGER.info('Querying primary channel')
         return get_data(channel, start, end,
                         verbose='Reading primary:'.rjust(30),
-                        frametype=frametype, source=cache, nproc=nproc)
+                        frametype=frametype, source=cache, nproc=nproc,
+                        on_gaps='error')
 
 
 # -- parse command line -------------------------------------------------------
@@ -575,47 +577,57 @@ def main(args=None):
     state.name = state_name
     segs = state.active.coalesce()
 
-    # Loop over segments to create the "lasso segments", a perhaps slightly
-    # reduced length of segments because of the segment_padding argument and
-    # minimum length required
-    lasso_segs = SegmentList([])
-    for i, seg in enumerate(segs):
-        if abs(seg) >= args.segment_min_length:
-            padded_seg = seg.contract(args.segment_padding)
-            lasso_segs.append(padded_seg)
-
     # If requested, find data and check if available, then intersect with
-    # lasso_segs
+    # segs
     if args.intersect_data_segs:
         # First the primary channel frametype: make a list of segments
         # that the data URLs cover. Join segments that are contiguous.
-        # Finally, take the intersection of the segments
-        data_segs = SegmentList([])
-        for i, seg in enumerate(lasso_segs):
+        primary_segs = SegmentList()
+        for i, seg in enumerate(segs):
+            # on_gaps='warn' to avoid problems if there is a missing frame
             cache = find_urls(args.ifo[0], args.primary_frametype,
-                              seg[0], seg[1])
+                              seg[0], seg[1], on_gaps='warn')
             for url in cache:
-                filedata = os.path.splitext(
-                    os.path.basename(url))[0].split('-')
-                filestart = int(filedata[-2])
-                fileend = filestart + int(filedata[-1])
-                data_segs.append(Segment(filestart, fileend))
-        data_segs.coalesce()
-        lasso_segs &= data_segs
+                primary_segs.append(Segment(file_segment(url)))
+        primary_segs.coalesce()
 
         # Same as above, but this time for the auxiliary frametype
-        data_segs = SegmentList([])
-        for i, seg in enumerate(lasso_segs):
+        auxiliary_segs = SegmentList()
+        for i, seg in enumerate(segs):
+            # on_gaps='warn' to avoid problems if there is a missing frame
             cache = find_urls(args.ifo[0], aux_frametype,
-                              seg[0], seg[1])
+                              seg[0], seg[1], on_gaps='warn')
             for url in cache:
-                filedata = os.path.splitext(
-                    os.path.basename(url))[0].split('-')
-                filestart = int(filedata[-2])
-                fileend = filestart + int(filedata[-1])
-                data_segs.append(Segment(filestart, fileend))
-        data_segs.coalesce()
-        lasso_segs &= data_segs
+                auxiliary_segs.append(Segment(file_segment(url)))
+        auxiliary_segs.coalesce()
+
+        data_segs = primary_segs & auxiliary_segs
+        data_segs &= segs  # intersect with state segments
+        data_segs.coalesce()  # just in case
+    else:
+        data_segs = segs
+
+    # So far we're just warning if there are missing data segments, but we
+    # don't want to silently proceed if there is a significant gap. We raise
+    # an error if the gap is greater than 10 minutes = 600 seconds
+    if abs(abs(segs) - abs(data_segs)) > 600:
+        raise RuntimeError(f"Difference in state segs = {abs(segs)} s "
+                           f"and data segs = {abs(data_segs)} s is > 600 s")
+
+    # Loop over segments to create the "lasso segments", a perhaps slightly
+    # reduced length of segments because of the segment_padding argument and
+    # minimum length required
+    # Note that if intersect-data-segs was requested, the code below will
+    # implicitly do the intersection because data_segs are the segments of
+    # available frames
+    lasso_segs = SegmentList()
+    for i, seg in enumerate(data_segs):
+        if abs(seg) >= args.segment_min_length:
+            padded_seg = seg.contract(args.segment_padding)
+            lasso_segs.append(padded_seg)
+    lasso_segs.coalesce()  # just in case
+
+    # At this point, there should be no gaps in data coverage
 
     # Loop over lasso segments
     files = []
@@ -638,7 +650,10 @@ def main(args=None):
         # Remove channels that are "bad" or "flat"
         # Save channels used
         if args.channel_file is None:
-            cache = find_urls(args.ifo[0], aux_frametype, seg[0], seg[1])
+            # here we use the on_gaps='error' because we really shouldn't have
+            # any more missing data at this point
+            cache = find_urls(args.ifo[0], aux_frametype, seg[0], seg[1],
+                              on_gaps='error')
             aux_channels = get_channel_names(cache[0])
             aux_channels = list(filter(
                 lambda x: not remove_regex.search(x),
@@ -649,7 +664,7 @@ def main(args=None):
                     f"Removing flat/bad channels in segment {gpsblock}")
                 data = get_data(aux_channels, int(seg[0]), int(seg[0]) + 600,
                                 frametype=aux_frametype, nproc=args.nproc,
-                                pad=0)
+                                pad=0, on_gaps='error')
                 data = gwlasso.remove_flat(data)
                 data = gwlasso.remove_bad(data)
                 aux_channels = list(data.keys())
@@ -754,7 +769,8 @@ def main(args=None):
             verbose='Reading:'.rjust(30),
             frametype=aux_frametype,
             nproc=args.nproc,
-            pad=0)
+            pad=0,
+            on_gaps='error')
 
         # re-order aux channels to the same order as channel list
 
@@ -1151,7 +1167,8 @@ def main(args=None):
     # frontend_channel = '%s:DMT-SNSW_EFFECTIVE_RANGE_MPC.mean' % ifo
 
     primary_ts = get_data(primary, start, end, pad=numpy.nan,
-                          frametype=args.primary_frametype)
+                          frametype=args.primary_frametype,
+                          on_gaps='warn')
 
     """gds_timeseries = get_data(
         gds_channel, gpsstart, gpsend, pad=numpy.nan,
@@ -1273,7 +1290,8 @@ def main(args=None):
         page.add(htmlio.alert(
             f'No segments of length {args.segment_min_length/3600} hours or '
             f'longer were found in state <code>{state_flag}</code> on '
-            f"{date.strftime('%Y-%m-%d')}",
+            f"{date.strftime('%Y-%m-%d')}. State <code>{state_flag}</code> "
+            f"{abs(segs)} s, frame coverage {abs(data_segs)} s",
             dismiss=False,
         ))
     else:
