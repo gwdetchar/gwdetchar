@@ -33,11 +33,9 @@ from sklearn import linear_model
 from sklearn.preprocessing import StandardScaler, scale
 
 from pandas import set_option
-from gwdatafind.utils import file_segment
-from gwpy.io.datafind import find_urls
+from gwdatafind import find_urls
 from gwpy.io.gwf import get_channel_names
 from gwpy.segments import (
-    Segment,
     SegmentList,
     DataQualityFlag,
 )
@@ -47,6 +45,7 @@ from gwpy.timeseries import TimeSeries
 from .. import (cli, lasso as gwlasso)
 from ..io.datafind import get_data
 from ..io import html as htmlio
+from ..utils.segments import union_data_segs
 
 from matplotlib import (use, rcParams)
 use('Agg')
@@ -488,7 +487,7 @@ def create_parser():
         '--intersect-data-segs',
         action='store_true',
         default=False,
-        help='intersect data quality segments with available data'
+        help='union of data quality segments with available data'
     )
 
     # return the argument parser
@@ -582,27 +581,15 @@ def main(args=None):
     if args.intersect_data_segs:
         # First the primary channel frametype: make a list of segments
         # that the data URLs cover. Join segments that are contiguous.
-        primary_segs = SegmentList()
-        for i, seg in enumerate(segs):
-            # on_gaps='warn' to avoid problems if there is a missing frame
-            cache = find_urls(args.ifo[0], args.primary_frametype,
-                              seg[0], seg[1], on_gaps='warn')
-            for url in cache:
-                primary_segs.append(Segment(file_segment(url)))
-        primary_segs.coalesce()
+        # on_gaps='warn' to avoid problems if there is a missing frame
+        primary_segs = union_data_segs(
+            segs, args.ifo[0], args.primary_frametype, on_gaps='warn')
 
         # Same as above, but this time for the auxiliary frametype
-        auxiliary_segs = SegmentList()
-        for i, seg in enumerate(segs):
-            # on_gaps='warn' to avoid problems if there is a missing frame
-            cache = find_urls(args.ifo[0], aux_frametype,
-                              seg[0], seg[1], on_gaps='warn')
-            for url in cache:
-                auxiliary_segs.append(Segment(file_segment(url)))
-        auxiliary_segs.coalesce()
+        auxiliary_segs = union_data_segs(
+            segs, args.ifo[0], args.aux_frametype, on_gaps='warn')
 
         data_segs = primary_segs & auxiliary_segs
-        data_segs &= segs  # intersect with state segments
         data_segs.coalesce()  # just in case
     else:
         data_segs = segs
@@ -618,7 +605,7 @@ def main(args=None):
     # reduced length of segments because of the segment_padding argument and
     # minimum length required
     # Note that if intersect-data-segs was requested, the code below will
-    # implicitly do the intersection because data_segs are the segments of
+    # implicitly do the union because data_segs are the segments of
     # available frames
     lasso_segs = SegmentList()
     for i, seg in enumerate(data_segs):
