@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with gwdetchar.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for :mod:`gwdetchar.utils`
+"""Tests for :mod:`gwdetchar.utils.utils`
 """
 
 import pytest
