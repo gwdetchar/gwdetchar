@@ -34,7 +34,7 @@ from . import (cds, cli, daq)
 from .const import IFO
 from .io import (html as htmlio)
 from .io.datafind import get_data
-from .utils import table_from_segments
+from .utils.utils import table_from_segments
 
 from matplotlib import use
 use('Agg')

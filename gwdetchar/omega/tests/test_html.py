@@ -24,7 +24,7 @@ import shutil
 from io import StringIO
 
 from .. import (config, html)
-from ...utils import parse_html
+from ...utils.utils import parse_html
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
