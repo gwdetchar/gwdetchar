@@ -24,10 +24,10 @@ from gwpy.segments import (
 )
 
 
-def union_data_segs(dq_segs, site, frametype, **kwargs):
-    """Get segment list containing the union of some segment list, typically
-    the data quality segments, with segment list of available data; avoids
-    problems of data availability
+def intersection_data_segs(dq_segs, site, frametype, **kwargs):
+    """Get segment list containing the intersection of some segment list,
+    typically the data quality segments, with segment list of available data;
+    avoids problems of data availability
 
     Parameters
     ----------
@@ -42,8 +42,8 @@ def union_data_segs(dq_segs, site, frametype, **kwargs):
 
     Returns
     -------
-    union : `~gwpy.segments.SegmentList`
-        Segments from the union of data quality flags and data
+    intersection : `~gwpy.segments.SegmentList`
+        Segments from the intersection of data quality flags and data
         availability
     """
     # Loop over data quality segments getting frame files for each segment
@@ -56,8 +56,8 @@ def union_data_segs(dq_segs, site, frametype, **kwargs):
     # Coalesce the segments
     data_segs.coalesce()
 
-    # take the union of the data quality segments with the data
+    # take the intersection of the data quality segments with the data
     # available segments
-    union = dq_segs & data_segs
+    intersection = dq_segs & data_segs
 
-    return union
+    return intersection

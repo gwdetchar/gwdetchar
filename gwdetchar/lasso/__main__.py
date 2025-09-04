@@ -45,7 +45,7 @@ from gwpy.timeseries import TimeSeries
 from .. import (cli, lasso as gwlasso)
 from ..io.datafind import get_data
 from ..io import html as htmlio
-from ..utils.segments import union_data_segs
+from ..utils.segments import intersection_data_segs
 
 from matplotlib import (use, rcParams)
 use('Agg')
@@ -487,7 +487,7 @@ def create_parser():
         '--intersect-data-segs',
         action='store_true',
         default=False,
-        help='union of data quality segments with available data'
+        help='intersection of data quality segments with available data'
     )
 
     # return the argument parser
@@ -582,11 +582,11 @@ def main(args=None):
         # First the primary channel frametype: make a list of segments
         # that the data URLs cover. Join segments that are contiguous.
         # on_gaps='warn' to avoid problems if there is a missing frame
-        primary_segs = union_data_segs(
+        primary_segs = intersection_data_segs(
             segs, args.ifo[0], args.primary_frametype, on_gaps='warn')
 
         # Same as above, but this time for the auxiliary frametype
-        auxiliary_segs = union_data_segs(
+        auxiliary_segs = intersection_data_segs(
             segs, args.ifo[0], args.aux_frametype, on_gaps='warn')
 
         data_segs = primary_segs & auxiliary_segs
@@ -605,7 +605,7 @@ def main(args=None):
     # reduced length of segments because of the segment_padding argument and
     # minimum length required
     # Note that if intersect-data-segs was requested, the code below will
-    # implicitly do the union because data_segs are the segments of
+    # implicitly do the intersection because data_segs are the segments of
     # available frames
     lasso_segs = SegmentList()
     for i, seg in enumerate(data_segs):

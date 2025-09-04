@@ -30,11 +30,12 @@ __author__ = 'Evan Goetz <evan.goetz@ligo.org>'
 
 DQSEGS = SegmentList([Segment(0, 10), Segment(20, 30)])
 DATASEGS = SegmentList([Segment(0, 8), Segment(18, 35)])
-UNION = DQSEGS & DATASEGS
+INTERSECTION = DQSEGS & DATASEGS
 URLS = ['H-H1_R-0-8.gwf', 'H-H1_R-18-17.gwf']
 
 
 @mock.patch('gwdetchar.utils.segments.find_urls', return_value=URLS)
 @mock.patch.dict('os.environ', {'GWDATAFIND_SERVER': 'test:80'})
-def test_union_data_segs(segs):
-    assert segments.union_data_segs(DQSEGS, 'H', 'H1_R') == UNION
+def test_intersection_data_segs(segs):
+    assert segments.intersection_data_segs(
+        DQSEGS, 'H', 'H1_R') == INTERSECTION
