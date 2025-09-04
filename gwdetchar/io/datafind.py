@@ -24,8 +24,8 @@ import warnings
 from urllib.error import HTTPError
 from json.decoder import JSONDecodeError
 
+from gwdatafind import find_urls
 from gwpy.io import gwf as io_gwf
-from gwpy.io import datafind as io_datafind
 from gwpy.segments import (Segment, DataQualityFlag)
 from gwpy.timeseries import (TimeSeries, TimeSeriesDict)
 
@@ -147,7 +147,7 @@ def get_data(channel, start, end, frametype=None, source=None,
 
     **kwargs : `dict`, optional
         additional keyword arguments to `~gwpy.timeseries.TimeSeries.read`,
-        `~gwpy.timeseries.TimeSeries.get`, or `~gwpy.io.datafind.find_urls`
+        `~gwpy.timeseries.TimeSeries.get`, or `~gwdatafind.find_urls`
 
     Returns
     -------
@@ -191,8 +191,8 @@ def get_data(channel, start, end, frametype=None, source=None,
             ifo = re.search('[A-Z]1', frametype).group(0)
             obs = ifo[0]
             on_gaps = kwargs.pop('on_gaps', 'error')
-            source = io_datafind.find_urls(obs, frametype, start, end,
-                                           on_gaps=on_gaps, **kwargs)
+            source = find_urls(obs, frametype, start, end, on_gaps=on_gaps,
+                               **kwargs)
         except AttributeError:
             raise AttributeError(
                 'Could not determine observatory from frametype')
