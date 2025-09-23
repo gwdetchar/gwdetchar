@@ -27,7 +27,6 @@ import sys
 
 from getpass import getuser
 from MarkupPy import markup
-from pygments import __version__ as pygments_version
 from pytz import reference
 from unittest import mock
 
@@ -72,34 +71,15 @@ NEW_BOOTSTRAP_PAGE = """<!DOCTYPE HTML>
 TEST_CONFIGURATION = """[section]
 key = value"""
 
-if pygments_version >= "2.14.0":
-    pygments_space_span = '<span style="color: #bbbbbb"> </span>'
-    pygments_output = (
-        '\n'
-        '<span style="color: #687822">key</span>'
-        f'{pygments_space_span}'
-        '<span style="color: #666666">=</span>'
-        f'{pygments_space_span}'
-        '<span style="color: #BA2121">value</span>'
-    )
-elif pygments_version >= "2.11.0":
-    pygments_output = (
-        '<span style="color: #bbbbbb"></span>\n'
-        '<span style="color: #687822">key</span>'
-        '<span style="color: #bbbbbb"> </span>'
-        '<span style="color: #666666">=</span>'
-        '<span style="color: #bbbbbb"> </span>'
-        '<span style="color: #BA2121">value</span>'
-        '<span style="color: #bbbbbb"></span>'
-    )
-    pygments_space_span = ' '
-else:
-    pygments_output = (
-        '\n'
-        '<span style="color: #7D9029">key</span> '
-        '<span style="color: #666666">=</span> '
-        '<span style="color: #BA2121">value</span>'
-    )
+pygments_space_span = '<span style="color: #BBB"> </span>'
+pygments_output = (
+    '\n'
+    '<span style="color: #687822">key</span>'
+    f'{pygments_space_span}'
+    '<span style="color: #666">=</span>'
+    f'{pygments_space_span}'
+    '<span style="color: #BA2121">value</span>'
+)
 
 ABOUT = f"""<div class="row">
 <div class="col-md-12">
@@ -335,7 +315,7 @@ def test_get_brand():
         '<ul class="nav navbar-nav">\n<li class="nav-item dropdown">\n'
         '<a class="nav-link dropdown-toggle" href="#" role="button" '
         'data-bs-toggle="dropdown">Links</a>\n<div class="dropdown-menu '
-        'dropdown-menu-right shadow">\n<h6 class="dropdown-header">Internal'
+        'dropdown-menu-end shadow">\n<h6 class="dropdown-header">Internal'
         '</h6>\n<a href="about" class="dropdown-item">About this page</a>\n'
         '<div class="dropdown-divider"></div>\n<h6 class="dropdown-header">'
         'External</h6>\n<a href="https://ldas-jobs.ligo-wa.caltech.edu/'
@@ -446,7 +426,7 @@ def test_download_btn():
         '<button type="button" class="btn btn-outline-secondary '
         'dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" '
         'aria-haspopup="true">Download summary</button>\n<div '
-        'class="dropdown-menu dropdown-menu-right shadow">\n<a href="test" '
+        'class="dropdown-menu dropdown-menu-end shadow">\n<a href="test" '
         'download="test" class="dropdown-item">test</a>\n</div>\n</div>')
 
 

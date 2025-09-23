@@ -24,8 +24,6 @@ import warnings
 from urllib.error import HTTPError
 from json.decoder import JSONDecodeError
 
-from ..const import DEFAULT_SEGMENT_SERVER
-
 from gwpy.io import gwf as io_gwf
 from gwpy.io import datafind as io_datafind
 from gwpy.segments import (Segment, DataQualityFlag)
@@ -65,8 +63,7 @@ def check_flag(flag, gpstime, duration, pad):
     end = gpstime + duration/2. + pad
     seg = Segment(start, end)
     # query for state segments
-    active = DataQualityFlag.query(flag, start, end,
-                                   url=DEFAULT_SEGMENT_SERVER).active
+    active = DataQualityFlag.query(flag, start, end).active
     # check that state flag is active during the entire analysis
     if (not active.intersects_segment(seg)) or (abs(active[0]) < abs(seg)):
         return False
@@ -193,7 +190,7 @@ def get_data(channel, start, end, frametype=None, source=None,
         try:  # locate frame files
             ifo = re.search('[A-Z]1', frametype).group(0)
             obs = ifo[0]
-            on_gaps = kwargs.get('on_gaps', 'error')
+            on_gaps = kwargs.pop('on_gaps', 'error')
             source = io_datafind.find_urls(obs, frametype, start, end,
                                            on_gaps=on_gaps, **kwargs)
         except AttributeError:

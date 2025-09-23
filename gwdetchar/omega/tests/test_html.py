@@ -35,7 +35,7 @@ __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo} shadow-sm">
 <div class="container-fluid">
 <div class="navbar-brand border border-white rounded">{IFO} &Omega;-scan</div>
-<button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-target=".navbar-collapse">
+<button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
 <span class="navbar-toggler-icon"></span>
 </button>
 <div class="collapse navbar-collapse justify-content-between">
@@ -61,7 +61,7 @@ HTML_HEADER = """<nav class="navbar fixed-top navbar-expand-md navbar-{ifo} shad
 <ul class="nav navbar-nav">
 <li class="nav-item dropdown">
 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Links</a>
-<div class="dropdown-menu dropdown-menu-right shadow">
+<div class="dropdown-menu dropdown-menu-end shadow">
 <h6 class="dropdown-header">Internal</h6>
 <a href="about" class="dropdown-item">About this page</a>
 <div class="dropdown-divider"></div>
@@ -252,7 +252,7 @@ def test_write_summary():
         '\n<button type="button" class="btn btn-l1 dropdown-toggle" '
         'data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">'
         'Download summary</button>\n<div class="dropdown-menu dropdown-menu-'
-        'right shadow">\n<a href="data/summary.txt" download="L1_0_summary.txt'
+        'end shadow">\n<a href="data/summary.txt" download="L1_0_summary.txt'
         '" class="dropdown-item">txt</a>\n<a href="data/summary.csv" download='
         '"L1_0_summary.csv" class="dropdown-item">csv</a>'
         '\n<a href="data/summary.tex" download="L1_0_summary.tex" '
