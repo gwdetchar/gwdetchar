@@ -28,7 +28,7 @@ from getpass import getuser
 from pycondor import (Dagman, Job)
 
 from .. import (cli, condor)
-from ..cli import NOW_GPSf
+from ..cli import NOW_GPS
 
 # authorship credits
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
