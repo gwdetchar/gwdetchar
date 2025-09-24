@@ -28,7 +28,7 @@ from getpass import getuser
 from pycondor import (Dagman, Job)
 
 from .. import (cli, condor)
-from ..cli import NOW_GPS
+from ..cli import NOW_GPSf
 
 # authorship credits
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
@@ -56,6 +56,8 @@ ACCOUNTING_GROUP_USER = os.getenv(
     '_CONDOR_ACCOUNTING_USER',
     getuser(),
 )
+if 'detchar' in ACCOUNTING_GROUP_USER:
+    ACCOUNTING_GROUP_USER = 'joseph.areeda'
 
 # set program name
 PROG = ('python -m gwdetchar.omega.batch' if sys.argv[0].endswith('.py')
