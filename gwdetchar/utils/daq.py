@@ -31,8 +31,8 @@ from gwpy.time import to_gps
 from gwpy.io.gwf import get_channel_names
 from gwpy.timeseries import StateTimeSeries
 
-from . import const
-from .utils.utils import natural_sort
+from .. import const
+from .utils import natural_sort
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 

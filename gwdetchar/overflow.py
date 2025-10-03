@@ -30,9 +30,9 @@ from gwpy.io.cache import cache_segments
 from gwpy.segments import (DataQualityFlag, DataQualityDict,
                            Segment, SegmentList)
 
-from . import (cds, cli, daq)
+from .utils import cds, cli, daq
 from .const import IFO
-from .io import (html as htmlio)
+from .io import html as htmlio
 from .io.datafind import get_data
 from .utils.utils import table_from_segments
 
