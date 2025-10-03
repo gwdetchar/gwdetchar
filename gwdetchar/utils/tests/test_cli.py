@@ -28,13 +28,14 @@ except ImportError:  # python < 3
 
 import pytest
 
-from .. import (cli, __version__ as gwdetchar_version, const as _const)
+from ... import (__version__ as gwdetchar_version, const as _const)
+from .. import cli
 
 
 def test_logger():
     logger = cli.logger()
     assert isinstance(logger, logging.Logger)
-    assert logger.name == 'gwdetchar.cli'
+    assert logger.name == 'gwdetchar.utils.cli'
     assert logger.level == logging.DEBUG
 
 
