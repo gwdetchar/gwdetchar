@@ -29,7 +29,7 @@ from pytz import reference
 
 from gwpy.time import to_gps
 
-from . import (const, __version__)
+from .. import (const, __version__)
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credit__ = 'Alex Urban <alexander.urban@ligo.org>'

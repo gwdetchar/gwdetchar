@@ -46,7 +46,7 @@ from gwpy.segments import (
 from gwpy.table import EventTable
 from gwpy.table.filters import in_segmentlist
 
-from .. import cli
+from ..utils import cli
 from ..io import html as htmlio
 from ..io.datafind import get_data
 from ..omega import batch
@@ -67,7 +67,7 @@ use('Agg')
 
 # backend-dependent imports
 from gwpy.plot import Plot  # noqa: E402
-from ..plot import texify  # noqa: E402
+from ..utils.plot import texify  # noqa: E402
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Siddharth Soni <siddharth.soni@ligo.org>' \

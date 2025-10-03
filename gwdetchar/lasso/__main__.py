@@ -42,7 +42,8 @@ from gwpy.segments import (
 from gwpy.time import tconvert
 from gwpy.timeseries import TimeSeries
 
-from .. import (cli, lasso as gwlasso)
+from .. import lasso as gwlasso
+from ..utils import cli
 from ..io.datafind import get_data
 from ..io import html as htmlio
 from ..utils.segments import intersection_data_segs
@@ -53,8 +54,8 @@ use('Agg')
 # backend-dependent imports
 from matplotlib.cm import get_cmap  # noqa: E402
 from gwpy.plot import Plot  # noqa: E402
-from gwdetchar.lasso import plot as gwplot  # noqa: E402
-from gwdetchar.plot import texify  # noqa: E402
+from . import plot as gwplot  # noqa: E402
+from ..utils.plot import texify  # noqa: E402
 
 # LaTeX use
 USETEX = rcParams["text.usetex"]

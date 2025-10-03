@@ -31,7 +31,7 @@ from gwpy.segments import (Segment, SegmentList,
                            DataQualityFlag, DataQualityDict)
 
 from . import core
-from .. import cli
+from ..utils import cli
 from ..const import IFO
 from ..io import html as htmlio
 

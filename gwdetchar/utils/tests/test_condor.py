@@ -24,7 +24,8 @@ import tempfile
 
 import pytest
 
-from .. import (condor, const)
+from ... import const
+from .. import condor
 
 LAST_CONDOR_EPOCH = list(filter(
     condor.OBS_RUN_REGEX.match,

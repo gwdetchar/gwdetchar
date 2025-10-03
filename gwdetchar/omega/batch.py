@@ -27,8 +27,8 @@ from pathlib import Path
 from getpass import getuser
 from pycondor import (Dagman, Job)
 
-from .. import (cli, condor)
-from ..cli import NOW_GPS
+from ..utils import cli, condor
+from ..utils.cli import NOW_GPS
 
 # authorship credits
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
