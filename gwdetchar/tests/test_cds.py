@@ -24,7 +24,7 @@ import pytest
 from io import BytesIO
 from unittest import mock
 
-from .. import cds
+from ..utils import cds
 
 RTDCUID_CONTENT = """
 <div class="listing">

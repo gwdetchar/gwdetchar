@@ -29,9 +29,9 @@ from gwpy.io.cache import (cache_segments, sieve as sieve_cache)
 from gwpy.segments import (DataQualityFlag, Segment, SegmentList)
 from gwpy.table import EventTable
 
-from . import cli
+from .utils import cli
 from .const import IFO
-from .daq import find_crossings
+from .utils.daq import find_crossings
 from .io.datafind import get_data
 from .utils.utils import table_from_times
 

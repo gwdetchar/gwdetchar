@@ -32,7 +32,8 @@ import warnings
 from gwpy.table import Table
 from gwpy.time import to_gps
 
-from .. import (cli, omega)
+from .. import omega
+from ..utils import cli
 from ..io.datafind import (check_flag, get_data)
 from . import (config, html)
 
