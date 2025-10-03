@@ -34,7 +34,7 @@ from gwpy.segments import (Segment, DataQualityFlag)
 
 from .. import html
 from ..._version import __version__ as gwdetchar_version
-from ...utils import parse_html
+from ...utils.utils import parse_html
 
 from matplotlib import use
 use('Agg')

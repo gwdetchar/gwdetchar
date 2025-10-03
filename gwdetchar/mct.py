@@ -33,7 +33,7 @@ from . import cli
 from .const import IFO
 from .daq import find_crossings
 from .io.datafind import get_data
-from .utils import table_from_times
+from .utils.utils import table_from_times
 
 __author__ = 'TJ Massinger <thomas.massinger@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'

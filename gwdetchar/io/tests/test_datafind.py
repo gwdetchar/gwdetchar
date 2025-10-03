@@ -93,8 +93,9 @@ def test_get_data_dict_from_NDS(tsdget):
     nptest.assert_array_equal(data['X1:TEST-STRAIN'].value, HOFT.value)
 
 
-@mock.patch('gwpy.io.datafind.find_urls')
+@mock.patch('gwdetchar.io.datafind.find_urls')
 @mock.patch('gwpy.timeseries.TimeSeries.read')
+@mock.patch.dict('os.environ', {'GWDATAFIND_SERVER': 'test:80'})
 def test_get_data_from_cache(tsget, find_data):
     # set return values
     find_data.return_value = ['test.gwf']
@@ -114,15 +115,13 @@ def test_get_data_from_cache(tsget, find_data):
     nptest.assert_array_equal(data.value, HOFT.crop(start, end).value)
 
 
-@mock.patch('gwpy.io.datafind.find_urls')
 @mock.patch('gwdetchar.io.datafind.remove_missing_channels')
 @mock.patch('gwpy.timeseries.TimeSeriesDict.read')
-def test_get_data_dict_from_cache(tsdget, remove, find_data):
+def test_get_data_dict_from_cache(tsdget, remove):
     # set return values
     tsdget.return_value = TimeSeriesDict({
         'X1:TEST-STRAIN': HOFT.crop(16, 48)})
     remove.return_value = ['X1:TEST-STRAIN']
-    find_data.return_value = ['test.gwf']
     # retrieve test frame
     start = 16
     end = start + 32
