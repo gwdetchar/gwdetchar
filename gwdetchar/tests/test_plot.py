@@ -32,10 +32,11 @@ from matplotlib import (
     rcParams,
     MatplotlibDeprecationWarning,
 )
-use('Agg')
 
 # backend-dependent import
-from .. import plot  # noqa: E402
+from ..utils import plot
+
+use('Agg')
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
