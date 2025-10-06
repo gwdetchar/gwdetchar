@@ -27,7 +27,8 @@ from scipy.stats import spearmanr
 from gwpy.detector import ChannelList
 from gwpy.io import nds2 as io_nds2
 
-from .. import (cli, lasso as gwlasso)
+from .. import lasso as gwlasso
+from ..utils import cli
 from ..io import html as htmlio
 from ..io.datafind import get_data
 
