@@ -34,7 +34,8 @@ import sys
 
 from gwpy.time import to_gps
 
-from .. import (cli, const)
+from .. import const
+from ..utils import cli
 from ..omega import highpass
 from ..io.datafind import get_data
 

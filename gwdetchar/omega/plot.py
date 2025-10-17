@@ -23,7 +23,7 @@ from matplotlib import (cm, rcParams)
 
 from gwpy.plot.colors import GW_OBSERVATORY_COLORS
 
-from ..plot import texify
+from ..utils.plot import texify
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 __credits__ = 'Duncan Macleod <duncan.macleod@ligo.org>'

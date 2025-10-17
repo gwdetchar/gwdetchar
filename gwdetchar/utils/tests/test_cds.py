@@ -49,7 +49,7 @@ ADCLIST_CONTENT = """
 def mock_request(output):
     if isinstance(output, str):
         output = output.encode('utf-8')
-    return mock.patch('gwdetchar.cds.request.urlopen',
+    return mock.patch('gwdetchar.utils.cds.request.urlopen',
                       return_value=BytesIO(output))
 
 
@@ -105,7 +105,7 @@ def test_get_adc_channel(mockr):
 
 @mock_request(ADCLIST_CONTENT)
 @mock.patch(
-    'gwdetchar.cds.model_name_from_dcuid',
+    'gwdetchar.utils.cds.model_name_from_dcuid',
     return_value='x1model1',
 )
 def test_get_real_channel(mockr, mockadc):
