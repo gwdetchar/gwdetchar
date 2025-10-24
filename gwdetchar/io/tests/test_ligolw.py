@@ -27,7 +27,7 @@ from numpy.testing import (assert_array_equal, assert_allclose)
 from gwpy.segments import (Segment, SegmentList)
 from gwpy.testing.utils import assert_segmentlist_equal
 
-lsctables = pytest.importorskip("ligo.lw.lsctables")
+lsctables = pytest.importorskip("igwn_ligolw.lsctables")
 ligolw = pytest.importorskip("gwdetchar.io.ligolw")
 
 
@@ -63,7 +63,7 @@ def test_segments_from_sngl_burst():
 
 
 def test_table_to_document():
-    from ligo.lw.ligolw import Document
+    from igwn_ligolw.ligolw import Document
     tab = ligolw.new_table('sngl_burst')
     xmldoc = ligolw.table_to_document(tab)
     assert isinstance(xmldoc, Document)
