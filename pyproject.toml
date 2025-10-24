@@ -51,7 +51,7 @@ dependencies = [
   "pandas",
   "pycondor",
   "pygments >=2.7.3",
-  "python-ligo-lw",
+  "igwn-ligolw",
   "pytz",
   "scikit-learn",
   "scipy >=1.2.0",

@@ -19,12 +19,9 @@
 """Utilties for LIGO_LW XML I/O
 """
 
-from ligo.lw import (
-    ligolw,
-    table,
-)
+from igwn_ligolw import ligolw
 try:
-    from ligo.lw import lsctables
+    from igwn_ligolw import lsctables
 except ModuleNotFoundError as exc:
     exc.msg = (
         f"{exc.msg}, please install python-lal / python3-lal / lalsuite "
@@ -39,24 +36,24 @@ __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
 def new_table(tab, *args, **kwargs):
-    """Create a new `~ligo.lw.table.Table`
+    """Create a new `~igwn_ligolw.ligolw.Table`
 
-    This is just a convenience wrapper around `~ligo.lw.lsctables.New`
+    This is just a convenience wrapper around `~igwn_ligolw.lsctables.New`
 
     Parameters
     ----------
     tab : `type`, `str`
-        `~ligo.lw.table.Table` subclass, or name of table to create
+        `~igwn_ligolw.ligolw.Table` subclass, or name of table to create
     *args, **kwargs
-        other parameters are passed directly to `~ligo.lw.lsctables.New`
+        other parameters are passed directly to `~igwn_ligolw.lsctables.New`
 
     Returns
     -------
-    table : `~ligo.lw.table.Table`
+    table : `~igwn_ligolw.ligolw.Table`
         a newly-created table with the relevant attributes and structure
     """
     if isinstance(tab, str):
-        tab = lsctables.TableByName[table.Table.TableName(tab)]
+        tab = lsctables.TableByName[ligolw.Table.TableName(tab)]
     return lsctables.New(tab, *args, **kwargs)
 
 
