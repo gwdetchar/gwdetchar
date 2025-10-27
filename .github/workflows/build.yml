@@ -97,6 +97,7 @@ jobs:
       with:
         files: coverage.xml
         flags: ${{ runner.os }},python${{ matrix.python-version }}
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Upload test results
       if: always()
