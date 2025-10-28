@@ -21,7 +21,7 @@
 
 import re
 
-from . import const
+from .. import const
 
 OBS_RUN_REGEX = re.compile('[OS][0-9]*', re.I)
 ACCOUNTING_GROUPS_FILE = '/etc/condor/accounting/valid_tags'

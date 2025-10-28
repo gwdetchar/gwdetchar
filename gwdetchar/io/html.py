@@ -42,7 +42,7 @@ from pygments.lexers import get_lexer_by_name
 
 from gwpy.time import from_gps
 
-from ..plot import plot_segments
+from ..utils.plot import plot_segments
 from .._version import __version__
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'

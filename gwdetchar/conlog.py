@@ -28,7 +28,7 @@ import sys
 from gwpy.io import gwf as io_gwf
 from gwpy.table import EventTable
 
-from . import cli
+from .utils import cli
 from .io.datafind import get_data
 
 __author__ = 'Alex Urban <alexander.urban@ligo.org>'
