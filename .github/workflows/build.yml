@@ -96,7 +96,7 @@ jobs:
       uses: codecov/codecov-action@v5.5.1
       with:
         files: coverage.xml
-        flags: ${{ runner.os }},python${{ matrix.python-version }}
+        flags: ${{ runner.os }}-python${{ matrix.python-version }}
         token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Upload test results
