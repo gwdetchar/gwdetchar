@@ -24,7 +24,7 @@ try:
     from igwn_ligolw import lsctables
 except ModuleNotFoundError as exc:
     exc.msg = (
-        f"{exc.msg}, please install python-lal / python3-lal / lalsuite "
+        f"{exc.msg}, please install python-lal / lalsuite / python-ligo-lw "
         "to handle LIGO_LW files"
     )
     exc.args = (exc.msg,)

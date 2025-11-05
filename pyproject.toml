@@ -43,7 +43,6 @@ dependencies = [
   "gwdatafind",
   "gwpy >=3.0.10",
   "gwtrigfind",
-  "lalsuite",
   "lxml",
   "MarkupPy >=1.14",
   "matplotlib >=3.9",
