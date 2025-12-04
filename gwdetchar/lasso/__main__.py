@@ -588,7 +588,7 @@ def main(args=None):
 
         # Same as above, but this time for the auxiliary frametype
         auxiliary_segs = intersection_data_segs(
-            segs, args.ifo[0], args.aux_frametype, on_gaps='warn')
+            segs, args.ifo[0], aux_frametype, on_gaps='warn')
 
         data_segs = primary_segs & auxiliary_segs
         data_segs.coalesce()  # just in case
