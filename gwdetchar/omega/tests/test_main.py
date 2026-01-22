@@ -209,16 +209,21 @@ def test_main_single_ifo(caplog, tmpdir):
         '--ignore-state-flags',
     ]
     # test from scratch
-    with pytest.warns(UserWarning) as record:
+    with pytest.warns(
+        UserWarning,
+        match="array must not contain infs or NaNs",
+    ):
         omega_cli.main(args)
     assert 'K1 Omega Scan {:.1f}'.format(GPS) in caplog.text
     assert caplog.text.count('Channel not significant') == 1
     assert os.path.isfile(os.path.join(outdir, 'index.html'))
     assert os.path.isfile(os.path.join(outdir, 'data', 'summary.csv'))
-    assert 'array must not contain infs or NaNs' in record[-1].message.args[0]
     # test with checkpointing
     caplog.clear()
-    with pytest.warns(UserWarning) as record:
+    with pytest.warns(
+        UserWarning,
+        match="array must not contain infs or NaNs",
+    ):
         omega_cli.main(args)
     assert caplog.text.count('Checkpointing from {}'.format(outdir)) == 1
     assert caplog.text.count('Checkpointing K1:GW-PRIMARY_CHANNEL '
@@ -226,7 +231,6 @@ def test_main_single_ifo(caplog, tmpdir):
     assert caplog.text.count('Checkpointing K1:AUX-HIGH_SIGNIFICANCE '
                              'from a previous run') == 1
     assert caplog.text.count('Channel not significant') == 1
-    assert 'array must not contain infs or NaNs' in record[-1].message.args[0]
     # clean up
     shutil.rmtree(outdir, ignore_errors=True)
 
@@ -251,9 +255,11 @@ def test_main_multi_ifo(caplog, tmpdir):
     omega_cli.main(args + ['--disable-correlation'])
     assert 'Checkpointing from {}'.format(outdir) in caplog.text
     # test with checkpointing that expects cross-correlation
-    with pytest.raises(KeyError) as exc:
+    with pytest.raises(
+        KeyError,
+        match="Cross-correlation is not available from this record",
+    ):
         omega_cli.main(args)
-    assert 'Cross-correlation is not available from this record' in str(exc)
     # clean up
     shutil.rmtree(outdir, ignore_errors=True)
 

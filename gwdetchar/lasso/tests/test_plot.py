@@ -59,11 +59,9 @@ def test_save_figure(tmpdir):
     assert tsplot == os.path.join(base, 'test.png')
 
     # no-directory should raise warning
-    with pytest.warns(UserWarning) as record:
+    with pytest.warns(UserWarning, match="Error saving"):
         noneplot = plot.save_figure(fig, os.path.join('tgpflk', 'test.png'))
     assert noneplot is None
-    assert len(record.list) == 1
-    assert 'Error saving' in str(record.list[0].message)
 
     # remove base directory
     shutil.rmtree(base, ignore_errors=True)
