@@ -19,17 +19,7 @@
 """Utilties for LIGO_LW XML I/O
 """
 
-from igwn_ligolw import ligolw
-try:
-    from igwn_ligolw import lsctables
-except ModuleNotFoundError as exc:
-    exc.msg = (
-        f"{exc.msg}, please install python-lal / python3-lal / lalsuite "
-        "to handle LIGO_LW files"
-    )
-    exc.args = (exc.msg,)
-    raise
-
+from igwn_ligolw import ligolw, lsctables
 from gwpy.segments import (Segment, DataQualityFlag, DataQualityDict)
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'

@@ -19,16 +19,14 @@
 """Tests for `gwdetchar.io.ligolw`
 """
 
-import pytest
-
 import numpy
 from numpy.testing import (assert_array_equal, assert_allclose)
 
 from gwpy.segments import (Segment, SegmentList)
 from gwpy.testing.utils import assert_segmentlist_equal
+from igwn_ligolw import lsctables
 
-lsctables = pytest.importorskip("igwn_ligolw.lsctables")
-ligolw = pytest.importorskip("gwdetchar.io.ligolw")
+from .. import ligolw
 
 
 def test_new_table():

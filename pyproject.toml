@@ -43,7 +43,6 @@ dependencies = [
   "gwdatafind",
   "gwpy >=3.0.10",
   "gwtrigfind",
-  "lalsuite",
   "lxml",
   "MarkupPy >=1.14",
   "matplotlib >=3.9",
@@ -62,6 +61,7 @@ dynamic = ["version"]
 [project.optional-dependencies]
 test = [
   "flake8",
+  "gwpy[gwf]",
   "pygments >=2.19.0",
   "pytest >=3.3.0",
   "pytest-cov >=2.4.0",
