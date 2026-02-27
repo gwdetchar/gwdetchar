@@ -274,7 +274,7 @@ def write_summary(
     page : `~MarkupPy.markup.page`
         the formatted markup object containing the analysis summary table
     """
-    utc = tconvert(gpstime)
+    utcstr = tconvert(gpstime).strftime('%Y-%m-%d %H:%M:%S')
     page = markup.page()
     page.div(class_='banner')
     page.h2(header)
@@ -291,7 +291,7 @@ def write_summary(
     page.tr.close()
     page.tr()
     page.th('UTC Time', scope='row')
-    page.td(str(utc))
+    page.td(utcstr)
     page.tr.close()
     page.tbody.close()
     # close table
