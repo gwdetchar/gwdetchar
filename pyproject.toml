@@ -85,6 +85,9 @@ gwdetchar-slow-correlation = "gwdetchar.lasso.old:main"
 gwdetchar-software-saturations = "gwdetchar.saturation.__main__:main"
 gwdetchar-scattering = "gwdetchar.scattering.__main__:main"
 gwdetchar-scattering-simple = "gwdetchar.scattering.simple:main"
+ligolw-vetodef-append = "gwdetchar.vetodef.ligolw_vetodef_append:main"
+ligolw-vetodef-create = "gwdetchar.vetodef.ligolw_vetodef_create:main"
+ligolw-vetodef-validate = "gwdetchar.vetodef.ligolw_vetodef_validate:main"
 
 [project.urls]
 "Documentation" = "https://gwdetchar.readthedocs.io"
