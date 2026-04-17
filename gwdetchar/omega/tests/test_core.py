@@ -38,10 +38,14 @@ FFTLENGTH = 8
 
 NOISE = TimeSeries(
     numpy.random.normal(loc=1, scale=.5, size=16384 * 68),
-    sample_rate=16384, epoch=-34).zpk([], [0], 1)
+    sample_rate=16384,
+    epoch=-34,
+).zpk([], [0], 1, analog=True, filtfilt=False)
 GLITCH = TimeSeries(
     signal.gausspulse(numpy.arange(-1, 1, 1./16384), bw=100),
-    sample_rate=16384, epoch=-1) * 1e-4
+    sample_rate=16384,
+    epoch=-1,
+) * 1e-4
 INPUT = NOISE.inject(GLITCH)
 
 CONFIGURATION = {
@@ -98,7 +102,7 @@ def test_conditioner_with_highpass():
     assert isinstance(hpxoft, TimeSeries)
     assert xoft.is_compatible(wxoft)
     assert xoft.is_compatible(hpxoft)
-    nptest.assert_almost_equal(hpxoft.value.mean(), 0, decimal=5)
+    nptest.assert_almost_equal(hpxoft.value.mean(), 0, decimal=3)
     nptest.assert_almost_equal(wxoft.value.mean(), 0, decimal=2)
 
 

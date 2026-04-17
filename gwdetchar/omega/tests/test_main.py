@@ -144,17 +144,21 @@ TEST_FLAG = DataQualityFlag(
     known=SegmentList([Segment(0, 34)]),
 )
 
+# Analog integrator in ZPK
+ZPK_ARGS = ([], [0], 1)
+ZPK_KWARGS = {"analog": True, "filtfilt": False}
+
 K1_DATA = TimeSeriesDict({
     "K1:GW-PRIMARY_CHANNEL": TimeSeries(
         numpy.random.normal(loc=1, scale=.5, size=4096 * GPS * 2),
         sample_rate=4096,
         epoch=0,
-    ).zpk([], [0], 1).inject(SIGNAL),
+    ).zpk(*ZPK_ARGS, **ZPK_KWARGS).inject(SIGNAL),
     "K1:AUX-HIGH_SIGNIFICANCE": TimeSeries(
         numpy.random.normal(loc=1, scale=.5, size=4096 * GPS * 2),
         sample_rate=4096,
         epoch=0,
-    ).zpk([], [0], 1).inject(SIGNAL),
+    ).zpk(*ZPK_ARGS, **ZPK_KWARGS).inject(SIGNAL),
     "K1:AUX-LOW_SIGNIFICANCE": TimeSeries(
         numpy.random.normal(loc=1, scale=.5, size=4096 * GPS * 2),
         sample_rate=4096,
@@ -172,12 +176,12 @@ NETWORK_DATA = TimeSeriesDict({
         numpy.random.normal(loc=1, scale=.5, size=4096 * GPS * 2),
         sample_rate=4096,
         epoch=0,
-    ).zpk([], [0], 1).inject(SIGNAL),
+    ).zpk(*ZPK_ARGS, **ZPK_KWARGS).inject(SIGNAL),
     "L1:GW-PRIMARY_CHANNEL": TimeSeries(
         numpy.random.normal(loc=1, scale=.5, size=4096 * GPS * 2),
         sample_rate=4096,
         epoch=0,
-    ).zpk([], [0], 1).inject(SIGNAL),
+    ).zpk(*ZPK_ARGS, **ZPK_KWARGS).inject(SIGNAL),
 })
 
 
