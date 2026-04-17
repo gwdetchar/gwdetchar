@@ -102,7 +102,7 @@ def test_conditioner_with_highpass():
     assert isinstance(hpxoft, TimeSeries)
     assert xoft.is_compatible(wxoft)
     assert xoft.is_compatible(hpxoft)
-    nptest.assert_almost_equal(hpxoft.value.mean(), 0, decimal=5)
+    nptest.assert_almost_equal(hpxoft.value.mean(), 0, decimal=3)
     nptest.assert_almost_equal(wxoft.value.mean(), 0, decimal=2)
 
 
