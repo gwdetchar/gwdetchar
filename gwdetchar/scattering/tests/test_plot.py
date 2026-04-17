@@ -40,7 +40,9 @@ TWOPI = 2 * numpy.pi
 TIMES = numpy.arange(0, 16384 * 64)
 NOISE = TimeSeries(
     numpy.random.normal(loc=1, scale=.5, size=16384 * 64),
-    sample_rate=16384, epoch=-32).zpk([], [0], 1)
+    sample_rate=16384,
+    epoch=-32,
+).zpk([], [0], 1, analog=True, filtfilt=False)
 FRINGE = TimeSeries(
     numpy.cos(TWOPI * TIMES), sample_rate=16384, epoch=-32)
 DATA = NOISE.inject(FRINGE)
