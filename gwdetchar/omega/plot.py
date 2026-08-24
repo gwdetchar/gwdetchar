@@ -19,7 +19,7 @@
 """Plotting routines for omega scans
 """
 
-from matplotlib import (cm, rcParams)
+from matplotlib import (colormaps, rcParams)
 
 from gwpy.plot.colors import GW_OBSERVATORY_COLORS
 
@@ -86,7 +86,7 @@ def _format_color_axis(ax, colormap='viridis', clim=None, norm='linear'):
         scaling of the color axis, only used if `clim` is given,
         default: linear
     """
-    cmap = cm.get_cmap(colormap)
+    cmap = colormaps[colormap]
     ax.set_facecolor(cmap(0))
     # set colorbar format
     if clim is None:  # force a log colorbar with autoscaled limits
