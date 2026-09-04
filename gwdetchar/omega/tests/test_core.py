@@ -65,6 +65,13 @@ def test_highpass():
     nptest.assert_almost_equal(hp.value.mean(), 0, decimal=5)
 
 
+def test_highpass_zero_frequency():
+    hp = core.highpass(INPUT, f_low=0)
+    assert hp is not INPUT
+    assert INPUT.is_compatible(hp)
+    nptest.assert_array_equal(hp.value, INPUT.value)
+
+
 def test_whiten():
     # whiten the input
     whitened = core.whiten(INPUT, fftlength=FFTLENGTH)
@@ -99,6 +106,17 @@ def test_conditioner_with_highpass():
     assert xoft.is_compatible(wxoft)
     assert xoft.is_compatible(hpxoft)
     nptest.assert_almost_equal(hpxoft.value.mean(), 0, decimal=5)
+    nptest.assert_almost_equal(wxoft.value.mean(), 0, decimal=2)
+
+
+def test_conditioner_with_zero_frequency():
+    wxoft, hpxoft, xoft = core.conditioner(
+        INPUT, fftlength=FFTLENGTH, resample=4096, f_low=0)
+    assert isinstance(wxoft, TimeSeries)
+    assert isinstance(hpxoft, TimeSeries)
+    assert xoft.is_compatible(wxoft)
+    assert xoft.is_compatible(hpxoft)
+    nptest.assert_array_equal(hpxoft.value, xoft.value)
     nptest.assert_almost_equal(wxoft.value.mean(), 0, decimal=2)
 
 
@@ -159,3 +177,18 @@ def test_scan():
     empty = core.scan(gps=0, channel=CHANNEL, xoft=NOISE, resample=2048,
                       fftlength=FFTLENGTH)
     assert empty is None
+
+
+def test_scan_zero_frequency():
+    configuration = CONFIGURATION.copy()
+    configuration['frequency-range'] = '0.0,512'
+    channel = config.OmegaChannel(
+        channelname='X1:TEST-ZERO-FMIN', section='test', **configuration)
+
+    xoft, hpxoft, _, _, _, qspec, rqspec = core.scan(
+        gps=0, channel=channel, xoft=INPUT, resample=2048,
+        fftlength=FFTLENGTH, nt=140, nf=70, logf=False)
+
+    nptest.assert_array_equal(hpxoft.value, xoft.value)
+    assert qspec.shape == rqspec.shape
+    assert qspec.shape[0] == 140
