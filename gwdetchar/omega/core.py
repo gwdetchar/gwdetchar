@@ -39,7 +39,8 @@ def highpass(series, f_low, order=12, analog=False, ftype='sos'):
         the `TimeSeries` data to high-pass filter
 
     f_low : `float`
-        lower cutoff frequency (Hz) of the filter
+        lower cutoff frequency (Hz) of the filter; if zero, return an
+        unfiltered copy of ``series``
 
     order : `int`, optional
         number of taps in the filter, default: 12
@@ -60,13 +61,17 @@ def highpass(series, f_low, order=12, analog=False, ftype='sos'):
     Notes
     -----
     This utility designs a Butterworth filter of order `order` with corner
-    frequency `f_low / 1.5`, then applies this filter to the input.
+    frequency `f_low / 1.5`, then applies this filter to the input. If
+    `f_low` is zero, no filter is applied.
 
     See Also
     --------
     scipy.signal.butter
     gwpy.timeseries.TimeSeries.filter
     """
+    if f_low == 0:
+        return series.copy()
+
     corner = f_low / 1.5
     fs = series.sample_rate.to('Hz').value
     hpfilt = butter(order, corner, btype='highpass', analog=analog,
