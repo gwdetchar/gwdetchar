@@ -145,7 +145,9 @@ def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
         default: no resampling
 
     f_low : `float`, optional
-        lower cutoff frequency (Hz) of the filter, default: ``None``
+        lower cutoff frequency (Hz) of the filter, default: ``None``. A value
+        of zero skips high-pass filtering while preserving the three-value
+        return contract used when a cutoff is provided.
 
     **kwargs : `dict`, optional
         additional arguments to :func:`highpass`
@@ -293,6 +295,12 @@ def scan(gps, channel, xoft, fftlength, resample=None, fthresh=1e-10,
         whitened `TimeSeries`, whitened `QGram`, high-passed `QGram`,
         interpolated whitened `Spectrogram`, and interpolated high-passed
         `Spectrogram`
+
+    Notes
+    -----
+    A zero lower bound in ``channel.frange`` disables high-pass filtering.
+    The Q-transform still selects its lowest supported positive analysis
+    frequency, so this setting does not add a DC bin to the spectrogram.
     """
     # condition data
     wxoft, hpxoft, xoft = conditioner(
