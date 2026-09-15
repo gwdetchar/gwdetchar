@@ -158,8 +158,8 @@ def main(args=None):
         site, frametype, int(args.gpsstart), int(args.gpsend))
 
     # find channels
-    if not os.getenv('LIGO_DATAFIND_SERVER'):
-        raise RuntimeError("No LIGO_DATAFIND_SERVER variable set, don't know "
+    if not os.getenv('GWDATAFIND_SERVER'):
+        raise RuntimeError("No GWDATAFIND_SERVER variable set, don't know "
                            "how to discover channels")
     else:
         LOGGER.debug("Identifying channels in frame files")
