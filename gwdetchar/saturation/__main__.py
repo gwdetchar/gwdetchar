@@ -20,6 +20,7 @@
 """
 
 import gwdatafind
+import numpy
 import os
 import sys
 
@@ -72,8 +73,10 @@ def create_parser():
     parser.add_argument(
         '-c',
         '--channels',
-        help='file containing columnar list of channels to process, '
-             'default is to find all relevant channels from frames',
+        help='file containing a columnar list of base channel names to '
+             'process, without _LIMIT, _LIMEN, _SWSTAT, or _OUTPUT '
+             'suffixes; default is to find all relevant channels from '
+             'frames',
     )
     parser.add_argument(
         '-s',
@@ -172,6 +175,16 @@ def main(args=None):
         LOGGER.debug("   Found %d channels" % len(allchannels))
         sys.stdout.flush()
         channels = core.find_limit_channels(allchannels, skip=args.skip)
+        if args.channels:
+            requested = set(numpy.loadtxt(
+                args.channels,
+                dtype=str,
+                ndmin=1,
+            ))
+            channels = tuple(
+                [channel for channel in group if channel in requested]
+                for group in channels
+            )
         LOGGER.info(
             "   Parsed %d channels with '_LIMIT' and '_LIMEN' or '_SWSTAT'"
             % sum(map(len, channels)))
@@ -187,6 +200,9 @@ def main(args=None):
     # check limens
     for suffix, clist in zip(['LIMEN', 'SWSTAT'], channels):
         nchans = len(clist)
+        if not nchans:
+            LOGGER.info('Processing 0 %s channels' % suffix)
+            continue
         # group channels in sets for batch processing
         #     min of <number of channels>, user group size (sensible number),
         #     and 512 Mb of RAM for single-precision EPICS
@@ -286,6 +302,7 @@ def main(args=None):
         page.div.close()
         # -- paramters
         content = [
+            ('Channels', args.channels or 'all relevant channels'),
             ('State end padding', args.pad_state_end),
             ('Skip', ', '.join(map(repr, args.skip)))]
         page.h2('Parameters', class_='mt-4 mb-4', id_='parameters')
