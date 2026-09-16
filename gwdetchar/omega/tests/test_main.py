@@ -149,12 +149,12 @@ K1_DATA = TimeSeriesDict({
         numpy.random.normal(loc=1, scale=.5, size=4096 * GPS * 2),
         sample_rate=4096,
         epoch=0,
-    ).zpk([], [0], 1).inject(SIGNAL),
+    ).zpk([], [0], 1, analog=True, filtfilt=False).inject(SIGNAL),
     "K1:AUX-HIGH_SIGNIFICANCE": TimeSeries(
         numpy.random.normal(loc=1, scale=.5, size=4096 * GPS * 2),
         sample_rate=4096,
         epoch=0,
-    ).zpk([], [0], 1).inject(SIGNAL),
+    ).zpk([], [0], 1, analog=True, filtfilt=False).inject(SIGNAL),
     "K1:AUX-LOW_SIGNIFICANCE": TimeSeries(
         numpy.random.normal(loc=1, scale=.5, size=4096 * GPS * 2),
         sample_rate=4096,
@@ -172,12 +172,12 @@ NETWORK_DATA = TimeSeriesDict({
         numpy.random.normal(loc=1, scale=.5, size=4096 * GPS * 2),
         sample_rate=4096,
         epoch=0,
-    ).zpk([], [0], 1).inject(SIGNAL),
+    ).zpk([], [0], 1, analog=True, filtfilt=False).inject(SIGNAL),
     "L1:GW-PRIMARY_CHANNEL": TimeSeries(
         numpy.random.normal(loc=1, scale=.5, size=4096 * GPS * 2),
         sample_rate=4096,
         epoch=0,
-    ).zpk([], [0], 1).inject(SIGNAL),
+    ).zpk([], [0], 1, analog=True, filtfilt=False).inject(SIGNAL),
 })
 
 

@@ -274,7 +274,7 @@ def write_summary(
     page : `~MarkupPy.markup.page`
         the formatted markup object containing the analysis summary table
     """
-    utc = tconvert(gpstime)
+    utc = tconvert(gpstime).strftime('%Y-%m-%d %H:%M:%S')
     page = markup.page()
     page.div(class_='banner')
     page.h2(header)
