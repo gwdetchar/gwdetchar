@@ -52,7 +52,7 @@ from matplotlib import (use, rcParams)
 use('Agg')
 
 # backend-dependent imports
-from matplotlib.cm import get_cmap  # noqa: E402
+from matplotlib import colormaps  # noqa: E402
 from gwpy.plot import Plot  # noqa: E402
 from . import plot as gwplot  # noqa: E402
 from ..utils.plot import texify  # noqa: E402
@@ -836,7 +836,7 @@ def main(args=None):
 
         times = primaryts.times.value
         xlim = primaryts.span
-        cmap = get_cmap('tab20')
+        cmap = colormaps['tab20']
         colors = [cmap(i) for i in numpy.linspace(0, 1, len(nonzerodata)+1)]
 
         plot = Plot(figsize=(12, 4))

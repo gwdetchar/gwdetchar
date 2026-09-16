@@ -36,9 +36,11 @@ __author__ = 'Alex Urban <alexander.urban@ligo.org>'
 
 FFTLENGTH = 8
 
+RNG = numpy.random.default_rng()
 NOISE = TimeSeries(
-    numpy.random.normal(loc=1, scale=.5, size=16384 * 68),
-    sample_rate=16384, epoch=-34).zpk([], [0], 1)
+    RNG.normal(loc=1, scale=.5, size=16384 * 68),
+    sample_rate=16384, epoch=-34)
+NOISE = NOISE.zpk([], [0], 1, analog=True, filtfilt=False)
 GLITCH = TimeSeries(
     signal.gausspulse(numpy.arange(-1, 1, 1./16384), bw=100),
     sample_rate=16384, epoch=-1) * 1e-4
@@ -79,6 +81,24 @@ def test_whiten():
     # test that the peak occurs at the expected time
     tmax = whitened.times[whitened.argmax()]
     assert tmax.value == 0
+
+
+def test_resample():
+    # resample the input
+    resample_fir = core.ts_resample(INPUT, 4096)
+    resample_iir = core.ts_resample(INPUT, 4096, ftype='iir')
+    resample_non_int = core.ts_resample(INPUT, 10000)  # non-integer resample
+    resample_gwpy = core.ts_resample(INPUT, 4096, use_gwpy=True)
+    no_resample = core.ts_resample(INPUT, 16384+1e-8)  # test no resampling
+    assert isinstance(resample_fir, TimeSeries)
+    assert isinstance(resample_iir, TimeSeries)
+    assert isinstance(resample_non_int, TimeSeries)
+    assert isinstance(resample_gwpy, TimeSeries)
+    assert resample_fir.sample_rate.value == 4096
+    assert resample_iir.sample_rate.value == 4096
+    assert resample_non_int.sample_rate.value == 10000
+    assert resample_gwpy.sample_rate.value == 4096
+    assert no_resample.sample_rate.value == 16384
 
 
 def test_conditioner():

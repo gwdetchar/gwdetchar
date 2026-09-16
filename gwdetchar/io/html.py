@@ -916,8 +916,10 @@ def parameter_table(content=[], start=None, end=None, flag=None,
     """
     # front-load time and flag info
     common = [
-        ('Start time (UTC)', '{0} ({1})'.format(from_gps(start), start)),
-        ('End time (UTC)', '{0} ({1})'.format(from_gps(end), end)),
+        ('Start time (UTC)',
+         f"{from_gps(start).strftime('%Y-%m-%d %H:%M:%S')} ({start})"),
+        ('End time (UTC)',
+         f"{from_gps(end).strftime('%Y-%m-%d %H:%M:%S')} ({end})"),
     ]
     if flag is not None:
         common.append(('State flag', markup.oneliner.code(flag)))

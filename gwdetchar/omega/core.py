@@ -19,7 +19,10 @@
 """Core utilities for implementing omega scans
 """
 
-from scipy.signal import butter
+from astropy import units
+import math
+from scipy.signal import butter, cheby1, firwin
+from scipy.signal import resample as scipy_resample
 
 from gwpy.segments import Segment
 from gwpy.signal.qtransform import q_scan
@@ -71,7 +74,7 @@ def highpass(series, f_low, order=12, analog=False, ftype='sos'):
     fs = series.sample_rate.to('Hz').value
     hpfilt = butter(order, corner, btype='highpass', analog=analog,
                     output=ftype, fs=fs)
-    hpseries = series.filter(hpfilt, filtfilt=True)
+    hpseries = series.filter(hpfilt, analog=analog, filtfilt=True)
     return hpseries
 
 
@@ -118,6 +121,90 @@ def whiten(series, fftlength, overlap=None, method='median', window='hann',
                          detrend=detrend, method=method).detrend(detrend)
 
 
+def ts_resample(xoft, rate, window='hamming', ftype='fir', n=None,
+                use_gwpy=False):
+    """Resample this Series to a new rate
+
+    This is a reimplementation of :func:`gwpy.timeseries.TimeSeries.resample`
+    from gwpy version 3. Gwpy version 4+ calls the scipy function
+    :func:`scipy.signal.resample` which returns subtly different results.
+    The essential difference is that calls to scipy.signal.resample use
+    :func:`scipy.signal.resample_poly` with the filter coefficients,
+    whereas gwpy version 3 calls :func:`scipy.signal.filtfilt` with the
+    filter coefficients.
+    It is unclear which version is preferred. Here we use the original
+    gwpy-3 implementation until it is clear which version is preferred.
+    The inherited code here can be skipped and use the upstream
+    :func:`gwpy.timeseries.TimeSeries.resample` function by specifying
+    `use_gwpy=True`.
+    TODO: determine if this function is needed
+
+    Parameters
+    ----------
+    xoft : `~gwpy.timeseries.TimeSeries`
+        Time series to resample
+
+    rate : `float`
+        rate to which to resample this `Series`
+
+    window : `str`, `numpy.ndarray`, optional
+        window function to apply to signal in the Fourier domain,
+        see :func:`scipy.signal.get_window` for details on acceptable
+        formats, only used for `ftype='fir'` or irregular downsampling
+
+    ftype : `str`, optional
+        type of filter, either 'fir' or 'iir', defaults to 'fir'
+
+    n : `int`, optional
+        if `ftype='fir'` the number of taps in the filter, otherwise
+        the order of the Chebyshev type I IIR filter
+
+    use_gwpy : `bool`, optional
+        directly use upstream gwpy method, ignoring this inherited gwpy-3 code
+
+    Returns
+    -------
+    Series
+        a new Series with the resampling applied, and the same
+        metadata
+    """
+    # Use the gwpy function skipping any custom code below
+    if use_gwpy:
+        return xoft.resample(rate, window=window, ftype=ftype, n=n)
+
+    if n is None and ftype == 'iir':
+        n = 8
+    elif n is None:
+        n = 60
+
+    if isinstance(rate, units.Quantity):
+        rate = rate.value
+    factor = (xoft.sample_rate.value / rate)
+    if math.isclose(factor, 1., rel_tol=1e-09, abs_tol=0.):
+        print(
+            "resample() rate matches current sample_rate ({}), returning "
+            "input data unmodified; please double-check your "
+            "parameters".format(xoft.sample_rate),
+        )
+        return xoft
+    # if integer down-sampling, use decimate
+    if factor.is_integer():
+        if ftype == 'iir':
+            filt = cheby1(n, 0.05, 0.8 / factor, output='zpk')
+        else:
+            filt = firwin(n + 1, 1. / factor, window=window)
+        return xoft.filter(filt, filtfilt=True)[::int(factor)]
+    # otherwise use Fourier filtering
+    else:
+        nsamp = int(xoft.shape[0] * xoft.dx.value * rate)
+        new = scipy_resample(xoft.value, nsamp,
+                             window=window).view(xoft.__class__)
+        new.__metadata_finalize__(xoft)
+        new._unit = xoft.unit
+        new.sample_rate = rate
+        return new
+
+
 # -- omega scans --------------------------------------------------------------
 
 def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
@@ -143,7 +230,8 @@ def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
         lower cutoff frequency (Hz) of the filter, default: ``None``
 
     **kwargs : `dict`, optional
-        additional arguments to :func:`highpass`
+        additional arguments first to :func:`ts_resample` and then
+        :func:`highpass`
 
     Returns
     -------
@@ -157,8 +245,9 @@ def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
     xoft : `~gwpy.timeseries.TimeSeries`
         original (possibly resampled) version of the input data
     """
+    use_gwpy_resample = kwargs.pop('use_gwpy', False)
     if resample:
-        xoft = xoft.resample(resample)
+        xoft = ts_resample(xoft, resample, use_gwpy=use_gwpy_resample)
     # get whitened and high-passed data streams
     if f_low is None:
         wxoft = whiten(xoft, fftlength, overlap=overlap)
