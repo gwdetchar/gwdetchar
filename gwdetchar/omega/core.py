@@ -42,7 +42,8 @@ def highpass(series, f_low, order=12, analog=False, ftype='sos'):
         the `TimeSeries` data to high-pass filter
 
     f_low : `float`
-        lower cutoff frequency (Hz) of the filter
+        lower cutoff frequency (Hz) of the filter; if zero, return an
+        unfiltered copy of ``series``
 
     order : `int`, optional
         number of taps in the filter, default: 12
@@ -63,13 +64,17 @@ def highpass(series, f_low, order=12, analog=False, ftype='sos'):
     Notes
     -----
     This utility designs a Butterworth filter of order `order` with corner
-    frequency `f_low / 1.5`, then applies this filter to the input.
+    frequency `f_low / 1.5`, then applies this filter to the input. If
+    `f_low` is zero, no filter is applied.
 
     See Also
     --------
     scipy.signal.butter
     gwpy.timeseries.TimeSeries.filter
     """
+    if f_low == 0:
+        return series.copy()
+
     corner = f_low / 1.5
     fs = series.sample_rate.to('Hz').value
     hpfilt = butter(order, corner, btype='highpass', analog=analog,
@@ -227,7 +232,9 @@ def conditioner(xoft, fftlength, overlap=None, resample=None, f_low=None,
         default: no resampling
 
     f_low : `float`, optional
-        lower cutoff frequency (Hz) of the filter, default: ``None``
+        lower cutoff frequency (Hz) of the filter, default: ``None``. A value
+        of zero skips high-pass filtering while preserving the three-value
+        return contract used when a cutoff is provided.
 
     **kwargs : `dict`, optional
         additional arguments first to :func:`ts_resample` and then
@@ -377,6 +384,12 @@ def scan(gps, channel, xoft, fftlength, resample=None, fthresh=1e-10,
         whitened `TimeSeries`, whitened `QGram`, high-passed `QGram`,
         interpolated whitened `Spectrogram`, and interpolated high-passed
         `Spectrogram`
+
+    Notes
+    -----
+    A zero lower bound in ``channel.frange`` disables high-pass filtering.
+    The Q-transform still selects its lowest supported positive analysis
+    frequency, so this setting does not add a DC bin to the spectrogram.
     """
     # condition data
     wxoft, hpxoft, xoft = conditioner(
